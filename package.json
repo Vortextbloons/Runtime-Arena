@@ -11,7 +11,7 @@
     "arena": "npm run arena --workspace=@runtime-arena/cli --",
     "build:cli": "npm run build --workspace=@runtime-arena/cli",
     "build:checker": "node scripts/build-checker.mjs",
-    "build:web": "npm run build --workspace=@runtime-arena/web",
+    "build:web": "npm run prepare-results && npm run build --workspace=@runtime-arena/web",
     "doctor": "npm run arena -- doctor",
     "verify-environment": "tsx scripts/verify-environment.ts",
     "prepare-results": "tsx scripts/prepare-results.ts",

@@ -74,6 +74,16 @@ npm run arena -- run --language rust --benchmark nbody --size medium
 npm run arena -- results latest
 ```
 
+Build the optional static results interface:
+
+```bash
+npm run build:web
+```
+
+This copies the current immutable result history into `web/static/results/` and
+prerenders the dashboard to `web/build/`. During development, run
+`npm run prepare-results` followed by `npm run dev --workspace=@runtime-arena/web`.
+
 Run automated checks:
 
 ```bash

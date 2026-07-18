@@ -21,6 +21,7 @@ const root = path.resolve(here, "../..");
 const require = createRequire(import.meta.url);
 const config = JSON.parse(await readFile(path.join(root, "arena.config.json"), "utf8")) as {
   benchmarkDirectory: string; languageDirectory: string; resultDirectory: string; checkerExecutable: string;
+  defaults: { sizes: string[]; warmupIterations: number; measuredIterations: number; metrics: string[] };
 };
 
 const json = async <T>(file: string): Promise<T> => JSON.parse(await readFile(file, "utf8")) as T;
@@ -43,15 +44,26 @@ async function discoverBenchmarks(): Promise<Benchmark[]> {
   return out;
 }
 
-function runProcess(command: string, args: string[], cwd = root, timeout = 30_000, env: Record<string, string> = {}): Promise<Proc> {
+function runProcess(command: string, args: string[], cwd = root, timeout = 30_000, env: Record<string, string> = {}, maxCapturedBytes = 10 * 1024 * 1024): Promise<Proc> {
   return new Promise(resolve => {
     const started = process.hrtime.bigint();
     let stdout = "", stderr = "", timedOut = false;
     const platformCommand = process.platform === "win32" && ["npm", "npx"].includes(command) ? `${command}.cmd` : command;
     const child = spawn(platformCommand, args, { cwd, env: { ...process.env, ...env }, windowsHide: true, shell: false });
     const timer = setTimeout(() => { timedOut = true; child.kill("SIGKILL"); }, timeout);
-    child.stdout.on("data", b => stdout += String(b));
-    child.stderr.on("data", b => stderr += String(b));
+    let capturedBytes = 0;
+    const capture = (target: "stdout" | "stderr", data: Buffer) => {
+      capturedBytes += data.byteLength;
+      if (capturedBytes > maxCapturedBytes) {
+        timedOut = true;
+        child.kill("SIGKILL");
+        stderr += "process output exceeded configured limit";
+        return;
+      }
+      if (target === "stdout") stdout += String(data); else stderr += String(data);
+    };
+    child.stdout.on("data", (b: Buffer) => capture("stdout", b));
+    child.stderr.on("data", (b: Buffer) => capture("stderr", b));
     child.on("error", e => stderr += e.message);
     child.on("close", code => {
       clearTimeout(timer);
@@ -111,6 +123,37 @@ async function doctor(): Promise<number> {
   const writable = await access(resultDir, constants.W_OK).then(() => true, () => false);
   console.log(`${"Results".padEnd(12)} ${writable ? "writable" : "not writable"}`);
   bad ||= !checkerOk || !writable;
+  const ajv = createAjv();
+  const languageSchema = await json<Record<string, unknown>>(path.join(root, "schemas", "language.schema.json"));
+  const benchmarkSchema = await json<Record<string, unknown>>(path.join(root, "schemas", "benchmark.schema.json"));
+  const validateLanguage = ajv.compile(languageSchema);
+  const validateBenchmark = ajv.compile(benchmarkSchema);
+  for (const language of await discoverLanguages()) {
+    if (!validateLanguage(language)) {
+      bad = true;
+      console.log(`${`Manifest ${language.id}`.padEnd(24)} invalid: ${ajv.errorsText(validateLanguage.errors)}`);
+    }
+  }
+  for (const benchmark of await discoverBenchmarks()) {
+    if (!validateBenchmark(benchmark)) {
+      bad = true;
+      console.log(`${`Manifest ${benchmark.id}`.padEnd(24)} invalid: ${ajv.errorsText(validateBenchmark.errors)}`);
+    }
+    for (const [size, settings] of Object.entries(benchmark.sizes)) {
+      const dataset = path.join(root, config.benchmarkDirectory, benchmark.id, "datasets", settings.dataset);
+      if (!await exists(dataset)) {
+        bad = true;
+        console.log(`${`Dataset ${benchmark.id}/${size}`.padEnd(24)} missing`);
+      }
+    }
+    for (const language of await discoverLanguages()) {
+      const implementation = path.join(root, config.benchmarkDirectory, benchmark.id, "implementations", language.id);
+      if (!await exists(implementation)) {
+        bad = true;
+        console.log(`${`Impl ${benchmark.id}/${language.id}`.padEnd(24)} missing`);
+      }
+    }
+  }
   return bad ? 1 : 0;
 }
 
@@ -185,9 +228,11 @@ async function runCommand(args: string[]) {
       const samples: Array<Record<string, unknown> & { valid: boolean; wallTimeNanoseconds: number }> = [];
       let lastChecker = { status: "checker-error", checkerVersion: "unknown", diagnostics: [] as string[] };
       for (let iteration = -warmups; iteration < iterations; iteration++) {
-        const output = path.join(tempRoot, `${benchmark.id}-${language.id}-${iteration}.json`);
+        const iterationDir = path.join(tempRoot, benchmark.id, language.id, String(iteration));
+        await mkdir(iterationDir, { recursive: true });
+        const output = path.join(iterationDir, "output.json");
         const vars = { projectRoot: root, benchmarkId: benchmark.id, benchmarkDir: path.join(root, "benchmarks", benchmark.id), implementationDir: build.implementationDir, inputFile: input, outputFile: output, artifact: build.artifact, runId, size: sizeName };
-        const p = await runProcess(expand(language.run.command, vars), language.run.arguments.map(x => expand(x, vars)), build.implementationDir, benchmark.limits.timeoutMilliseconds, language.environment);
+        const p = await runProcess(expand(language.run.command, vars), language.run.arguments.map(x => expand(x, vars)), iterationDir, benchmark.limits.timeoutMilliseconds, language.environment, benchmark.limits.maxOutputBytes);
         const outputSize = await exists(output) ? (await stat(output)).size : 0;
         lastChecker = p.code === 0 && outputSize <= benchmark.limits.maxOutputBytes
           ? await checkOutput(benchmark, input, output)
@@ -196,8 +241,8 @@ async function runCommand(args: string[]) {
       }
       results.push({
         benchmark: { id: benchmark.id, version: benchmark.version, size: sizeName },
-        dataset: { id: `${benchmark.id}-${sizeName}-${benchmark.version}`, sha256: datasetHash },
-        language: { id: language.id, name: language.name, version },
+        dataset: { id: `${benchmark.id}-${sizeName}-${benchmark.version}`, sha256: datasetHash, seed: 0, generatorVersion: "committed-fixture-1.0.0" },
+        language: { id: language.id, name: language.name, version, compilerFlags: language.build.arguments },
         build: { status: build.status, durationNanoseconds: build.durationNs, artifactSizeBytes: build.artifactSizeBytes, command: build.command },
         execution: {
           mode: "cold-process", warmupIterations: warmups, measuredIterations: iterations, samples, summary: summary(samples),
