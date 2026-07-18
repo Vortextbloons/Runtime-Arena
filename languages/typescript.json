@@ -9,8 +9,12 @@
   },
   "build": {
     "workingDirectory": "{implementationDir}",
-    "command": "npm",
-    "arguments": ["run", "build"],
+    "command": "node",
+    "arguments": [
+      "{projectRoot}/node_modules/typescript/bin/tsc",
+      "--project",
+      "tsconfig.json"
+    ],
     "artifact": "dist/index.js"
   },
   "run": {

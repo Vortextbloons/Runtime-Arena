@@ -1,0 +1,6 @@
+import{createHash}from"node:crypto";import{readFile,writeFile}from"node:fs/promises";const arg=(n:string)=>process.argv[process.argv.indexOf(n)+1]!;
+const rows=(await readFile(arg("--input"),"utf8")).trim().split(/\r?\n/).slice(1);let totalQuantity=0,totalValueMinorUnits=0,min=Number.MAX_SAFE_INTEGER,max=0;const cm=new Map<string,{quantity:number,valueMinorUnits:number}>(),am=new Map<string,number>();
+for(const row of rows){const[,a,c,qs,ps]=row.split(",")as[string,string,string,string,string],q=Number(qs),v=q*Number(ps);totalQuantity+=q;totalValueMinorUnits+=v;min=Math.min(min,v);max=Math.max(max,v);const x=cm.get(c)??{quantity:0,valueMinorUnits:0};x.quantity+=q;x.valueMinorUnits+=v;cm.set(c,x);am.set(a,(am.get(a)??0)+v)}
+const categories=[...cm].sort(([a],[b])=>a.localeCompare(b)).map(([category,x])=>({category,...x}));const topAccounts=[...am].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,10).map(([accountId,valueMinorUnits])=>({accountId,valueMinorUnits}));
+const checksum=createHash("sha256").update(JSON.stringify({Categories:categories,TopAccounts:topAccounts})+"\n").digest("hex");
+await writeFile(arg("--output"),JSON.stringify({benchmark:"aggregation",version:1,recordCount:rows.length,totalQuantity,totalValueMinorUnits,categories,topAccounts,minimumTransactionMinorUnits:min,maximumTransactionMinorUnits:max,checksum}));

@@ -1,0 +1,5 @@
+import{readFile,writeFile}from"node:fs/promises";const arg=(n:string)=>process.argv[process.argv.indexOf(n)+1]!;
+type Edge={from:number;to:number;weight:number};type Query={id:number;source:number;destination:number};const g=JSON.parse(await readFile(arg("--input"),"utf8"))as{vertexCount:number;edges:Edge[];queries:Query[]};
+const adj=Array.from({length:g.vertexCount},()=>[]as Edge[]);for(const e of g.edges)adj[e.from]!.push(e);
+const results=g.queries.map(q=>{const d=Array(g.vertexCount).fill(Infinity),prev=Array<number>(g.vertexCount).fill(-1),used=Array(g.vertexCount).fill(false);d[q.source]=0;for(;;){let u=-1;for(let i=0;i<g.vertexCount;i++)if(!used[i]&&(u<0||d[i]<d[u]))u=i;if(u<0||d[u]===Infinity)break;used[u]=true;for(const e of adj[u]!)if(d[u]+e.weight<d[e.to]){d[e.to]=d[u]+e.weight;prev[e.to]=u}}if(d[q.destination]===Infinity)return{queryId:q.id,distance:null,path:[]};const path=[];for(let x=q.destination;x>=0;x=prev[x]!)path.push(x);path.reverse();return{queryId:q.id,distance:d[q.destination],path}});
+await writeFile(arg("--output"),JSON.stringify({benchmark:"shortest-path",version:1,results}));
