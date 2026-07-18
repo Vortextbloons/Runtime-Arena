@@ -4,6 +4,8 @@ export type Sample = {
 	wallTimeNanoseconds: number;
 	exitCode: number;
 	outputSizeBytes: number;
+	peakMemoryBytes?: number;
+	cpuTimeNanoseconds?: number;
 };
 
 export type ArenaResult = {

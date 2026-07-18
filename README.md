@@ -60,7 +60,7 @@ npm run build:checker
 arena doctor
 arena list languages
 arena list benchmarks
-arena run --size small
+arena run
 arena results latest
 ```
 
@@ -74,6 +74,13 @@ npm run arena -- run --language rust --benchmark nbody --size medium
 npm run arena -- results latest
 ```
 
+With no `--size` flag, `arena run` executes every configured default size.
+Generate a deterministic replacement dataset and its hash metadata with:
+
+```bash
+npm run arena -- dataset generate --benchmark shortest-path --size large --seed 729418
+```
+
 Build the optional static results interface:
 
 ```bash
@@ -83,6 +90,7 @@ npm run build:web
 This copies the current immutable result history into `web/static/results/` and
 prerenders the dashboard to `web/build/`. During development, run
 `npm run prepare-results` followed by `npm run dev --workspace=@runtime-arena/web`.
+After building, `npm run arena -- web` serves the static interface locally.
 
 Run automated checks:
 

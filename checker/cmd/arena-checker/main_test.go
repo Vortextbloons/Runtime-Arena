@@ -59,3 +59,14 @@ func TestStrictJSONRejectsUnknownFields(t *testing.T) {
 		t.Fatal("unknown field was accepted")
 	}
 }
+
+func TestStrictJSONRejectsDuplicateFields(t *testing.T) {
+	file := filepath.Join(t.TempDir(), "output.json")
+	if err := os.WriteFile(file, []byte(`{"benchmark":"nbody","benchmark":"nbody","version":1,"bodyCount":1,"finalEnergy":0,"positionChecksum":"x","velocityChecksum":"y"}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	var output nbodyOutput
+	if err := strictJSON(file, &output); err == nil {
+		t.Fatal("duplicate field was accepted")
+	}
+}

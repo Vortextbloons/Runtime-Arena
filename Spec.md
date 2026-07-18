@@ -1471,7 +1471,9 @@ metrics are explicitly reported as unavailable where the host process APIs canno
 portable per-child measurements; unsupported metrics do not invalidate a run, as required
 by section 13.
 
-The SvelteKit interface may be included in `0.1.0`, but it is not required for the CLI benchmark workflow to be complete.
+The SvelteKit interface is included in `0.1.0` as a statically prerendered,
+read-only visualization of generated result files. It remains independent from
+the CLI benchmark workflow.
 
 ---
 

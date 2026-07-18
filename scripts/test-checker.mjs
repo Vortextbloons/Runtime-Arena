@@ -1,13 +1,15 @@
+import { mkdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import process from "node:process";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const output = path.join(root, "bin", process.platform === "win32" ? "arena-checker.exe" : "arena-checker");
-const result = spawnSync("go", ["build", "-o", output, "./cmd/arena-checker"], {
+const cache = path.join(root, ".arena", "go-test-cache");
+mkdirSync(cache, { recursive: true });
+const result = spawnSync("go", ["test", "./..."], {
   cwd: path.join(root, "checker"),
-  env: { ...process.env, GOCACHE: path.join(root, ".arena", "go-checker-cache") },
+  env: { ...process.env, GOCACHE: cache },
   stdio: "inherit",
   windowsHide: true,
   shell: false

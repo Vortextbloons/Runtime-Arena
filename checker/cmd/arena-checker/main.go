@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"container/heap"
 	"crypto/sha256"
 	"encoding/csv"
@@ -46,18 +47,78 @@ func finish(status, benchmark string, err error) {
 	}
 }
 func strictJSON(file string, v any) error {
-	f, err := os.Open(file)
+	data, err := os.ReadFile(file)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-	d := json.NewDecoder(io.LimitReader(f, 10*1024*1024+1))
+	if len(data) > 10*1024*1024 {
+		return errors.New("JSON exceeds 10 MiB limit")
+	}
+	if err = rejectDuplicateKeys(data); err != nil {
+		return err
+	}
+	d := json.NewDecoder(bytes.NewReader(data))
 	d.DisallowUnknownFields()
 	if err = d.Decode(v); err != nil {
 		return err
 	}
 	var extra any
 	if d.Decode(&extra) != io.EOF {
+		return errors.New("trailing JSON content")
+	}
+	return nil
+}
+
+func rejectDuplicateKeys(data []byte) error {
+	d := json.NewDecoder(bytes.NewReader(data))
+	var visit func() error
+	visit = func() error {
+		token, err := d.Token()
+		if err != nil {
+			return err
+		}
+		delim, ok := token.(json.Delim)
+		if !ok {
+			return nil
+		}
+		switch delim {
+		case '{':
+			seen := map[string]bool{}
+			for d.More() {
+				keyToken, err := d.Token()
+				if err != nil {
+					return err
+				}
+				key, ok := keyToken.(string)
+				if !ok {
+					return errors.New("object key is not a string")
+				}
+				if seen[key] {
+					return fmt.Errorf("duplicate JSON field %q", key)
+				}
+				seen[key] = true
+				if err := visit(); err != nil {
+					return err
+				}
+			}
+			_, err = d.Token()
+			return err
+		case '[':
+			for d.More() {
+				if err := visit(); err != nil {
+					return err
+				}
+			}
+			_, err = d.Token()
+			return err
+		default:
+			return errors.New("unexpected JSON delimiter")
+		}
+	}
+	if err := visit(); err != nil {
+		return err
+	}
+	if d.More() {
 		return errors.New("trailing JSON content")
 	}
 	return nil
@@ -350,6 +411,9 @@ func main() {
 		if err = strictJSON(*output, &out); err != nil {
 			status = "malformed-output"
 		} else {
+			if out.Version != 1 {
+				finish("unsupported-version", *benchmark, fmt.Errorf("unsupported nbody output version %d", out.Version))
+			}
 			want := simulate(in)
 			if out.Benchmark != "nbody" || out.Version != 1 || out.BodyCount != want.BodyCount || math.Abs(out.FinalEnergy-want.FinalEnergy) > 1e-8 || out.PositionChecksum != want.PositionChecksum || out.VelocityChecksum != want.VelocityChecksum {
 				err = errors.New("nbody result mismatch")
@@ -364,6 +428,9 @@ func main() {
 		if err = strictJSON(*output, &out); err != nil {
 			status = "malformed-output"
 		} else {
+			if out.Version != 1 {
+				finish("unsupported-version", *benchmark, fmt.Errorf("unsupported shortest-path output version %d", out.Version))
+			}
 			err = checkPaths(in, out)
 		}
 	case "aggregation":
@@ -372,6 +439,9 @@ func main() {
 		if err = strictJSON(*output, &out); err != nil {
 			status = "malformed-output"
 		} else {
+			if out.Version != 1 {
+				finish("unsupported-version", *benchmark, fmt.Errorf("unsupported aggregation output version %d", out.Version))
+			}
 			want, err = aggregate(*input)
 			if err != nil {
 				finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))

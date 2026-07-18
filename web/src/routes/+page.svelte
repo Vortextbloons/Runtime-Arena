@@ -2,14 +2,24 @@
 	import type { ArenaResult } from '$lib/types';
 	let { data } = $props();
 	let benchmark = $state('all');
-	let sort = $state<'time' | 'language'>('time');
+	let language = $state('all');
+	let size = $state('all');
+	let sort = $state<'time' | 'memory' | 'language'>('time');
 	const benchmarks = $derived(data.run ? [...new Set(data.run.results.map((r: ArenaResult) => r.benchmark.id))] : []);
+	const languages = $derived(data.run ? [...new Set(data.run.results.map((r: ArenaResult) => r.language.id))] : []);
+	const sizes = $derived(data.run ? [...new Set(data.run.results.map((r: ArenaResult) => r.benchmark.size))] : []);
 	const visible = $derived.by(() => {
 		if (!data.run) return [];
-		const rows = data.run.results.filter((r: ArenaResult) => benchmark === 'all' || r.benchmark.id === benchmark);
+		const rows = data.run.results.filter((r: ArenaResult) =>
+			(benchmark === 'all' || r.benchmark.id === benchmark) &&
+			(language === 'all' || r.language.id === language) &&
+			(size === 'all' || r.benchmark.size === size)
+		);
 		return rows.toSorted((a: ArenaResult, b: ArenaResult) =>
 			sort === 'time'
 				? a.execution.summary.medianWallTimeNanoseconds - b.execution.summary.medianWallTimeNanoseconds
+				: sort === 'memory'
+					? (a.execution.samples[0]?.peakMemoryBytes ?? Number.POSITIVE_INFINITY) - (b.execution.samples[0]?.peakMemoryBytes ?? Number.POSITIVE_INFINITY)
 				: a.language.name.localeCompare(b.language.name)
 		);
 	});
@@ -44,7 +54,20 @@
 			<label>Order
 				<select bind:value={sort}>
 					<option value="time">Fastest first</option>
+					<option value="memory">Lowest memory first</option>
 					<option value="language">Language</option>
+				</select>
+			</label>
+			<label>Language
+				<select bind:value={language}>
+					<option value="all">All languages</option>
+					{#each languages as item (item)}<option value={item}>{item}</option>{/each}
+				</select>
+			</label>
+			<label>Size
+				<select bind:value={size}>
+					<option value="all">All sizes</option>
+					{#each sizes as item (item)}<option value={item}>{item}</option>{/each}
 				</select>
 			</label>
 			<p><strong>{accepted}/{visible.length}</strong> accepted</p>

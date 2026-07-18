@@ -32,6 +32,9 @@
     "gitCommit": {
       "type": ["string", "null"]
     },
+    "gitDirty": {
+      "type": ["boolean", "null"]
+    },
     "command": {
       "type": "array",
       "items": {

@@ -1,10 +1,10 @@
-<script lang="ts">let { data } = $props();</script>
+<script lang="ts">import { resolve } from '$app/paths'; let { data } = $props();</script>
 <svelte:head><title>Runs · Runtime Arena</title></svelte:head>
 <section>
 	<p class="eyebrow">Immutable history</p><h1>Runs</h1>
 	<div class="list">
 		{#each data.index.runs as run (run.runId)}
-			<article><time datetime={run.createdAt}>{new Date(run.createdAt).toLocaleString()}</time><strong>{run.runId}</strong><span>{run.benchmarks.join(', ')}</span><span>{run.languages.join(' · ')}</span></article>
+			<article><time datetime={run.createdAt}>{new Date(run.createdAt).toLocaleString()}</time><strong><a href={resolve(`/runs/${run.runId}`)}>{run.runId}</a></strong><span>{run.benchmarks.join(', ')}</span><span>{run.languages.join(' · ')}</span></article>
 		{:else}<p>No saved runs. Run <code>npm run arena -- run</code>.</p>{/each}
 	</div>
 </section>
