@@ -2,11 +2,13 @@
 
 Extensible cross-language benchmarking system for comparing programming language implementations under identical workloads.
 
-**Version:** 0.1.0 (scaffolding)
+**Version:** 0.1.0
 
 ## Status
 
-Project layout, manifests, schemas, and package configuration are in place. Application source (CLI, checker, implementations, datasets, web UI) is not implemented yet.
+The command-line benchmark workflow is implemented for Rust, Go, and TypeScript across all three initial benchmarks. It includes deterministic datasets, independent Go validation, result-schema validation, terminal rankings, and immutable JSON run history.
+
+The SvelteKit web interface remains optional scaffolding and is not required for benchmark execution.
 
 ## Structure
 
@@ -45,24 +47,39 @@ Aligned to the local toolchain used for development:
 npm install
 ```
 
-Build the checker once source exists:
+Build the CLI and checker:
 
 ```bash
+npm run build:cli
 npm run build:checker
 ```
 
-## Planned CLI
+## CLI
 
 ```bash
 arena doctor
 arena list languages
 arena list benchmarks
-arena run
+arena run --size small
 arena results latest
-arena web
 ```
 
 The CLI is the primary product. The web UI only reads generated JSON and is optional.
+
+Use npm scripts without a globally linked executable:
+
+```bash
+npm run doctor
+npm run arena -- run --language rust --benchmark nbody --size medium
+npm run arena -- results latest
+```
+
+Run automated checks:
+
+```bash
+npm test
+cd checker && go test ./...
+```
 
 ## Extending
 

@@ -1,4 +1,31 @@
 {
   "schemaVersion": "1.0.0",
-  "runs": []
+  "runs": [
+    {
+      "runId": "2026-07-18T22-37-08Z",
+      "createdAt": "2026-07-18T22:37:08.209Z",
+      "path": "runs/2026-07-18T22-37-08Z.json",
+      "benchmarks": [
+        "aggregation",
+        "nbody",
+        "shortest-path"
+      ],
+      "languages": [
+        "go",
+        "rust",
+        "typescript"
+      ]
+    },
+    {
+      "runId": "2026-07-18T22-30-47Z",
+      "createdAt": "2026-07-18T22:30:47.333Z",
+      "path": "runs/2026-07-18T22-30-47Z.json",
+      "benchmarks": [
+        "nbody"
+      ],
+      "languages": [
+        "go"
+      ]
+    }
+  ]
 }

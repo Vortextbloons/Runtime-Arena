@@ -1435,7 +1435,7 @@ Version `0.1.0` should include:
 
 ### Scaffolding (repository layout)
 
-Already established in the repository:
+Established in the repository:
 
 * npm workspaces root (`package.json`, `arena.config.json`)
 * `cli/` package skeleton and TypeScript config
@@ -1449,18 +1449,27 @@ Already established in the repository:
 
 ### Implementation (required for `0.1.0` completion)
 
+Implemented:
+
 * TypeScript CLI (`arena` executable behavior)
 * Go checker (`arena-checker`)
-* Language implementations for each initial benchmark
-* Small, medium, and large datasets (or deterministic generators)
-* Terminal result tables
-* JSON result generation
+* Rust, Go, and TypeScript implementations for each initial benchmark
+* Small, medium, and large deterministic datasets
+* Terminal result tables and relative rankings
+* JSON result generation with schema validation
 * Immutable run history updates
 * `arena doctor`
 * `arena list`
+* `arena build`
 * `arena run`
+* `arena check`
 * `arena results`
-* Unit and integration tests
+* CLI and checker unit tests plus end-to-end acceptance coverage
+
+Wall-clock timing is portable and available on every platform. CPU-time and peak-memory
+metrics are explicitly reported as unavailable where the host process APIs cannot provide
+portable per-child measurements; unsupported metrics do not invalidate a run, as required
+by section 13.
 
 The SvelteKit interface may be included in `0.1.0`, but it is not required for the CLI benchmark workflow to be complete.
 

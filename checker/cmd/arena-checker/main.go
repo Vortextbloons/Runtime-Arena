@@ -20,95 +20,375 @@ import (
 const version = "1.0.0"
 
 type response struct {
-	Status string `json:"status"`
-	Benchmark string `json:"benchmark"`
-	CheckerVersion string `json:"checkerVersion"`
-	Diagnostics []string `json:"diagnostics"`
+	Status         string   `json:"status"`
+	Benchmark      string   `json:"benchmark"`
+	CheckerVersion string   `json:"checkerVersion"`
+	Diagnostics    []string `json:"diagnostics"`
 }
+
 func finish(status, benchmark string, err error) {
 	r := response{status, benchmark, version, []string{}}
-	if err != nil { r.Diagnostics = []string{err.Error()} }
+	if err != nil {
+		r.Diagnostics = []string{err.Error()}
+	}
 	json.NewEncoder(os.Stdout).Encode(r)
-	switch status { case "accepted": os.Exit(0); case "wrong-answer": os.Exit(1); case "malformed-output": os.Exit(2); case "unsupported-version": os.Exit(3); default: os.Exit(4) }
+	switch status {
+	case "accepted":
+		os.Exit(0)
+	case "wrong-answer":
+		os.Exit(1)
+	case "malformed-output":
+		os.Exit(2)
+	case "unsupported-version":
+		os.Exit(3)
+	default:
+		os.Exit(4)
+	}
 }
 func strictJSON(file string, v any) error {
-	f, err := os.Open(file); if err != nil { return err }; defer f.Close()
-	d := json.NewDecoder(io.LimitReader(f, 10*1024*1024+1)); d.DisallowUnknownFields()
-	if err = d.Decode(v); err != nil { return err }
+	f, err := os.Open(file)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	d := json.NewDecoder(io.LimitReader(f, 10*1024*1024+1))
+	d.DisallowUnknownFields()
+	if err = d.Decode(v); err != nil {
+		return err
+	}
 	var extra any
-	if d.Decode(&extra) != io.EOF { return errors.New("trailing JSON content") }
+	if d.Decode(&extra) != io.EOF {
+		return errors.New("trailing JSON content")
+	}
 	return nil
 }
 
-type body struct { Mass float64 `json:"mass"`; Position [3]float64 `json:"position"`; Velocity [3]float64 `json:"velocity"` }
-type nbodyInput struct { Steps int `json:"steps"`; DeltaTime float64 `json:"deltaTime"`; Bodies []body `json:"bodies"` }
-type nbodyOutput struct { Benchmark string `json:"benchmark"`; Version int `json:"version"`; BodyCount int `json:"bodyCount"`; FinalEnergy float64 `json:"finalEnergy"`; PositionChecksum string `json:"positionChecksum"`; VelocityChecksum string `json:"velocityChecksum"` }
+type body struct {
+	Mass     float64    `json:"mass"`
+	Position [3]float64 `json:"position"`
+	Velocity [3]float64 `json:"velocity"`
+}
+type nbodyInput struct {
+	Steps     int     `json:"steps"`
+	DeltaTime float64 `json:"deltaTime"`
+	Bodies    []body  `json:"bodies"`
+}
+type nbodyOutput struct {
+	Benchmark        string  `json:"benchmark"`
+	Version          int     `json:"version"`
+	BodyCount        int     `json:"bodyCount"`
+	FinalEnergy      float64 `json:"finalEnergy"`
+	PositionChecksum string  `json:"positionChecksum"`
+	VelocityChecksum string  `json:"velocityChecksum"`
+}
+
 func simulate(in nbodyInput) nbodyOutput {
 	b := append([]body(nil), in.Bodies...)
 	for step := 0; step < in.Steps; step++ {
-		for i := 0; i < len(b); i++ { for j := i+1; j < len(b); j++ {
-			var d [3]float64; var r2 float64
-			for k:=0;k<3;k++ { d[k]=b[j].Position[k]-b[i].Position[k]; r2 += d[k]*d[k] }
-			mag := in.DeltaTime/(r2*math.Sqrt(r2))
-			for k:=0;k<3;k++ { b[i].Velocity[k]+=d[k]*b[j].Mass*mag; b[j].Velocity[k]-=d[k]*b[i].Mass*mag }
-		}}
-		for i:=range b { for k:=0;k<3;k++ { b[i].Position[k]+=in.DeltaTime*b[i].Velocity[k] } }
+		for i := 0; i < len(b); i++ {
+			for j := i + 1; j < len(b); j++ {
+				var d [3]float64
+				var r2 float64
+				for k := 0; k < 3; k++ {
+					d[k] = b[j].Position[k] - b[i].Position[k]
+					r2 += d[k] * d[k]
+				}
+				mag := in.DeltaTime / (r2 * math.Sqrt(r2))
+				for k := 0; k < 3; k++ {
+					b[i].Velocity[k] += d[k] * b[j].Mass * mag
+					b[j].Velocity[k] -= d[k] * b[i].Mass * mag
+				}
+			}
+		}
+		for i := range b {
+			for k := 0; k < 3; k++ {
+				b[i].Position[k] += in.DeltaTime * b[i].Velocity[k]
+			}
+		}
 	}
 	var energy float64
-	for i:=range b { var v2 float64; for k:=0;k<3;k++ { v2 += b[i].Velocity[k]*b[i].Velocity[k] }; energy += .5*b[i].Mass*v2
-		for j:=i+1;j<len(b);j++ { var r2 float64; for k:=0;k<3;k++ { d:=b[i].Position[k]-b[j].Position[k]; r2+=d*d }; energy -= b[i].Mass*b[j].Mass/math.Sqrt(r2) }
+	for i := range b {
+		var v2 float64
+		for k := 0; k < 3; k++ {
+			v2 += b[i].Velocity[k] * b[i].Velocity[k]
+		}
+		energy += .5 * b[i].Mass * v2
+		for j := i + 1; j < len(b); j++ {
+			var r2 float64
+			for k := 0; k < 3; k++ {
+				d := b[i].Position[k] - b[j].Position[k]
+				r2 += d * d
+			}
+			energy -= b[i].Mass * b[j].Mass / math.Sqrt(r2)
+		}
 	}
 	pos, vel := sha256.New(), sha256.New()
-	for _, x := range b { for k:=0;k<3;k++ { fmt.Fprintf(pos, "%.9f,", x.Position[k]); fmt.Fprintf(vel, "%.9f,", x.Velocity[k]) } }
-	return nbodyOutput{"nbody",1,len(b),energy,hex.EncodeToString(pos.Sum(nil)),hex.EncodeToString(vel.Sum(nil))}
+	for _, x := range b {
+		for k := 0; k < 3; k++ {
+			fmt.Fprintf(pos, "%.9f,", x.Position[k])
+			fmt.Fprintf(vel, "%.9f,", x.Velocity[k])
+		}
+	}
+	return nbodyOutput{"nbody", 1, len(b), energy, hex.EncodeToString(pos.Sum(nil)), hex.EncodeToString(vel.Sum(nil))}
 }
 
-type edge struct { From int `json:"from"`; To int `json:"to"`; Weight int64 `json:"weight"` }
-type query struct { ID int `json:"id"`; Source int `json:"source"`; Destination int `json:"destination"` }
-type graphInput struct { VertexCount int `json:"vertexCount"`; Edges []edge `json:"edges"`; Queries []query `json:"queries"` }
-type pathResult struct { QueryID int `json:"queryId"`; Distance *int64 `json:"distance"`; Path []int `json:"path"` }
-type pathOutput struct { Benchmark string `json:"benchmark"`; Version int `json:"version"`; Results []pathResult `json:"results"` }
-type item struct { node int; dist int64 }; type pq []item
-func (p pq) Len()int{return len(p)}; func(p pq)Less(i,j int)bool{return p[i].dist<p[j].dist}; func(p pq)Swap(i,j int){p[i],p[j]=p[j],p[i]}
-func(p *pq)Push(x any){*p=append(*p,x.(item))}; func(p *pq)Pop()any{o:=*p;x:=o[len(o)-1];*p=o[:len(o)-1];return x}
+type edge struct {
+	From   int   `json:"from"`
+	To     int   `json:"to"`
+	Weight int64 `json:"weight"`
+}
+type query struct {
+	ID          int `json:"id"`
+	Source      int `json:"source"`
+	Destination int `json:"destination"`
+}
+type graphInput struct {
+	VertexCount int     `json:"vertexCount"`
+	Edges       []edge  `json:"edges"`
+	Queries     []query `json:"queries"`
+}
+type pathResult struct {
+	QueryID  int    `json:"queryId"`
+	Distance *int64 `json:"distance"`
+	Path     []int  `json:"path"`
+}
+type pathOutput struct {
+	Benchmark string       `json:"benchmark"`
+	Version   int          `json:"version"`
+	Results   []pathResult `json:"results"`
+}
+type item struct {
+	node int
+	dist int64
+}
+type pq []item
+
+func (p pq) Len() int           { return len(p) }
+func (p pq) Less(i, j int) bool { return p[i].dist < p[j].dist }
+func (p pq) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p *pq) Push(x any)        { *p = append(*p, x.(item)) }
+func (p *pq) Pop() any          { o := *p; x := o[len(o)-1]; *p = o[:len(o)-1]; return x }
 func shortest(g graphInput, q query) *int64 {
-	adj:=make([][]edge,g.VertexCount); for _,e:=range g.Edges { if e.From>=0&&e.From<g.VertexCount { adj[e.From]=append(adj[e.From],e) } }
-	const inf=int64(math.MaxInt64); d:=make([]int64,g.VertexCount); for i:=range d { d[i]=inf }; d[q.Source]=0
-	h:=&pq{{q.Source,0}}; heap.Init(h)
-	for h.Len()>0 { x:=heap.Pop(h).(item); if x.dist!=d[x.node]{continue}; if x.node==q.Destination{return &x.dist}; for _,e:=range adj[x.node] { nd:=x.dist+e.Weight;if nd<d[e.To]{d[e.To]=nd;heap.Push(h,item{e.To,nd})} } }
+	adj := make([][]edge, g.VertexCount)
+	for _, e := range g.Edges {
+		if e.From >= 0 && e.From < g.VertexCount {
+			adj[e.From] = append(adj[e.From], e)
+		}
+	}
+	const inf = int64(math.MaxInt64)
+	d := make([]int64, g.VertexCount)
+	for i := range d {
+		d[i] = inf
+	}
+	d[q.Source] = 0
+	h := &pq{{q.Source, 0}}
+	heap.Init(h)
+	for h.Len() > 0 {
+		x := heap.Pop(h).(item)
+		if x.dist != d[x.node] {
+			continue
+		}
+		if x.node == q.Destination {
+			return &x.dist
+		}
+		for _, e := range adj[x.node] {
+			nd := x.dist + e.Weight
+			if nd < d[e.To] {
+				d[e.To] = nd
+				heap.Push(h, item{e.To, nd})
+			}
+		}
+	}
 	return nil
 }
 func checkPaths(in graphInput, out pathOutput) error {
-	if out.Benchmark!="shortest-path"||out.Version!=1||len(out.Results)!=len(in.Queries){return errors.New("invalid header or result count")}
-	edges:=map[[2]int]int64{};for _,e:=range in.Edges{edges[[2]int{e.From,e.To}]=e.Weight}
-	for i,q:=range in.Queries { r:=out.Results[i]; if r.QueryID!=q.ID{return fmt.Errorf("query %d id mismatch",q.ID)}; expected:=shortest(in,q)
-		if expected==nil {if r.Distance!=nil||len(r.Path)!=0{return fmt.Errorf("query %d should be unreachable",q.ID)};continue}
-		if r.Distance==nil||*r.Distance!=*expected{return fmt.Errorf("query %d is not optimal",q.ID)}
-		if len(r.Path)==0||r.Path[0]!=q.Source||r.Path[len(r.Path)-1]!=q.Destination{return fmt.Errorf("query %d path endpoints invalid",q.ID)}
-		var cost int64;for j:=1;j<len(r.Path);j++{w,ok:=edges[[2]int{r.Path[j-1],r.Path[j]}];if !ok{return fmt.Errorf("query %d uses missing edge",q.ID)};cost+=w};if cost!=*r.Distance{return fmt.Errorf("query %d path cost mismatch",q.ID)}
-	};return nil
+	if out.Benchmark != "shortest-path" || out.Version != 1 || len(out.Results) != len(in.Queries) {
+		return errors.New("invalid header or result count")
+	}
+	edges := map[[2]int]int64{}
+	for _, e := range in.Edges {
+		edges[[2]int{e.From, e.To}] = e.Weight
+	}
+	for i, q := range in.Queries {
+		r := out.Results[i]
+		if r.QueryID != q.ID {
+			return fmt.Errorf("query %d id mismatch", q.ID)
+		}
+		expected := shortest(in, q)
+		if expected == nil {
+			if r.Distance != nil || len(r.Path) != 0 {
+				return fmt.Errorf("query %d should be unreachable", q.ID)
+			}
+			continue
+		}
+		if r.Distance == nil || *r.Distance != *expected {
+			return fmt.Errorf("query %d is not optimal", q.ID)
+		}
+		if len(r.Path) == 0 || r.Path[0] != q.Source || r.Path[len(r.Path)-1] != q.Destination {
+			return fmt.Errorf("query %d path endpoints invalid", q.ID)
+		}
+		var cost int64
+		for j := 1; j < len(r.Path); j++ {
+			w, ok := edges[[2]int{r.Path[j-1], r.Path[j]}]
+			if !ok {
+				return fmt.Errorf("query %d uses missing edge", q.ID)
+			}
+			cost += w
+		}
+		if cost != *r.Distance {
+			return fmt.Errorf("query %d path cost mismatch", q.ID)
+		}
+	}
+	return nil
 }
 
-type category struct { Category string `json:"category"`; Quantity int64 `json:"quantity"`; ValueMinorUnits int64 `json:"valueMinorUnits"` }
-type account struct { AccountID string `json:"accountId"`; ValueMinorUnits int64 `json:"valueMinorUnits"` }
-type aggregation struct { Benchmark string `json:"benchmark"`; Version int `json:"version"`; RecordCount int64 `json:"recordCount"`; TotalQuantity int64 `json:"totalQuantity"`; TotalValueMinorUnits int64 `json:"totalValueMinorUnits"`; Categories []category `json:"categories"`; TopAccounts []account `json:"topAccounts"`; MinimumTransactionMinorUnits int64 `json:"minimumTransactionMinorUnits"`; MaximumTransactionMinorUnits int64 `json:"maximumTransactionMinorUnits"`; Checksum string `json:"checksum"` }
-func aggregate(file string)(aggregation,error){
-	f,e:=os.Open(file);if e!=nil{return aggregation{},e};defer f.Close();r:=csv.NewReader(bufio.NewReader(f));if _,e=r.Read();e!=nil{return aggregation{},e}
-	cats:=map[string]category{};acc:=map[string]int64{};o:=aggregation{Benchmark:"aggregation",Version:1,MinimumTransactionMinorUnits:math.MaxInt64}
-	for { row,e:=r.Read();if e==io.EOF{break};if e!=nil{return o,e};q,_:=strconv.ParseInt(row[3],10,64);price,_:=strconv.ParseInt(row[4],10,64);v:=q*price;o.RecordCount++;o.TotalQuantity+=q;o.TotalValueMinorUnits+=v;if v<o.MinimumTransactionMinorUnits{o.MinimumTransactionMinorUnits=v};if v>o.MaximumTransactionMinorUnits{o.MaximumTransactionMinorUnits=v};c:=cats[row[2]];c.Category=row[2];c.Quantity+=q;c.ValueMinorUnits+=v;cats[row[2]]=c;acc[row[1]]+=v}
-	for _,c:=range cats{o.Categories=append(o.Categories,c)};sort.Slice(o.Categories,func(i,j int)bool{return o.Categories[i].Category<o.Categories[j].Category})
-	for id,v:=range acc{o.TopAccounts=append(o.TopAccounts,account{id,v})};sort.Slice(o.TopAccounts,func(i,j int)bool{if o.TopAccounts[i].ValueMinorUnits==o.TopAccounts[j].ValueMinorUnits{return o.TopAccounts[i].AccountID<o.TopAccounts[j].AccountID};return o.TopAccounts[i].ValueMinorUnits>o.TopAccounts[j].ValueMinorUnits});if len(o.TopAccounts)>10{o.TopAccounts=o.TopAccounts[:10]}
-	h:=sha256.New();json.NewEncoder(h).Encode(struct{Categories []category;TopAccounts []account}{o.Categories,o.TopAccounts});o.Checksum=hex.EncodeToString(h.Sum(nil));return o,nil
+type category struct {
+	Category        string `json:"category"`
+	Quantity        int64  `json:"quantity"`
+	ValueMinorUnits int64  `json:"valueMinorUnits"`
 }
-func main(){
-	if len(os.Args)<2||os.Args[1]!="check"{fmt.Fprintln(os.Stderr,"usage: arena-checker check --benchmark ID --input FILE --output FILE");os.Exit(4)}
-	fs:=flag.NewFlagSet("check",flag.ExitOnError);benchmark:=fs.String("benchmark","","");input:=fs.String("input","","");output:=fs.String("output","","");fs.Parse(os.Args[2:])
-	var err error
-	switch *benchmark {
-	case "nbody": var in nbodyInput;var out nbodyOutput;if err=strictJSON(*input,&in);err==nil{err=strictJSON(*output,&out)};if err==nil{want:=simulate(in);if out.Benchmark!="nbody"||out.Version!=1||out.BodyCount!=want.BodyCount||math.Abs(out.FinalEnergy-want.FinalEnergy)>1e-8||out.PositionChecksum!=want.PositionChecksum||out.VelocityChecksum!=want.VelocityChecksum{err=errors.New("nbody result mismatch")}}
-	case "shortest-path":var in graphInput;var out pathOutput;if err=strictJSON(*input,&in);err==nil{err=strictJSON(*output,&out)};if err==nil{err=checkPaths(in,out)}
-	case "aggregation":var out aggregation;var want aggregation;if err=strictJSON(*output,&out);err==nil{want,err=aggregate(*input)};if err==nil{a,_:=json.Marshal(out);b,_:=json.Marshal(want);if string(a)!=string(b){err=errors.New("aggregation result mismatch")}}
-	default:finish("unsupported-version",*benchmark,errors.New("unknown benchmark"))
+type account struct {
+	AccountID       string `json:"accountId"`
+	ValueMinorUnits int64  `json:"valueMinorUnits"`
+}
+type aggregation struct {
+	Benchmark                    string     `json:"benchmark"`
+	Version                      int        `json:"version"`
+	RecordCount                  int64      `json:"recordCount"`
+	TotalQuantity                int64      `json:"totalQuantity"`
+	TotalValueMinorUnits         int64      `json:"totalValueMinorUnits"`
+	Categories                   []category `json:"categories"`
+	TopAccounts                  []account  `json:"topAccounts"`
+	MinimumTransactionMinorUnits int64      `json:"minimumTransactionMinorUnits"`
+	MaximumTransactionMinorUnits int64      `json:"maximumTransactionMinorUnits"`
+	Checksum                     string     `json:"checksum"`
+}
+
+func aggregate(file string) (aggregation, error) {
+	f, e := os.Open(file)
+	if e != nil {
+		return aggregation{}, e
 	}
-	if err!=nil{finish("wrong-answer",*benchmark,err)};finish("accepted",*benchmark,nil)
+	defer f.Close()
+	r := csv.NewReader(bufio.NewReader(f))
+	if _, e = r.Read(); e != nil {
+		return aggregation{}, e
+	}
+	cats := map[string]category{}
+	acc := map[string]int64{}
+	o := aggregation{Benchmark: "aggregation", Version: 1, MinimumTransactionMinorUnits: math.MaxInt64}
+	for {
+		row, e := r.Read()
+		if e == io.EOF {
+			break
+		}
+		if e != nil {
+			return o, e
+		}
+		q, _ := strconv.ParseInt(row[3], 10, 64)
+		price, _ := strconv.ParseInt(row[4], 10, 64)
+		v := q * price
+		o.RecordCount++
+		o.TotalQuantity += q
+		o.TotalValueMinorUnits += v
+		if v < o.MinimumTransactionMinorUnits {
+			o.MinimumTransactionMinorUnits = v
+		}
+		if v > o.MaximumTransactionMinorUnits {
+			o.MaximumTransactionMinorUnits = v
+		}
+		c := cats[row[2]]
+		c.Category = row[2]
+		c.Quantity += q
+		c.ValueMinorUnits += v
+		cats[row[2]] = c
+		acc[row[1]] += v
+	}
+	for _, c := range cats {
+		o.Categories = append(o.Categories, c)
+	}
+	sort.Slice(o.Categories, func(i, j int) bool { return o.Categories[i].Category < o.Categories[j].Category })
+	for id, v := range acc {
+		o.TopAccounts = append(o.TopAccounts, account{id, v})
+	}
+	sort.Slice(o.TopAccounts, func(i, j int) bool {
+		if o.TopAccounts[i].ValueMinorUnits == o.TopAccounts[j].ValueMinorUnits {
+			return o.TopAccounts[i].AccountID < o.TopAccounts[j].AccountID
+		}
+		return o.TopAccounts[i].ValueMinorUnits > o.TopAccounts[j].ValueMinorUnits
+	})
+	if len(o.TopAccounts) > 10 {
+		o.TopAccounts = o.TopAccounts[:10]
+	}
+	h := sha256.New()
+	json.NewEncoder(h).Encode(struct {
+		Categories  []category
+		TopAccounts []account
+	}{o.Categories, o.TopAccounts})
+	o.Checksum = hex.EncodeToString(h.Sum(nil))
+	return o, nil
+}
+func main() {
+	if len(os.Args) < 2 || os.Args[1] != "check" {
+		fmt.Fprintln(os.Stderr, "usage: arena-checker check --benchmark ID --input FILE --output FILE")
+		os.Exit(4)
+	}
+	fs := flag.NewFlagSet("check", flag.ExitOnError)
+	benchmark := fs.String("benchmark", "", "")
+	input := fs.String("input", "", "")
+	output := fs.String("output", "", "")
+	fs.Parse(os.Args[2:])
+	var err error
+	status := "wrong-answer"
+	switch *benchmark {
+	case "nbody":
+		var in nbodyInput
+		var out nbodyOutput
+		if err = strictJSON(*input, &in); err != nil {
+			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
+		}
+		if err = strictJSON(*output, &out); err != nil {
+			status = "malformed-output"
+		} else {
+			want := simulate(in)
+			if out.Benchmark != "nbody" || out.Version != 1 || out.BodyCount != want.BodyCount || math.Abs(out.FinalEnergy-want.FinalEnergy) > 1e-8 || out.PositionChecksum != want.PositionChecksum || out.VelocityChecksum != want.VelocityChecksum {
+				err = errors.New("nbody result mismatch")
+			}
+		}
+	case "shortest-path":
+		var in graphInput
+		var out pathOutput
+		if err = strictJSON(*input, &in); err != nil {
+			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
+		}
+		if err = strictJSON(*output, &out); err != nil {
+			status = "malformed-output"
+		} else {
+			err = checkPaths(in, out)
+		}
+	case "aggregation":
+		var out aggregation
+		var want aggregation
+		if err = strictJSON(*output, &out); err != nil {
+			status = "malformed-output"
+		} else {
+			want, err = aggregate(*input)
+			if err != nil {
+				finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
+			}
+		}
+		if err == nil {
+			a, _ := json.Marshal(out)
+			b, _ := json.Marshal(want)
+			if string(a) != string(b) {
+				err = errors.New("aggregation result mismatch")
+			}
+		}
+	default:
+		finish("unsupported-version", *benchmark, errors.New("unknown benchmark"))
+	}
+	if err != nil {
+		finish(status, *benchmark, err)
+	}
+	finish("accepted", *benchmark, nil)
 }

@@ -8,6 +8,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
 type Command = { command: string; arguments: string[]; workingDirectory?: string; artifact?: string };
 type Language = { id: string; name: string; enabled: boolean; detect: Command; build: Command & { artifact: string }; run: Command; environment: Record<string, string> };
@@ -17,6 +18,7 @@ type Proc = { code: number | null; stdout: string; stderr: string; durationNs: n
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../..");
+const require = createRequire(import.meta.url);
 const config = JSON.parse(await readFile(path.join(root, "arena.config.json"), "utf8")) as {
   benchmarkDirectory: string; languageDirectory: string; resultDirectory: string; checkerExecutable: string;
 };
@@ -167,7 +169,7 @@ async function runCommand(args: string[]) {
   const runId = createdAt.replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z");
   const tempRoot = path.join(root, ".arena", "runs", runId);
   await mkdir(tempRoot, { recursive: true });
-  const results: unknown[] = [];
+  const results: any[] = [];
   for (const benchmark of benchmarks) {
     const sizeName = flags.get("--size") ?? "small";
     const size = benchmark.sizes[sizeName];
@@ -189,26 +191,69 @@ async function runCommand(args: string[]) {
         const outputSize = await exists(output) ? (await stat(output)).size : 0;
         lastChecker = p.code === 0 && outputSize <= benchmark.limits.maxOutputBytes
           ? await checkOutput(benchmark, input, output)
-          : { status: p.timedOut ? "timeout" : "implementation-error", checkerVersion: "unknown", diagnostics: [p.stderr] };
-        if (iteration >= 0) samples.push({ iteration: iteration + 1, valid: p.code === 0 && lastChecker.status === "accepted", wallTimeNanoseconds: p.durationNs, exitCode: p.code, outputSizeBytes: outputSize, timedOut: p.timedOut });
+          : { status: "checker-error", checkerVersion: "unknown", diagnostics: [p.timedOut ? "implementation timed out" : p.stderr || "implementation failed"] };
+        if (iteration >= 0) samples.push({ iteration: iteration + 1, valid: p.code === 0 && lastChecker.status === "accepted", wallTimeNanoseconds: p.durationNs, exitCode: p.code ?? -1, outputSizeBytes: outputSize, timedOut: p.timedOut });
       }
       results.push({
         benchmark: { id: benchmark.id, version: benchmark.version, size: sizeName },
         dataset: { id: `${benchmark.id}-${sizeName}-${benchmark.version}`, sha256: datasetHash },
         language: { id: language.id, name: language.name, version },
         build: { status: build.status, durationNanoseconds: build.durationNs, artifactSizeBytes: build.artifactSizeBytes, command: build.command },
-        execution: { mode: "cold-process", warmupIterations: warmups, measuredIterations: iterations, samples, summary: summary(samples) },
+        execution: {
+          mode: "cold-process", warmupIterations: warmups, measuredIterations: iterations, samples, summary: summary(samples),
+          metrics: {
+            wallTime: { status: "available", unit: "nanoseconds" },
+            cpuTime: { status: "unavailable", reason: "Node child_process does not expose portable per-child CPU usage" },
+            peakMemory: { status: "unavailable", reason: "Node child_process does not expose portable per-child peak RSS" }
+          }
+        },
         checker: { language: "go", version: lastChecker.checkerVersion, status: lastChecker.status, diagnostics: lastChecker.diagnostics }
       });
-      if (!flags.has("--quiet")) console.log(`${benchmark.id}/${sizeName} ${language.name}: ${lastChecker.status} (${(summary(samples).medianWallTimeNanoseconds / 1e6).toFixed(2)} ms median)`);
+      if (!flags.has("--quiet") && flags.get("--format") !== "json") console.log(`${benchmark.id}/${sizeName} ${language.name}: ${lastChecker.status} (${(summary(samples).medianWallTimeNanoseconds / 1e6).toFixed(2)} ms median)`);
     }
   }
   const git = await runProcess("git", ["rev-parse", "HEAD"]).then(p => p.code === 0 ? p.stdout.trim() : "unknown");
   const record = { schemaVersion: "1.0.0", runId, createdAt, arenaVersion: "0.1.0", gitCommit: git, command: ["arena", "run", ...args], environment: { operatingSystem: { platform: process.platform, release: os.release() }, cpu: { model: os.cpus()[0]?.model ?? "unknown", architecture: process.arch, logicalCores: os.cpus().length }, memoryBytes: os.totalmem() }, results };
-  if (!flags.has("--no-save")) await saveResult(record, flags.get("--output"));
+  await validateResult(record);
+  if (!flags.has("--quiet") && flags.get("--format") !== "json") printSummary(results);
+  if (!flags.has("--no-save")) await saveResult(record, flags.get("--output"), flags.get("--format") === "json" || flags.has("--quiet"));
   if (flags.get("--format") === "json") console.log(JSON.stringify(record, null, flags.has("--quiet") ? 0 : 2));
   if (!flags.has("--preserve-temp")) await rm(tempRoot, { recursive: true, force: true });
   return 0;
+}
+
+function printSummary(results: any[]) {
+  console.log("\nBenchmark         Language      Correct  Median       Relative");
+  console.log("----------------  ------------  -------  -----------  --------");
+  const fastest = new Map<string, number>();
+  for (const result of results) {
+    if (result.checker.status !== "accepted") continue;
+    const key = `${result.benchmark.id}/${result.benchmark.size}`;
+    const median = result.execution.summary.medianWallTimeNanoseconds as number;
+    fastest.set(key, Math.min(fastest.get(key) ?? Number.POSITIVE_INFINITY, median));
+  }
+  for (const result of results) {
+    const key = `${result.benchmark.id}/${result.benchmark.size}`;
+    const accepted = result.checker.status === "accepted";
+    const median = result.execution.summary.medianWallTimeNanoseconds as number;
+    const relative = accepted ? `${(median / fastest.get(key)!).toFixed(2)}x` : "unranked";
+    console.log(`${key.padEnd(16)}  ${result.language.name.padEnd(12)}  ${(accepted ? "Yes" : "No").padEnd(7)}  ${(accepted ? `${(median / 1e6).toFixed(2)} ms` : "INVALID").padEnd(11)}  ${relative}`);
+  }
+}
+
+async function validateResult(record: unknown) {
+  const schema = await json<Record<string, unknown>>(path.join(root, "schemas", "result.schema.json"));
+  const Ajv2020 = require("ajv/dist/2020").default as new (options: Record<string, unknown>) => {
+    validate(schema: unknown, data: unknown): boolean;
+    errors: unknown;
+    errorsText(errors: unknown): string;
+  };
+  const addFormats = require("ajv-formats").default as (ajv: object) => void;
+  const ajv = new Ajv2020({ allErrors: true, strict: false });
+  addFormats(ajv);
+  if (!ajv.validate(schema, record)) {
+    throw new Error(`Generated result failed schema validation: ${ajv.errorsText(ajv.errors)}`);
+  }
 }
 
 async function atomicJson(file: string, value: unknown) {
@@ -217,7 +262,7 @@ async function atomicJson(file: string, value: unknown) {
   await writeFile(temp, `${JSON.stringify(value, null, 2)}\n`);
   await rename(temp, file);
 }
-async function saveResult(record: { runId: string; createdAt: string; results: any[] }, explicit?: string) {
+async function saveResult(record: { runId: string; createdAt: string; results: any[] }, explicit?: string, silent = false) {
   const resultDir = path.join(root, config.resultDirectory);
   const runPath = explicit ? path.resolve(root, explicit) : path.join(resultDir, "runs", `${record.runId}.json`);
   if (await exists(runPath)) throw new Error(`Refusing to overwrite immutable result ${runPath}`);
@@ -227,7 +272,7 @@ async function saveResult(record: { runId: string; createdAt: string; results: a
   const index = await exists(indexPath) ? await json<{ schemaVersion: string; runs: any[] }>(indexPath) : { schemaVersion: "1.0.0", runs: [] };
   index.runs.unshift({ runId: record.runId, createdAt: record.createdAt, path: path.relative(resultDir, runPath).replaceAll("\\", "/"), benchmarks: [...new Set(record.results.map(x => x.benchmark.id))], languages: [...new Set(record.results.map(x => x.language.id))] });
   await atomicJson(indexPath, index);
-  console.log(`Saved: ${path.relative(root, runPath)}`);
+  if (!silent) console.log(`Saved: ${path.relative(root, runPath)}`);
 }
 
 async function resultsCommand(args: string[]) {
