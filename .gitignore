@@ -50,3 +50,6 @@ web/static/results/
 # OS
 Desktop.ini
 .opencode/
+Spec/
+AGENTS.md
+refs/

@@ -14,6 +14,7 @@
     "build:web": "npm run prepare-results && npm run build --workspace=@runtime-arena/web",
     "doctor": "npm run arena -- doctor",
     "verify-environment": "tsx scripts/verify-environment.ts",
+    "dev": "npm run dev --workspace=@runtime-arena/web",
     "prepare-results": "tsx scripts/prepare-results.ts",
     "test": "npm run build:checker && npm run test --workspaces --if-present && node scripts/test-checker.mjs"
   },

@@ -25,6 +25,15 @@
 	});
 	const maximum = $derived(Math.max(1, ...visible.map((r: ArenaResult) => r.execution.summary.medianWallTimeNanoseconds)));
 	const accepted = $derived(visible.filter((r: ArenaResult) => r.checker.status === 'accepted').length);
+	const langGradient: Record<string, string[]> = {
+		rust: ['#d4440d', '#f77b4a'],
+		go: ['#007a8e', '#00c7e6'],
+		typescript: ['#235a97', '#4f8edc'],
+	};
+	const barGradient = (langId: string) => {
+		const [s, e] = langGradient[langId] ?? ['#277dcc', '#66b2ff'];
+		return `linear-gradient(90deg, ${s}, ${e})`;
+	};
 	const formatTime = (ns: number) => ns < 1e6 ? `${(ns / 1e3).toFixed(1)} μs` : ns < 1e9 ? `${(ns / 1e6).toFixed(2)} ms` : `${(ns / 1e9).toFixed(3)} s`;
 </script>
 
@@ -83,7 +92,7 @@
 						<span>{result.benchmark.id} · {result.benchmark.size}</span>
 					</div>
 					<div class="track" aria-label={`${result.language.name} median ${formatTime(median)}`}>
-						<div class="bar" style:--width={`${Math.max(2, median / maximum * 100)}%`}></div>
+						<div class="bar" style:--width={`${Math.max(2, median / maximum * 100)}%`} style:background={barGradient(result.language.id)}></div>
 						{#each result.execution.samples as sample (sample.iteration)}
 							<i style:--position={`${sample.wallTimeNanoseconds / maximum * 100}%`}></i>
 						{/each}
@@ -136,7 +145,7 @@
 	.identity, .reading { display: grid; gap: .25rem; }
 	.identity span, .reading span { color: #738291; font-size: .72rem; }
 	.track { position: relative; height: 1.2rem; background: #151d24; overflow: visible; }
-	.bar { width: var(--width); height: 100%; background: linear-gradient(90deg, #277dcc, #66b2ff); transition: width .45s cubic-bezier(.2,.8,.2,1); }
+	.bar { width: var(--width); height: 100%; transition: width .45s cubic-bezier(.2,.8,.2,1); }
 	.track i { position: absolute; left: var(--position); top: -.3rem; height: 1.8rem; width: 1px; background: #dbeeff; opacity: .65; }
 	.reading { justify-items: end; font-family: "Cascadia Code", monospace; }
 	.reading .ok { color: #7bd6ad; }

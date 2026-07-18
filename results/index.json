@@ -2,6 +2,36 @@
   "schemaVersion": "1.0.0",
   "runs": [
     {
+      "runId": "2026-07-18T23-30-48-528-a0a35d75Z",
+      "createdAt": "2026-07-18T23:30:48.528Z",
+      "path": "runs/2026-07-18T23-30-48-528-a0a35d75Z.json",
+      "benchmarks": [
+        "aggregation",
+        "nbody",
+        "shortest-path"
+      ],
+      "languages": [
+        "go",
+        "rust",
+        "typescript"
+      ]
+    },
+    {
+      "runId": "2026-07-18T23-26-31-758-a6a83a98Z",
+      "createdAt": "2026-07-18T23:26:31.758Z",
+      "path": "runs/2026-07-18T23-26-31-758-a6a83a98Z.json",
+      "benchmarks": [
+        "aggregation",
+        "nbody",
+        "shortest-path"
+      ],
+      "languages": [
+        "go",
+        "rust",
+        "typescript"
+      ]
+    },
+    {
       "runId": "2026-07-18T22-37-08Z",
       "createdAt": "2026-07-18T22:37:08.209Z",
       "path": "runs/2026-07-18T22-37-08Z.json",

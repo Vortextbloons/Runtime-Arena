@@ -1,0 +1,4022 @@
+{
+  "schemaVersion": "1.0.0",
+  "runId": "2026-07-18T23-26-31-758-a6a83a98Z",
+  "createdAt": "2026-07-18T23:26:31.758Z",
+  "arenaVersion": "0.1.0",
+  "gitCommit": "abc6b82019ce8db69f634b874419bf7c0906c5b8",
+  "gitDirty": true,
+  "command": [
+    "arena",
+    "run"
+  ],
+  "environment": {
+    "operatingSystem": {
+      "platform": "win32",
+      "release": "10.0.26200"
+    },
+    "cpu": {
+      "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+      "architecture": "x64",
+      "logicalCores": 12
+    },
+    "memoryBytes": 33407356928
+  },
+  "results": [
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "aggregation-small-1",
+        "sha256": "c37cbf8a2fd4fe5503310d4df24309eb3d298e6799caac83336e825a062da10a",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 526212500,
+        "artifactSizeBytes": 3235840,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 15386900,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 14990500,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 14763900,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 15286300,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 14911000,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 14763900,
+          "maximumWallTimeNanoseconds": 15386900,
+          "medianWallTimeNanoseconds": 14990500,
+          "meanWallTimeNanoseconds": 15067720,
+          "standardDeviationWallTimeNanoseconds": 233445.39747015788,
+          "p95WallTimeNanoseconds": 15386900,
+          "interquartileRangeWallTimeNanoseconds": 375300
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "aggregation-small-1",
+        "sha256": "c37cbf8a2fd4fe5503310d4df24309eb3d298e6799caac83336e825a062da10a",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 83695100,
+        "artifactSizeBytes": 230912,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 15435000,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 15328500,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 16131800,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 18582800,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 15728400,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 15328500,
+          "maximumWallTimeNanoseconds": 18582800,
+          "medianWallTimeNanoseconds": 15728400,
+          "meanWallTimeNanoseconds": 16241300,
+          "standardDeviationWallTimeNanoseconds": 1203412.0192186881,
+          "p95WallTimeNanoseconds": 18582800,
+          "interquartileRangeWallTimeNanoseconds": 696800
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "aggregation-small-1",
+        "sha256": "c37cbf8a2fd4fe5503310d4df24309eb3d298e6799caac83336e825a062da10a",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 287960100,
+        "artifactSizeBytes": 1440,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 46758300,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 44708700,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 44817900,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 45042200,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 44488100,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 44488100,
+          "maximumWallTimeNanoseconds": 46758300,
+          "medianWallTimeNanoseconds": 44817900,
+          "meanWallTimeNanoseconds": 45163040,
+          "standardDeviationWallTimeNanoseconds": 817379.6219627695,
+          "p95WallTimeNanoseconds": 46758300,
+          "interquartileRangeWallTimeNanoseconds": 333500
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "aggregation-medium-1",
+        "sha256": "b1a8e21775e39db1543dd8a45f206f00485b7c9814dcc6fb4c1e790b16e3f403",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 200156700,
+        "artifactSizeBytes": 3235840,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 14584500,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 15927800,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 14800900,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 17303100,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 16552900,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 17110400,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 16474800,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 16322000,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 14665900,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 15240500,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 14584500,
+          "maximumWallTimeNanoseconds": 17303100,
+          "medianWallTimeNanoseconds": 15927800,
+          "meanWallTimeNanoseconds": 15898280,
+          "standardDeviationWallTimeNanoseconds": 962588.312623834,
+          "p95WallTimeNanoseconds": 17303100,
+          "interquartileRangeWallTimeNanoseconds": 1752000
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "aggregation-medium-1",
+        "sha256": "b1a8e21775e39db1543dd8a45f206f00485b7c9814dcc6fb4c1e790b16e3f403",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 75185900,
+        "artifactSizeBytes": 230912,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 12643800,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 12507400,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 12780000,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 13106300,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 12295400,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 13775600,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 14515200,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 13800400,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 13999300,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 13821600,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 12295400,
+          "maximumWallTimeNanoseconds": 14515200,
+          "medianWallTimeNanoseconds": 13106300,
+          "meanWallTimeNanoseconds": 13324500,
+          "standardDeviationWallTimeNanoseconds": 713045.9424188598,
+          "p95WallTimeNanoseconds": 14515200,
+          "interquartileRangeWallTimeNanoseconds": 1177800
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "aggregation-medium-1",
+        "sha256": "b1a8e21775e39db1543dd8a45f206f00485b7c9814dcc6fb4c1e790b16e3f403",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 265279000,
+        "artifactSizeBytes": 1440,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 43792800,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 44421500,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 44504000,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 48582700,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 43833600,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 45683100,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 46892600,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 44670600,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 44097500,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 46116800,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 43792800,
+          "maximumWallTimeNanoseconds": 48582700,
+          "medianWallTimeNanoseconds": 44504000,
+          "meanWallTimeNanoseconds": 45259520,
+          "standardDeviationWallTimeNanoseconds": 1475789.4584255575,
+          "p95WallTimeNanoseconds": 48582700,
+          "interquartileRangeWallTimeNanoseconds": 2019300
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "aggregation-large-1",
+        "sha256": "c6c05bd35c4bc6a9e98ccf04222ed01b20056014131674d7d59937004f915194",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 200023700,
+        "artifactSizeBytes": 3235840,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 14993500,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 14666000,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 15384500,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 13869900,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 13382600,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 13522700,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 13876500,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 13370300,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 15415600,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 14576200,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 13370300,
+          "maximumWallTimeNanoseconds": 15415600,
+          "medianWallTimeNanoseconds": 13876500,
+          "meanWallTimeNanoseconds": 14305780,
+          "standardDeviationWallTimeNanoseconds": 760661.0688079153,
+          "p95WallTimeNanoseconds": 15415600,
+          "interquartileRangeWallTimeNanoseconds": 1470800
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "aggregation-large-1",
+        "sha256": "c6c05bd35c4bc6a9e98ccf04222ed01b20056014131674d7d59937004f915194",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 76046400,
+        "artifactSizeBytes": 230912,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 12630400,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 12669000,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 12711300,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 12782000,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 23217900,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 18990400,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 14228800,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 13506900,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 13769100,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 13168200,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 12630400,
+          "maximumWallTimeNanoseconds": 23217900,
+          "medianWallTimeNanoseconds": 13168200,
+          "meanWallTimeNanoseconds": 14767400,
+          "standardDeviationWallTimeNanoseconds": 3343906.172726741,
+          "p95WallTimeNanoseconds": 23217900,
+          "interquartileRangeWallTimeNanoseconds": 1517500
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "aggregation-large-1",
+        "sha256": "c6c05bd35c4bc6a9e98ccf04222ed01b20056014131674d7d59937004f915194",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 253627500,
+        "artifactSizeBytes": 1440,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 44410300,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 47281600,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 44571100,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 48119400,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 48428000,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 46308500,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 46573300,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 45269000,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 45094900,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 47292100,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 44410300,
+          "maximumWallTimeNanoseconds": 48428000,
+          "medianWallTimeNanoseconds": 46308500,
+          "meanWallTimeNanoseconds": 46334820,
+          "standardDeviationWallTimeNanoseconds": 1375657.3140139226,
+          "p95WallTimeNanoseconds": 48428000,
+          "interquartileRangeWallTimeNanoseconds": 2197200
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "nbody-small-1",
+        "sha256": "a8e202e24b5ad5d691cd2017ee6776330e33b6ed45793c8fd16658430c1a001c",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 499134800,
+        "artifactSizeBytes": 3511808,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 15124500,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 15077500,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 14536300,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 16860000,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 15201900,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 14536300,
+          "maximumWallTimeNanoseconds": 16860000,
+          "medianWallTimeNanoseconds": 15124500,
+          "meanWallTimeNanoseconds": 15360040,
+          "standardDeviationWallTimeNanoseconds": 785969.9475170791,
+          "p95WallTimeNanoseconds": 16860000,
+          "interquartileRangeWallTimeNanoseconds": 124400
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "nbody-small-1",
+        "sha256": "a8e202e24b5ad5d691cd2017ee6776330e33b6ed45793c8fd16658430c1a001c",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 73960400,
+        "artifactSizeBytes": 261632,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 14685900,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 14061800,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 14264300,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 14130100,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 13706000,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 13706000,
+          "maximumWallTimeNanoseconds": 14685900,
+          "medianWallTimeNanoseconds": 14130100,
+          "meanWallTimeNanoseconds": 14169620,
+          "standardDeviationWallTimeNanoseconds": 317376.6935362457,
+          "p95WallTimeNanoseconds": 14685900,
+          "interquartileRangeWallTimeNanoseconds": 202500
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "nbody-small-1",
+        "sha256": "a8e202e24b5ad5d691cd2017ee6776330e33b6ed45793c8fd16658430c1a001c",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 288041000,
+        "artifactSizeBytes": 1558,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 44789900,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 45998300,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 43195800,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 43477400,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 42908200,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 42908200,
+          "maximumWallTimeNanoseconds": 45998300,
+          "medianWallTimeNanoseconds": 43477400,
+          "meanWallTimeNanoseconds": 44073920,
+          "standardDeviationWallTimeNanoseconds": 1157730.5133751982,
+          "p95WallTimeNanoseconds": 45998300,
+          "interquartileRangeWallTimeNanoseconds": 1594100
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "nbody-medium-1",
+        "sha256": "b67c88171ac27f2205b6039774ec15ecfd930dca123524395ab4f925f5ffdddc",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 212116500,
+        "artifactSizeBytes": 3511808,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 14779200,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 14100200,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 13953300,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 13730900,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 13813500,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 15707000,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 14849400,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 17898900,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 17290000,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 17132000,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 13730900,
+          "maximumWallTimeNanoseconds": 17898900,
+          "medianWallTimeNanoseconds": 14779200,
+          "meanWallTimeNanoseconds": 15325440,
+          "standardDeviationWallTimeNanoseconds": 1504291.6360865668,
+          "p95WallTimeNanoseconds": 17898900,
+          "interquartileRangeWallTimeNanoseconds": 3178700
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "nbody-medium-1",
+        "sha256": "b67c88171ac27f2205b6039774ec15ecfd930dca123524395ab4f925f5ffdddc",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 83166500,
+        "artifactSizeBytes": 261632,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 14883400,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 13235300,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 13091100,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 12694500,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 12642100,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 13647100,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 13506500,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 13842900,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 14593100,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 14141900,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 12642100,
+          "maximumWallTimeNanoseconds": 14883400,
+          "medianWallTimeNanoseconds": 13506500,
+          "meanWallTimeNanoseconds": 13627790,
+          "standardDeviationWallTimeNanoseconds": 715454.0494678887,
+          "p95WallTimeNanoseconds": 14883400,
+          "interquartileRangeWallTimeNanoseconds": 1050800
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "nbody-medium-1",
+        "sha256": "b67c88171ac27f2205b6039774ec15ecfd930dca123524395ab4f925f5ffdddc",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 271104900,
+        "artifactSizeBytes": 1558,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 50468600,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 47944200,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 48965800,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 48447600,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 47110400,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 50914700,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 48321800,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 47813600,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 47803100,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 47609800,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 47110400,
+          "maximumWallTimeNanoseconds": 50914700,
+          "medianWallTimeNanoseconds": 47944200,
+          "meanWallTimeNanoseconds": 48539960,
+          "standardDeviationWallTimeNanoseconds": 1180289.6713942727,
+          "p95WallTimeNanoseconds": 50914700,
+          "interquartileRangeWallTimeNanoseconds": 1162700
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "nbody-large-1",
+        "sha256": "f24d3f51acbbdb9c269ab3a8e5bedb7058ed092709bbc114f7388e3f443c419b",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 201255900,
+        "artifactSizeBytes": 3511808,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 15515500,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 16592900,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 17010700,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 15874600,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 15631500,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 15466600,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 15988300,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 17056800,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 17136200,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 15649000,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 15466600,
+          "maximumWallTimeNanoseconds": 17136200,
+          "medianWallTimeNanoseconds": 15874600,
+          "meanWallTimeNanoseconds": 16192210,
+          "standardDeviationWallTimeNanoseconds": 648497.1741650074,
+          "p95WallTimeNanoseconds": 17136200,
+          "interquartileRangeWallTimeNanoseconds": 1379200
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "nbody-large-1",
+        "sha256": "f24d3f51acbbdb9c269ab3a8e5bedb7058ed092709bbc114f7388e3f443c419b",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 73995700,
+        "artifactSizeBytes": 261632,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 16016900,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 20033500,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 16662000,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 15386200,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 16689700,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 14336300,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 15161600,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 16232500,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 14676700,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 14875900,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 14336300,
+          "maximumWallTimeNanoseconds": 20033500,
+          "medianWallTimeNanoseconds": 15386200,
+          "meanWallTimeNanoseconds": 16007130,
+          "standardDeviationWallTimeNanoseconds": 1552390.8084306605,
+          "p95WallTimeNanoseconds": 20033500,
+          "interquartileRangeWallTimeNanoseconds": 1786100
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "nbody-large-1",
+        "sha256": "f24d3f51acbbdb9c269ab3a8e5bedb7058ed092709bbc114f7388e3f443c419b",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 290783800,
+        "artifactSizeBytes": 1558,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 62862800,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 73156700,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 72130100,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 74343000,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 63377300,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 64085500,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 64434400,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 64299600,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 63708500,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 62591000,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 62591000,
+          "maximumWallTimeNanoseconds": 74343000,
+          "medianWallTimeNanoseconds": 64085500,
+          "meanWallTimeNanoseconds": 66498890,
+          "standardDeviationWallTimeNanoseconds": 4455489.016135042,
+          "p95WallTimeNanoseconds": 74343000,
+          "interquartileRangeWallTimeNanoseconds": 8752800
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "shortest-path-small-1",
+        "sha256": "764c46a335c2fb84f61985cb22e877386bd54ddd2fa8f757f41076f006e9358e",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 450287000,
+        "artifactSizeBytes": 3308032,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 16029900,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 16292600,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 15701300,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 14862900,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 15729500,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 14862900,
+          "maximumWallTimeNanoseconds": 16292600,
+          "medianWallTimeNanoseconds": 15729500,
+          "meanWallTimeNanoseconds": 15723240,
+          "standardDeviationWallTimeNanoseconds": 481438.8085728029,
+          "p95WallTimeNanoseconds": 16292600,
+          "interquartileRangeWallTimeNanoseconds": 328600
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "shortest-path-small-1",
+        "sha256": "764c46a335c2fb84f61985cb22e877386bd54ddd2fa8f757f41076f006e9358e",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 67305400,
+        "artifactSizeBytes": 255488,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 13768700,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 14568200,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 15845000,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 14645800,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 15199900,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 13768700,
+          "maximumWallTimeNanoseconds": 15845000,
+          "medianWallTimeNanoseconds": 14645800,
+          "meanWallTimeNanoseconds": 14805520,
+          "standardDeviationWallTimeNanoseconds": 691792.0537271298,
+          "p95WallTimeNanoseconds": 15845000,
+          "interquartileRangeWallTimeNanoseconds": 631700
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "shortest-path-small-1",
+        "sha256": "764c46a335c2fb84f61985cb22e877386bd54ddd2fa8f757f41076f006e9358e",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 258923300,
+        "artifactSizeBytes": 1186,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 51455900,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 48079900,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 45127500,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 41411600,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 40345400,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 40345400,
+          "maximumWallTimeNanoseconds": 51455900,
+          "medianWallTimeNanoseconds": 45127500,
+          "meanWallTimeNanoseconds": 45284060,
+          "standardDeviationWallTimeNanoseconds": 4130838.9068565723,
+          "p95WallTimeNanoseconds": 51455900,
+          "interquartileRangeWallTimeNanoseconds": 6668300
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "shortest-path-medium-1",
+        "sha256": "14d90a48ad4abb32936eef96ce8dd40980a421322335b36bdf4327913c278654",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 195077700,
+        "artifactSizeBytes": 3308032,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 15208000,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 14893700,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 15106600,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 15259600,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 14353500,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 15262300,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 15260700,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 16089500,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 15713300,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 14982300,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 14353500,
+          "maximumWallTimeNanoseconds": 16089500,
+          "medianWallTimeNanoseconds": 15208000,
+          "meanWallTimeNanoseconds": 15212950,
+          "standardDeviationWallTimeNanoseconds": 439396.2727424984,
+          "p95WallTimeNanoseconds": 16089500,
+          "interquartileRangeWallTimeNanoseconds": 280000
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "shortest-path-medium-1",
+        "sha256": "14d90a48ad4abb32936eef96ce8dd40980a421322335b36bdf4327913c278654",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 66364100,
+        "artifactSizeBytes": 255488,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 14350100,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 14113100,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 13835000,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 12780500,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 13832700,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 14437800,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 14612900,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 14059600,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 14350300,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 14571700,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 12780500,
+          "maximumWallTimeNanoseconds": 14612900,
+          "medianWallTimeNanoseconds": 14113100,
+          "meanWallTimeNanoseconds": 14094370,
+          "standardDeviationWallTimeNanoseconds": 510795.22129714565,
+          "p95WallTimeNanoseconds": 14612900,
+          "interquartileRangeWallTimeNanoseconds": 602800
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "shortest-path-medium-1",
+        "sha256": "14d90a48ad4abb32936eef96ce8dd40980a421322335b36bdf4327913c278654",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 263068600,
+        "artifactSizeBytes": 1186,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 36867800,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 35823100,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 37815000,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 37600300,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 38083000,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 42445200,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 49712400,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 44123400,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 39215300,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 39828200,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 35823100,
+          "maximumWallTimeNanoseconds": 49712400,
+          "medianWallTimeNanoseconds": 38083000,
+          "meanWallTimeNanoseconds": 40151370,
+          "standardDeviationWallTimeNanoseconds": 3989901.3704727087,
+          "p95WallTimeNanoseconds": 49712400,
+          "interquartileRangeWallTimeNanoseconds": 4844900
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "shortest-path-large-1",
+        "sha256": "9b3438291b677ed546f166e6617bffbea8fcecb6be9d32b0aa78f3af72669210",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 203281000,
+        "artifactSizeBytes": 3308032,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 13371200,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 13366100,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 13757500,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 14461500,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 14428900,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 14204800,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 13932600,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 14070100,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 14358700,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 14228100,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 13366100,
+          "maximumWallTimeNanoseconds": 14461500,
+          "medianWallTimeNanoseconds": 14070100,
+          "meanWallTimeNanoseconds": 14017950,
+          "standardDeviationWallTimeNanoseconds": 384946.1579234166,
+          "p95WallTimeNanoseconds": 14461500,
+          "interquartileRangeWallTimeNanoseconds": 601200
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "shortest-path-large-1",
+        "sha256": "9b3438291b677ed546f166e6617bffbea8fcecb6be9d32b0aa78f3af72669210",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 64230600,
+        "artifactSizeBytes": 255488,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 14727800,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 15491800,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 13906000,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 14071000,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 14219000,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 13193500,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 13110400,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 13580500,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 13050900,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 15494100,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 13050900,
+          "maximumWallTimeNanoseconds": 15494100,
+          "medianWallTimeNanoseconds": 13906000,
+          "meanWallTimeNanoseconds": 14084500,
+          "standardDeviationWallTimeNanoseconds": 865825.1474749391,
+          "p95WallTimeNanoseconds": 15494100,
+          "interquartileRangeWallTimeNanoseconds": 1534300
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "shortest-path-large-1",
+        "sha256": "9b3438291b677ed546f166e6617bffbea8fcecb6be9d32b0aa78f3af72669210",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 263534100,
+        "artifactSizeBytes": 1186,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 37324300,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 37943900,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 39154300,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 40658600,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 39217800,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 38567100,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 39630900,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 38250300,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 36164900,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 39665600,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 36164900,
+          "maximumWallTimeNanoseconds": 40658600,
+          "medianWallTimeNanoseconds": 38567100,
+          "meanWallTimeNanoseconds": 38657770,
+          "standardDeviationWallTimeNanoseconds": 1232988.4809275388,
+          "p95WallTimeNanoseconds": 40658600,
+          "interquartileRangeWallTimeNanoseconds": 1687000
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      }
+    }
+  ]
+}
