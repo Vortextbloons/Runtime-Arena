@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://runtime-arena.dev/schemas/implementation-output.schema.json",
+  "title": "ImplementationOutput",
+  "description": "Base shape for benchmark implementation outputs. Benchmark-specific fields are validated by the Go checker.",
+  "type": "object",
+  "required": ["benchmark", "version"],
+  "properties": {
+    "benchmark": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "benchmark": {
+            "const": "nbody"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "benchmark",
+          "version",
+          "bodyCount",
+          "finalEnergy",
+          "positionChecksum",
+          "velocityChecksum"
+        ],
+        "properties": {
+          "bodyCount": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "finalEnergy": {
+            "type": "number"
+          },
+          "positionChecksum": {
+            "type": "string"
+          },
+          "velocityChecksum": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "benchmark": {
+            "const": "shortest-path"
+          }
+        }
+      },
+      "then": {
+        "required": ["benchmark", "version", "results"],
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["queryId", "distance", "path"],
+              "properties": {
+                "queryId": {
+                  "type": "integer"
+                },
+                "distance": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "path": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  },
+                  "minItems": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "benchmark": {
+            "const": "aggregation"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "benchmark",
+          "version",
+          "recordCount",
+          "totalQuantity",
+          "totalValueMinorUnits",
+          "categories",
+          "topAccounts",
+          "checksum"
+        ],
+        "properties": {
+          "recordCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalQuantity": {
+            "type": "integer"
+          },
+          "totalValueMinorUnits": {
+            "type": "integer"
+          },
+          "categories": {
+            "type": "array"
+          },
+          "topAccounts": {
+            "type": "array"
+          },
+          "checksum": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

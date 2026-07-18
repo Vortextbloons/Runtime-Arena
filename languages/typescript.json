@@ -1,0 +1,30 @@
+{
+  "$schema": "../schemas/language.schema.json",
+  "id": "typescript",
+  "name": "TypeScript",
+  "enabled": true,
+  "detect": {
+    "command": "node",
+    "arguments": ["--version"]
+  },
+  "build": {
+    "workingDirectory": "{implementationDir}",
+    "command": "npm",
+    "arguments": ["run", "build"],
+    "artifact": "dist/index.js"
+  },
+  "run": {
+    "command": "node",
+    "arguments": [
+      "{artifact}",
+      "--input",
+      "{inputFile}",
+      "--output",
+      "{outputFile}"
+    ]
+  },
+  "environment": {
+    "NODE_ENV": "production"
+  },
+  "sourceExtensions": [".ts"]
+}

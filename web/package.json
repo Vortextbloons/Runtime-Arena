@@ -1,0 +1,25 @@
+{
+  "name": "@runtime-arena/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Optional SvelteKit UI for viewing Runtime Arena JSON results",
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+  },
+  "engines": {
+    "node": ">=26.4.0"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "^3.0.10",
+    "@sveltejs/kit": "^2.70.0",
+    "@sveltejs/vite-plugin-svelte": "^7.2.0",
+    "svelte": "^5.56.6",
+    "svelte-check": "^4.7.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.1.5"
+  }
+}

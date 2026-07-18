@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "benchmarkDirectory": "benchmarks",
+  "languageDirectory": "languages",
+  "resultDirectory": "results",
+  "checkerExecutable": "bin/arena-checker",
+  "defaults": {
+    "sizes": ["small", "medium", "large"],
+    "warmupIterations": 3,
+    "measuredIterations": 10,
+    "metrics": ["wallTime", "cpuTime", "peakMemory"]
+  },
+  "execution": {
+    "parallelism": 1,
+    "preserveTemporaryFiles": false
+  }
+}

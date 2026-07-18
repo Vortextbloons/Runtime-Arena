@@ -1,0 +1,27 @@
+{
+  "$schema": "../schemas/language.schema.json",
+  "id": "rust",
+  "name": "Rust",
+  "enabled": true,
+  "detect": {
+    "command": "rustc",
+    "arguments": ["--version"]
+  },
+  "build": {
+    "workingDirectory": "{implementationDir}",
+    "command": "cargo",
+    "arguments": ["build", "--release"],
+    "artifact": "target/release/{benchmarkId}"
+  },
+  "run": {
+    "command": "{artifact}",
+    "arguments": [
+      "--input",
+      "{inputFile}",
+      "--output",
+      "{outputFile}"
+    ]
+  },
+  "environment": {},
+  "sourceExtensions": [".rs"]
+}

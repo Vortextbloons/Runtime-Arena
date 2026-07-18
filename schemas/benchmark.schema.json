@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://runtime-arena.dev/schemas/benchmark.schema.json",
+  "title": "BenchmarkManifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "version",
+    "description",
+    "inputFormat",
+    "outputFormat",
+    "checker",
+    "sizes",
+    "metrics",
+    "limits"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "description": {
+      "type": "string"
+    },
+    "inputFormat": {
+      "type": "string",
+      "enum": ["json", "csv", "binary"]
+    },
+    "outputFormat": {
+      "type": "string",
+      "enum": ["json"]
+    },
+    "checker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task", "timeoutMilliseconds"],
+      "properties": {
+        "task": {
+          "type": "string"
+        },
+        "timeoutMilliseconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "sizes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["dataset", "warmupIterations", "measuredIterations"],
+        "properties": {
+          "dataset": {
+            "type": "string"
+          },
+          "warmupIterations": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "measuredIterations": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["timeoutMilliseconds", "maxOutputBytes"],
+      "properties": {
+        "timeoutMilliseconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxOutputBytes": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}

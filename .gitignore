@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+bin/*
+!bin/.gitkeep
+*.exe
+.target/
+.arena/
+
+# Language-specific
+**/target/
+**/*.o
+**/*.a
+
+# Results (keep structure, ignore run artifacts by default if desired)
+# results/runs/*.json is intentional output — tracked optionally
+# Uncomment to ignore generated runs:
+# results/runs/*.json
+# results/latest.json
+
+# Environment / IDE
+.env
+.env.*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temporary
+tmp/
+temp/
+.tmp/
+*.log
+coverage/
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+
+# SvelteKit
+web/.svelte-kit/
+web/build/
+
+# OS
+Desktop.ini
+.opencode/

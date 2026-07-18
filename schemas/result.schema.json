@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://runtime-arena.dev/schemas/result.schema.json",
+  "title": "ArenaResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "runId",
+    "createdAt",
+    "arenaVersion",
+    "command",
+    "environment",
+    "results"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "runId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "arenaVersion": {
+      "type": "string"
+    },
+    "gitCommit": {
+      "type": ["string", "null"]
+    },
+    "command": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "environment": {
+      "type": "object",
+      "required": ["operatingSystem", "cpu", "memoryBytes"],
+      "properties": {
+        "operatingSystem": {
+          "type": "object",
+          "required": ["platform", "release"],
+          "properties": {
+            "platform": {
+              "type": "string"
+            },
+            "release": {
+              "type": "string"
+            }
+          }
+        },
+        "cpu": {
+          "type": "object",
+          "required": ["model", "architecture", "logicalCores"],
+          "properties": {
+            "model": {
+              "type": "string"
+            },
+            "architecture": {
+              "type": "string"
+            },
+            "logicalCores": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "memoryBytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/benchmarkResult"
+      }
+    }
+  },
+  "$defs": {
+    "benchmarkResult": {
+      "type": "object",
+      "required": [
+        "benchmark",
+        "dataset",
+        "language",
+        "build",
+        "execution",
+        "checker"
+      ],
+      "properties": {
+        "benchmark": {
+          "type": "object",
+          "required": ["id", "version", "size"],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "version": {
+              "type": "integer"
+            },
+            "size": {
+              "type": "string"
+            }
+          }
+        },
+        "dataset": {
+          "type": "object",
+          "required": ["id", "sha256"],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "sha256": {
+              "type": "string"
+            },
+            "seed": {
+              "type": "integer"
+            }
+          }
+        },
+        "language": {
+          "type": "object",
+          "required": ["id", "name", "version"],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "build": {
+          "type": "object",
+          "required": ["status", "durationNanoseconds", "command"],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["success", "failed", "skipped"]
+            },
+            "durationNanoseconds": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSizeBytes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "command": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "execution": {
+          "type": "object",
+          "required": [
+            "mode",
+            "warmupIterations",
+            "measuredIterations",
+            "samples",
+            "summary"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["cold-process", "warmed-process", "persistent-worker"]
+            },
+            "warmupIterations": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "measuredIterations": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "samples": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/sample"
+              }
+            },
+            "summary": {
+              "type": "object",
+              "required": ["validSamples"],
+              "properties": {
+                "validSamples": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "medianWallTimeNanoseconds": {
+                  "type": "integer"
+                },
+                "minimumWallTimeNanoseconds": {
+                  "type": "integer"
+                },
+                "maximumWallTimeNanoseconds": {
+                  "type": "integer"
+                },
+                "p95WallTimeNanoseconds": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "checker": {
+          "type": "object",
+          "required": ["language", "version", "status"],
+          "properties": {
+            "language": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "accepted",
+                "wrong-answer",
+                "malformed-output",
+                "unsupported-version",
+                "checker-error"
+              ]
+            },
+            "diagnostics": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "sample": {
+      "type": "object",
+      "required": ["iteration", "valid", "exitCode"],
+      "properties": {
+        "iteration": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "valid": {
+          "type": "boolean"
+        },
+        "wallTimeNanoseconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cpuTimeNanoseconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "peakMemoryBytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "exitCode": {
+          "type": "integer"
+        },
+        "outputSizeBytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

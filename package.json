@@ -1,0 +1,28 @@
+{
+  "name": "runtime-arena",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cross-language benchmarking system for comparing programming language implementations under identical workloads",
+  "workspaces": [
+    "cli",
+    "web"
+  ],
+  "scripts": {
+    "arena": "npm run arena --workspace=@runtime-arena/cli --",
+    "build:cli": "npm run build --workspace=@runtime-arena/cli",
+    "build:checker": "cd checker && go build -o ../bin/arena-checker ./cmd/arena-checker",
+    "build:web": "npm run build --workspace=@runtime-arena/web",
+    "doctor": "npm run arena -- doctor",
+    "verify-environment": "tsx scripts/verify-environment.ts",
+    "prepare-results": "tsx scripts/prepare-results.ts",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=26.4.0",
+    "npm": ">=11.17.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2"
+  }
+}

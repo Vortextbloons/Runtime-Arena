@@ -1,0 +1,32 @@
+{
+  "$schema": "../schemas/language.schema.json",
+  "id": "go",
+  "name": "Go",
+  "enabled": true,
+  "detect": {
+    "command": "go",
+    "arguments": ["version"]
+  },
+  "build": {
+    "workingDirectory": "{implementationDir}",
+    "command": "go",
+    "arguments": [
+      "build",
+      "-o",
+      "{artifact}",
+      "."
+    ],
+    "artifact": ".arena/{benchmarkId}"
+  },
+  "run": {
+    "command": "{artifact}",
+    "arguments": [
+      "--input",
+      "{inputFile}",
+      "--output",
+      "{outputFile}"
+    ]
+  },
+  "environment": {},
+  "sourceExtensions": [".go"]
+}
