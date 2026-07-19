@@ -36,11 +36,11 @@
 				</div>
 
 				<div class="overall">
-					<span class="overall-label">SPEED</span>
+					<span class="overall-label">SCORE</span>
 					<strong>{score.overall === null ? '—' : Math.round(score.overall)}</strong>
 				</div>
 
-				<div class="score-rail" aria-label={score.overall === null ? 'Unranked' : `Geometric-mean speed score ${Math.round(score.overall)} out of 100`}>
+				<div class="score-rail" aria-label={score.overall === null ? 'Unranked' : `Weighted overall score ${Math.round(score.overall)} out of 100`}>
 					<div class="ticks" aria-hidden="true"></div>
 					<div class="fill" style:--score={`${score.overall ?? 0}%`}></div>
 					{#if score.overall !== null}<i style:--score={`${score.overall}%`}></i>{/if}
@@ -80,7 +80,7 @@
 					</div>
 					{#if score.benchmarks}
 						<div class="size-table">
-							<div class="table-head"><span>Benchmark</span><span>Speed</span><span>Performance</span><span>Stability</span><span>Scaling</span></div>
+							<div class="table-head"><span>Benchmark</span><span>Overall</span><span>Speed</span><span>Stability</span><span>Scaling</span></div>
 							{#each score.benchmarks as benchmark (benchmark.benchmarkId)}
 								<div class="size-row">
 									<strong>{formatBenchmarkLabel(benchmark.benchmarkId)}</strong>

@@ -2,6 +2,8 @@
 
 The `arena` CLI is the primary entry point. Build with `npm run build:cli`, then run via `npm run arena -- <command>`.
 
+For a task-oriented walkthrough (filters, everyday workflow, results browsing), see [guides/commands.md](../guides/commands.md).
+
 ## Commands
 
 ### `arena doctor`
@@ -78,13 +80,17 @@ npm run arena -- dataset generate --benchmark nbody --size small --seed 729418
 
 ### `arena results`
 
-View current results or status.
+View current results, a filtered summary table, or cell status.
 
 ```bash
 npm run arena -- results current    # Print current.json
+npm run arena -- results summary    # Compact table (median + relative)
+npm run arena -- results summary --benchmark barrier-wave --language go
 npm run arena -- results status     # Show cell status (current/stale/missing)
 npm run arena -- results status --language rust
 ```
+
+`summary` and `status` accept the same repeatable filters as `run`: `--language`/`-l`, `--benchmark`/`-b`, and `--size`.
 
 ### `arena web`
 

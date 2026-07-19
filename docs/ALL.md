@@ -1,7 +1,7 @@
 # Runtime Arena — Complete Documentation
 > Auto-generated from docs/INDEX.md by scripts/combine-docs.mjs
-> Generated: 2026-07-19T06:01:04.092Z
-> Total files: 19
+> Generated: 2026-07-19T06:56:26.941Z
+> Total files: 20
 
 ## Table of Contents
 
@@ -18,6 +18,7 @@
 - [reference > schemas](#reference-schemas)
 - [reference > benchmarks](#reference-benchmarks)
 - [guides > development](#guides-development)
+- [guides > commands](#guides-commands)
 - [guides > testing](#guides-testing)
 - [guides > web-deployment](#guides-web-deployment)
 - [guides > adding-a-benchmark](#guides-adding-a-benchmark)
@@ -601,6 +602,8 @@ Persisted runs remain `ArenaRun` / `ArenaResult`. Scores and tiers are derived c
 
 The `arena` CLI is the primary entry point. Build with `npm run build:cli`, then run via `npm run arena -- <command>`.
 
+For a task-oriented walkthrough (filters, everyday workflow, results browsing), see [guides/commands.md](../guides/commands.md).
+
 ## Commands
 
 ### `arena doctor`
@@ -677,13 +680,17 @@ npm run arena -- dataset generate --benchmark nbody --size small --seed 729418
 
 ### `arena results`
 
-View current results or status.
+View current results, a filtered summary table, or cell status.
 
 ```bash
 npm run arena -- results current    # Print current.json
+npm run arena -- results summary    # Compact table (median + relative)
+npm run arena -- results summary --benchmark barrier-wave --language go
 npm run arena -- results status     # Show cell status (current/stale/missing)
 npm run arena -- results status --language rust
 ```
+
+`summary` and `status` accept the same repeatable filters as `run`: `--language`/`-l`, `--benchmark`/`-b`, and `--size`.
 
 ### `arena web`
 
@@ -1074,7 +1081,18 @@ npm run build:checker
 | `npm run dev` | Start web dev server |
 | `npm run arena -- doctor` | Check environment health |
 | `npm run arena -- run` | Run benchmarks |
+| `npm run arena -- results summary` | Table view of `results/current.json` |
 | `npm run combine-docs` | Regenerate docs/ALL.md |
+
+See [commands.md](commands.md) for the full CLI usage guide.
+
+`--language` / `-l` and `--benchmark` / `-b` are repeatable (not comma-separated):
+
+```bash
+npm run arena -- run --language go --language python --benchmark barrier-wave
+```
+
+Omitting `--size` runs every default size the benchmark defines.
 
 ## Project Structure
 
@@ -1091,17 +1109,16 @@ benchmarks/             # Workloads, datasets, implementations
   nbody/
   shortest-path/
   aggregation/
-  barrier-wave/         # Checker-ready; language impls WIP
+  barrier-wave/         # Rust/Go/TS/Python; LuaJIT marked unavailable
 languages/              # Language manifests (rust, go, typescript, python, lua)
 schemas/                # JSON Schema definitions
 results/                # Canonical result snapshots
 web/                    # SvelteKit dashboard
 scripts/                # Build and utility scripts
 docs/                   # Canonical project documentation
-refs/                   # Informal draft copies of some guides (not authoritative)
 ```
 
-Canonical docs live under `docs/`. If a file also exists under `refs/`, prefer `docs/guides/`.
+Canonical docs live under `docs/`. Start at [`docs/INDEX.md`](../INDEX.md).
 
 ## Adding a Benchmark
 
@@ -1119,7 +1136,7 @@ npm test
 
 This runs:
 1. CLI integration tests (`cli/test/cli.test.ts`)
-2. Web unit tests (`web/src/lib/scoring.test.ts`)
+2. Web unit tests (`web/src/lib/scoring.test.ts`, `web/src/lib/tiers.test.ts`)
 3. Checker unit tests (`checker/cmd/arena-checker/main_test.go` via `scripts/test-checker.mjs`)
 
 ## Conventions
@@ -1131,6 +1148,171 @@ This runs:
 - Do not manually edit generated result files (`results/current.json`)
 - The checker must be independent from the CLI (no shared code)
 - All implementations must accept `--input <file> --output <file> --timing-output <file> --warmup <n> --iterations <n>`
+
+---
+
+# guides > commands
+
+> Source: `docs/guides/commands.md`
+
+# CLI Command Guide
+
+Practical guide to the `arena` CLI. For flag details and the results JSON
+shape, see [reference/api.md](../reference/api.md).
+
+## Setup
+
+From the repo root:
+
+```bash
+npm install
+npm run build:cli
+npm run build:checker
+```
+
+Invoke the CLI with:
+
+```bash
+npm run arena -- <command> [flags...]
+```
+
+The `--` after `arena` is required so npm forwards flags to the CLI.
+
+## Filters (shared)
+
+These flags are **repeatable** (not comma-separated) on `run`, `build`,
+`results summary`, and `results status`:
+
+| Flag | Short | Meaning |
+|------|-------|---------|
+| `--language <id>` | `-l` | e.g. `rust`, `go`, `typescript`, `python`, `lua`, `cpp` |
+| `--benchmark <id>` | `-b` | e.g. `nbody`, `shortest-path`, `aggregation`, `barrier-wave` |
+| `--size <name>` | | `small`, `medium`, or `large` |
+
+```bash
+# Correct
+npm run arena -- run --language go --language python --benchmark barrier-wave
+
+# Wrong — treated as one unknown language id
+npm run arena -- run --language go,python --benchmark barrier-wave
+```
+
+Omitting `--size` on `run` uses every default size the benchmark defines.
+
+## Everyday workflow
+
+### 1. Check the environment
+
+```bash
+npm run arena -- doctor
+npm run arena -- list languages
+npm run arena -- list benchmarks
+```
+
+### 2. Build (optional)
+
+`run` builds as needed. Use `build` when you only want compile checks:
+
+```bash
+npm run arena -- build --language rust --benchmark nbody
+```
+
+### 3. Run benchmarks
+
+```bash
+# Everything that is stale or missing
+npm run arena -- run
+
+# One cell
+npm run arena -- run --language rust --benchmark nbody --size small
+
+# Force re-measure even if fingerprints match
+npm run arena -- run --force --language go --benchmark barrier-wave --size small
+
+# Force every selected cell
+npm run arena -- run --force --all
+```
+
+Useful extras:
+
+| Flag | Effect |
+|------|--------|
+| `--quiet` | Less console output |
+| `--no-save` | Do not write `results/current.json` |
+| `--format json` | Print the snapshot JSON |
+| `--output <file>` | Write results to a specific path |
+| `--warmup <n>` / `--iterations <n>` | Override dataset defaults |
+| `--preserve-temp` | Keep the temp run directory |
+
+### 4. Browse results
+
+Prefer the summary table over dumping the full JSON:
+
+```bash
+# All cells in current.json
+npm run arena -- results summary
+
+# Filtered
+npm run arena -- results summary --benchmark barrier-wave --size small
+npm run arena -- results summary --language cpp --language rust
+
+# Fingerprint freshness (current / stale / missing / unavailable)
+npm run arena -- results status
+npm run arena -- results status --benchmark aggregation --language typescript
+
+# Raw snapshot (large)
+npm run arena -- results current
+```
+
+### 5. Preview the web UI
+
+```bash
+npm run build:web
+npm run arena -- web
+```
+
+## Other commands
+
+### Validate one output file
+
+```bash
+npm run arena -- check --benchmark nbody --input path/to/input.json --output path/to/output.json
+```
+
+### Regenerate a dataset
+
+Generators exist for nbody, shortest-path, aggregation, and barrier-wave:
+
+```bash
+npm run arena -- dataset generate --benchmark nbody --size small --seed 729418
+```
+
+Committed fixtures are the source of truth for arena runs; only regenerate when
+intentionally refreshing datasets (and update metadata / hashes accordingly).
+
+## Quick reference
+
+| Goal | Command |
+|------|---------|
+| Health check | `npm run arena -- doctor` |
+| List languages | `npm run arena -- list languages` |
+| List benchmarks | `npm run arena -- list benchmarks` |
+| Run all stale/missing | `npm run arena -- run` |
+| Run one language × benchmark | `npm run arena -- run -l rust -b nbody --size small` |
+| Force re-run | `npm run arena -- run --force ...` |
+| Results table | `npm run arena -- results summary` |
+| Cell freshness | `npm run arena -- results status` |
+| Raw JSON | `npm run arena -- results current` |
+| Checker on a file | `npm run arena -- check --benchmark <id> --input ... --output ...` |
+| Web preview | `npm run build:web` then `npm run arena -- web` |
+
+## Related docs
+
+- [CLI reference](../reference/api.md) — flags and snapshot schema
+- [CLI component](../components/cli.md) — architecture
+- [Execution model](../architecture/execution-model.md) — timing boundary and worker contract
+- [Fingerprinting](../architecture/fingerprinting.md) — why `run` skips some cells
+- [Ops runbook](../ops/runbook.md) — troubleshooting
 
 ---
 
@@ -1158,6 +1340,7 @@ This command:
 | CLI integration | `cli/test/cli.test.ts` | Node test runner |
 | CLI timing helpers | `cli/src/timing.test.ts` | Node test runner |
 | Web scoring | `web/src/lib/scoring.test.ts` | Node test runner |
+| Web tiers | `web/src/lib/tiers.test.ts` | Node test runner |
 | Checker | `checker/cmd/arena-checker/main_test.go` | Go testing |
 
 ## CLI Tests
@@ -1190,7 +1373,7 @@ node scripts/test-checker.mjs
 
 ## Web Tests
 
-Unit tests for the scoring algorithm:
+Unit tests for scoring and scorecard tiers:
 
 ```bash
 npm run test --workspace=@runtime-arena/web
@@ -1291,14 +1474,15 @@ The `prepare-results.ts` script handles copying the latest results into the stat
 
 2. Define the workload, input, output, and fairness rules in the README.
 3. Write an `IMPLEMENTING.md` that consolidates everything an implementer
-   needs: CLI contract, input/output formats (with field tables), algorithm
-   pseudocode, checksum/hash rules, checker validation rules, gotchas,
-   scaffolding templates per language, and a verification command. Use
-   existing `IMPLEMENTING.md` files as a template.
+   needs: CLI contract, input/output formats (with examples), algorithm
+   pseudocode, checksum/hash rules, checker validation rules, fairness
+   constraints, and a verification command. Use existing `IMPLEMENTING.md`
+   files as a template.
 4. Add deterministic `small`, `medium`, and `large` datasets (commit fixtures
    with metadata). If you want `arena dataset generate` support, register a
    generator branch in `cli/src/index.ts` (`datasetCommand`) — without that,
-   generate fails with "No generator registered".
+   generate fails with "No generator registered". Generators already exist
+   for nbody, shortest-path, aggregation, and barrier-wave.
 5. Create `benchmark.json` using an existing benchmark as a template. It must
    match `schemas/benchmark.schema.json`.
 6. Add independent validation logic to the Go checker (and unit tests).
@@ -1313,12 +1497,12 @@ The `prepare-results.ts` script handles copying the latest results into the stat
    `--warmup`, `--iterations`).
 9. Confirm discovery and run a small test:
 
-    ```bash
-    npm run build:checker
-    npm run arena -- list benchmarks
-    npm run arena -- run --benchmark <benchmark-id> --size small
-    npm test
-    ```
+   ```bash
+   npm run build:checker
+   npm run arena -- list benchmarks
+   npm run arena -- run --benchmark <benchmark-id> --size small
+   npm test
+   ```
 
 Each implementation must use the most idiomatic approach for its language while
 producing output accepted by the checker. Do not include setup, compilation, or
@@ -1337,8 +1521,8 @@ validation work in the timed workload.
    run arguments, environment variables, and source extensions.
 3. Ensure the manifest matches `schemas/language.schema.json`.
 4. Add `benchmarks/<benchmark-id>/implementations/<language-id>/` for every
-   supported benchmark you intend to ship (start with the three complete
-   workloads; barrier-wave when ready).
+   supported benchmark you intend to ship (nbody, shortest-path, aggregation,
+   and barrier-wave).
 5. Read each benchmark's `IMPLEMENTING.md` for the exact implementation
    contract — input/output formats, algorithm requirements, checksum rules,
    and checker gotchas:
@@ -1346,7 +1530,7 @@ validation work in the timed workload.
    - `benchmarks/nbody/IMPLEMENTING.md`
    - `benchmarks/shortest-path/IMPLEMENTING.md`
    - `benchmarks/aggregation/IMPLEMENTING.md`
-   - `benchmarks/barrier-wave/IMPLEMENTING.md` (when implementing barrier-wave)
+   - `benchmarks/barrier-wave/IMPLEMENTING.md`
 
 6. Each implementation must accept the persistent-worker CLI contract:
 
@@ -1364,7 +1548,12 @@ validation work in the timed workload.
 7. Use optimized release builds. Produce output that passes the checker —
    the internal approach can differ from other language implementations.
    Use the language's best idioms, data structures, and patterns.
-8. Verify the integration:
+8. For barrier-wave, use real parallel workers with stable IDs and a
+   dedicated inbox per worker (shared work queues allow steal races). Rust
+   uses native threads, Go uses goroutines with `GOMAXPROCS >= workerCount`,
+   TypeScript uses `worker_threads`, and Python uses multiprocessing. Mark
+   LuaJIT unavailable unless real native threads or processes are used.
+9. Verify the integration:
 
    ```bash
    npm run arena -- doctor
@@ -1403,6 +1592,21 @@ making the comparison unfair.
   runs, or move timed computation into setup.
 - Keep implementation-specific tuning idiomatic and document unusual choices.
 
+## Parallel Workloads
+
+For barrier-wave (and similar fan-out/fan-in benchmarks), output checking
+cannot prove workers ran in parallel. Also review:
+
+- Real parallel workers (threads/processes/`worker_threads`), not a serial loop
+  or event-loop tasks pretending to be concurrency.
+- Stable worker IDs `0..workerCount-1` owning fixed shards.
+- Dedicated per-worker inboxes — a shared work queue allows one worker to steal
+  another worker's phase and still sometimes pass the checker.
+- Barriers between phases: the next phase must not start until every worker
+  result for the current phase has been reduced.
+- Worker creation and shutdown stay outside the timed kernel; communication,
+  computation, synchronization, waiting, and reduction stay inside it.
+
 ## Optimization Review
 
 - Confirm the optimized or release build is used.
@@ -1419,6 +1623,12 @@ making the comparison unfair.
 ```bash
 npm run arena -- run --language <language-id> --benchmark <benchmark-id> --size small
 npm run arena -- run --language <language-id> --benchmark <benchmark-id> --size large
+```
+
+`--language` is repeatable when comparing multiple implementations:
+
+```bash
+npm run arena -- run --language rust --language go --benchmark barrier-wave --size small
 ```
 
 Compare multiple measured iterations, not a single run. Test before and after

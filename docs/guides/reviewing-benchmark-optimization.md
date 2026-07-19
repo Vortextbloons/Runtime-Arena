@@ -15,6 +15,21 @@ making the comparison unfair.
   runs, or move timed computation into setup.
 - Keep implementation-specific tuning idiomatic and document unusual choices.
 
+## Parallel Workloads
+
+For barrier-wave (and similar fan-out/fan-in benchmarks), output checking
+cannot prove workers ran in parallel. Also review:
+
+- Real parallel workers (threads/processes/`worker_threads`), not a serial loop
+  or event-loop tasks pretending to be concurrency.
+- Stable worker IDs `0..workerCount-1` owning fixed shards.
+- Dedicated per-worker inboxes — a shared work queue allows one worker to steal
+  another worker's phase and still sometimes pass the checker.
+- Barriers between phases: the next phase must not start until every worker
+  result for the current phase has been reduced.
+- Worker creation and shutdown stay outside the timed kernel; communication,
+  computation, synchronization, waiting, and reduction stay inside it.
+
 ## Optimization Review
 
 - Confirm the optimized or release build is used.
@@ -31,6 +46,12 @@ making the comparison unfair.
 ```bash
 npm run arena -- run --language <language-id> --benchmark <benchmark-id> --size small
 npm run arena -- run --language <language-id> --benchmark <benchmark-id> --size large
+```
+
+`--language` is repeatable when comparing multiple implementations:
+
+```bash
+npm run arena -- run --language rust --language go --benchmark barrier-wave --size small
 ```
 
 Compare multiple measured iterations, not a single run. Test before and after

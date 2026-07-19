@@ -90,7 +90,7 @@
 		<!-- Collectible layer: rating, language identity, art, tier -->
 		<header class="card-top">
 			<div class="ovr-block">
-				<span class="ovr-label">SPEED</span>
+				<span class="ovr-label">SCORE</span>
 				<div class="ovr-number">
 					{#each overallDigits as digit, i (i)}
 						<span class="ovr-digit" class:dash={digit === '—'}>{digit}</span>
@@ -208,7 +208,7 @@
 				<span class="runtime-glyph" aria-hidden="true">⌬</span>
 				<span class="runtime-text">{score.language.id} · {versionTag}</span>
 			</span>
-			<span class="ovr-mini" aria-label="Geometric-mean speed score">{ovrCopy}</span>
+			<span class="ovr-mini" aria-label="Weighted overall score">{ovrCopy}</span>
 		</footer>
 
 		{#if issueCount}

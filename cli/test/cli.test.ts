@@ -51,6 +51,15 @@ test("reports canonical cell freshness without running benchmarks", () => {
   assert.match(result.stdout, /aggregation\/small\/typescript\s+(?:current|stale)/);
 });
 
+test("summarizes canonical results with filters", () => {
+  const result = arena("results", "summary", "--benchmark", "aggregation", "--size", "small");
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Benchmark/);
+  assert.match(result.stdout, /Relative/);
+  assert.match(result.stdout, /aggregation\/small/);
+  assert.match(result.stdout, /★ = fastest in group/);
+});
+
 test("doctor validates the complete repository", () => {
   const result = arena("doctor");
   assert.equal(result.status, 0, result.stdout + result.stderr);

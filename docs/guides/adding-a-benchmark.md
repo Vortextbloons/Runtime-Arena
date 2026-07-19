@@ -12,14 +12,15 @@
 
 2. Define the workload, input, output, and fairness rules in the README.
 3. Write an `IMPLEMENTING.md` that consolidates everything an implementer
-   needs: CLI contract, input/output formats (with field tables), algorithm
-   pseudocode, checksum/hash rules, checker validation rules, gotchas,
-   scaffolding templates per language, and a verification command. Use
-   existing `IMPLEMENTING.md` files as a template.
+   needs: CLI contract, input/output formats (with examples), algorithm
+   pseudocode, checksum/hash rules, checker validation rules, fairness
+   constraints, and a verification command. Use existing `IMPLEMENTING.md`
+   files as a template.
 4. Add deterministic `small`, `medium`, and `large` datasets (commit fixtures
    with metadata). If you want `arena dataset generate` support, register a
    generator branch in `cli/src/index.ts` (`datasetCommand`) — without that,
-   generate fails with "No generator registered".
+   generate fails with "No generator registered". Generators already exist
+   for nbody, shortest-path, aggregation, and barrier-wave.
 5. Create `benchmark.json` using an existing benchmark as a template. It must
    match `schemas/benchmark.schema.json`.
 6. Add independent validation logic to the Go checker (and unit tests).
@@ -34,12 +35,12 @@
    `--warmup`, `--iterations`).
 9. Confirm discovery and run a small test:
 
-    ```bash
-    npm run build:checker
-    npm run arena -- list benchmarks
-    npm run arena -- run --benchmark <benchmark-id> --size small
-    npm test
-    ```
+   ```bash
+   npm run build:checker
+   npm run arena -- list benchmarks
+   npm run arena -- run --benchmark <benchmark-id> --size small
+   npm test
+   ```
 
 Each implementation must use the most idiomatic approach for its language while
 producing output accepted by the checker. Do not include setup, compilation, or

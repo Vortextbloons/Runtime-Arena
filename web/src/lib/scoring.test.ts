@@ -77,12 +77,12 @@ test('missing, incorrect, and incomplete results are unranked', () => {
 	}
 });
 
-test('diagnostics do not change overall speed and single-size scalability defaults to 100', () => {
+test('overall uses an 80/10/10 speed, consistency, and scalability split', () => {
 	const score = scoreBenchmark([result('only', 'small', 1_000_000, { deviation: 250_000 })], 'work')[0]!;
 	assert.equal(score.performance, 100);
 	assert.equal(score.consistency, 0);
 	assert.equal(score.scalability, 100);
-	assert.equal(score.overall, 100);
+	assert.equal(score.overall, 90);
 });
 
 test('overall view uses a geometric mean across benchmarks', () => {
@@ -95,7 +95,7 @@ test('overall view uses a geometric mean across benchmarks', () => {
 	const scores = scoreOverall(rows);
 	assert.equal(scores[0]?.performance, 50);
 	assert.equal(scores[1]?.performance, 50);
-	assert.equal(scores[0]?.overall, 50);
+	assert.equal(scores[0]?.overall, 60);
 });
 
 test('overall still ranks a language that skips one benchmark', () => {
@@ -110,7 +110,7 @@ test('overall still ranks a language that skips one benchmark', () => {
 	const rust = scores.find((score) => score.language.id === 'rust');
 
 	assert.equal(lua?.eligible, true);
-	assert.equal(lua?.overall, 50);
+	assert.equal(lua?.overall, 60);
 	assert.deepEqual(
 		lua?.benchmarks?.map((entry) => entry.benchmarkId),
 		['work']

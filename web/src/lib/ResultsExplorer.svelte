@@ -79,7 +79,7 @@
 			<label>
 				<span>Benchmark</span>
 				<select bind:value={selectedBenchmark}>
-					<option value="overall">Overall speed</option>
+					<option value="overall">Overall score</option>
 					{#each benchmarks as benchmark (benchmark)}
 						<option value={benchmark}>{benchmark}</option>
 					{/each}
@@ -97,9 +97,9 @@
 
 	<div class="view-intro">
 		<div>
-			<p>{view === 'chart' ? 'Measured comparison' : 'Execution speed'}</p>
+			<p>{view === 'chart' ? 'Measured comparison' : 'Weighted overall score'}</p>
 			<h2>{activeBenchmark === 'overall' ? 'Overall' : activeBenchmark.replace(/[-_]+/g, ' ')}</h2>
-			<p class="qualification">Snapshot rankings · accepted geometric-mean speed over completed benchmarks · skipped workloads noted · stability and scaling are diagnostic</p>
+			<p class="qualification">Snapshot rankings · 80% geometric-mean speed · 10% stability · 10% scaling · skipped workloads noted</p>
 		</div>
 		<p>
 			{view === 'chart' && activeBenchmark === 'overall'
@@ -149,7 +149,7 @@
 							<div class="expanded-table">
 								<div class="expanded-table-head">
 									<span>Benchmark</span>
-									<span>Speed</span>
+									<span>Overall</span>
 									<span>Performance</span>
 									<span>Stability diagnostic</span>
 									<span>Scaling diagnostic</span>

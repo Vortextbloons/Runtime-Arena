@@ -1,0 +1,28 @@
+{
+  "$schema": "../schemas/language.schema.json",
+  "id": "cpp",
+  "name": "C++",
+  "enabled": true,
+  "detect": {
+    "command": "g++",
+    "arguments": ["--version"]
+  },
+  "build": {
+    "workingDirectory": "{implementationDir}",
+    "command": "g++",
+    "arguments": ["-O3", "-std=c++23", "-I", "../../../../languages/cpp/include", "-o", "{artifact}", "main.cpp", "-lpthread"],
+    "artifact": "{benchmarkId}.exe"
+  },
+  "run": {
+    "command": "{artifact}",
+    "arguments": [
+      "--input", "{inputFile}",
+      "--output", "{outputFile}",
+      "--timing-output", "{timingOutputFile}",
+      "--warmup", "{warmupIterations}",
+      "--iterations", "{measuredIterations}"
+    ]
+  },
+  "environment": {},
+  "sourceExtensions": [".cpp", ".hpp", ".h"]
+}

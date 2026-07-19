@@ -29,7 +29,18 @@ npm run build:checker
 | `npm run dev` | Start web dev server |
 | `npm run arena -- doctor` | Check environment health |
 | `npm run arena -- run` | Run benchmarks |
+| `npm run arena -- results summary` | Table view of `results/current.json` |
 | `npm run combine-docs` | Regenerate docs/ALL.md |
+
+See [commands.md](commands.md) for the full CLI usage guide.
+
+`--language` / `-l` and `--benchmark` / `-b` are repeatable (not comma-separated):
+
+```bash
+npm run arena -- run --language go --language python --benchmark barrier-wave
+```
+
+Omitting `--size` runs every default size the benchmark defines.
 
 ## Project Structure
 
@@ -46,17 +57,16 @@ benchmarks/             # Workloads, datasets, implementations
   nbody/
   shortest-path/
   aggregation/
-  barrier-wave/         # Checker-ready; language impls WIP
+  barrier-wave/         # Rust/Go/TS/Python; LuaJIT marked unavailable
 languages/              # Language manifests (rust, go, typescript, python, lua)
 schemas/                # JSON Schema definitions
 results/                # Canonical result snapshots
 web/                    # SvelteKit dashboard
 scripts/                # Build and utility scripts
 docs/                   # Canonical project documentation
-refs/                   # Informal draft copies of some guides (not authoritative)
 ```
 
-Canonical docs live under `docs/`. If a file also exists under `refs/`, prefer `docs/guides/`.
+Canonical docs live under `docs/`. Start at [`docs/INDEX.md`](../INDEX.md).
 
 ## Adding a Benchmark
 
@@ -74,7 +84,7 @@ npm test
 
 This runs:
 1. CLI integration tests (`cli/test/cli.test.ts`)
-2. Web unit tests (`web/src/lib/scoring.test.ts`)
+2. Web unit tests (`web/src/lib/scoring.test.ts`, `web/src/lib/tiers.test.ts`)
 3. Checker unit tests (`checker/cmd/arena-checker/main_test.go` via `scripts/test-checker.mjs`)
 
 ## Conventions

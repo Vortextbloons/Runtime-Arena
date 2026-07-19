@@ -371,9 +371,33 @@ async function runCommand(args: string[]) {
   return 0;
 }
 
+function stripAnsi(text: string) {
+  return text.replace(/\x1b\[[0-9;]*m/g, "");
+}
+
+function padCell(text: string, width: number, align: "left" | "right" = "left") {
+  const visible = stripAnsi(text).length;
+  const pad = Math.max(0, width - visible);
+  return align === "right" ? `${" ".repeat(pad)}${text}` : `${text}${" ".repeat(pad)}`;
+}
+
+function formatKernelMs(nanoseconds: number) {
+  const ms = nanoseconds / 1e6;
+  if (ms < 0.01) return `${(nanoseconds / 1e3).toFixed(1)} µs`;
+  if (ms < 1000) return `${ms.toFixed(ms < 10 ? 2 : 1)} ms`;
+  return `${(ms / 1000).toFixed(2)} s`;
+}
+
 function printSummary(results: any[]) {
-  console.log("\nBenchmark         Language      Correct  Median       Relative");
-  console.log("----------------  ------------  -------  -----------  --------");
+  const color = Boolean(process.stdout.isTTY) && !process.env.NO_COLOR;
+  const paint = (code: string, text: string) => (color ? `\x1b[${code}m${text}\x1b[0m` : text);
+  const dim = (text: string) => paint("2", text);
+  const bold = (text: string) => paint("1", text);
+  const green = (text: string) => paint("32", text);
+  const yellow = (text: string) => paint("33", text);
+  const red = (text: string) => paint("31", text);
+  const cyan = (text: string) => paint("36", text);
+
   const fastest = new Map<string, number>();
   for (const result of results) {
     if (result.checker.status !== "accepted") continue;
@@ -381,13 +405,58 @@ function printSummary(results: any[]) {
     const median = result.execution.summary.medianKernelTimeNanoseconds as number;
     fastest.set(key, Math.min(fastest.get(key) ?? Number.POSITIVE_INFINITY, median));
   }
-  for (const result of results) {
-    const key = `${result.benchmark.id}/${result.benchmark.size}`;
+
+  type Row = { benchmark: string; language: string; correct: string; median: string; relative: string; sortKey: string; relativeValue: number };
+  const rows: Row[] = results.map(result => {
+    const benchmark = `${result.benchmark.id}/${result.benchmark.size}`;
     const accepted = result.checker.status === "accepted";
-    const median = result.execution.summary.medianKernelTimeNanoseconds as number;
-    const relative = accepted ? `${(median / fastest.get(key)!).toFixed(2)}x` : "unranked";
-    console.log(`${key.padEnd(16)}  ${result.language.name.padEnd(12)}  ${(accepted ? "Yes" : "No").padEnd(7)}  ${(accepted ? `${(median / 1e6).toFixed(2)} ms` : "INVALID").padEnd(11)}  ${relative}`);
+    const medianNs = result.execution.summary.medianKernelTimeNanoseconds as number;
+    const best = fastest.get(benchmark);
+    const relativeValue = accepted && best ? medianNs / best : Number.POSITIVE_INFINITY;
+    const isFastest = accepted && relativeValue <= 1.0001;
+    let relativeText = "—";
+    if (accepted && best) {
+      const label = `${relativeValue.toFixed(2)}x`;
+      relativeText = isFastest ? bold(green(`${label} ★`)) : relativeValue < 2 ? green(label) : relativeValue < 10 ? yellow(label) : red(label);
+    } else if (!accepted) {
+      relativeText = dim("unranked");
+    }
+    return {
+      benchmark: cyan(benchmark),
+      language: result.language.name,
+      correct: accepted ? green("yes") : red("no"),
+      median: accepted ? formatKernelMs(medianNs) : red("INVALID"),
+      relative: relativeText,
+      sortKey: benchmark,
+      relativeValue
+    };
+  }).sort((a, b) => a.sortKey.localeCompare(b.sortKey) || a.relativeValue - b.relativeValue);
+
+  const headers = ["Benchmark", "Language", "Correct", "Median", "Relative"];
+  const plainRows = rows.map(row => [row.benchmark, row.language, row.correct, row.median, row.relative]);
+  const widths = headers.map((header, i) => Math.max(header.length, ...plainRows.map(row => stripAnsi(row[i]!).length)));
+  const alignRight = new Set([3, 4]);
+
+  const rule = (left: string, mid: string, right: string, fill: string) =>
+    `${left}${widths.map(w => fill.repeat(w + 2)).join(mid)}${right}`;
+  const line = (cells: string[], paintRow?: (text: string) => string) => {
+    const body = cells.map((cell, i) => ` ${padCell(cell, widths[i]!, alignRight.has(i) ? "right" : "left")} `).join(dim("│"));
+    const framed = `${dim("│")}${body}${dim("│")}`;
+    return paintRow ? paintRow(framed) : framed;
+  };
+
+  console.log();
+  console.log(dim(rule("┌", "┬", "┐", "─")));
+  console.log(line(headers.map(h => bold(h))));
+  console.log(dim(rule("├", "┼", "┤", "─")));
+  let previous = "";
+  for (const row of rows) {
+    if (previous && previous !== row.sortKey) console.log(dim(rule("├", "┼", "┤", "─")));
+    console.log(line([row.benchmark, row.language, row.correct, row.median, row.relative]));
+    previous = row.sortKey;
   }
+  console.log(dim(rule("└", "┴", "┘", "─")));
+  console.log(dim(`${rows.length} result${rows.length === 1 ? "" : "s"} · ★ = fastest in group`));
 }
 
 async function validateResult(record: unknown) {
@@ -467,13 +536,30 @@ async function resultsStatus(args: string[]) {
   console.log(`\n${["current", "stale", "missing", "unavailable"].map(status => `${status}: ${counts.get(status) ?? 0}`).join(" · ")}`);
 }
 
+async function resultsSummary(args: string[]) {
+  const flags = parseFlags(args);
+  const current = await readSnapshot();
+  if (!current) throw new Error("No canonical results yet. Run `arena run`.");
+  const languages = flags.all("--language");
+  const benchmarks = flags.all("--benchmark");
+  const size = flags.get("--size");
+  const filtered = current.results.filter(result =>
+    (!languages.length || languages.includes(result.language.id))
+    && (!benchmarks.length || benchmarks.includes(result.benchmark.id))
+    && (!size || result.benchmark.size === size)
+  );
+  if (!filtered.length) throw new Error("No results matched the given filters");
+  printSummary(filtered);
+}
+
 async function resultsCommand(args: string[]) {
   if (!args[0] || args[0] === "current") {
     if (!await exists(currentResultPath)) throw new Error("No canonical results yet. Run `arena run`.");
     return console.log(await readFile(currentResultPath, "utf8"));
   }
+  if (args[0] === "summary") return resultsSummary(args.slice(1));
   if (args[0] === "status") return resultsStatus(args.slice(1));
-  throw new Error("Usage: arena results current|status");
+  throw new Error("Usage: arena results current|summary|status");
 }
 async function listCommand(kind: string) {
   if (kind === "languages") for (const d of await detections()) console.log(`${d.language.id.padEnd(14)} ${d.available ? "available" : "unavailable"}  ${d.version}`);

@@ -40,6 +40,7 @@ Step-by-step instructions for development, testing, and deployment.
 | File | Description |
 |------|-------------|
 | [guides/development.md](guides/development.md) | Developer setup, build commands, and conventions |
+| [guides/commands.md](guides/commands.md) | Practical arena CLI usage guide |
 | [guides/testing.md](guides/testing.md) | Running and writing tests |
 | [guides/web-deployment.md](guides/web-deployment.md) | Building and deploying the web UI |
 | [guides/adding-a-benchmark.md](guides/adding-a-benchmark.md) | How to add a new benchmark workload |
@@ -56,4 +57,4 @@ Runbook and troubleshooting.
 
 ## File Count
 
-**19 documentation files** (19 included in combined output).
+**20 documentation files** (20 included in combined output).

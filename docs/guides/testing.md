@@ -18,6 +18,7 @@ This command:
 | CLI integration | `cli/test/cli.test.ts` | Node test runner |
 | CLI timing helpers | `cli/src/timing.test.ts` | Node test runner |
 | Web scoring | `web/src/lib/scoring.test.ts` | Node test runner |
+| Web tiers | `web/src/lib/tiers.test.ts` | Node test runner |
 | Checker | `checker/cmd/arena-checker/main_test.go` | Go testing |
 
 ## CLI Tests
@@ -50,7 +51,7 @@ node scripts/test-checker.mjs
 
 ## Web Tests
 
-Unit tests for the scoring algorithm:
+Unit tests for scoring and scorecard tiers:
 
 ```bash
 npm run test --workspace=@runtime-arena/web

@@ -2,6 +2,7 @@ import type { ArenaResult, BenchmarkScore, SizeScore } from './types';
 
 const SIZE_ORDER = ['small', 'medium', 'large'];
 export const MINIMUM_RANKED_MEDIAN_NANOSECONDS = 1_000_000;
+export const SCORE_WEIGHTS = { performance: 0.8, consistency: 0.1, scalability: 0.1 } as const;
 
 const average = (values: number[]) => values.reduce((total, value) => total + value, 0) / values.length;
 const geometricMean = (values: number[]) =>
@@ -10,6 +11,12 @@ const geometricMean = (values: number[]) =>
 		: 0;
 const clampScore = (value: number) => Math.max(0, Math.min(100, value));
 const normalizeScore = (value: number) => Math.round(clampScore(value) * 1e9) / 1e9;
+const weightedOverall = (performance: number, consistency: number, scalability: number) =>
+	normalizeScore(
+		performance * SCORE_WEIGHTS.performance +
+		consistency * SCORE_WEIGHTS.consistency +
+		scalability * SCORE_WEIGHTS.scalability
+	);
 
 export function formatDuration(nanoseconds: number): string {
 	if (nanoseconds < 1e6) return `${(nanoseconds / 1e3).toFixed(1)} µs`;
@@ -111,7 +118,7 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 			const sizePerformance = sizes.map((size) => size.performance);
 			const maximumPerformance = Math.max(...sizePerformance);
 			const scalability = maximumPerformance > 0 ? (Math.min(...sizePerformance) / maximumPerformance) * 100 : 0;
-			const overall = performance;
+			const overall = weightedOverall(performance, consistency, scalability);
 
 			return {
 				benchmarkId,
@@ -177,7 +184,7 @@ export function scoreOverall(results: ArenaResult[]): BenchmarkScore[] {
 			const performance = normalizeScore(geometricMean(eligibleEntries.map((score) => score.performance!)));
 			const consistency = average(eligibleEntries.map((score) => score.consistency!));
 			const scalability = average(eligibleEntries.map((score) => score.scalability!));
-			const overall = performance;
+			const overall = weightedOverall(performance, consistency, scalability);
 
 			return {
 				benchmarkId: 'overall',
@@ -206,8 +213,8 @@ export function scoreOverall(results: ArenaResult[]): BenchmarkScore[] {
 }
 
 export function scoreInterpretation(score: number): string {
-	if (score >= 90) return 'Within 10% of the cohort leader on geometric-mean speed.';
-	if (score >= 75) return 'Strong execution speed across the ranked workloads.';
-	if (score >= 60) return 'Competitive execution speed with room to improve.';
-	return 'Execution speed trails this cohort across the ranked workloads.';
+	if (score >= 90) return 'Strong overall performance across speed, stability, and scaling.';
+	if (score >= 75) return 'Competitive overall performance across the ranked workloads.';
+	if (score >= 60) return 'Solid results with room to improve speed, stability, or scaling.';
+	return 'Overall results trail this cohort across the ranked workloads.';
 }
