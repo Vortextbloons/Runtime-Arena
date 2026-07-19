@@ -33,11 +33,6 @@ type Sample struct {
 	Duration  int64 `json:"kernelTimeNanoseconds"`
 }
 
-type workItem struct {
-	phaseSeed uint32
-	phaseNum  int
-}
-
 type workerResult struct {
 	workerID int
 	localXor uint32
@@ -45,25 +40,28 @@ type workerResult struct {
 }
 
 type pool struct {
-	workCh      chan workItem
+	workChs     []chan uint32
 	resultCh    chan workerResult
 	workerCount int
 }
 
 func newPool(workerCount, itemsPerWorker, roundsPerItem int) *pool {
 	p := &pool{
-		workCh:      make(chan workItem, workerCount),
+		workChs:     make([]chan uint32, workerCount),
 		resultCh:    make(chan workerResult, workerCount),
 		workerCount: workerCount,
 	}
 	for w := 0; w < workerCount; w++ {
-		go func(workerID int) {
-			for item := range p.workCh {
+		ch := make(chan uint32, 1)
+		p.workChs[w] = ch
+		go func(workerID int, workCh <-chan uint32) {
+			workerMul := uint32(workerID) * 0x9e3779b9
+			for phaseSeed := range workCh {
 				localXor := uint32(0)
 				localSum := uint64(0)
 				for localItem := 0; localItem < itemsPerWorker; localItem++ {
 					globalItemId := uint32(workerID*itemsPerWorker + localItem)
-					x := item.phaseSeed ^ globalItemId ^ uint32(workerID)*0x9e3779b9
+					x := phaseSeed ^ globalItemId ^ workerMul
 					for round := 0; round < roundsPerItem; round++ {
 						x ^= x << 13
 						x ^= x >> 17
@@ -75,9 +73,15 @@ func newPool(workerCount, itemsPerWorker, roundsPerItem int) *pool {
 				}
 				p.resultCh <- workerResult{workerID, localXor, localSum}
 			}
-		}(w)
+		}(w, ch)
 	}
 	return p
+}
+
+func (p *pool) close() {
+	for _, ch := range p.workChs {
+		close(ch)
+	}
 }
 
 func mix32(x uint32) uint32 {
@@ -97,13 +101,13 @@ func kernel(in Input, p *pool) Output {
 	seedVal, _ := strconv.ParseUint(in.InitialSeed, 16, 32)
 	phaseSeed := uint32(seedVal)
 	digest := uint64(0x6a09e667f3bcc909)
+	results := make([]workerResult, p.workerCount)
 
 	for phase := 0; phase < in.PhaseCount; phase++ {
 		for w := 0; w < p.workerCount; w++ {
-			p.workCh <- workItem{phaseSeed: phaseSeed, phaseNum: phase}
+			p.workChs[w] <- phaseSeed
 		}
 
-		results := make([]workerResult, p.workerCount)
 		for w := 0; w < p.workerCount; w++ {
 			r := <-p.resultCh
 			results[r.workerID] = r
@@ -160,7 +164,7 @@ func main() {
 		}
 	}
 
-	close(p.workCh)
+	p.close()
 
 	raw, _ = json.Marshal(out)
 	os.WriteFile(*op, raw, 0644)
