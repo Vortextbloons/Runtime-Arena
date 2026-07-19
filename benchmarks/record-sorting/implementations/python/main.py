@@ -1,4 +1,4 @@
-import json, hashlib, sys
+import json, hashlib, sys, time
 
 def arg(name):
     return sys.argv[sys.argv.index(name) + 1]
@@ -15,8 +15,9 @@ def kernel(recs):
     first = recs[:take]
     last = recs[n - take:]
     parts = []
+    append = parts.append
     for r in recs:
-        parts.append(f"{r['id']},{r['score']},{r['timestamp']}\n")
+        append(f"{r['id']},{r['score']},{r['timestamp']}\n")
     checksum = hashlib.sha256("".join(parts).encode()).hexdigest()
     return {
         "benchmark": "record-sorting",
@@ -27,17 +28,16 @@ def kernel(recs):
         "checksum": checksum,
     }
 
-import time
-
 samples = []
 warmup = int(arg("--warmup"))
 iterations = int(arg("--iterations"))
+_perf = time.perf_counter_ns
 output = None
 for i in range(-warmup, iterations):
     state = [dict(r) for r in records_input]
-    start = time.perf_counter_ns()
+    start = _perf()
     output = kernel(state)
-    elapsed = time.perf_counter_ns() - start
+    elapsed = _perf() - start
     if i >= 0:
         samples.append({"iteration": i + 1, "kernelTimeNanoseconds": elapsed})
 

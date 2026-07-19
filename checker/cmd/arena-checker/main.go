@@ -70,6 +70,26 @@ func strictJSON(file string, v any) error {
 	return nil
 }
 
+func readInputJSON(file string, v any) error {
+	data, err := os.ReadFile(file)
+	if err != nil {
+		return err
+	}
+	if err = rejectDuplicateKeys(data); err != nil {
+		return err
+	}
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.DisallowUnknownFields()
+	if err = d.Decode(v); err != nil {
+		return err
+	}
+	var extra any
+	if d.Decode(&extra) != io.EOF {
+		return errors.New("trailing JSON content")
+	}
+	return nil
+}
+
 func rejectDuplicateKeys(data []byte) error {
 	d := json.NewDecoder(bytes.NewReader(data))
 	var visit func() error
@@ -664,7 +684,7 @@ func main() {
 	case "nbody":
 		var in nbodyInput
 		var out nbodyOutput
-		if err = strictJSON(*input, &in); err != nil {
+		if err = readInputJSON(*input, &in); err != nil {
 			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
 		}
 		if err = strictJSON(*output, &out); err != nil {
@@ -681,7 +701,7 @@ func main() {
 	case "shortest-path":
 		var in graphInput
 		var out pathOutput
-		if err = strictJSON(*input, &in); err != nil {
+		if err = readInputJSON(*input, &in); err != nil {
 			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
 		}
 		if err = strictJSON(*output, &out); err != nil {
@@ -716,7 +736,7 @@ func main() {
 	case "word-frequency":
 		var in wordFrequencyInput
 		var out wordFrequencyOutput
-		if err = strictJSON(*input, &in); err != nil {
+		if err = readInputJSON(*input, &in); err != nil {
 			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
 		}
 		if err = strictJSON(*output, &out); err != nil {
@@ -735,7 +755,7 @@ func main() {
 	case "record-sorting":
 		var in recordSortingInput
 		var out recordSortingOutput
-		if err = strictJSON(*input, &in); err != nil {
+		if err = readInputJSON(*input, &in); err != nil {
 			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
 		}
 		if err = strictJSON(*output, &out); err != nil {
@@ -754,7 +774,7 @@ func main() {
 	case "matrix-multiplication":
 		var in matrixMultiplicationInput
 		var out matrixMultiplicationOutput
-		if err = strictJSON(*input, &in); err != nil {
+		if err = readInputJSON(*input, &in); err != nil {
 			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
 		}
 		if err = strictJSON(*output, &out); err != nil {
@@ -773,7 +793,7 @@ func main() {
 	case "barrier-wave":
 		var in barrierWaveInput
 		var out barrierWaveOutput
-		if err = strictJSON(*input, &in); err != nil {
+		if err = readInputJSON(*input, &in); err != nil {
 			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
 		}
 		if err = strictJSON(*output, &out); err != nil {

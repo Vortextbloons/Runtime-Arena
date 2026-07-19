@@ -56,6 +56,7 @@ npm run arena -- run --output out.json
 - `--iterations` — Override measured iterations
 - `--force` — Force re-run even if fingerprint matches
 - `--all` — With `--force`, re-run all cells
+- `--parallel` — Use all CPU cores (overrides `execution.parallelism` in config)
 - `--quiet` — Suppress console output
 - `--no-save` — Don't write to results file
 - `--format json` — Output JSON snapshot to stdout

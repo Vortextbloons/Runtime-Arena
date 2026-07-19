@@ -34,7 +34,7 @@ Root runner configuration at the repository root.
 | `defaults.warmupIterations` | Default warmup iterations (discarded) |
 | `defaults.measuredIterations` | Default measured iterations |
 | `defaults.metrics` | Default metrics to record |
-| `execution.parallelism` | **Present in config but unused** — the CLI does not read `config.execution`; cells run sequentially |
+| `execution.parallelism` | Number of cells to run concurrently (default: `1`). Override with `--parallel` flag |
 | `execution.preserveTemporaryFiles` | **Present in config but unused** — use CLI flag `--preserve-temp` instead |
 
 Temp run directories live under `.arena/runs/` and are deleted after each run unless `--preserve-temp` is set. Go builds also use `.arena/go-build-cache` via `GOCACHE`.

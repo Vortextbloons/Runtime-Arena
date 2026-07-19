@@ -86,6 +86,7 @@ Useful extras:
 | `--output <file>` | Write results to a specific path |
 | `--warmup <n>` / `--iterations <n>` | Override dataset defaults |
 | `--preserve-temp` | Keep the temp run directory |
+| `--parallel` | Use all CPU cores (overrides `execution.parallelism` in config) |
 
 ### 4. Browse results
 

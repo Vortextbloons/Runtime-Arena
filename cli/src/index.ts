@@ -27,6 +27,7 @@ const require = createRequire(import.meta.url);
 const config = JSON.parse(await readFile(path.join(root, "arena.config.json"), "utf8")) as {
   benchmarkDirectory: string; languageDirectory: string; resultDirectory: string; checkerExecutable: string;
   defaults: { sizes: string[]; warmupIterations: number; measuredIterations: number; metrics: string[] };
+  execution: { parallelism: number; preserveTemporaryFiles: boolean };
 };
 
 const json = async <T>(file: string): Promise<T> => JSON.parse(await readFile(file, "utf8")) as T;
@@ -54,7 +55,7 @@ function runProcess(command: string, args: string[], cwd = root, timeout = 30_00
     const started = process.hrtime.bigint();
     let stdout = "", stderr = "", timedOut = false, limitExceeded = false;
     const platformCommand = process.platform === "win32" && ["npm", "npx"].includes(command) ? `${command}.cmd` : command;
-    const resolvedEnv: Record<string, string> = { ...process.env };
+    const resolvedEnv: Record<string, string> = { ...process.env } as Record<string, string>;
     for (const [k, v] of Object.entries(env)) resolvedEnv[k] = v.replaceAll("{PATH}", process.env[k] ?? "");
     const child = spawn(platformCommand, args, { cwd, env: resolvedEnv, windowsHide: true, shell: false });
     const timer = setTimeout(() => { timedOut = true; child.kill("SIGKILL"); }, timeout);
@@ -95,7 +96,7 @@ function parseFlags(args: string[]) {
   for (let i = 0; i < args.length; i++) {
     const key = args[i]!;
     if (!key.startsWith("-")) continue;
-    if (["--no-save", "--quiet", "--preserve-temp", "--force", "--all"].includes(key)) bools.add(key);
+    if (["--no-save", "--quiet", "--preserve-temp", "--force", "--all", "--parallel"].includes(key)) bools.add(key);
     else {
       const value = args[++i];
       if (!value) throw new Error(`Missing value for ${key}`);
@@ -245,12 +246,31 @@ async function buildOne(language: Language, benchmark: Benchmark) {
   const rawArtifact = expand(language.build.artifact, { benchmarkId: benchmark.id });
   const artifact = path.resolve(implementationDir, process.platform === "win32" && !["typescript", "python", "lua", "javascript"].includes(language.id) ? `${rawArtifact}.exe` : rawArtifact);
   await mkdir(path.dirname(artifact), { recursive: true });
+
+  const fingerprint = await buildFingerprint(language, benchmark);
+  const cacheDir = path.join(root, ".arena", "build-cache", fingerprint);
+  const cachedArtifact = path.join(cacheDir, path.relative(implementationDir, artifact));
+  if (await exists(cachedArtifact)) {
+    await mkdir(path.dirname(artifact), { recursive: true });
+    const { copyFile } = await import("node:fs/promises");
+    await copyFile(cachedArtifact, artifact);
+    return { status: "cached", implementationDir, durationNs: 0, artifact, command: [language.build.command, ...language.build.arguments], artifactSizeBytes: (await stat(artifact)).size };
+  }
+
   const vars = { projectRoot: root, benchmarkId: benchmark.id, benchmarkDir: path.join(root, "benchmarks", benchmark.id), implementationDir, artifact };
   const cwd = path.resolve(root, expand(language.build.workingDirectory ?? "{implementationDir}", vars));
   const buildEnv: Record<string, string> = language.id === "go" ? { GOCACHE: path.join(root, ".arena", "go-build-cache") } : {};
   if (language.id === "go") await mkdir(buildEnv.GOCACHE!, { recursive: true });
   const proc = await runProcess(expand(language.build.command, vars), language.build.arguments.map(x => expand(x, vars)), cwd, 180_000, { ...language.environment, ...buildEnv });
   if (proc.code !== 0) throw new Error(`Build failed for ${benchmark.id}/${language.id}:\n${proc.stderr || proc.stdout}`);
+
+  if (await exists(artifact)) {
+    const cacheArtifact = path.join(cacheDir, path.relative(implementationDir, artifact));
+    await mkdir(path.dirname(cacheArtifact), { recursive: true });
+    const { copyFile } = await import("node:fs/promises");
+    await copyFile(artifact, cacheArtifact);
+  }
+
   return { status: "success", implementationDir, durationNs: proc.durationNs, artifact, command: [language.build.command, ...language.build.arguments], artifactSizeBytes: (await stat(artifact)).size };
 }
 
@@ -266,6 +286,34 @@ function summary(samples: Array<{ valid: boolean; kernelTimeNanoseconds: number 
     standardDeviationKernelTimeNanoseconds: Math.sqrt(a.reduce((s, x) => s + (x - mean) ** 2, 0) / (a.length || 1)),
     p95KernelTimeNanoseconds: percentile(a, .95), interquartileRangeKernelTimeNanoseconds: percentile(a, .75) - percentile(a, .25)
   };
+}
+
+async function pool<T>(items: T[], concurrency: number, fn: (item: T) => Promise<void>): Promise<void> {
+  let active = 0;
+  let resolveNext: (() => void) | null = null;
+  const wait = () => new Promise<void>(r => { resolveNext = r; });
+  const schedule = () => {
+    while (active < concurrency && items.length > 0) {
+      const item = items.shift()!;
+      active++;
+      fn(item).finally(() => {
+        active--;
+        if (resolveNext) { resolveNext(); resolveNext = null; }
+        schedule();
+      });
+    }
+  };
+  schedule();
+  while (active > 0) await wait();
+}
+
+async function buildFingerprint(language: Language, benchmark: Benchmark) {
+  const hash = createHash("sha256");
+  hash.update(await readFile(path.join(root, config.languageDirectory, `${language.id}.json`)));
+  const implementationDir = path.join(root, config.benchmarkDirectory, benchmark.id, "implementations", language.id);
+  await hashTree(implementationDir, hash);
+  hash.update(JSON.stringify({ benchmarkId: benchmark.id, build: language.build }));
+  return hash.digest("hex");
 }
 
 async function checkOutput(benchmark: Benchmark, input: string, output: string) {
@@ -289,80 +337,91 @@ async function runCommand(args: string[]) {
   await mkdir(tempRoot, { recursive: true });
   const current = await readSnapshot();
   const canonical = new Map((current?.results ?? []).filter(result => result.execution?.mode === "persistent-worker" && result.provenance?.measurementContractVersion === "1.0.0").map(result => [resultKey(result), result]));
-  const results: BenchmarkResult[] = [];
+
+  type Cell = { benchmark: Benchmark; sizeName: string; size: Size; language: Language; version: string; compilerVersion: string; fingerprint: string; key: string; input: string; datasetHash: string; warmups: number; iterations: number };
+  const staleCells: Cell[] = [];
   let currentCells = 0;
-  let plannedCells = 0;
+
   for (const benchmark of benchmarks) {
     const sizeNames = flags.get("--size") ? [flags.get("--size")!] : config.defaults.sizes.filter(name => benchmark.sizes[name]);
     for (const sizeName of sizeNames) {
-    const size = benchmark.sizes[sizeName];
-    if (!size) throw new Error(`Unknown size '${sizeName}' for ${benchmark.id}`);
-    const input = path.join(root, "benchmarks", benchmark.id, "datasets", size.dataset);
-    if (!await exists(input)) throw new Error(`Missing dataset: ${input}`);
-    const datasetHash = createHash("sha256").update(await readFile(input)).digest("hex");
-    for (const { language, version, compilerVersion } of languages) {
-      const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
-      if (!await exists(implementationDir)) continue;
-      const warmups = Number(flags.get("--warmup") ?? size.warmupIterations);
-      const iterations = Number(flags.get("--iterations") ?? size.measuredIterations);
-      const fingerprint = await fingerprintCell(language, benchmark, sizeName, version, compilerVersion, warmups, iterations);
-      const key = cellKey(benchmark.id, sizeName, language.id);
-      const previous = canonical.get(key);
-      if (!flags.has("--force") && previous?.provenance?.fingerprint === fingerprint) {
-        currentCells++;
-        if (!flags.has("--quiet") && flags.get("--format") !== "json") console.log(`${key}: current`);
-        continue;
-      }
-      plannedCells++;
-      const build = await buildOne(language, benchmark);
-      if (build.status === "missing") continue;
-      let samples: Array<Record<string, unknown> & { valid: boolean; kernelTimeNanoseconds: number }> = [];
-      let totalProcessDurationNanoseconds = 0;
-      let lastChecker = { status: "checker-error", checkerVersion: "unknown", diagnostics: [] as string[] };
-      {
-        const iterationDir = path.join(tempRoot, benchmark.id, language.id);
-        await mkdir(iterationDir, { recursive: true });
-        const isolatedInput = path.join(iterationDir, `input${path.extname(input)}`);
-        await writeFile(isolatedInput, await readFile(input));
-        await chmod(isolatedInput, 0o444);
-        const output = path.join(iterationDir, "output.json");
-        const timingOutput = path.join(iterationDir, "timing.json");
-        const vars = { projectRoot: root, benchmarkId: benchmark.id, benchmarkDir: path.join(root, "benchmarks", benchmark.id), implementationDir: build.implementationDir, inputFile: isolatedInput, outputFile: output, timingOutputFile: timingOutput, warmupIterations: String(warmups), measuredIterations: String(iterations), artifact: build.artifact, runId: snapshotId, size: sizeName };
-        const batchTimeout = benchmark.limits.timeoutMilliseconds * Math.max(1, warmups + iterations);
-        const p = await runProcess(expand(language.run.command, vars), language.run.arguments.map(x => expand(x, vars)), iterationDir, batchTimeout, language.environment, benchmark.limits.maxOutputBytes, output);
-        totalProcessDurationNanoseconds = p.durationNs;
-        const outputSize = await exists(output) ? (await stat(output)).size : 0;
-        lastChecker = p.code === 0 && outputSize <= benchmark.limits.maxOutputBytes
-          ? await checkOutput(benchmark, isolatedInput, output)
-          : { status: "checker-error", checkerVersion: "unknown", diagnostics: [p.timedOut ? "implementation timed out" : p.limitExceeded ? "implementation exceeded an output limit" : p.stderr || "implementation failed"] };
-        try {
-          if (await exists(timingOutput) && (await stat(timingOutput)).size > benchmark.limits.maxOutputBytes) throw new Error("timing sidecar exceeded the output limit");
-          const timings = p.code === 0 ? await readTimingSamples(timingOutput, iterations) : [];
-          samples = timings.map(timing => ({ ...timing, valid: lastChecker.status === "accepted", exitCode: p.code ?? -1, outputSizeBytes: outputSize, timedOut: p.timedOut, outputLimitExceeded: p.limitExceeded }));
-        } catch (error) {
-          lastChecker = { status: "checker-error", checkerVersion: lastChecker.checkerVersion, diagnostics: [`Invalid timing output: ${(error as Error).message}`] };
+      const size = benchmark.sizes[sizeName];
+      if (!size) throw new Error(`Unknown size '${sizeName}' for ${benchmark.id}`);
+      const input = path.join(root, "benchmarks", benchmark.id, "datasets", size.dataset);
+      if (!await exists(input)) throw new Error(`Missing dataset: ${input}`);
+      const datasetHash = createHash("sha256").update(await readFile(input)).digest("hex");
+      for (const { language, version, compilerVersion } of languages) {
+        const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
+        if (!await exists(implementationDir)) continue;
+        const warmups = Number(flags.get("--warmup") ?? size.warmupIterations);
+        const iterations = Number(flags.get("--iterations") ?? size.measuredIterations);
+        const fingerprint = await fingerprintCell(language, benchmark, sizeName, version, compilerVersion, warmups, iterations);
+        const key = cellKey(benchmark.id, sizeName, language.id);
+        const previous = canonical.get(key);
+        if (!flags.has("--force") && previous?.provenance?.fingerprint === fingerprint) {
+          currentCells++;
+          if (!flags.has("--quiet") && flags.get("--format") !== "json") console.log(`${key}: current`);
+          continue;
         }
-        await chmod(isolatedInput, 0o666);
+        staleCells.push({ benchmark, sizeName, size, language, version, compilerVersion, fingerprint, key, input, datasetHash, warmups, iterations });
       }
-      const result: BenchmarkResult = {
-        benchmark: { id: benchmark.id, version: benchmark.version, size: sizeName },
-        dataset: { id: `${benchmark.id}-${sizeName}-${benchmark.version}`, sha256: datasetHash, seed: 0, generatorVersion: "committed-fixture-1.0.0" },
-        language: { id: language.id, name: language.name, version, compilerVersion, compilerFlags: language.build.arguments },
-        build: { status: build.status, durationNanoseconds: build.durationNs, artifactSizeBytes: build.artifactSizeBytes, command: build.command },
-        execution: {
-          mode: "persistent-worker", measurementContractVersion: "1.0.0", totalProcessDurationNanoseconds,
-          warmupIterations: warmups, measuredIterations: iterations, samples, summary: summary(samples),
-          metrics: metricAvailability(benchmark.metrics ?? config.defaults.metrics)
-        },
-        checker: { language: "go", version: lastChecker.checkerVersion, status: lastChecker.status, diagnostics: lastChecker.diagnostics },
-        provenance: { fingerprint, measurementContractVersion: "1.0.0", measuredAt: createdAt, machine: currentMachine() }
-      };
-      results.push(result);
-      if (lastChecker.status === "accepted") canonical.set(key, result);
-      if (!flags.has("--quiet") && flags.get("--format") !== "json") console.log(`${benchmark.id}/${sizeName} ${language.name}: ${lastChecker.status} (${(summary(samples).medianKernelTimeNanoseconds / 1e6).toFixed(2)} ms median kernel)`);
-    }
     }
   }
+
+  const parallelism = flags.has("--parallel") ? Math.max(1, os.cpus().length) : (config.execution?.parallelism ?? 1);
+  const results: BenchmarkResult[] = [];
+
+  await pool(staleCells, parallelism, async (cell) => {
+    const { benchmark, sizeName, language, version, compilerVersion, fingerprint, key, input, datasetHash, warmups, iterations } = cell;
+    const build = await buildOne(language, benchmark);
+    if (build.status === "missing") return;
+    let samples: Array<Record<string, unknown> & { valid: boolean; kernelTimeNanoseconds: number }> = [];
+    let totalProcessDurationNanoseconds = 0;
+    let lastChecker = { status: "checker-error", checkerVersion: "unknown", diagnostics: [] as string[] };
+    {
+      const iterationDir = path.join(tempRoot, benchmark.id, language.id);
+      await mkdir(iterationDir, { recursive: true });
+      const isolatedInput = path.join(iterationDir, `input${path.extname(input)}`);
+      await writeFile(isolatedInput, await readFile(input));
+      await chmod(isolatedInput, 0o444);
+      const output = path.join(iterationDir, "output.json");
+      const timingOutput = path.join(iterationDir, "timing.json");
+      const vars = { projectRoot: root, benchmarkId: benchmark.id, benchmarkDir: path.join(root, "benchmarks", benchmark.id), implementationDir: build.implementationDir, inputFile: isolatedInput, outputFile: output, timingOutputFile: timingOutput, warmupIterations: String(warmups), measuredIterations: String(iterations), artifact: build.artifact, runId: snapshotId, size: sizeName };
+      const batchTimeout = benchmark.limits.timeoutMilliseconds * Math.max(1, warmups + iterations);
+      const p = await runProcess(expand(language.run.command, vars), language.run.arguments.map(x => expand(x, vars)), iterationDir, batchTimeout, language.environment, benchmark.limits.maxOutputBytes, output);
+      totalProcessDurationNanoseconds = p.durationNs;
+      const outputSize = await exists(output) ? (await stat(output)).size : 0;
+      lastChecker = p.code === 0 && outputSize <= benchmark.limits.maxOutputBytes
+        ? await checkOutput(benchmark, isolatedInput, output)
+        : { status: "checker-error", checkerVersion: "unknown", diagnostics: [p.timedOut ? "implementation timed out" : p.limitExceeded ? "implementation exceeded an output limit" : p.stderr || "implementation failed"] };
+      try {
+        if (await exists(timingOutput) && (await stat(timingOutput)).size > benchmark.limits.maxOutputBytes) throw new Error("timing sidecar exceeded the output limit");
+        const timings = p.code === 0 ? await readTimingSamples(timingOutput, iterations) : [];
+        samples = timings.map(timing => ({ ...timing, valid: lastChecker.status === "accepted", exitCode: p.code ?? -1, outputSizeBytes: outputSize, timedOut: p.timedOut, outputLimitExceeded: p.limitExceeded }));
+      } catch (error) {
+        lastChecker = { status: "checker-error", checkerVersion: lastChecker.checkerVersion, diagnostics: [`Invalid timing output: ${(error as Error).message}`] };
+      }
+      await chmod(isolatedInput, 0o666);
+    }
+    const result: BenchmarkResult = {
+      benchmark: { id: benchmark.id, version: benchmark.version, size: sizeName },
+      dataset: { id: `${benchmark.id}-${sizeName}-${benchmark.version}`, sha256: datasetHash, seed: 0, generatorVersion: "committed-fixture-1.0.0" },
+      language: { id: language.id, name: language.name, version, compilerVersion, compilerFlags: language.build.arguments },
+      build: { status: build.status, durationNanoseconds: build.durationNs, artifactSizeBytes: build.artifactSizeBytes, command: build.command },
+      execution: {
+        mode: "persistent-worker", measurementContractVersion: "1.0.0", totalProcessDurationNanoseconds,
+        warmupIterations: warmups, measuredIterations: iterations, samples, summary: summary(samples),
+        metrics: metricAvailability(benchmark.metrics ?? config.defaults.metrics)
+      },
+      checker: { language: "go", version: lastChecker.checkerVersion, status: lastChecker.status, diagnostics: lastChecker.diagnostics },
+      provenance: { fingerprint, measurementContractVersion: "1.0.0", measuredAt: createdAt, machine: currentMachine() }
+    };
+    results.push(result);
+    if (lastChecker.status === "accepted") canonical.set(key, result);
+    if (!flags.has("--quiet") && flags.get("--format") !== "json") console.log(`${benchmark.id}/${sizeName} ${language.name}: ${lastChecker.status} (${(summary(samples).medianKernelTimeNanoseconds / 1e6).toFixed(2)} ms median kernel)`);
+  });
+
+  const plannedCells = staleCells.length;
   const git = await runProcess("git", ["rev-parse", "HEAD"]).then(p => p.code === 0 ? p.stdout.trim() : "unknown");
   const gitDirty = await runProcess("git", ["status", "--porcelain"]).then(p => p.code === 0 ? p.stdout.trim().length > 0 : null);
   const snapshot: Snapshot = plannedCells === 0 && current ? current : {
