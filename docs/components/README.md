@@ -43,4 +43,4 @@ JSON Schema definitions for validation:
 
 ## Web (`web/`)
 
-SvelteKit static dashboard for viewing results. Loads `results/current.json`, computes scores, and displays charts and scorecards. Built with adapter-static for deployment anywhere.
+SvelteKit static dashboard for viewing results. Loads `results/current.json`, computes scores, and displays charts and 2K-style scorecards. Built with adapter-static for deployment anywhere. Scorecard design system: [scorecards.md](scorecards.md).

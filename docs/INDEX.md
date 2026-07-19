@@ -20,6 +20,7 @@ High-level system design, component responsibilities, and data flow.
 | [components/cli.md](components/cli.md) | CLI architecture, dependencies, metric registry |
 | [components/checker.md](components/checker.md) | Independent Go checker, validation logic, exit codes |
 | [components/web.md](components/web.md) | SvelteKit dashboard, scoring algorithm, components |
+| [components/scorecards.md](components/scorecards.md) | 2K-style scorecard design: tiers, rarity, fields, effects |
 
 ## Reference
 
@@ -55,4 +56,4 @@ Runbook and troubleshooting.
 
 ## File Count
 
-**18 documentation files** (18 included in combined output).
+**19 documentation files** (19 included in combined output).

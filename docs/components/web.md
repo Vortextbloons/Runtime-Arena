@@ -68,9 +68,13 @@ The web UI loads results from `/results/current.json` (statically served). The `
 
 | Component | Purpose |
 |-----------|---------|
-| `OverallCard` | Summary scorecard for a language |
+| `OverallCard` | 2K-style collectible card for a language overall score |
 | `OverallChart` | Bar chart comparing all languages |
 | `BenchmarkChart` | Per-benchmark performance chart |
-| `BenchmarkScorecard` | Detailed scorecard for a benchmark/language |
+| `BenchmarkScorecard` | Tier-tinted detail row for a benchmark/language |
 | `FilteredResults` | Filterable results table |
-| `ResultsExplorer` | Interactive results browser |
+| `ResultsExplorer` | Interactive results browser (chart / scorecard views) |
+
+## Scorecards
+
+The Scorecard view uses a trading-card design system (tiers, gem rarity, attribute meters, tilt/shimmer). Full specification: [scorecards.md](scorecards.md).
