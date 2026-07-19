@@ -1,9 +1,9 @@
 {
   "schemaVersion": "3.0.0",
-  "snapshotId": "2026-07-19T09-44-42-072-95ff7d3fZ",
-  "updatedAt": "2026-07-19T09:44:42.072Z",
+  "snapshotId": "2026-07-19T19-21-25-381-0328a72eZ",
+  "updatedAt": "2026-07-19T19:21:25.381Z",
   "arenaVersion": "0.2.0",
-  "gitCommit": "edac4ba8be403671304c55f67571ac9df79ccf62",
+  "gitCommit": "ab715b8013b31dcd2e06456fbdd9173a9c65376e",
   "gitDirty": true,
   "results": [
     {
@@ -31,13 +31,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 2896624300,
-        "artifactSizeBytes": 427269,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 427903,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -47,13 +48,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 119522200,
+        "totalProcessDurationNanoseconds": 99144800,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
@@ -68,7 +70,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 2888000,
+            "kernelTimeNanoseconds": 2866000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -77,7 +79,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 2869800,
+            "kernelTimeNanoseconds": 3500100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -86,7 +88,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 2864700,
+            "kernelTimeNanoseconds": 2928000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -95,7 +97,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 3068700,
+            "kernelTimeNanoseconds": 3393500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -104,7 +106,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 2872900,
+            "kernelTimeNanoseconds": 3004900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -113,7 +115,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 2870200,
+            "kernelTimeNanoseconds": 2876800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -122,7 +124,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 2853700,
+            "kernelTimeNanoseconds": 2909400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -131,7 +133,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 2891500,
+            "kernelTimeNanoseconds": 2929400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -140,7 +142,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 2860600,
+            "kernelTimeNanoseconds": 2950000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -151,13 +153,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 2853700,
-          "maximumKernelTimeNanoseconds": 3068700,
-          "medianKernelTimeNanoseconds": 2870200,
-          "meanKernelTimeNanoseconds": 2893370,
-          "standardDeviationKernelTimeNanoseconds": 59794.61597836381,
-          "p95KernelTimeNanoseconds": 3068700,
-          "interquartileRangeKernelTimeNanoseconds": 26800
+          "minimumKernelTimeNanoseconds": 2866000,
+          "maximumKernelTimeNanoseconds": 3500100,
+          "medianKernelTimeNanoseconds": 2928000,
+          "meanKernelTimeNanoseconds": 3025170,
+          "standardDeviationKernelTimeNanoseconds": 215397.98072405416,
+          "p95KernelTimeNanoseconds": 3500100,
+          "interquartileRangeKernelTimeNanoseconds": 111300
         },
         "metrics": {
           "kernelTime": {
@@ -173,9 +175,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "04d74575ce90832aeb508317b9c3e11cb112af8bf4155b388fe64eaa178fff0c",
+        "fingerprint": "f333650fb18cca2cfc56ea966a55fc1dc79bf222c5b775db68338c7b6df945c3",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -1259,13 +1261,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 2868695900,
-        "artifactSizeBytes": 427269,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 427903,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -1275,19 +1278,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 76693000,
+        "totalProcessDurationNanoseconds": 58088500,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 742800,
+            "kernelTimeNanoseconds": 747300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1296,7 +1300,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 742900,
+            "kernelTimeNanoseconds": 802900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1305,7 +1309,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 757000,
+            "kernelTimeNanoseconds": 766500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1314,7 +1318,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 747600,
+            "kernelTimeNanoseconds": 964200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1323,7 +1327,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 766600,
+            "kernelTimeNanoseconds": 873300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1332,24 +1336,6 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 759600,
-            "valid": true,
-            "exitCode": 0,
-            "outputSizeBytes": 1030,
-            "timedOut": false,
-            "outputLimitExceeded": false
-          },
-          {
-            "iteration": 7,
-            "kernelTimeNanoseconds": 738800,
-            "valid": true,
-            "exitCode": 0,
-            "outputSizeBytes": 1030,
-            "timedOut": false,
-            "outputLimitExceeded": false
-          },
-          {
-            "iteration": 8,
             "kernelTimeNanoseconds": 766800,
             "valid": true,
             "exitCode": 0,
@@ -1358,8 +1344,26 @@
             "outputLimitExceeded": false
           },
           {
+            "iteration": 7,
+            "kernelTimeNanoseconds": 774200,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1030,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "kernelTimeNanoseconds": 749300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1030,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
             "iteration": 9,
-            "kernelTimeNanoseconds": 747700,
+            "kernelTimeNanoseconds": 743300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1368,7 +1372,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 745700,
+            "kernelTimeNanoseconds": 735900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1379,13 +1383,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 738800,
-          "maximumKernelTimeNanoseconds": 766800,
-          "medianKernelTimeNanoseconds": 747600,
-          "meanKernelTimeNanoseconds": 751550,
-          "standardDeviationKernelTimeNanoseconds": 9654.86923785092,
-          "p95KernelTimeNanoseconds": 766800,
-          "interquartileRangeKernelTimeNanoseconds": 16700
+          "minimumKernelTimeNanoseconds": 735900,
+          "maximumKernelTimeNanoseconds": 964200,
+          "medianKernelTimeNanoseconds": 766500,
+          "meanKernelTimeNanoseconds": 792370,
+          "standardDeviationKernelTimeNanoseconds": 68791.26470708326,
+          "p95KernelTimeNanoseconds": 964200,
+          "interquartileRangeKernelTimeNanoseconds": 55600
         },
         "metrics": {
           "kernelTime": {
@@ -1401,9 +1405,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "5494c55e396daf1eedfa08bfe95e3425a349ba2518b3e13ecb2964adfd3cf5ea",
+        "fingerprint": "d8e3044a66ec7222eb1766c38640260ae4122315ec179101a5adaefb79caf064",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -2487,13 +2491,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 2805029600,
-        "artifactSizeBytes": 427269,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 427903,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -2503,19 +2508,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 68885600,
+        "totalProcessDurationNanoseconds": 54324600,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 196400,
+            "kernelTimeNanoseconds": 166200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -2524,7 +2530,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 173200,
+            "kernelTimeNanoseconds": 166300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -2533,7 +2539,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 165000,
+            "kernelTimeNanoseconds": 164400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -2542,7 +2548,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 163500,
+            "kernelTimeNanoseconds": 165600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -2551,7 +2557,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 161600,
+            "kernelTimeNanoseconds": 164200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -2560,7 +2566,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 162600,
+            "kernelTimeNanoseconds": 233800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -2569,7 +2575,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 160800,
+            "kernelTimeNanoseconds": 170900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -2578,7 +2584,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 161900,
+            "kernelTimeNanoseconds": 173200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -2587,7 +2593,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 160200,
+            "kernelTimeNanoseconds": 168000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -2596,7 +2602,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 173300,
+            "kernelTimeNanoseconds": 184000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -2607,13 +2613,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 160200,
-          "maximumKernelTimeNanoseconds": 196400,
-          "medianKernelTimeNanoseconds": 162600,
-          "meanKernelTimeNanoseconds": 167850,
-          "standardDeviationKernelTimeNanoseconds": 10539.093888945103,
-          "p95KernelTimeNanoseconds": 196400,
-          "interquartileRangeKernelTimeNanoseconds": 11600
+          "minimumKernelTimeNanoseconds": 164200,
+          "maximumKernelTimeNanoseconds": 233800,
+          "medianKernelTimeNanoseconds": 166300,
+          "meanKernelTimeNanoseconds": 175660,
+          "standardDeviationKernelTimeNanoseconds": 20183.22075388366,
+          "p95KernelTimeNanoseconds": 233800,
+          "interquartileRangeKernelTimeNanoseconds": 7600
         },
         "metrics": {
           "kernelTime": {
@@ -2629,9 +2635,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "b6f0a970ce42184ddd87c817e6e61de1253dc03ccae4f2d488d56d888271ea3c",
+        "fingerprint": "787c4e45c5649e858370fe7f0f1087e3905c0c617cffe9819181652da94834cd",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -3715,13 +3721,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3145625500,
-        "artifactSizeBytes": 557145,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 553245,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -3731,19 +3738,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 325599600,
+        "totalProcessDurationNanoseconds": 326668200,
         "warmupIterations": 2,
         "measuredIterations": 8,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 25485000,
+            "kernelTimeNanoseconds": 24882900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -3752,7 +3760,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 25424200,
+            "kernelTimeNanoseconds": 24665000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -3761,7 +3769,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 25289400,
+            "kernelTimeNanoseconds": 24702100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -3770,7 +3778,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 25590600,
+            "kernelTimeNanoseconds": 24792100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -3779,7 +3787,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 25099100,
+            "kernelTimeNanoseconds": 25937900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -3788,7 +3796,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 27143700,
+            "kernelTimeNanoseconds": 25409200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -3797,7 +3805,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 25705200,
+            "kernelTimeNanoseconds": 26416000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -3806,7 +3814,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 25756300,
+            "kernelTimeNanoseconds": 25008700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -3817,13 +3825,13 @@
         "summary": {
           "validSamples": 8,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 25099100,
-          "maximumKernelTimeNanoseconds": 27143700,
-          "medianKernelTimeNanoseconds": 25485000,
-          "meanKernelTimeNanoseconds": 25686687.5,
-          "standardDeviationKernelTimeNanoseconds": 586299.9241802356,
-          "p95KernelTimeNanoseconds": 27143700,
-          "interquartileRangeKernelTimeNanoseconds": 415800
+          "minimumKernelTimeNanoseconds": 24665000,
+          "maximumKernelTimeNanoseconds": 26416000,
+          "medianKernelTimeNanoseconds": 24882900,
+          "meanKernelTimeNanoseconds": 25226737.5,
+          "standardDeviationKernelTimeNanoseconds": 601961.1510253382,
+          "p95KernelTimeNanoseconds": 26416000,
+          "interquartileRangeKernelTimeNanoseconds": 707100
         },
         "metrics": {
           "kernelTime": {
@@ -3839,9 +3847,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "91d4f197d6d5ec46f06009de07e98905a797aeffb8edb7688c669521e21b0684",
+        "fingerprint": "ebdc7b4bb410f7f39d3fdad8d378c93882b0c54ac3c14085732c723c804cf820",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -4661,13 +4669,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3185799600,
-        "artifactSizeBytes": 557145,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 553245,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -4677,19 +4686,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 195729300,
+        "totalProcessDurationNanoseconds": 132446300,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 8462800,
+            "kernelTimeNanoseconds": 7407000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -4698,7 +4708,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 9905200,
+            "kernelTimeNanoseconds": 7644500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -4707,7 +4717,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 8656500,
+            "kernelTimeNanoseconds": 6764000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -4716,7 +4726,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 9520400,
+            "kernelTimeNanoseconds": 7298300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -4725,7 +4735,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 9124300,
+            "kernelTimeNanoseconds": 8310100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -4734,7 +4744,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 10062400,
+            "kernelTimeNanoseconds": 7229600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -4743,7 +4753,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 10687000,
+            "kernelTimeNanoseconds": 6949400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -4752,7 +4762,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 11631500,
+            "kernelTimeNanoseconds": 6604100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -4761,7 +4771,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 11487100,
+            "kernelTimeNanoseconds": 7239300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -4770,7 +4780,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 9033200,
+            "kernelTimeNanoseconds": 6633100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -4781,13 +4791,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 8462800,
-          "maximumKernelTimeNanoseconds": 11631500,
-          "medianKernelTimeNanoseconds": 9520400,
-          "meanKernelTimeNanoseconds": 9857040,
-          "standardDeviationKernelTimeNanoseconds": 1060814.6786314752,
-          "p95KernelTimeNanoseconds": 11631500,
-          "interquartileRangeKernelTimeNanoseconds": 1653800
+          "minimumKernelTimeNanoseconds": 6604100,
+          "maximumKernelTimeNanoseconds": 8310100,
+          "medianKernelTimeNanoseconds": 7229600,
+          "meanKernelTimeNanoseconds": 7207940,
+          "standardDeviationKernelTimeNanoseconds": 491281.29864671215,
+          "p95KernelTimeNanoseconds": 8310100,
+          "interquartileRangeKernelTimeNanoseconds": 643000
         },
         "metrics": {
           "kernelTime": {
@@ -4803,9 +4813,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "b8ed7a3d6ba478427511c8ee3e12e87cc20745fec9f5166da9c024ba00008ab2",
+        "fingerprint": "497abae2f78b0320ae84ac91492c1ef340e183c589df1341642a49520f7dd45a",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -5715,13 +5725,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3249437100,
-        "artifactSizeBytes": 557145,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 553245,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -5731,19 +5742,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 162451900,
+        "totalProcessDurationNanoseconds": 51236800,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 7733300,
+            "kernelTimeNanoseconds": 657500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 159,
@@ -5752,7 +5764,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 7098400,
+            "kernelTimeNanoseconds": 614400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 159,
@@ -5761,7 +5773,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 7574100,
+            "kernelTimeNanoseconds": 587600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 159,
@@ -5770,7 +5782,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 8420700,
+            "kernelTimeNanoseconds": 620100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 159,
@@ -5779,7 +5791,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 7345300,
+            "kernelTimeNanoseconds": 650300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 159,
@@ -5788,7 +5800,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 7362400,
+            "kernelTimeNanoseconds": 863800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 159,
@@ -5797,7 +5809,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 7155700,
+            "kernelTimeNanoseconds": 558000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 159,
@@ -5806,7 +5818,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 7760500,
+            "kernelTimeNanoseconds": 557100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 159,
@@ -5815,7 +5827,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 7244100,
+            "kernelTimeNanoseconds": 581800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 159,
@@ -5824,7 +5836,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 7534200,
+            "kernelTimeNanoseconds": 551400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 159,
@@ -5835,13 +5847,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 7098400,
-          "maximumKernelTimeNanoseconds": 8420700,
-          "medianKernelTimeNanoseconds": 7362400,
-          "meanKernelTimeNanoseconds": 7522870,
-          "standardDeviationKernelTimeNanoseconds": 368725.29354520823,
-          "p95KernelTimeNanoseconds": 8420700,
-          "interquartileRangeKernelTimeNanoseconds": 489200
+          "minimumKernelTimeNanoseconds": 551400,
+          "maximumKernelTimeNanoseconds": 863800,
+          "medianKernelTimeNanoseconds": 587600,
+          "meanKernelTimeNanoseconds": 624200,
+          "standardDeviationKernelTimeNanoseconds": 87540.34498446988,
+          "p95KernelTimeNanoseconds": 863800,
+          "interquartileRangeKernelTimeNanoseconds": 92300
         },
         "metrics": {
           "kernelTime": {
@@ -5857,9 +5869,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "430e9765720cecb71393495f454f7c4557ce914e599707f1de5a1505d1e048d2",
+        "fingerprint": "6112dcfae6f9ec8965fb56d66757f9e1b746c0ff6321a604860822770e1437df",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -6769,13 +6781,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3389373100,
-        "artifactSizeBytes": 570274,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 570908,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -6785,19 +6798,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 2407910200,
+        "totalProcessDurationNanoseconds": 2412284800,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 173963200,
+            "kernelTimeNanoseconds": 187414900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -6806,7 +6820,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 174485600,
+            "kernelTimeNanoseconds": 176426400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -6815,7 +6829,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 176752600,
+            "kernelTimeNanoseconds": 176141500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -6824,7 +6838,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 177923700,
+            "kernelTimeNanoseconds": 182336700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -6833,7 +6847,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 184868800,
+            "kernelTimeNanoseconds": 178748900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -6842,7 +6856,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 175896200,
+            "kernelTimeNanoseconds": 179202800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -6851,7 +6865,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 175342300,
+            "kernelTimeNanoseconds": 177524000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -6860,7 +6874,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 174510100,
+            "kernelTimeNanoseconds": 177272700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -6869,7 +6883,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 174632200,
+            "kernelTimeNanoseconds": 175357000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -6878,7 +6892,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 174728600,
+            "kernelTimeNanoseconds": 175411200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -6889,13 +6903,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 173963200,
-          "maximumKernelTimeNanoseconds": 184868800,
-          "medianKernelTimeNanoseconds": 174728600,
-          "meanKernelTimeNanoseconds": 176310330,
-          "standardDeviationKernelTimeNanoseconds": 3074931.4942125133,
-          "p95KernelTimeNanoseconds": 184868800,
-          "interquartileRangeKernelTimeNanoseconds": 2242500
+          "minimumKernelTimeNanoseconds": 175357000,
+          "maximumKernelTimeNanoseconds": 187414900,
+          "medianKernelTimeNanoseconds": 177272700,
+          "meanKernelTimeNanoseconds": 178583610,
+          "standardDeviationKernelTimeNanoseconds": 3555587.1043893723,
+          "p95KernelTimeNanoseconds": 187414900,
+          "interquartileRangeKernelTimeNanoseconds": 3061300
         },
         "metrics": {
           "kernelTime": {
@@ -6911,9 +6925,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "0c36e69ae358f4d7b18ac9025c7df00964f1536ca37b0784a78b77e25b6f33c6",
+        "fingerprint": "151666363319eaa25b420fd6acf1bc7603719d65d69965f965b1c2f64da58a8c",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -7997,13 +8011,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3368607700,
-        "artifactSizeBytes": 570274,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 570908,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -8013,19 +8028,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 278729600,
+        "totalProcessDurationNanoseconds": 258610200,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 14776600,
+            "kernelTimeNanoseconds": 15576200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -8034,7 +8050,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 15407500,
+            "kernelTimeNanoseconds": 15486300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -8043,7 +8059,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 15187700,
+            "kernelTimeNanoseconds": 15878600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -8052,7 +8068,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 15361800,
+            "kernelTimeNanoseconds": 15971400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -8061,7 +8077,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 15057100,
+            "kernelTimeNanoseconds": 15629600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -8070,7 +8086,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 14540000,
+            "kernelTimeNanoseconds": 15388600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -8079,7 +8095,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 15416000,
+            "kernelTimeNanoseconds": 15611200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -8088,7 +8104,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 15386200,
+            "kernelTimeNanoseconds": 15604900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -8097,7 +8113,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 14928000,
+            "kernelTimeNanoseconds": 15528500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -8106,7 +8122,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 15235300,
+            "kernelTimeNanoseconds": 16537400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -8117,13 +8133,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 14540000,
-          "maximumKernelTimeNanoseconds": 15416000,
-          "medianKernelTimeNanoseconds": 15187700,
-          "meanKernelTimeNanoseconds": 15129620,
-          "standardDeviationKernelTimeNanoseconds": 284903.11265410914,
-          "p95KernelTimeNanoseconds": 15416000,
-          "interquartileRangeKernelTimeNanoseconds": 458200
+          "minimumKernelTimeNanoseconds": 15388600,
+          "maximumKernelTimeNanoseconds": 16537400,
+          "medianKernelTimeNanoseconds": 15604900,
+          "meanKernelTimeNanoseconds": 15721270,
+          "standardDeviationKernelTimeNanoseconds": 318045.9873980491,
+          "p95KernelTimeNanoseconds": 16537400,
+          "interquartileRangeKernelTimeNanoseconds": 350100
         },
         "metrics": {
           "kernelTime": {
@@ -8139,9 +8155,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "3c15dcb15bab8c1a0d884e60da8a5c3a5f4a9ded95f386d34cecb26a37e500b5",
+        "fingerprint": "2342eedc8c33b36e02086f442460d110b32144a5f35ae0b753136d4999f4eb72",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -9225,13 +9241,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3201806700,
-        "artifactSizeBytes": 570274,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 570908,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -9241,19 +9258,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 80439400,
+        "totalProcessDurationNanoseconds": 54819600,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 172800,
+            "kernelTimeNanoseconds": 171700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -9262,7 +9280,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 171600,
+            "kernelTimeNanoseconds": 170300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -9271,7 +9289,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 170900,
+            "kernelTimeNanoseconds": 169500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -9280,7 +9298,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 193400,
+            "kernelTimeNanoseconds": 167400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -9289,7 +9307,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 252400,
+            "kernelTimeNanoseconds": 201900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -9298,7 +9316,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 187100,
+            "kernelTimeNanoseconds": 178500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -9307,7 +9325,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 175800,
+            "kernelTimeNanoseconds": 173800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -9316,7 +9334,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 176000,
+            "kernelTimeNanoseconds": 169500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -9325,7 +9343,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 176600,
+            "kernelTimeNanoseconds": 167900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -9334,7 +9352,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 169100,
+            "kernelTimeNanoseconds": 172500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -9345,13 +9363,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 169100,
-          "maximumKernelTimeNanoseconds": 252400,
-          "medianKernelTimeNanoseconds": 175800,
-          "meanKernelTimeNanoseconds": 184570,
-          "standardDeviationKernelTimeNanoseconds": 23732.047952083696,
-          "p95KernelTimeNanoseconds": 252400,
-          "interquartileRangeKernelTimeNanoseconds": 15500
+          "minimumKernelTimeNanoseconds": 167400,
+          "maximumKernelTimeNanoseconds": 201900,
+          "medianKernelTimeNanoseconds": 170300,
+          "meanKernelTimeNanoseconds": 174300,
+          "standardDeviationKernelTimeNanoseconds": 9696.906723280368,
+          "p95KernelTimeNanoseconds": 201900,
+          "interquartileRangeKernelTimeNanoseconds": 4300
         },
         "metrics": {
           "kernelTime": {
@@ -9367,9 +9385,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "a31853e0bb7e29b8cce6a0f6e73115c72125a3d6ef4ad9282532d936e8a79532",
+        "fingerprint": "8f105e18a207f412a474906e27057eeb799f45dfae206bb38f612230941235b9",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -10453,13 +10471,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3305830600,
-        "artifactSizeBytes": 580121,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 580755,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -10469,19 +10488,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 119472000,
+        "totalProcessDurationNanoseconds": 95521700,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 4184400,
+            "kernelTimeNanoseconds": 4308000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -10490,7 +10510,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 4180500,
+            "kernelTimeNanoseconds": 4545600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -10499,7 +10519,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 4193100,
+            "kernelTimeNanoseconds": 4344200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -10508,7 +10528,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 4178000,
+            "kernelTimeNanoseconds": 4295700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -10517,7 +10537,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 4175200,
+            "kernelTimeNanoseconds": 4317400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -10526,7 +10546,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 4178500,
+            "kernelTimeNanoseconds": 4326600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -10535,7 +10555,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 4328200,
+            "kernelTimeNanoseconds": 4291500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -10544,7 +10564,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 4167700,
+            "kernelTimeNanoseconds": 4293200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -10553,7 +10573,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 4169800,
+            "kernelTimeNanoseconds": 4484500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -10562,7 +10582,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 4177400,
+            "kernelTimeNanoseconds": 4371600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -10573,13 +10593,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 4167700,
-          "maximumKernelTimeNanoseconds": 4328200,
-          "medianKernelTimeNanoseconds": 4178000,
-          "meanKernelTimeNanoseconds": 4193280,
-          "standardDeviationKernelTimeNanoseconds": 45477.74840512666,
-          "p95KernelTimeNanoseconds": 4328200,
-          "interquartileRangeKernelTimeNanoseconds": 9200
+          "minimumKernelTimeNanoseconds": 4291500,
+          "maximumKernelTimeNanoseconds": 4545600,
+          "medianKernelTimeNanoseconds": 4317400,
+          "meanKernelTimeNanoseconds": 4357830,
+          "standardDeviationKernelTimeNanoseconds": 83191.35832524914,
+          "p95KernelTimeNanoseconds": 4545600,
+          "interquartileRangeKernelTimeNanoseconds": 75900
         },
         "metrics": {
           "kernelTime": {
@@ -10595,9 +10615,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "b45e14fa8b217886f4dabda94b7f9b0323d0fa9b6af9154ad2d735be9ed3f46c",
+        "fingerprint": "5a4aaa3085766fbe600512a3e64fc8bd9da56a84138128c8e223d61d06ea6200",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -11681,13 +11701,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3382702300,
-        "artifactSizeBytes": 580121,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 580755,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -11697,19 +11718,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 75260700,
+        "totalProcessDurationNanoseconds": 51979800,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 979200,
+            "kernelTimeNanoseconds": 1004500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -11718,7 +11740,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 997900,
+            "kernelTimeNanoseconds": 1055900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -11727,7 +11749,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 978600,
+            "kernelTimeNanoseconds": 1057600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -11736,7 +11758,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 976400,
+            "kernelTimeNanoseconds": 1089900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -11745,7 +11767,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 979900,
+            "kernelTimeNanoseconds": 1522000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -11754,7 +11776,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 995300,
+            "kernelTimeNanoseconds": 1132300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -11763,7 +11785,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 983600,
+            "kernelTimeNanoseconds": 1043000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -11772,7 +11794,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 976200,
+            "kernelTimeNanoseconds": 1021000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -11781,7 +11803,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 982700,
+            "kernelTimeNanoseconds": 1046000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -11790,7 +11812,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 978400,
+            "kernelTimeNanoseconds": 999200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -11801,13 +11823,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 976200,
-          "maximumKernelTimeNanoseconds": 997900,
-          "medianKernelTimeNanoseconds": 979200,
-          "meanKernelTimeNanoseconds": 982820,
-          "standardDeviationKernelTimeNanoseconds": 7264.9569854198035,
-          "p95KernelTimeNanoseconds": 997900,
-          "interquartileRangeKernelTimeNanoseconds": 5200
+          "minimumKernelTimeNanoseconds": 999200,
+          "maximumKernelTimeNanoseconds": 1522000,
+          "medianKernelTimeNanoseconds": 1046000,
+          "meanKernelTimeNanoseconds": 1097140,
+          "standardDeviationKernelTimeNanoseconds": 146484.4578786432,
+          "p95KernelTimeNanoseconds": 1522000,
+          "interquartileRangeKernelTimeNanoseconds": 68900
         },
         "metrics": {
           "kernelTime": {
@@ -11823,9 +11845,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "8f8858e94fc29a381afb6e6b39540a87e32a38219d3c7ff566af81c75bc7e37a",
+        "fingerprint": "e387f696735caf4e911c3680319a5dad5164d87ec99d28d726c398439c05aa22",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -12909,13 +12931,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3386294600,
-        "artifactSizeBytes": 580121,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 580755,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -12925,19 +12948,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 69695000,
+        "totalProcessDurationNanoseconds": 43854300,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 143100,
+            "kernelTimeNanoseconds": 145900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -12946,7 +12970,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 196700,
+            "kernelTimeNanoseconds": 145100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -12955,7 +12979,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 159000,
+            "kernelTimeNanoseconds": 147000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -12964,7 +12988,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 142800,
+            "kernelTimeNanoseconds": 144900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -12973,7 +12997,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 148900,
+            "kernelTimeNanoseconds": 145700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -12982,7 +13006,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 144500,
+            "kernelTimeNanoseconds": 146800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -12991,7 +13015,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 142400,
+            "kernelTimeNanoseconds": 152900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -13000,7 +13024,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 140600,
+            "kernelTimeNanoseconds": 151200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -13009,7 +13033,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 140900,
+            "kernelTimeNanoseconds": 145800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -13018,7 +13042,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 141600,
+            "kernelTimeNanoseconds": 148300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -13029,13 +13053,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 140600,
-          "maximumKernelTimeNanoseconds": 196700,
-          "medianKernelTimeNanoseconds": 142800,
-          "meanKernelTimeNanoseconds": 150050,
-          "standardDeviationKernelTimeNanoseconds": 16408.12298832502,
-          "p95KernelTimeNanoseconds": 196700,
-          "interquartileRangeKernelTimeNanoseconds": 7300
+          "minimumKernelTimeNanoseconds": 144900,
+          "maximumKernelTimeNanoseconds": 152900,
+          "medianKernelTimeNanoseconds": 145900,
+          "meanKernelTimeNanoseconds": 147360,
+          "standardDeviationKernelTimeNanoseconds": 2554.29050814507,
+          "p95KernelTimeNanoseconds": 152900,
+          "interquartileRangeKernelTimeNanoseconds": 2600
         },
         "metrics": {
           "kernelTime": {
@@ -13051,9 +13075,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "55c34ecea81466603b6e1457138de1a72a2a4a56d5838ed1e4d0cea0f7d5e742",
+        "fingerprint": "80b2795ec1a381110cf37d06bb29a3bbdbc77da85d2de64f90fadc2df0c26ec6",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -14137,13 +14161,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3326438800,
-        "artifactSizeBytes": 580104,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 580738,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -14153,19 +14178,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 1612444000,
+        "totalProcessDurationNanoseconds": 1636758200,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 87197400,
+            "kernelTimeNanoseconds": 89455500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -14174,7 +14200,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 87401800,
+            "kernelTimeNanoseconds": 89803800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -14183,7 +14209,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 88221300,
+            "kernelTimeNanoseconds": 89915300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -14192,7 +14218,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 87369500,
+            "kernelTimeNanoseconds": 93367800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -14201,7 +14227,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 87601900,
+            "kernelTimeNanoseconds": 110799300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -14210,7 +14236,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 88557300,
+            "kernelTimeNanoseconds": 93399400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -14219,7 +14245,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 98728700,
+            "kernelTimeNanoseconds": 89565900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -14228,7 +14254,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 96007700,
+            "kernelTimeNanoseconds": 89553900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -14237,7 +14263,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 95346900,
+            "kernelTimeNanoseconds": 88996500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -14246,7 +14272,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 90288900,
+            "kernelTimeNanoseconds": 89622900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -14257,13 +14283,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 87197400,
-          "maximumKernelTimeNanoseconds": 98728700,
-          "medianKernelTimeNanoseconds": 88221300,
-          "meanKernelTimeNanoseconds": 90672140,
-          "standardDeviationKernelTimeNanoseconds": 4110456.4812682304,
-          "p95KernelTimeNanoseconds": 98728700,
-          "interquartileRangeKernelTimeNanoseconds": 7945100
+          "minimumKernelTimeNanoseconds": 88996500,
+          "maximumKernelTimeNanoseconds": 110799300,
+          "medianKernelTimeNanoseconds": 89622900,
+          "meanKernelTimeNanoseconds": 92448030,
+          "standardDeviationKernelTimeNanoseconds": 6304436.393056877,
+          "p95KernelTimeNanoseconds": 110799300,
+          "interquartileRangeKernelTimeNanoseconds": 3813900
         },
         "metrics": {
           "kernelTime": {
@@ -14279,9 +14305,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "1ab1d7a917e9bdae1b84455d1f2bf725599e7b452f5f6c6197f7b34c7b259062",
+        "fingerprint": "80ee6046d9225be4b250784e9d13d1e05d59b0e46acbdba9c0705a519b05b5c2",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:43:22.176Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -15365,13 +15391,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3358658300,
-        "artifactSizeBytes": 580104,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 580738,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -15381,19 +15408,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 366874300,
+        "totalProcessDurationNanoseconds": 361951500,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 16650300,
+            "kernelTimeNanoseconds": 17520900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -15402,7 +15430,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 17121300,
+            "kernelTimeNanoseconds": 17456600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -15411,7 +15439,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 16763400,
+            "kernelTimeNanoseconds": 17263100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -15420,7 +15448,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 16834400,
+            "kernelTimeNanoseconds": 17771700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -15429,7 +15457,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 16789600,
+            "kernelTimeNanoseconds": 17583800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -15438,7 +15466,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 17475200,
+            "kernelTimeNanoseconds": 17455900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -15447,7 +15475,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 16889300,
+            "kernelTimeNanoseconds": 17890400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -15456,7 +15484,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 16837500,
+            "kernelTimeNanoseconds": 17403000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -15465,7 +15493,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 16921900,
+            "kernelTimeNanoseconds": 17999500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -15474,7 +15502,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 16834800,
+            "kernelTimeNanoseconds": 19902900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -15485,13 +15513,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 16650300,
-          "maximumKernelTimeNanoseconds": 17475200,
-          "medianKernelTimeNanoseconds": 16834800,
-          "meanKernelTimeNanoseconds": 16911770,
-          "standardDeviationKernelTimeNanoseconds": 220158.1161347453,
-          "p95KernelTimeNanoseconds": 17475200,
-          "interquartileRangeKernelTimeNanoseconds": 132300
+          "minimumKernelTimeNanoseconds": 17263100,
+          "maximumKernelTimeNanoseconds": 19902900,
+          "medianKernelTimeNanoseconds": 17520900,
+          "meanKernelTimeNanoseconds": 17824780,
+          "standardDeviationKernelTimeNanoseconds": 726061.9433629613,
+          "p95KernelTimeNanoseconds": 19902900,
+          "interquartileRangeKernelTimeNanoseconds": 434500
         },
         "metrics": {
           "kernelTime": {
@@ -15507,9 +15535,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "4f492ef9fe3e0d72ef111b4db9af9e031dd1e301495d4d3bd8f685fc3a0e720a",
+        "fingerprint": "8bbcf7540dc2891430558ad3e53b187cad0a8e898b4c83e5813336059c3fc602",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -16593,13 +16621,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3358338300,
-        "artifactSizeBytes": 580104,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 580738,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -16609,19 +16638,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 96959600,
+        "totalProcessDurationNanoseconds": 77244900,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 1516300,
+            "kernelTimeNanoseconds": 1569300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1151,
@@ -16630,7 +16660,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 1513800,
+            "kernelTimeNanoseconds": 1588200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1151,
@@ -16639,7 +16669,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 1514400,
+            "kernelTimeNanoseconds": 1568200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1151,
@@ -16648,7 +16678,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 1514000,
+            "kernelTimeNanoseconds": 1615800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1151,
@@ -16657,7 +16687,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 1520000,
+            "kernelTimeNanoseconds": 1595200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1151,
@@ -16666,7 +16696,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 1516700,
+            "kernelTimeNanoseconds": 1722900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1151,
@@ -16675,7 +16705,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 1512900,
+            "kernelTimeNanoseconds": 1612100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1151,
@@ -16684,7 +16714,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 1512000,
+            "kernelTimeNanoseconds": 1565700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1151,
@@ -16693,7 +16723,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 1558000,
+            "kernelTimeNanoseconds": 1593700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1151,
@@ -16702,7 +16732,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 1529200,
+            "kernelTimeNanoseconds": 1557000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1151,
@@ -16713,13 +16743,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 1512000,
-          "maximumKernelTimeNanoseconds": 1558000,
-          "medianKernelTimeNanoseconds": 1514400,
-          "meanKernelTimeNanoseconds": 1520730,
-          "standardDeviationKernelTimeNanoseconds": 13296.995901330496,
-          "p95KernelTimeNanoseconds": 1558000,
-          "interquartileRangeKernelTimeNanoseconds": 6200
+          "minimumKernelTimeNanoseconds": 1557000,
+          "maximumKernelTimeNanoseconds": 1722900,
+          "medianKernelTimeNanoseconds": 1588200,
+          "meanKernelTimeNanoseconds": 1598810,
+          "standardDeviationKernelTimeNanoseconds": 45461.51009370454,
+          "p95KernelTimeNanoseconds": 1722900,
+          "interquartileRangeKernelTimeNanoseconds": 43900
         },
         "metrics": {
           "kernelTime": {
@@ -16735,9 +16765,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "59baa1a30ce1896e18a84eb8bc6669e72babb00441fa52e79aaaee97f5d51f4a",
+        "fingerprint": "f57ce1aa37b9ae1bce6381513ebb9ccdd3516f227eff82b5ef3c112640977f26",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -17821,13 +17851,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3368331200,
-        "artifactSizeBytes": 560056,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 560690,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -17837,19 +17868,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 203715800,
+        "totalProcessDurationNanoseconds": 183461800,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 9522900,
+            "kernelTimeNanoseconds": 9370800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -17858,7 +17890,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 9496300,
+            "kernelTimeNanoseconds": 9939000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -17867,7 +17899,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 9211200,
+            "kernelTimeNanoseconds": 9579700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -17876,7 +17908,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 9762400,
+            "kernelTimeNanoseconds": 9664300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -17885,7 +17917,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 9441100,
+            "kernelTimeNanoseconds": 9633400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -17894,7 +17926,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 9708500,
+            "kernelTimeNanoseconds": 9723500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -17903,7 +17935,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 9707400,
+            "kernelTimeNanoseconds": 9908700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -17912,7 +17944,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 9805200,
+            "kernelTimeNanoseconds": 9481300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -17921,7 +17953,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 9589800,
+            "kernelTimeNanoseconds": 9642900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -17930,7 +17962,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 9318100,
+            "kernelTimeNanoseconds": 9601100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -17941,13 +17973,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 9211200,
-          "maximumKernelTimeNanoseconds": 9805200,
-          "medianKernelTimeNanoseconds": 9522900,
-          "meanKernelTimeNanoseconds": 9556290,
-          "standardDeviationKernelTimeNanoseconds": 185840.40707015252,
-          "p95KernelTimeNanoseconds": 9805200,
-          "interquartileRangeKernelTimeNanoseconds": 267400
+          "minimumKernelTimeNanoseconds": 9370800,
+          "maximumKernelTimeNanoseconds": 9939000,
+          "medianKernelTimeNanoseconds": 9633400,
+          "meanKernelTimeNanoseconds": 9654470,
+          "standardDeviationKernelTimeNanoseconds": 164294.01115074157,
+          "p95KernelTimeNanoseconds": 9939000,
+          "interquartileRangeKernelTimeNanoseconds": 143800
         },
         "metrics": {
           "kernelTime": {
@@ -17963,9 +17995,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "497ab73673d210fecad7a3a72fc4c922901bcf0187d55a9233a3c120ab63224b",
+        "fingerprint": "d563132969b40991330d974e9da156008e326fcdf09bc617ab1687a073efbae1",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -19049,13 +19081,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 4011191000,
-        "artifactSizeBytes": 560056,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 560690,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -19065,19 +19098,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 108720300,
+        "totalProcessDurationNanoseconds": 81452600,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 2283800,
+            "kernelTimeNanoseconds": 2304700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -19086,7 +19120,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 2498900,
+            "kernelTimeNanoseconds": 2235600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -19095,7 +19129,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 2465400,
+            "kernelTimeNanoseconds": 2201100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -19104,7 +19138,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 2460000,
+            "kernelTimeNanoseconds": 2197200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -19113,7 +19147,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 2544300,
+            "kernelTimeNanoseconds": 2482400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -19122,7 +19156,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 2211500,
+            "kernelTimeNanoseconds": 2636300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -19131,7 +19165,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 2145700,
+            "kernelTimeNanoseconds": 2741000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -19140,7 +19174,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 2158200,
+            "kernelTimeNanoseconds": 2516900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -19149,7 +19183,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 2163100,
+            "kernelTimeNanoseconds": 2693800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -19158,7 +19192,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 2312200,
+            "kernelTimeNanoseconds": 2528400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -19169,13 +19203,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 2145700,
-          "maximumKernelTimeNanoseconds": 2544300,
-          "medianKernelTimeNanoseconds": 2283800,
-          "meanKernelTimeNanoseconds": 2324310,
-          "standardDeviationKernelTimeNanoseconds": 147374.342746626,
-          "p95KernelTimeNanoseconds": 2544300,
-          "interquartileRangeKernelTimeNanoseconds": 302300
+          "minimumKernelTimeNanoseconds": 2197200,
+          "maximumKernelTimeNanoseconds": 2741000,
+          "medianKernelTimeNanoseconds": 2482400,
+          "meanKernelTimeNanoseconds": 2453740,
+          "standardDeviationKernelTimeNanoseconds": 195779.89784449272,
+          "p95KernelTimeNanoseconds": 2741000,
+          "interquartileRangeKernelTimeNanoseconds": 400700
         },
         "metrics": {
           "kernelTime": {
@@ -19191,9 +19225,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "7d4fcc77411814ac0b90b2d4e7c2b9476312609cf3ed0602f8cd996a3bb7cf51",
+        "fingerprint": "aac3baea65b60ba179659dda42558b795d8121f5d34fac43c5450e89eb5caf8b",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -20277,13 +20311,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3486236200,
-        "artifactSizeBytes": 560056,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 560690,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -20293,19 +20328,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 72563900,
+        "totalProcessDurationNanoseconds": 50590200,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 174600,
+            "kernelTimeNanoseconds": 170500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -20314,7 +20350,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 171200,
+            "kernelTimeNanoseconds": 164600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -20323,7 +20359,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 169500,
+            "kernelTimeNanoseconds": 171300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -20332,7 +20368,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 159200,
+            "kernelTimeNanoseconds": 158900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -20341,7 +20377,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 157300,
+            "kernelTimeNanoseconds": 162700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -20350,7 +20386,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 153500,
+            "kernelTimeNanoseconds": 156300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -20359,7 +20395,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 152100,
+            "kernelTimeNanoseconds": 152500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -20368,7 +20404,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 148800,
+            "kernelTimeNanoseconds": 165900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -20377,7 +20413,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 147500,
+            "kernelTimeNanoseconds": 172100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -20386,7 +20422,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 145700,
+            "kernelTimeNanoseconds": 161900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -20397,13 +20433,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 145700,
-          "maximumKernelTimeNanoseconds": 174600,
-          "medianKernelTimeNanoseconds": 153500,
-          "meanKernelTimeNanoseconds": 157940,
-          "standardDeviationKernelTimeNanoseconds": 9925.643555961498,
-          "p95KernelTimeNanoseconds": 174600,
-          "interquartileRangeKernelTimeNanoseconds": 20700
+          "minimumKernelTimeNanoseconds": 152500,
+          "maximumKernelTimeNanoseconds": 172100,
+          "medianKernelTimeNanoseconds": 162700,
+          "meanKernelTimeNanoseconds": 163670,
+          "standardDeviationKernelTimeNanoseconds": 6226.403456249844,
+          "p95KernelTimeNanoseconds": 172100,
+          "interquartileRangeKernelTimeNanoseconds": 11600
         },
         "metrics": {
           "kernelTime": {
@@ -20419,9 +20455,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "a567858b10257ae934fa716cd3b96f3883de2cd4cc17699c146586d27cfe194d",
+        "fingerprint": "b006bfc12e4967d1d7cf3879f6ad3d83785bdc63de3e63780485ca1744f4526c",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -21505,13 +21541,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3509424800,
-        "artifactSizeBytes": 589099,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 589733,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -21521,19 +21558,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 163926700,
+        "totalProcessDurationNanoseconds": 140065900,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 4824700,
+            "kernelTimeNanoseconds": 4764300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 512,
@@ -21542,7 +21580,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 4690200,
+            "kernelTimeNanoseconds": 4864100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 512,
@@ -21551,7 +21589,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 4669400,
+            "kernelTimeNanoseconds": 4798300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 512,
@@ -21560,7 +21598,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 5218300,
+            "kernelTimeNanoseconds": 4922600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 512,
@@ -21569,7 +21607,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 5133300,
+            "kernelTimeNanoseconds": 4775500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 512,
@@ -21578,7 +21616,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 4775200,
+            "kernelTimeNanoseconds": 4789200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 512,
@@ -21587,7 +21625,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 4846800,
+            "kernelTimeNanoseconds": 5058900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 512,
@@ -21596,7 +21634,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 4919100,
+            "kernelTimeNanoseconds": 4800800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 512,
@@ -21605,7 +21643,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 4679500,
+            "kernelTimeNanoseconds": 4709800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 512,
@@ -21614,7 +21652,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 4641700,
+            "kernelTimeNanoseconds": 4849700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 512,
@@ -21625,13 +21663,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 4641700,
-          "maximumKernelTimeNanoseconds": 5218300,
-          "medianKernelTimeNanoseconds": 4775200,
-          "meanKernelTimeNanoseconds": 4839820,
-          "standardDeviationKernelTimeNanoseconds": 188811.85767848374,
-          "p95KernelTimeNanoseconds": 5218300,
-          "interquartileRangeKernelTimeNanoseconds": 239600
+          "minimumKernelTimeNanoseconds": 4709800,
+          "maximumKernelTimeNanoseconds": 5058900,
+          "medianKernelTimeNanoseconds": 4798300,
+          "meanKernelTimeNanoseconds": 4833320,
+          "standardDeviationKernelTimeNanoseconds": 93630.9756437473,
+          "p95KernelTimeNanoseconds": 5058900,
+          "interquartileRangeKernelTimeNanoseconds": 88600
         },
         "metrics": {
           "kernelTime": {
@@ -21647,9 +21685,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "3bbbc1895f9e3af0ba2ef9bbc9bc449eb0d2acc74dc2d06bc6720cd570ee5cc4",
+        "fingerprint": "e64ffd7697fb0bb3ad770ee35b6db6da41853498191a110c37f437fc710df464",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -22733,13 +22771,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3617322500,
-        "artifactSizeBytes": 589099,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 589733,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -22749,19 +22788,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 90763500,
+        "totalProcessDurationNanoseconds": 73549900,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 1245600,
+            "kernelTimeNanoseconds": 1302900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 505,
@@ -22770,7 +22810,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 1246100,
+            "kernelTimeNanoseconds": 1286100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 505,
@@ -22779,7 +22819,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 1248900,
+            "kernelTimeNanoseconds": 1379800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 505,
@@ -22788,7 +22828,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 1249700,
+            "kernelTimeNanoseconds": 1512200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 505,
@@ -22797,7 +22837,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 1263000,
+            "kernelTimeNanoseconds": 1784900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 505,
@@ -22806,7 +22846,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 1270000,
+            "kernelTimeNanoseconds": 1596600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 505,
@@ -22815,7 +22855,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 1247300,
+            "kernelTimeNanoseconds": 1711000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 505,
@@ -22824,7 +22864,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 1247200,
+            "kernelTimeNanoseconds": 1300100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 505,
@@ -22833,7 +22873,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 1250400,
+            "kernelTimeNanoseconds": 1271500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 505,
@@ -22842,7 +22882,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 1247800,
+            "kernelTimeNanoseconds": 1267100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 505,
@@ -22853,13 +22893,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 1245600,
-          "maximumKernelTimeNanoseconds": 1270000,
-          "medianKernelTimeNanoseconds": 1247800,
-          "meanKernelTimeNanoseconds": 1251600,
-          "standardDeviationKernelTimeNanoseconds": 7742.092740338364,
-          "p95KernelTimeNanoseconds": 1270000,
-          "interquartileRangeKernelTimeNanoseconds": 3200
+          "minimumKernelTimeNanoseconds": 1267100,
+          "maximumKernelTimeNanoseconds": 1784900,
+          "medianKernelTimeNanoseconds": 1302900,
+          "meanKernelTimeNanoseconds": 1441220,
+          "standardDeviationKernelTimeNanoseconds": 186033.02287497238,
+          "p95KernelTimeNanoseconds": 1784900,
+          "interquartileRangeKernelTimeNanoseconds": 310500
         },
         "metrics": {
           "kernelTime": {
@@ -22875,9 +22915,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "869c5eba20ce67f4d349ff9a26a0d7b18168d181754cd51a9f9e4582aef6d49b",
+        "fingerprint": "ab392f52f691bb62b1bb17e0fda907a446c289edc94ab13b9d82aa97c30e44ca",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -23961,13 +24001,14 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 3549582500,
-        "artifactSizeBytes": 589099,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 589733,
         "command": [
           "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
@@ -23977,19 +24018,20 @@
           "-o",
           "{artifact}",
           "main.cpp",
-          "-lpthread"
+          "-lpthread",
+          "-lsynchronization"
         ]
       },
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 73396500,
+        "totalProcessDurationNanoseconds": 54022300,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 232500,
+            "kernelTimeNanoseconds": 236400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 500,
@@ -23998,7 +24040,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 224500,
+            "kernelTimeNanoseconds": 233200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 500,
@@ -24007,7 +24049,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 220700,
+            "kernelTimeNanoseconds": 229300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 500,
@@ -24016,7 +24058,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 219400,
+            "kernelTimeNanoseconds": 227900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 500,
@@ -24025,7 +24067,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 218700,
+            "kernelTimeNanoseconds": 225700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 500,
@@ -24034,7 +24076,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 217300,
+            "kernelTimeNanoseconds": 225000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 500,
@@ -24043,7 +24085,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 216200,
+            "kernelTimeNanoseconds": 225400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 500,
@@ -24052,7 +24094,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 216000,
+            "kernelTimeNanoseconds": 222600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 500,
@@ -24061,7 +24103,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 214900,
+            "kernelTimeNanoseconds": 221900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 500,
@@ -24070,7 +24112,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 217000,
+            "kernelTimeNanoseconds": 221700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 500,
@@ -24081,13 +24123,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 214900,
-          "maximumKernelTimeNanoseconds": 232500,
-          "medianKernelTimeNanoseconds": 217300,
-          "meanKernelTimeNanoseconds": 219720,
-          "standardDeviationKernelTimeNanoseconds": 5009.950099551891,
-          "p95KernelTimeNanoseconds": 232500,
-          "interquartileRangeKernelTimeNanoseconds": 4500
+          "minimumKernelTimeNanoseconds": 221700,
+          "maximumKernelTimeNanoseconds": 236400,
+          "medianKernelTimeNanoseconds": 225400,
+          "meanKernelTimeNanoseconds": 226910,
+          "standardDeviationKernelTimeNanoseconds": 4631.727539482434,
+          "p95KernelTimeNanoseconds": 236400,
+          "interquartileRangeKernelTimeNanoseconds": 6700
         },
         "metrics": {
           "kernelTime": {
@@ -24103,9 +24145,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "e6493920764bd0e71235c6344f614347f8b0690cd3619ae188a592ae9691ea55",
+        "fingerprint": "36452962115132a750ca8d29cde757c678a34d95e7fa035c08e159f7851eeec4",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T09:44:42.072Z",
+        "measuredAt": "2026-07-19T19:21:25.381Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",

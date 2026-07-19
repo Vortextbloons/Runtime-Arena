@@ -104,7 +104,7 @@
           "properties": {
             "status": {
               "type": "string",
-              "enum": ["success", "failed", "skipped"]
+              "enum": ["success", "cached", "failed", "skipped"]
             },
             "durationNanoseconds": {
               "type": "integer",

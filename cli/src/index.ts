@@ -370,6 +370,7 @@ async function runCommand(args: string[]) {
 
   const parallelism = flags.has("--parallel") ? Math.max(1, os.cpus().length) : (config.execution?.parallelism ?? 1);
   const results: BenchmarkResult[] = [];
+  const plannedCells = staleCells.length;
 
   await pool(staleCells, parallelism, async (cell) => {
     const { benchmark, sizeName, language, version, compilerVersion, fingerprint, key, input, datasetHash, warmups, iterations } = cell;
@@ -421,7 +422,6 @@ async function runCommand(args: string[]) {
     if (!flags.has("--quiet") && flags.get("--format") !== "json") console.log(`${benchmark.id}/${sizeName} ${language.name}: ${lastChecker.status} (${(summary(samples).medianKernelTimeNanoseconds / 1e6).toFixed(2)} ms median kernel)`);
   });
 
-  const plannedCells = staleCells.length;
   const git = await runProcess("git", ["rev-parse", "HEAD"]).then(p => p.code === 0 ? p.stdout.trim() : "unknown");
   const gitDirty = await runProcess("git", ["status", "--porcelain"]).then(p => p.code === 0 ? p.stdout.trim().length > 0 : null);
   const snapshot: Snapshot = plannedCells === 0 && current ? current : {

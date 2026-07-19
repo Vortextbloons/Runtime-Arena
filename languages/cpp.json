@@ -10,7 +10,7 @@
   "build": {
     "workingDirectory": "{implementationDir}",
     "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
-    "arguments": ["-O3", "-std=c++23", "-I", "../../../../languages/cpp/include", "-o", "{artifact}", "main.cpp", "-lpthread"],
+    "arguments": ["-O3", "-std=c++23", "-I", "../../../../languages/cpp/include", "-o", "{artifact}", "main.cpp", "-lpthread", "-lsynchronization"],
     "artifact": "{benchmarkId}"
   },
   "run": {
