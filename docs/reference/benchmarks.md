@@ -1,13 +1,13 @@
 # Benchmarks Reference
 
-Runtime Arena currently defines seven benchmark workloads. Three are fully implemented across all seven supported languages (Rust, Go, TypeScript, Python, LuaJIT, C++, JavaScript). **Barrier Wave** is implemented in six languages (all except LuaJIT); datasets and checker support are ready. The three newest workloads have complete contracts, fixtures, generation, and checker support, but intentionally have no language implementations yet.
+Runtime Arena currently defines seven benchmark workloads. The original workloads are implemented across the supported languages, including Java; LuaJIT remains unavailable for barrier-wave because it has no native threading. The three newer workloads now also include Java implementations alongside their existing contracts, fixtures, generation, and checker support.
 
 | Benchmark | Status | Stresses |
 |-----------|--------|----------|
-| `nbody` | Complete (7 languages) | Numeric computation, tight loops |
-| `shortest-path` | Complete (7 languages) | Priority queues, graph traversal |
-| `aggregation` | Complete (7 languages) | Hash map aggregation, sorting, checksum |
-| `barrier-wave` | 6 languages implemented (LuaJIT pending) | Structured parallel concurrency, barriers |
+| `nbody` | Complete (8 languages) | Numeric computation, tight loops |
+| `shortest-path` | Complete (8 languages) | Priority queues, graph traversal |
+| `aggregation` | Complete (8 languages) | Hash map aggregation, sorting, checksum |
+| `barrier-wave` | 7 languages implemented (LuaJIT pending) | Structured parallel concurrency, barriers |
 | `word-frequency` | Definition ready; implementations pending | String hashing, hash maps, ranking |
 | `record-sorting` | Definition ready; implementations pending | Multi-field sorting, comparator and struct access |
 | `matrix-multiplication` | Definition ready; implementations pending | Numeric loops, memory layout, cache locality |
@@ -38,6 +38,8 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 
 **Algorithm:** For each query, run Dijkstra's algorithm from source to destination. Verify path endpoints, edge existence, and path cost.
 
+**Dataset mutations:** Each size has `sparse` (~2× vertex count edges) and `dense` (~8× vertex count edges) variants.
+
 ## aggregation
 
 **Workload:** CSV transaction record aggregation.
@@ -63,7 +65,7 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 **Status notes:**
 - Checker task `barrier-wave` is implemented and tested.
 - Datasets are committed fixtures. `arena dataset generate --benchmark barrier-wave` works with the same `--size` and `--seed` flags as other benchmarks.
-- Six of seven languages are implemented: Rust, Go, TypeScript, Python, JavaScript, and C++. LuaJIT is excluded (no native threading). See the tree under `benchmarks/barrier-wave/implementations/`.
+- Seven of eight languages are implemented: Rust, Go, TypeScript, Python, JavaScript, C++, and Java. LuaJIT is excluded (no native threading). See the tree under `benchmarks/barrier-wave/implementations/`.
 - `schemas/implementation-output.schema.json` does not yet include a barrier-wave branch; correctness is enforced by the Go checker.
 
 ## word-frequency
@@ -76,6 +78,8 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 
 **Stresses:** String hashing, hash maps, allocation, ranking, and dynamic-language object overhead.
 
+**Dataset mutations:** Each size has `repeated-vocabulary` (skewed distribution) and `mostly-unique` (~92% unique) variants.
+
 ## record-sorting
 
 **Workload:** Sort numeric records by score descending, timestamp ascending, and ID ascending.
@@ -86,9 +90,11 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 
 **Stresses:** Sorting implementations, comparator overhead, object/struct access, and memory layout.
 
+**Dataset mutations:** Each size has `random` (fully random) and `mostly-sorted` (~95% pre-sorted, 5% of records swapped) variants.
+
 ## matrix-multiplication
 
-**Workload:** Multiply two dense square row-major integer matrices using a fixed `i → j → k` triple loop.
+**Workload:** Multiply two dense square integer matrices using a fixed `i → j → k` triple loop.
 
 **Input:** JSON `{dimension, left, right}` with flat row-major matrices.
 
@@ -96,22 +102,27 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 
 **Stresses:** Numeric execution, nested loops, array representation, cache locality, and bounds checking.
 
+**Dataset mutations:** Each size has `row-major` (naturally ordered fill) and `column-major` (column-wise fill) variants to stress cache layout.
+
+## Dataset Mutations
+
+Four benchmarks use **mutations** — multiple dataset variants per size that stress different aspects. They are defined in the benchmark manifest's `sizes.<name>.mutations` map (each entry has a `dataset` filename and `seed`). Non-mutation benchmarks (nbody, aggregation, barrier-wave) use a single `dataset` per size.
+
+| Benchmark | Mutations | Data per size |
+|-----------|-----------|---------------|
+| shortest-path | `sparse`, `dense` | 400/300/600 vertices, edge count varies by mutation |
+| word-frequency | `repeated-vocabulary`, `mostly-unique` | 50k/50k/200k total words, 3,421/3,421/8,421 unique |
+| record-sorting | `random`, `mostly-sorted` | 20k/100k/500k records, sorting difficulty varies |
+| matrix-multiplication | `row-major`, `column-major` | 128×128 / 256×256 / 512×512 dimensions |
+
+Mutation generators use `generatorVersion "2.1.0"` and produce a `mutation` field in the result's `benchmark` and `dataset` objects. Non-mutation benchmarks continue to use `generatorVersion "2.0.0"`. The cell key format for mutation cells is `benchmark/size/mutation/language`.
+
 ## Dataset Sizes
 
-| Size | Warmup / Measured (typical) | N-body | Shortest path | Aggregation | Barrier Wave |
-|------|----------------------------|--------|---------------|-------------|--------------|
-| small | see manifest | 12 bodies × 10,000 steps (2 / 5) | 400 vertices × 120 queries (2 / 5) | 100,000 records (2 / 5) | 2 workers × 1,500 phases × 64 items (2 / 5) |
-| medium | see manifest | 7 bodies × 25,000 steps (2 / 3) | 300 vertices × 90 queries (2 / 3) | 120,000 records (2 / 3) | 4 workers × 250 phases × 1,024 items (2 / 3) |
-| large | see manifest | 8 bodies × 50,000 steps (2 / 3) | 600 vertices × 180 queries (2 / 3) | 200,000 records (2 / 3) | 8 workers × 100 phases × 8,192 items (2 / 3) |
+| Size | N-body | Shortest path (per size) | Aggregation | Barrier Wave |
+|------|--------|--------------------------|-------------|--------------|
+| small | 12 bodies × 10,000 steps (2 / 5) | 400 vertices × 120 queries (2 / 5) | 100,000 records (2 / 5) | 2 workers × 1,500 phases × 64 items (2 / 5) |
+| medium | 7 bodies × 25,000 steps (2 / 3) | 300 vertices × 90 queries (2 / 3) | 120,000 records (2 / 3) | 4 workers × 250 phases × 1,024 items (2 / 3) |
+| large | 8 bodies × 50,000 steps (2 / 3) | 600 vertices × 180 queries (2 / 3) | 200,000 records (2 / 3) | 8 workers × 100 phases × 8,192 items (2 / 3) |
 
-Warmup and measured iteration counts come from each benchmark's `benchmark.json` size entries (not only `arena.config.json` defaults). Dataset paths are whatever `sizes.<name>.dataset` names — JSON or CSV.
-
-All datasets are deterministic from a seed. Regenerating via `arena dataset generate` writes metadata with `generatorVersion` `"2.0.0"`.
-
-## New benchmark dataset sizes
-
-| Size | Word frequency | Record sorting | Matrix multiplication |
-|------|----------------|----------------|-----------------------|
-| small | 50,000 words / 3,421 unique (2 / 5) | 20,000 records (2 / 5) | 128 × 128 (2 / 5) |
-| medium | 50,000 words / 3,421 unique (2 / 3) | 100,000 records (2 / 3) | 256 × 256 (2 / 3) |
-| large | 200,000 words / 8,421 unique (2 / 3) | 500,000 records (2 / 3) | 512 × 512 (2 / 3) |
+Warmup and measured iteration counts come from each benchmark's `benchmark.json` size entries (not only `arena.config.json` defaults). All datasets are deterministic from a seed. Regenerating via `arena dataset generate` writes metadata with the applicable `generatorVersion`.

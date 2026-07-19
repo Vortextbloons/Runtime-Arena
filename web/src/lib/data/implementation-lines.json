@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-19T20:27:40.196Z",
+  "generatedAt": "2026-07-19T21:25:37.459Z",
   "cells": {
     "aggregation:cpp": {
       "logicalLines": 202,
@@ -313,12 +313,12 @@
       "sha256": "ee16dbe6f2e4b2805312a3996670077a96ee7e8379c83ea32260b99943be856e"
     },
     "shortest-path:javascript": {
-      "logicalLines": 83,
+      "logicalLines": 95,
       "fileCount": 1,
       "files": [
         "index.mjs"
       ],
-      "sha256": "4b5e80af966a5bcf23faeb20dd7f2aaac4fe2d9307cba35b33fbf564c6f121fb"
+      "sha256": "40b0dec33f384117b0b6253395561ddcf53c2afaf124a9954626894194a518f1"
     },
     "shortest-path:lua": {
       "logicalLines": 329,
@@ -347,12 +347,12 @@
       "sha256": "fde1718a048a0fd64101b6d0de345f259b00da2bdf2a44332c13c3ba8ea153f9"
     },
     "shortest-path:typescript": {
-      "logicalLines": 86,
+      "logicalLines": 98,
       "fileCount": 1,
       "files": [
         "index.ts"
       ],
-      "sha256": "b45c83e93526cab4eaef3084bf4c0ac5ef6bbefcb6b6124bcf74e9aa1ca27609"
+      "sha256": "a5c3760434bd05120320ee1d6faf3a96562dddd4ed496d8b301241f936a7a8af"
     },
     "word-frequency:cpp": {
       "logicalLines": 132,

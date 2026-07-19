@@ -52,6 +52,7 @@ npm run arena -- run --output out.json
 - `--language`, `-l` — Filter by language (repeatable)
 - `--benchmark`, `-b` — Filter by benchmark (repeatable)
 - `--size` — Filter by size (small/medium/large)
+- `--mutation` — Filter by mutation variant (e.g. `sparse`, `dense`, `random`, `mostly-sorted`, `repeated-vocabulary`, `mostly-unique`, `row-major`, `column-major`)
 - `--warmup` — Override warmup iterations
 - `--iterations` — Override measured iterations
 - `--force` — Force re-run even if fingerprint matches
@@ -73,10 +74,14 @@ npm run arena -- check --benchmark nbody --input input.json --output output.json
 
 ### `arena dataset generate`
 
-Generate a deterministic dataset from a seed.
+Generate a deterministic dataset from a seed. For mutation benchmarks, `--mutation` is required.
 
 ```bash
+# Non-mutation benchmark
 npm run arena -- dataset generate --benchmark nbody --size small --seed 729418
+
+# Mutation benchmark (--mutation required)
+npm run arena -- dataset generate --benchmark shortest-path --size small --mutation sparse --seed 729418
 ```
 
 ### `arena results`
@@ -91,7 +96,7 @@ npm run arena -- results status     # Show cell status (current/stale/missing)
 npm run arena -- results status --language rust
 ```
 
-`summary` and `status` accept the same repeatable filters as `run`: `--language`/`-l`, `--benchmark`/`-b`, and `--size`.
+`summary` and `status` accept the same filters as `run`: `--language`/`-l`, `--benchmark`/`-b`, `--size`, and `--mutation`.
 
 ### `arena web`
 
@@ -116,6 +121,7 @@ The `results/current.json` snapshot contains:
   "results": [
     {
       "benchmark": { "id": "nbody", "version": 1, "size": "small" },
+      // For mutation benchmarks, benchmark.mutation and dataset.mutation are also present
       "dataset": { "id": "...", "sha256": "...", "seed": 0, "generatorVersion": "..." },
       "language": { "id": "rust", "name": "Rust", "version": "...", "compilerVersion": "...", "compilerFlags": [...] },
       "build": { "status": "success", "durationNanoseconds": 0, "artifactSizeBytes": 0, "command": [...] },

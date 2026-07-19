@@ -10,7 +10,7 @@
 
 <header>
 	<a class="brand" href={resolve('/')}>
-		<span class="mark" aria-hidden="true">RA</span>
+		<img class="mark" src="/icon-192x192.png" alt="" width="32" height="32" />
 		<span>Runtime Arena</span>
 	</a>
 	<nav aria-label="Primary">
@@ -60,9 +60,7 @@
 	header { border-bottom: 1px solid var(--rule); }
 	.brand { display: flex; align-items: center; gap: .8rem; text-decoration: none; font-weight: 680; letter-spacing: -.02em; }
 	.mark {
-		display: grid; place-items: center; width: 2rem; height: 2rem;
-		background: var(--accent); color: #071217; font: 800 .7rem var(--mono);
-		clip-path: polygon(0 0, 100% 0, 100% 72%, 72% 100%, 0 100%);
+		display: block; width: 2rem; height: 2rem; border-radius: 4px;
 	}
 	nav { display: flex; gap: clamp(.8rem, 2.5vw, 2rem); color: var(--muted); font-size: .84rem; }
 	nav a { text-decoration: none; }

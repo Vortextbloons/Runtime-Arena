@@ -1,0 +1,13 @@
+{
+  "name": "Runtime Arena",
+  "short_name": "Runtime Arena",
+  "description": "Cross-language benchmark results with correctness-first rankings.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1015",
+  "theme_color": "#0d1115",
+  "icons": [
+    { "src": "/icon-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512x512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -69,7 +69,7 @@ Languages do **not** have fixed brand colorways. Appearance is:
 - **Art stage**: Grid, floating code particles, monogram with halo.
 - **Motion**: Pointer tilt (±6°) and particle float — disabled under `prefers-reduced-motion: reduce`.
 - **High tier**: Stronger top wash when `tierLevel >= 5`.
-- **Badges**: Badges are defined in four groups (`cards/badges/definitions.ts`): **V1** (6 core badges: Speedster, Compute Finisher, Data Wrangler, Pathfinder, Steady Hands, Scale Master), **V1.5** (Quick Build, Minimal Build), **V2** (Memory Minder), **V2.5** (Tight Code, High Yield). Tiers are computed via `awardHybridBadge()` which combines absolute attribute rating and percentile rank (when 3+ languages have data). Face shows up to three featured chips (name + tier) with hover tooltips showing the reason and next-tier requirements. Expanded cards show the full earned set as a compact chip grid.
+- **Badges**: Badges are defined in three groups (`cards/badges/definitions.ts`): **V1** (6 core badges: Speedster, Compute Finisher, Data Handlet, Pathfinder, Steady Hands, Pressure Proof, Scale Master), **V1.5** (Fast Builder, Lightweight Build), **V2** (Memory Minder). Tiers are computed via `awardHybridBadge()` which combines absolute attribute rating and percentile rank (when 3+ languages have data). Face shows up to three featured chips (name + tier) with hover tooltips showing the reason and next-tier requirements. Expanded cards show the full earned set as a compact chip grid.
 
 ## Dimensions
 

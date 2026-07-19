@@ -1,0 +1,43 @@
+{
+  "$schema": "../schemas/language.schema.json",
+  "id": "java",
+  "name": "Java",
+  "enabled": true,
+  "detect": {
+    "command": "javac",
+    "arguments": ["--version"]
+  },
+  "build": {
+    "workingDirectory": "{implementationDir}",
+    "command": "node",
+    "arguments": [
+      "{projectRoot}/scripts/build-java.mjs",
+      "--release",
+      "17",
+      "--output",
+      ".arena/{benchmarkId}.jar",
+      "Main.java"
+    ],
+    "artifact": ".arena/{benchmarkId}.jar"
+  },
+  "run": {
+    "command": "java",
+    "arguments": [
+      "-cp",
+      "{artifact}",
+      "Main",
+      "--input",
+      "{inputFile}",
+      "--output",
+      "{outputFile}",
+      "--timing-output",
+      "{timingOutputFile}",
+      "--warmup",
+      "{warmupIterations}",
+      "--iterations",
+      "{measuredIterations}"
+    ]
+  },
+  "environment": {},
+  "sourceExtensions": [".java"]
+}

@@ -14,6 +14,7 @@
 	const languageColors: Record<string, string> = {
 		rust: '#d97852',
 		go: '#58b7d6',
+		java: '#f89820',
 		javascript: '#f7df1e',
 		typescript: '#3178c6',
 		lua: '#2554C7',

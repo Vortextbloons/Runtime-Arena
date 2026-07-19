@@ -23,7 +23,10 @@
    for nbody, shortest-path, aggregation, barrier-wave, word-frequency,
    record-sorting, and matrix-multiplication.
 5. Create `benchmark.json` using an existing benchmark as a template. It must
-   match `schemas/benchmark.schema.json`.
+   match `schemas/benchmark.schema.json`. For workloads with multiple dataset
+   variants (e.g. sparse/dense graphs, random/sorted records), use the
+   `mutations` form of size configuration instead of a single `dataset` field.
+   See the `sizes` `oneOf` in `benchmark.schema.json` for the exact shape.
 6. Add independent validation logic to the Go checker (and unit tests).
 7. Optionally extend `schemas/implementation-output.schema.json` with a
    benchmark-specific branch; the checker remains the correctness authority.

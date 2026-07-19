@@ -1,6 +1,6 @@
 # Architecture Overview
 
-Runtime Arena is a cross-language benchmarking system that runs equivalent workloads in Rust, Go, TypeScript, Python, Lua (LuaJIT), C++, and JavaScript (Node.js), validates their output, records metrics, and stores immutable JSON results.
+Runtime Arena is a cross-language benchmarking system that runs equivalent workloads in Rust, Go, TypeScript, Python, Lua (LuaJIT), C++, Java, and JavaScript (Node.js), validates their output, records metrics, and stores immutable JSON results.
 
 ## System Components
 
@@ -48,5 +48,4 @@ The **checker** is intentionally written in Go and independent from the TypeScri
    - Validate the full snapshot against `result.schema.json` before writing
 4. Write canonical snapshot to `results/current.json`
 5. Web UI loads snapshot and computes scores
-
 

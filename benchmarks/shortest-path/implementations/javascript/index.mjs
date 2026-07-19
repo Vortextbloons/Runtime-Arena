@@ -11,12 +11,24 @@ const vertexCount = g.vertexCount;
 const adj = Array.from({ length: vertexCount }, () => []);
 for (const e of g.edges) adj[e.from].push(e);
 
-// Pre-allocate reusable arrays
+// Pre-allocate reusable arrays. Heap grows beyond vertexCount under lazy Dijkstra.
 const dist = new Float64Array(vertexCount);
 const prev = new Int32Array(vertexCount);
-const heapCost = new Float64Array(vertexCount);
-const heapNode = new Int32Array(vertexCount);
+let heapCost = new Float64Array(Math.max(vertexCount, g.edges.length + 1));
+let heapNode = new Int32Array(heapCost.length);
 let heapLen = 0;
+
+function ensureHeapCapacity(needed) {
+  if (needed <= heapCost.length) return;
+  let cap = heapCost.length;
+  while (cap < needed) cap *= 2;
+  const nextCost = new Float64Array(cap);
+  const nextNode = new Int32Array(cap);
+  nextCost.set(heapCost);
+  nextNode.set(heapNode);
+  heapCost = nextCost;
+  heapNode = nextNode;
+}
 
 function kernel() {
   const results = [];
@@ -62,6 +74,7 @@ function kernel() {
           prev[e.to] = u;
           // Heap push
           let i = heapLen;
+          ensureHeapCapacity(i + 1);
           heapLen++;
           heapCost[i] = next;
           heapNode[i] = e.to;

@@ -59,7 +59,7 @@ benchmarks/             # Workloads, datasets, implementations
   nbody/
   shortest-path/
   aggregation/
-  barrier-wave/         # Rust/Go/TS/Python/C++; LuaJIT marked unavailable
+  barrier-wave/         # Rust/Go/TS/Python/JS/C++/Java; LuaJIT unavailable
 languages/              # Language manifests (rust, go, typescript, python, lua, cpp, javascript)
 schemas/                # JSON Schema definitions
 results/                # Canonical result snapshots

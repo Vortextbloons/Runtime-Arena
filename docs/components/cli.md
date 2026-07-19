@@ -12,10 +12,12 @@ cli/
     index.ts            # Main CLI logic (commands, discovery, run, fingerprints)
     metrics.ts          # Metric registry (kernelTime)
     timing.ts           # Timing sample reader
+    mutations.ts        # Dataset mutation expansion and cell-key logic
 
   test/
     cli.test.ts         # Integration tests
     timing.test.ts      # Timing sample tests (also under src/)
+    mutations.test.ts   # Mutation tests
   dist/                 # Compiled output
 ```
 
@@ -29,7 +31,7 @@ cli/
 
 ## Key Design Decisions
 
-**Mostly monolithic today**: Runtime behavior lives in `index.ts` with helpers in `metrics.ts` and `timing.ts`. Subdirectories under `src/` are empty placeholders reserved for a future split; do not treat them as active modules.
+**Mostly monolithic today**: Runtime behavior lives in `index.ts` with helpers in `metrics.ts`, `timing.ts`, and `mutations.ts`. Subdirectories under `src/` are empty placeholders reserved for a future split; do not treat them as active modules.
 
 **Discovery-based**: Languages and benchmarks are discovered by scanning directories for manifest files. No hardcoded lists.
 
@@ -39,7 +41,9 @@ cli/
 
 **Parallel execution**: A `--parallel` flag overrides the config's default parallelism (`config.execution.parallelism`). When `--parallel` is set, concurrency is set to `os.cpus().length` (all logical cores). Under the hood, `pool()` (line ~291 of `index.ts`) provides a bounded-concurrency semaphore — it runs a user-supplied async function over an array of items while keeping at most `concurrency` in-flight promises.
 
-**Results summary**: `arena results summary` reads `results/current.json`, filters by `--language`, `--benchmark`, and `--size`, then prints an ANSI-colored box-drawing table with benchmark, language, correctness, median kernel time, and relative-speed columns. Fastest entries are marked with a green ★. Color is auto-detected from TTY and suppressed with `NO_COLOR`.
+**Dataset mutations**: Four benchmarks (shortest-path, word-frequency, record-sorting, matrix-multiplication) define multiple dataset variants per size called **mutations**. The `mutations.ts` module handles expanding size configs into cells via `expandSizeCells()`, generating mutation-aware cell keys (`benchmark/size/mutation/language`), and generating dataset content for each variant. Non-mutation benchmarks (nbody, aggregation, barrier-wave) keep a single dataset per size.
+
+**Results summary**: `arena results summary` reads `results/current.json`, filters by `--language`, `--benchmark`, `--size`, and `--mutation`, then prints an ANSI-colored box-drawing table with benchmark, language, correctness, median kernel time, and relative-speed columns. Fastest entries are marked with a green ★. Color is auto-detected from TTY and suppressed with `NO_COLOR`.
 
 **Version string**: Result snapshots write `arenaVersion: "0.2.0"` (hardcoded in the CLI). Root/`cli` npm `package.json` may still say `0.1.0` — treat the snapshot field as the arena protocol version for results.
 

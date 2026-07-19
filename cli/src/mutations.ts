@@ -60,7 +60,7 @@ export function generateDatasetContent(
   benchmarkId: string,
   sizeName: string,
   mutation: string | undefined,
-  seed: number,
+  _seed: number,
   random: () => number
 ): string {
   if (benchmarkId === "record-sorting") return generateRecordSorting(sizeName, mutation ?? "random", random);

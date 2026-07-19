@@ -42,7 +42,7 @@ Temp run directories live under `.arena/runs/` and are deleted after each run un
 
 ## Language Manifests (`languages/*.json`)
 
-Each language has a manifest defining detection, build, and run commands. The project ships seven manifests: `cpp.json`, `go.json`, `javascript.json`, `lua.json`, `python.json`, `rust.json`, and `typescript.json`.
+Each language has a manifest defining detection, build, and run commands. The project ships eight manifests: `cpp.json`, `go.json`, `java.json`, `javascript.json`, `lua.json`, `python.json`, `rust.json`, and `typescript.json`.
 
 ```json
 {
@@ -93,6 +93,7 @@ C++ implementations use shared headers (JSON parser, SHA-256) bundled at `langua
 
 Each benchmark has a manifest defining sizes, metrics, and limits.
 
+**Simple form** (single dataset per size):
 ```json
 {
   "id": "nbody",
@@ -117,6 +118,27 @@ Each benchmark has a manifest defining sizes, metrics, and limits.
   }
 }
 ```
+
+**Mutations form** (multiple dataset variants per size, used by shortest-path, word-frequency, record-sorting, and matrix-multiplication):
+```json
+{
+  "id": "shortest-path",
+  "name": "Shortest Path",
+  "version": 1,
+  "sizes": {
+    "small": {
+      "warmupIterations": 2,
+      "measuredIterations": 5,
+      "mutations": {
+        "sparse": { "dataset": "small-sparse.json", "seed": 165410 },
+        "dense": { "dataset": "small-dense.json", "seed": 223847 }
+      }
+    }
+  }
+}
+```
+
+Each mutation entry specifies a `dataset` file path and the `seed` used to generate it. The CLI expands mutations into separate cells, each with its own cell key (`benchmark/size/mutation/language`) and fingerprint.
 
 ## Environment Variables
 

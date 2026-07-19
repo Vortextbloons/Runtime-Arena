@@ -16,14 +16,14 @@ Source: `checker/cmd/arena-checker/main.go`. Details: [checker.md](checker.md).
 
 ## Benchmarks (`benchmarks/`)
 
-Seven workloads under `benchmarks/<id>/`. nbody, shortest-path, and aggregation are the original trio, fully implemented in all seven languages. barrier-wave has implementations in Rust, Go, TypeScript, Python, JavaScript, and C++ (LuaJIT excluded). word-frequency, record-sorting, and matrix-multiplication are newer additions.
+Seven workloads under `benchmarks/<id>/`. nbody, shortest-path, and aggregation are the original trio, fully implemented in all eight languages. barrier-wave has implementations in Rust, Go, TypeScript, Python, JavaScript, C++, and Java (LuaJIT excluded). word-frequency, record-sorting, and matrix-multiplication are newer additions.
 
 | Benchmark | Workload | Key Metrics | Status |
 |-----------|---|---|---|
 | **nbody** | Gravitational N-body simulation | Numeric computation, tight loops | Complete |
 | **shortest-path** | Weighted directed graph shortest-path | Priority queues, memory access | Complete |
 | **aggregation** | CSV transaction record aggregation | Parsing, hash maps, sorting | Complete |
-| **barrier-wave** | Parallel phases with barriers | Fan-out/fan-in, synchronization | 6/7 languages complete; LuaJIT excluded |
+| **barrier-wave** | Parallel phases with barriers | Fan-out/fan-in, synchronization | 7/8 languages complete; LuaJIT excluded |
 | **word-frequency** | Word count and frequency sort | Hash maps, sorting, checksum | Complete |
 | **record-sorting** | Multi-key record sorting | Tie-breaking sort, checksum | Complete |
 | **matrix-multiplication** | Matrix multiply (i→j→k) | Triple-loop arithmetic, checksum | Complete |
@@ -32,7 +32,7 @@ Each has `small`, `medium`, and `large` datasets with per-size warmup/iteration 
 
 ## Languages (`languages/`)
 
-JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `typescript.json`, `python.json`, `lua.json`, `cpp.json`, and `javascript.json`. Run argument templates must include `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations` (persistent-worker contract).
+JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `java.json`, `typescript.json`, `python.json`, `lua.json`, `cpp.json`, and `javascript.json`. Run argument templates must include `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations` (persistent-worker contract).
 
 Detect/build/run commands may use machine-local absolute paths (the LuaJIT manifest often does on Windows). Prefer portable commands when possible; absolute paths are valid when the toolchain is not on `PATH`.
 

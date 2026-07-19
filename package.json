@@ -17,7 +17,7 @@
     "count-loc": "node scripts/count-implementation-loc.mjs",
     "prepare-results": "npm run count-loc && tsx scripts/prepare-results.ts",
     "test": "npm run build:checker && npm run test --workspaces --if-present && node scripts/count-implementation-loc.test.mjs && node scripts/test-checker.mjs",
-    "combine-docs": "node scripts/combine-docs.mjs"
+		"combine-docs": "node scripts/combine-docs.mjs"
   },
   "engines": {
     "node": ">=26.4.0",

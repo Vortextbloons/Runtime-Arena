@@ -23,14 +23,14 @@ The `--` after `arena` is required so npm forwards flags to the CLI.
 
 ## Filters (shared)
 
-These flags are **repeatable** (not comma-separated) on `run`, `build`,
-`results summary`, and `results status`:
+These flags are accepted on `run`, `build`, `results summary`, and `results status`:
 
 | Flag | Short | Meaning |
 |------|-------|---------|
 | `--language <id>` | `-l` | e.g. `rust`, `go`, `typescript`, `python`, `lua`, `cpp` |
 | `--benchmark <id>` | `-b` | e.g. `nbody`, `shortest-path`, `aggregation`, `barrier-wave` |
 | `--size <name>` | | `small`, `medium`, or `large` |
+| `--mutation <name>` | | Filter by mutation variant (e.g. `sparse`, `dense`, `random`, `mostly-sorted`, `repeated-vocabulary`, `mostly-unique`, `row-major`, `column-major`) |
 
 ```bash
 # Correct
@@ -87,6 +87,7 @@ Useful extras:
 | `--warmup <n>` / `--iterations <n>` | Override dataset defaults |
 | `--preserve-temp` | Keep the temp run directory |
 | `--parallel` | Use all CPU cores (overrides `execution.parallelism` in config) |
+| `--mutation <name>` | Run only a specific mutation variant (for mutation benchmarks) |
 
 ### 4. Browse results
 
@@ -127,10 +128,19 @@ npm run arena -- check --benchmark nbody --input path/to/input.json --output pat
 
 ### Regenerate a dataset
 
-Generators exist for nbody, shortest-path, aggregation, and barrier-wave:
+Generators exist for all seven benchmarks. For non-mutation benchmarks (nbody,
+aggregation, barrier-wave), provide `--benchmark`, `--size`, and optionally `--seed`:
 
 ```bash
 npm run arena -- dataset generate --benchmark nbody --size small --seed 729418
+```
+
+For mutation benchmarks (shortest-path, word-frequency, record-sorting,
+matrix-multiplication), `--mutation` is **required**:
+
+```bash
+npm run arena -- dataset generate --benchmark shortest-path --size small --mutation sparse --seed 729418
+npm run arena -- dataset generate --benchmark shortest-path --size small --mutation dense --seed 729418
 ```
 
 Committed fixtures are the source of truth for arena runs; only regenerate when

@@ -18,10 +18,11 @@ Validates benchmark manifests (`benchmarks/*/benchmark.json`).
 - `metrics` — Array of metric names to record
 - `limits` — Execution limits
 
-**Size configuration:**
-- `dataset` — Filename in `datasets/` directory
-- `warmupIterations` — Number of warmup iterations (discarded)
-- `measuredIterations` — Number of measured iterations
+**Size configuration (oneOf):**
+- **Simple form:** `dataset`, `warmupIterations`, `measuredIterations`
+- **Mutations form:** `mutations` (map of mutation names to `{dataset, seed}`), `warmupIterations`, `measuredIterations`
+
+Benchmarks with multiple dataset variants (shortest-path, word-frequency, record-sorting, matrix-multiplication) use the mutations form. Others use the simple form.
 
 **Limits:**
 - `timeoutMilliseconds` — Per-iteration timeout (default 120000)
@@ -63,8 +64,8 @@ Validates result snapshots (`results/current.json`).
 - `results[]` — Array of benchmark results
 
 Each result is required to contain:
-- `benchmark` — id, version, size
-- `dataset` — id and sha256 are required; seed and generatorVersion are optional but present in practice
+- `benchmark` — id, version, size; `mutation` is optional (present for mutation benchmarks)
+- `dataset` — id and sha256 are required; seed, generatorVersion, and mutation are optional but present in practice
 - `language` — id, name, version; compilerVersion and compilerFlags are optional
 - `build` — status, durationNanoseconds, command; artifactSizeBytes is optional
 - `execution` — mode (always `"persistent-worker"`), measurementContractVersion (`"1.0.0"`), totalProcessDurationNanoseconds, warmupIterations, measuredIterations, samples, summary (includes `validSamples`, `rejectedSamples`, `medianKernelTimeNanoseconds`, `meanKernelTimeNanoseconds`, `minimumKernelTimeNanoseconds`, `maximumKernelTimeNanoseconds`, `standardDeviationKernelTimeNanoseconds`, `p95KernelTimeNanoseconds`, `interquartileRangeKernelTimeNanoseconds`), metrics

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
-import { access, chmod, mkdir, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import { constants, existsSync, statSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -282,7 +282,7 @@ async function buildOne(language: Language, benchmark: Benchmark, cache?: Runner
   const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
   if (!await exists(implementationDir)) return { status: "missing" as const, implementationDir, durationNs: 0, artifact: "" };
   const rawArtifact = expand(language.build.artifact, { benchmarkId: benchmark.id });
-  const artifact = path.resolve(implementationDir, process.platform === "win32" && !["typescript", "python", "lua", "javascript"].includes(language.id) ? `${rawArtifact}.exe` : rawArtifact);
+  const artifact = path.resolve(implementationDir, process.platform === "win32" && !path.extname(rawArtifact) ? `${rawArtifact}.exe` : rawArtifact);
   await mkdir(path.dirname(artifact), { recursive: true });
 
   const fingerprint = await buildFingerprint(language, benchmark, cache);
