@@ -46,8 +46,56 @@ export const CORE_ATTRIBUTE_DEFINITIONS: AttributeDefinition[] = [
 	}
 ];
 
+export const EXTENDED_ATTRIBUTE_DEFINITIONS: AttributeDefinition[] = [
+	{
+		id: 'build-speed',
+		label: 'Build Speed',
+		abbreviation: 'BLD',
+		category: 'physical'
+	},
+	{
+		id: 'artifact-efficiency',
+		label: 'Artifact Efficiency',
+		abbreviation: 'BIN',
+		category: 'physical'
+	},
+	{
+		id: 'startup',
+		label: 'Startup',
+		abbreviation: 'STA',
+		category: 'physical'
+	},
+	{
+		id: 'memory',
+		label: 'Memory Efficiency',
+		abbreviation: 'MEM',
+		category: 'physical'
+	},
+	{
+		id: 'io',
+		label: 'I/O',
+		abbreviation: 'IO',
+		category: 'control'
+	},
+	{
+		id: 'parallelism',
+		label: 'Parallelism',
+		abbreviation: 'PAR',
+		category: 'execution'
+	}
+];
+
+export const ALL_ATTRIBUTE_DEFINITIONS = [
+	...CORE_ATTRIBUTE_DEFINITIONS,
+	...EXTENDED_ATTRIBUTE_DEFINITIONS
+];
+
 export const BENCHMARK_ATTRIBUTE_IDS = {
 	compute: 'nbody',
 	algorithms: 'shortest-path',
-	'data-processing': 'aggregation'
+	'data-processing': 'aggregation',
+	/** Dedicated stream/file I/O workload when present in a snapshot. */
+	io: 'stream-io',
+	/** Dedicated parallel workload (barrier-wave satisfies this for current arena). */
+	parallelism: 'barrier-wave'
 } as const;

@@ -1,20 +1,35 @@
 import type { BadgeCategory, BadgeTier, BadgeTierRule } from '../types.ts';
 import { HYBRID_TIER_THRESHOLDS } from '../types.ts';
 
+export type BadgeSource =
+	| 'SPD'
+	| 'CMP'
+	| 'DAT'
+	| 'ALG'
+	| 'CON'
+	| 'SCL'
+	| 'BLD'
+	| 'BIN'
+	| 'STA'
+	| 'MEM'
+	| 'IO'
+	| 'PAR'
+	| 'pressure-proof';
+
 export type BadgeDefinition = {
 	id: string;
 	name: string;
 	category: BadgeCategory;
-	/** Attribute abbreviation used for hybrid scoring, or a special source key. */
-	source: 'SPD' | 'CMP' | 'DAT' | 'ALG' | 'CON' | 'SCL' | 'pressure-proof' | 'clean-output' | 'complete-package';
+	source: BadgeSource;
 	benchmarkId?: string;
 	legendRequiresSizeSweep?: boolean;
 	legendRequiresCategoryWin?: boolean;
 	legendRequiresFirstOverall?: boolean;
-	/** Custom Complete Package / Clean Output handling. */
-	special?: 'complete-package' | 'clean-output';
+	legendRequiresFastestRaw?: boolean;
+	legendRequiresSmallestRaw?: boolean;
 };
 
+/** Performance badges only — no participation / correctness trophies. */
 export const V1_BADGE_DEFINITIONS: BadgeDefinition[] = [
 	{
 		id: 'speedster',
@@ -62,39 +77,76 @@ export const V1_BADGE_DEFINITIONS: BadgeDefinition[] = [
 		legendRequiresCategoryWin: true
 	},
 	{
-		id: 'clean-output',
-		name: 'Clean Output',
-		category: 'reliability',
-		source: 'clean-output',
-		special: 'clean-output'
-	},
-	{
 		id: 'scale-master',
 		name: 'Scale Master',
 		category: 'physical',
 		source: 'SCL',
 		legendRequiresCategoryWin: true
-	},
-	{
-		id: 'complete-package',
-		name: 'Complete Package',
-		category: 'special',
-		source: 'complete-package',
-		special: 'complete-package'
 	}
 ];
 
-export const HYBRID_RULES: Record<BadgeTier, BadgeTierRule> = Object.fromEntries(
-	HYBRID_TIER_THRESHOLDS.map(({ tier, minimumScore }) => [tier, { minimumScore }])
-) as Record<BadgeTier, BadgeTierRule>;
-
-export const COMPLETE_PACKAGE_THRESHOLDS: Array<{ tier: BadgeTier; minimum: number }> = [
-	{ tier: 'legend', minimum: 90 },
-	{ tier: 'hall-of-fame', minimum: 85 },
-	{ tier: 'gold', minimum: 75 },
-	{ tier: 'silver', minimum: 65 },
-	{ tier: 'bronze', minimum: 55 }
+export const V15_BADGE_DEFINITIONS: BadgeDefinition[] = [
+	{
+		id: 'fast-builder',
+		name: 'Fast Builder',
+		category: 'physical',
+		source: 'BLD',
+		legendRequiresFastestRaw: true
+	},
+	{
+		id: 'lightweight-build',
+		name: 'Lightweight Build',
+		category: 'physical',
+		source: 'BIN',
+		legendRequiresSmallestRaw: true
+	}
 ];
+
+export const V2_BADGE_DEFINITIONS: BadgeDefinition[] = [
+	{
+		id: 'quick-draw',
+		name: 'Quick Draw',
+		category: 'physical',
+		source: 'STA',
+		legendRequiresFastestRaw: true
+	},
+	{
+		id: 'memory-minder',
+		name: 'Memory Minder',
+		category: 'physical',
+		source: 'MEM',
+		legendRequiresSmallestRaw: true
+	},
+	{
+		id: 'stream-controller',
+		name: 'Stream Controller',
+		category: 'control',
+		source: 'IO',
+		benchmarkId: 'stream-io',
+		legendRequiresSizeSweep: true
+	},
+	{
+		id: 'parallel-engine',
+		name: 'Parallel Engine',
+		category: 'execution',
+		source: 'PAR',
+		benchmarkId: 'barrier-wave',
+		legendRequiresCategoryWin: true
+	}
+];
+
+export const ALL_BADGE_DEFINITIONS = [
+	...V1_BADGE_DEFINITIONS,
+	...V15_BADGE_DEFINITIONS,
+	...V2_BADGE_DEFINITIONS
+];
+
+export const HYBRID_RULES: Record<BadgeTier, BadgeTierRule> = Object.fromEntries(
+	HYBRID_TIER_THRESHOLDS.map(({ tier, minimumScore, minimumPercentile }) => [
+		tier,
+		{ minimumScore, minimumPercentile }
+	])
+) as Record<BadgeTier, BadgeTierRule>;
 
 export const BADGE_TIER_LABEL: Record<BadgeTier, string> = {
 	bronze: 'Bronze',

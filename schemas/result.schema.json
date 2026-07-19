@@ -95,6 +95,9 @@
             },
             "version": {
               "type": "string"
+            },
+            "compilerVersion": {
+              "type": "string"
             }
           }
         },
@@ -180,6 +183,41 @@
                 "p95KernelTimeNanoseconds": {
                   "type": "integer"
                 }
+              }
+            },
+            "startup": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["durationNanoseconds", "mode"],
+              "description": "Explicit process/runtime startup, separate from kernel workload time.",
+              "properties": {
+                "durationNanoseconds": { "type": "integer", "minimum": 0 },
+                "mode": { "type": "string", "minLength": 1 }
+              }
+            },
+            "memory": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["peakResidentBytes", "collector"],
+              "description": "Peak resident memory with collector identity for cross-language comparison.",
+              "properties": {
+                "peakResidentBytes": { "type": "integer", "minimum": 0 },
+                "collector": { "type": "string", "minLength": 1 }
+              }
+            },
+            "memoryCollector": {
+              "type": "string",
+              "description": "Legacy alias for memory.collector when sample peakMemoryBytes is used."
+            },
+            "parallel": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["workerCount", "singleWorkerBaselineNanoseconds", "multiWorkerNanoseconds"],
+              "description": "Parallel scaling samples for the Parallelism card attribute.",
+              "properties": {
+                "workerCount": { "type": "integer", "minimum": 1 },
+                "singleWorkerBaselineNanoseconds": { "type": "integer", "minimum": 0 },
+                "multiWorkerNanoseconds": { "type": "integer", "minimum": 0 }
               }
             }
           }

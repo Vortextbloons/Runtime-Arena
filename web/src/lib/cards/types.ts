@@ -124,10 +124,14 @@ export const CARD_TIER_BANDS: Array<{ min: number; tier: CardTier }> = [
 	{ min: 0, tier: 'd' }
 ];
 
-export const HYBRID_TIER_THRESHOLDS: Array<{ tier: BadgeTier; minimumScore: number }> = [
-	{ tier: 'legend', minimumScore: 95 },
-	{ tier: 'hall-of-fame', minimumScore: 90 },
-	{ tier: 'gold', minimumScore: 80 },
-	{ tier: 'silver', minimumScore: 70 },
-	{ tier: 'bronze', minimumScore: 60 }
+export const HYBRID_TIER_THRESHOLDS: Array<{
+	tier: BadgeTier;
+	minimumScore: number;
+	minimumPercentile?: number;
+}> = [
+	{ tier: 'legend', minimumScore: 97, minimumPercentile: 85 },
+	{ tier: 'hall-of-fame', minimumScore: 94, minimumPercentile: 70 },
+	{ tier: 'gold', minimumScore: 90, minimumPercentile: 55 },
+	{ tier: 'silver', minimumScore: 85, minimumPercentile: 40 },
+	{ tier: 'bronze', minimumScore: 78, minimumPercentile: 25 }
 ];

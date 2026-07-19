@@ -210,7 +210,49 @@
 			<div class="takeover-block">
 				<span class="takeover-label">Primary takeover</span>
 				<strong class="takeover-value">{card.takeover.primary}</strong>
+				{#if card.takeover.secondary}
+					<span class="takeover-label secondary">Secondary takeover</span>
+					<strong class="takeover-value">{card.takeover.secondary}</strong>
+				{/if}
 			</div>
+
+			{#if expanded}
+				{@const extended = card.attributes.slice(6)}
+				{#if extended.length}
+					<div class="attribute-grid attribute-grid-v1 extended-attrs" aria-label="Extended attributes">
+						{#each extended as attribute (attribute.id)}
+							{@const value = attribute.rating}
+							{@const segs = filled(value)}
+							<div class="attribute" data-stat={attribute.abbreviation.toLowerCase()} class:unavailable={!attribute.available}>
+								<div class="attribute-head">
+									<span class="attribute-label">{attribute.abbreviation}</span>
+									<span class="attribute-value">{value === null ? '—' : Math.round(value)}</span>
+								</div>
+								<div
+									class="attribute-bar"
+									role="meter"
+									aria-valuemin="0"
+									aria-valuemax="100"
+									aria-valuenow={value ?? 0}
+									aria-label={`${attribute.label} ${value === null ? 'unavailable' : Math.round(value)}`}
+								>
+									{#each Array(10) as _, i (i)}
+										<span class="seg" class:on={i < segs}></span>
+									{/each}
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
+				{#if card.runtime.compilerVersion || card.runtime.version}
+					<p class="runtime-edition">
+						{card.runtime.name ?? card.languageId}
+						{#if card.runtime.version} · {card.runtime.version}{/if}
+						{#if card.runtime.compilerVersion} · {card.runtime.compilerVersion}{/if}
+						<span class="spec-version">card v{card.metadata.cardSpecVersion}</span>
+					</p>
+				{/if}
+			{/if}
 
 			{#if expandedBadges.length}
 				<ul class="badge-list" aria-label={expanded ? 'All badges' : 'Featured badges'}>
@@ -865,6 +907,32 @@
 		letter-spacing: 0.18em;
 		text-transform: uppercase;
 		color: color-mix(in srgb, var(--tier-glow) 70%, #fff);
+	}
+
+	.takeover-label.secondary {
+		margin-top: 0.35rem;
+		opacity: 0.85;
+	}
+
+	.runtime-edition {
+		margin: 0 0.2rem 0.35rem;
+		font: 600 0.55rem / 1.35 var(--mono);
+		letter-spacing: 0.06em;
+		color: color-mix(in srgb, var(--tier-glow) 65%, #fff);
+		text-align: center;
+	}
+
+	.spec-version {
+		display: block;
+		margin-top: 0.15rem;
+		opacity: 0.7;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+	}
+
+	.extended-attrs {
+		border-top: 1px dashed color-mix(in srgb, var(--tier-glow) 25%, transparent);
+		margin-top: 0.15rem;
 	}
 
 	.takeover-value {

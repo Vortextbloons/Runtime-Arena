@@ -1,6 +1,10 @@
 import type { ArenaResult, BenchmarkScore } from '../types.ts';
 import { scoreBenchmark, scoreOverall } from '../scoring.ts';
-import { calculateAttributes } from './attributes/calculateAttributes.ts';
+import {
+	buildCohortRawMaps,
+	calculateAttributes
+} from './attributes/calculateAttributes.ts';
+import { BENCHMARK_ATTRIBUTE_IDS } from './attributes/definitions.ts';
 import { generateBuildName } from './archetypes/buildNames.ts';
 import { awardBadges, selectFeaturedBadgeIds } from './badges/awardBadges.ts';
 import {
@@ -12,17 +16,25 @@ import {
 	divisionLanguagesFromScores,
 	selectFeaturedDivisionRank
 } from './divisions/calculateDivisionRanks.ts';
-import { calculatePrimaryTakeover } from './takeovers/calculateTakeover.ts';
+import {
+	calculatePrimaryTakeover,
+	calculateSecondaryTakeover
+} from './takeovers/calculateTakeover.ts';
 import type { CardAttribute, LanguageCardData } from './types.ts';
 import { cardTierFromOverall } from './util.ts';
 
-const V1_BENCHMARK_IDS = ['nbody', 'shortest-path', 'aggregation'] as const;
+const ATTRIBUTE_BENCHMARK_IDS = [
+	BENCHMARK_ATTRIBUTE_IDS.compute,
+	BENCHMARK_ATTRIBUTE_IDS.algorithms,
+	BENCHMARK_ATTRIBUTE_IDS['data-processing'],
+	BENCHMARK_ATTRIBUTE_IDS.io,
+	BENCHMARK_ATTRIBUTE_IDS.parallelism
+] as const;
 
 export type BuildCardsOptions = {
 	snapshotId: string;
 	measuredAt?: string;
 	results: ArenaResult[];
-	/** Optional precomputed scores; when omitted they are derived from results. */
 	overallScores?: BenchmarkScore[];
 	benchmarkScoresById?: Record<string, BenchmarkScore[]>;
 };
@@ -38,6 +50,20 @@ function collectBenchmarkScores(
 		byId[benchmarkId] = scoreBenchmark(results, benchmarkId);
 	}
 	return byId;
+}
+
+function resolveCardSpecVersion(attributes: CardAttribute[]): '1' | '1.5' | '2' {
+	const ids = new Set(attributes.filter((attribute) => attribute.available).map((attribute) => attribute.id));
+	if (
+		ids.has('startup') ||
+		ids.has('memory') ||
+		ids.has('io') ||
+		ids.has('parallelism')
+	) {
+		return '2';
+	}
+	if (ids.has('build-speed') || ids.has('artifact-efficiency')) return '1.5';
+	return '1';
 }
 
 export function buildCardDataForLanguage(options: {
@@ -89,6 +115,9 @@ export function buildCardDataForLanguage(options: {
 		attributesByLanguage
 	);
 	const divisionRanks = divisionRanksByLanguage.get(languageId) ?? [];
+	const primary = calculatePrimaryTakeover(attributes);
+	const secondary = calculateSecondaryTakeover(attributes, primary);
+	const languageResult = results.find((result) => result.language.id === languageId);
 
 	return {
 		languageId,
@@ -106,37 +135,40 @@ export function buildCardDataForLanguage(options: {
 		badges,
 		featuredBadgeIds: selectFeaturedBadgeIds(badges),
 		takeover: {
-			primary: calculatePrimaryTakeover(attributes)
+			primary,
+			...(secondary ? { secondary } : {})
 		},
 		divisionRanks,
 		featuredDivisionRank: selectFeaturedDivisionRank(divisionRanks),
 		runtime: {
 			name: overall.language.id,
-			version: overall.language.version
+			version: overall.language.version,
+			compilerVersion: languageResult?.language.compilerVersion
 		},
 		metadata: {
 			snapshotId,
 			measuredAt,
-			cardSpecVersion: '1'
+			cardSpecVersion: resolveCardSpecVersion(attributes)
 		}
 	};
 }
 
-/** Build Version 1 language cards for every language present in the snapshot. */
+/** Build language cards for every language present in the snapshot (V1–V2). */
 export function buildAllCardData(options: BuildCardsOptions): LanguageCardData[] {
 	const overallScores = options.overallScores ?? scoreOverall(options.results);
 	const benchmarkScoresById = collectBenchmarkScores(options.results, options.benchmarkScoresById);
+	const cohortRaw = buildCohortRawMaps(options.results);
 
 	const attributesByLanguage = new Map<string, CardAttribute[]>();
 	for (const overall of overallScores) {
 		const languageId = overall.language.id;
+		const languageResults = options.results.filter((result) => result.language.id === languageId);
 		const benchmarkById: Record<string, BenchmarkScore | undefined> = {};
-		for (const benchmarkId of V1_BENCHMARK_IDS) {
+		for (const benchmarkId of ATTRIBUTE_BENCHMARK_IDS) {
 			benchmarkById[benchmarkId] = benchmarkScoresById[benchmarkId]?.find(
 				(score) => score.language.id === languageId
 			);
 		}
-		// Also include other benchmarks for SCL averaging
 		for (const [benchmarkId, scores] of Object.entries(benchmarkScoresById)) {
 			if (!(benchmarkId in benchmarkById)) {
 				benchmarkById[benchmarkId] = scores.find((score) => score.language.id === languageId);
@@ -147,7 +179,9 @@ export function buildAllCardData(options: BuildCardsOptions): LanguageCardData[]
 			calculateAttributes({
 				overall,
 				benchmarkById,
-				benchmarkScoresById
+				benchmarkScoresById,
+				languageResults,
+				cohortRaw
 			})
 		);
 	}

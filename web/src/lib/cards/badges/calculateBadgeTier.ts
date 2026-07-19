@@ -21,8 +21,9 @@ export function hybridQualificationScore(absoluteScore: number, fieldScores: num
 } {
 	if (fieldScores.length >= 3) {
 		const percentile = percentileRank(absoluteScore, fieldScores);
+		// Heavier field weight so mid-pack high scores do not coast on absolute alone.
 		return {
-			qualificationScore: normalizeScore(0.7 * absoluteScore + 0.3 * percentile),
+			qualificationScore: normalizeScore(0.55 * absoluteScore + 0.45 * percentile),
 			percentile,
 			usesPercentile: true
 		};
@@ -40,24 +41,58 @@ function nextTierAfter(tier: BadgeTier): BadgeTier | undefined {
 	return BADGE_TIER_ORDER[index + 1];
 }
 
-function legendSatisfied(evidence: HybridEvidence, usesPercentile: boolean): boolean {
-	if (evidence.absoluteScore < 95) return false;
+function legendSatisfied(evidence: HybridEvidence, usesPercentile: boolean, percentile?: number): boolean {
+	const legendRule = HYBRID_TIER_THRESHOLDS.find((entry) => entry.tier === 'legend');
+	const absoluteFloor = legendRule?.minimumScore ?? 97;
+	if (evidence.absoluteScore < absoluteFloor) return false;
 	if (!usesPercentile && !evidence.independentLegendEvidence) return false;
+	if (
+		usesPercentile &&
+		legendRule?.minimumPercentile !== undefined &&
+		(percentile === undefined || percentile < legendRule.minimumPercentile)
+	) {
+		return false;
+	}
 	if (evidence.hasSizeSweep === false) return false;
 	if (evidence.hasCategoryWin === false) return false;
 	if (evidence.hasFirstOverall === false) return false;
 	return true;
 }
 
-function nextTierRequirements(tier: BadgeTier, evidence: HybridEvidence, usesPercentile: boolean): string[] {
+function tierSatisfied(
+	tier: BadgeTier,
+	absoluteScore: number,
+	qualificationScore: number,
+	percentile: number | undefined,
+	usesPercentile: boolean
+): boolean {
+	const rule = HYBRID_TIER_THRESHOLDS.find((entry) => entry.tier === tier);
+	if (!rule) return false;
+	if (absoluteScore < rule.minimumScore) return false;
+	if (qualificationScore < rule.minimumScore) return false;
+	if (
+		usesPercentile &&
+		rule.minimumPercentile !== undefined &&
+		(percentile === undefined || percentile < rule.minimumPercentile)
+	) {
+		return false;
+	}
+	return true;
+}
+
+function nextTierRequirements(
+	tier: BadgeTier,
+	evidence: HybridEvidence,
+	usesPercentile: boolean
+): string[] {
 	const requirements: string[] = [];
-	const threshold = HYBRID_TIER_THRESHOLDS.find((entry) => entry.tier === tier)?.minimumScore;
-	if (threshold !== undefined) {
-		requirements.push(
-			tier === 'legend' || !usesPercentile
-				? `Reach an absolute rating of ${threshold}`
-				: `Reach a qualification score of ${threshold}`
-		);
+	const rule = HYBRID_TIER_THRESHOLDS.find((entry) => entry.tier === tier);
+	if (rule) {
+		requirements.push(`Reach an absolute rating of ${rule.minimumScore}`);
+		requirements.push(`Reach a qualification score of ${rule.minimumScore}`);
+		if (usesPercentile && rule.minimumPercentile !== undefined) {
+			requirements.push(`Reach at least the ${rule.minimumPercentile}th percentile`);
+		}
 	}
 	if (tier === 'legend') {
 		if (evidence.hasSizeSweep === false) requirements.push('Win every eligible dataset size');
@@ -85,15 +120,15 @@ export function awardHybridBadge(options: {
 	);
 
 	let awarded: BadgeTier | null = null;
-	for (const { tier, minimumScore } of HYBRID_TIER_THRESHOLDS) {
+	for (const { tier } of HYBRID_TIER_THRESHOLDS) {
 		if (tier === 'legend') {
-			if (legendSatisfied(evidence, usesPercentile)) {
+			if (legendSatisfied(evidence, usesPercentile, percentile)) {
 				awarded = 'legend';
 				break;
 			}
 			continue;
 		}
-		if (qualificationScore >= minimumScore) {
+		if (tierSatisfied(tier, absoluteScore, qualificationScore, percentile, usesPercentile)) {
 			awarded = tier;
 			break;
 		}

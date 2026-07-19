@@ -111,14 +111,14 @@ test('percentile and hybrid qualification match the spec formula', () => {
 	assert.equal(smallField.qualificationScore, 96);
 });
 
-test('hybrid Legend requires absolute 95 plus evidence; small fields block Legend without sweep', () => {
+test('hybrid Legend requires absolute floor plus evidence; small fields block Legend without sweep', () => {
 	const legend = awardHybridBadge({
 		badgeId: 'speedster',
 		name: 'Speedster',
 		category: 'execution',
 		evidence: {
-			absoluteScore: 96,
-			fieldScores: [96, 90],
+			absoluteScore: 98,
+			fieldScores: [98, 90],
 			hasFirstOverall: true
 		}
 	});
@@ -129,13 +129,40 @@ test('hybrid Legend requires absolute 95 plus evidence; small fields block Legen
 		name: 'Compute Finisher',
 		category: 'execution',
 		evidence: {
-			absoluteScore: 96,
-			fieldScores: [96, 90],
+			absoluteScore: 98,
+			fieldScores: [98, 90],
 			hasSizeSweep: true,
 			independentLegendEvidence: true
 		}
 	});
 	assert.equal(swept?.tier, 'legend');
+});
+
+test('mid-pack scores no longer earn bronze on absolute alone', () => {
+	const badge = awardHybridBadge({
+		badgeId: 'speedster',
+		name: 'Speedster',
+		category: 'execution',
+		evidence: {
+			absoluteScore: 72,
+			fieldScores: [95, 88, 72, 60]
+		}
+	});
+	assert.equal(badge, null);
+});
+
+test('partial coverage does not invent Complete Package or Clean Output badges', () => {
+	const rows = [
+		...sizes('lonely', 'nbody', 1_000_000, 1_000_000, 1_000_000),
+		...sizes('other', 'nbody', 2_000_000, 2_000_000, 2_000_000),
+		...sizes('third', 'nbody', 3_000_000, 3_000_000, 3_000_000)
+	];
+	const partial = buildAllCardData({ snapshotId: 'partial', results: rows }).find(
+		(card) => card.languageId === 'lonely'
+	);
+	assert.equal(partial?.badges.some((badge) => badge.badgeId === 'complete-package'), false);
+	assert.equal(partial?.badges.some((badge) => badge.badgeId === 'clean-output'), false);
+	assert.equal(partial?.attributes.find((attribute) => attribute.id === 'algorithms')?.available, false);
 });
 
 test('build names are deterministic and balance to All-Around', () => {
@@ -185,7 +212,7 @@ test('division ranks hide fields smaller than three and prefer best featured ran
 	assert.equal(featured?.divisionId, 'Native');
 });
 
-test('Complete Package requires all six core attributes', () => {
+test('balanced profiles still generate All-Around builds without Complete Package', () => {
 	const rows = [
 		...sizes('alpha', 'nbody', 1_000_000, 1_000_000, 1_000_000),
 		...sizes('alpha', 'shortest-path', 1_000_000, 1_000_000, 1_000_000),
@@ -200,38 +227,9 @@ test('Complete Package requires all six core attributes', () => {
 	const cards = buildAllCardData({ snapshotId: 'test', results: rows });
 	const alpha = cards.find((card) => card.languageId === 'alpha');
 	assert.ok(alpha);
-	assert.equal(alpha!.attributes.filter((attribute) => attribute.available).length, 6);
-	assert.ok(alpha!.badges.some((badge) => badge.badgeId === 'complete-package'));
-
-	const partialRows = [
-		...sizes('lonely', 'nbody', 1_000_000, 1_000_000, 1_000_000),
-		...sizes('other', 'nbody', 2_000_000, 2_000_000, 2_000_000),
-		...sizes('third', 'nbody', 3_000_000, 3_000_000, 3_000_000)
-	];
-	const partial = buildAllCardData({ snapshotId: 'partial', results: partialRows }).find(
-		(card) => card.languageId === 'lonely'
-	);
-	assert.equal(partial?.badges.some((badge) => badge.badgeId === 'complete-package'), false);
-	assert.equal(partial?.attributes.find((attribute) => attribute.id === 'algorithms')?.available, false);
-});
-
-test('Clean Output caps at Gold in Version 1', () => {
-	const rows = [
-		...sizes('clean', 'nbody', 1_000_000, 1_000_000, 1_000_000),
-		...sizes('clean', 'shortest-path', 1_000_000, 1_000_000, 1_000_000),
-		...sizes('clean', 'aggregation', 1_000_000, 1_000_000, 1_000_000),
-		...sizes('other', 'nbody', 2_000_000, 2_000_000, 2_000_000),
-		...sizes('other', 'shortest-path', 2_000_000, 2_000_000, 2_000_000),
-		...sizes('other', 'aggregation', 2_000_000, 2_000_000, 2_000_000),
-		...sizes('third', 'nbody', 3_000_000, 3_000_000, 3_000_000),
-		...sizes('third', 'shortest-path', 3_000_000, 3_000_000, 3_000_000),
-		...sizes('third', 'aggregation', 3_000_000, 3_000_000, 3_000_000)
-	];
-	const card = buildAllCardData({ snapshotId: 'clean', results: rows }).find((entry) => entry.languageId === 'clean');
-	const clean = card?.badges.find((badge) => badge.badgeId === 'clean-output');
-	assert.ok(clean);
-	assert.equal(clean!.tier, 'gold');
-	assert.equal(clean!.nextTier?.tier, 'hall-of-fame');
+	assert.equal(alpha!.attributes.filter((attribute) => attribute.available).length >= 6, true);
+	assert.equal(alpha!.badges.some((badge) => badge.badgeId === 'complete-package'), false);
+	assert.equal(alpha!.badges.some((badge) => badge.badgeId === 'clean-output'), false);
 });
 
 test('buildAllCardData is deterministic and wires face fields', () => {
@@ -257,7 +255,8 @@ test('buildAllCardData is deterministic and wires face fields', () => {
 	assert.deepEqual(rust!.displayClassifications, ['Native', 'Systems']);
 	assert.equal(rust!.featuredBadgeIds.length <= 3, true);
 	assert.ok(rust!.takeover.primary);
-	assert.equal(rust!.attributes.length, 6);
+	assert.equal(rust!.attributes.length, 12);
+	assert.equal(rust!.attributes.filter((attribute) => attribute.id.startsWith('runtime') || ['consistency','scalability','compute','algorithms','data-processing'].includes(attribute.id)).length, 6);
 
 	const overall = scoreOverall(rows);
 	const attributes = calculateAttributes({
@@ -271,6 +270,13 @@ test('buildAllCardData is deterministic and wires face fields', () => {
 			nbody: scoreBenchmark(rows, 'nbody'),
 			'shortest-path': scoreBenchmark(rows, 'shortest-path'),
 			aggregation: scoreBenchmark(rows, 'aggregation')
+		},
+		languageResults: rows.filter((row) => row.language.id === 'rust'),
+		cohortRaw: {
+			buildDurations: new Map(),
+			artifactBytes: new Map(),
+			startupNanoseconds: new Map(),
+			peakMemoryBytes: new Map()
 		}
 	});
 	assert.equal(attributes.find((attribute) => attribute.abbreviation === 'SPD')?.available, true);
@@ -332,7 +338,127 @@ test('incorrect languages do not earn performance badges from null attributes', 
 	assert.equal(bad!.overall, null);
 	assert.equal(bad!.cardTier, null);
 	assert.equal(
-		bad!.badges.some((badge) => ['speedster', 'compute-finisher', 'complete-package'].includes(badge.badgeId)),
+		bad!.badges.some((badge) => ['speedster', 'compute-finisher', 'clean-output', 'complete-package'].includes(badge.badgeId)),
 		false
 	);
+});
+
+function withBuild(row: ArenaResult, duration: number, artifact: number, status: 'success' | 'cached' | 'skipped' = 'success'): ArenaResult {
+	return {
+		...row,
+		build: {
+			status,
+			durationNanoseconds: duration,
+			artifactSizeBytes: artifact,
+			command: ['build']
+		}
+	};
+}
+
+test('V1.5 build and artifact attributes use relative lower-is-better scoring', () => {
+	const rows = [
+		...sizes('fast', 'nbody', 1_000_000, 1_000_000, 1_000_000).map((row) => withBuild(row, 1_000_000, 100_000)),
+		...sizes('fast', 'shortest-path', 1_000_000, 1_000_000, 1_000_000).map((row) => withBuild(row, 1_000_000, 100_000)),
+		...sizes('fast', 'aggregation', 1_000_000, 1_000_000, 1_000_000).map((row) => withBuild(row, 1_000_000, 100_000)),
+		...sizes('slow', 'nbody', 1_100_000, 1_100_000, 1_100_000).map((row) => withBuild(row, 2_000_000, 200_000)),
+		...sizes('slow', 'shortest-path', 1_100_000, 1_100_000, 1_100_000).map((row) => withBuild(row, 2_000_000, 200_000)),
+		...sizes('slow', 'aggregation', 1_100_000, 1_100_000, 1_100_000).map((row) => withBuild(row, 2_000_000, 200_000)),
+		...sizes('mid', 'nbody', 1_200_000, 1_200_000, 1_200_000).map((row) => withBuild(row, 1_500_000, 150_000)),
+		...sizes('mid', 'shortest-path', 1_200_000, 1_200_000, 1_200_000).map((row) => withBuild(row, 1_500_000, 150_000)),
+		...sizes('mid', 'aggregation', 1_200_000, 1_200_000, 1_200_000).map((row) => withBuild(row, 1_500_000, 150_000))
+	];
+	const cards = buildAllCardData({ snapshotId: 'v15', results: rows });
+	const fast = cards.find((card) => card.languageId === 'fast')!;
+	const slow = cards.find((card) => card.languageId === 'slow')!;
+	assert.equal(fast.attributes.find((attribute) => attribute.id === 'build-speed')?.rating, 100);
+	assert.equal(fast.attributes.find((attribute) => attribute.id === 'artifact-efficiency')?.rating, 100);
+	assert.ok((slow.attributes.find((attribute) => attribute.id === 'build-speed')?.rating ?? 0) < 100);
+	assert.ok(fast.badges.some((badge) => badge.badgeId === 'fast-builder'));
+	assert.ok(fast.badges.some((badge) => badge.badgeId === 'lightweight-build'));
+	assert.equal(fast.metadata.cardSpecVersion, '1.5');
+});
+
+test('cached zero-duration builds leave Build Speed unavailable', () => {
+	const rows = [
+		...sizes('cached', 'nbody', 1_000_000, 1_000_000, 1_000_000).map((row) => withBuild(row, 0, 50_000, 'cached')),
+		...sizes('cached', 'shortest-path', 1_000_000, 1_000_000, 1_000_000).map((row) => withBuild(row, 0, 50_000, 'cached')),
+		...sizes('cached', 'aggregation', 1_000_000, 1_000_000, 1_000_000).map((row) => withBuild(row, 0, 50_000, 'cached')),
+		...sizes('other', 'nbody', 2_000_000, 2_000_000, 2_000_000).map((row) => withBuild(row, 3_000_000, 90_000)),
+		...sizes('other', 'shortest-path', 2_000_000, 2_000_000, 2_000_000).map((row) => withBuild(row, 3_000_000, 90_000)),
+		...sizes('other', 'aggregation', 2_000_000, 2_000_000, 2_000_000).map((row) => withBuild(row, 3_000_000, 90_000)),
+		...sizes('third', 'nbody', 3_000_000, 3_000_000, 3_000_000).map((row) => withBuild(row, 4_000_000, 120_000)),
+		...sizes('third', 'shortest-path', 3_000_000, 3_000_000, 3_000_000).map((row) => withBuild(row, 4_000_000, 120_000)),
+		...sizes('third', 'aggregation', 3_000_000, 3_000_000, 3_000_000).map((row) => withBuild(row, 4_000_000, 120_000))
+	];
+	const card = buildAllCardData({ snapshotId: 'cached', results: rows }).find((entry) => entry.languageId === 'cached')!;
+	assert.equal(card.attributes.find((attribute) => attribute.id === 'build-speed')?.available, false);
+	assert.equal(card.attributes.find((attribute) => attribute.id === 'artifact-efficiency')?.available, true);
+});
+
+test('V2 startup memory parallel attributes and secondary takeover', () => {
+	const attachV2 = (row: ArenaResult, language: string): ArenaResult => ({
+		...withBuild(row, language === 'alpha' ? 1_000_000 : 2_000_000, language === 'alpha' ? 80_000 : 160_000),
+		execution: {
+			...row.execution,
+			startup: { durationNanoseconds: language === 'alpha' ? 500_000 : 1_000_000, mode: 'process-init' },
+			memory: {
+				peakResidentBytes: language === 'alpha' ? 32_000_000 : 64_000_000,
+				collector: 'arena-rss'
+			},
+			parallel:
+				row.benchmark.id === 'barrier-wave'
+					? {
+							workerCount: 4,
+							singleWorkerBaselineNanoseconds: 4_000_000,
+							multiWorkerNanoseconds: language === 'alpha' ? 1_100_000 : 2_000_000
+						}
+					: undefined
+		}
+	});
+
+	const rows = ['alpha', 'beta', 'gamma'].flatMap((language, index) => {
+		const base = 1_000_000 + index * 200_000;
+		return [
+			...sizes(language, 'nbody', base, base, base),
+			...sizes(language, 'shortest-path', base, base, base),
+			...sizes(language, 'aggregation', base, base, base),
+			...sizes(language, 'barrier-wave', base, base, base)
+		].map((row) => attachV2(row, language));
+	});
+
+	const cards = buildAllCardData({ snapshotId: 'v2', results: rows });
+	const alpha = cards.find((card) => card.languageId === 'alpha')!;
+	assert.equal(alpha.attributes.find((attribute) => attribute.id === 'startup')?.rating, 100);
+	assert.equal(alpha.attributes.find((attribute) => attribute.id === 'memory')?.rating, 100);
+	assert.ok(alpha.attributes.find((attribute) => attribute.id === 'parallelism')?.available);
+	assert.equal(alpha.attributes.find((attribute) => attribute.id === 'io')?.available, false);
+	assert.ok(alpha.badges.some((badge) => badge.badgeId === 'quick-draw'));
+	assert.ok(alpha.badges.some((badge) => badge.badgeId === 'memory-minder'));
+	assert.ok(alpha.badges.some((badge) => badge.badgeId === 'parallel-engine'));
+	assert.equal(alpha.metadata.cardSpecVersion, '2');
+	assert.ok(alpha.takeover.primary);
+	// With many strong attributes available, secondary may appear when #2 >= 85
+	if (alpha.takeover.secondary) {
+		assert.notEqual(alpha.takeover.secondary, alpha.takeover.primary);
+	}
+});
+
+test('unsupported V2 measurements stay unavailable and do not become zero', () => {
+	const rows = [
+		...sizes('lonely', 'nbody', 1_000_000, 1_000_000, 1_000_000),
+		...sizes('lonely', 'shortest-path', 1_000_000, 1_000_000, 1_000_000),
+		...sizes('lonely', 'aggregation', 1_000_000, 1_000_000, 1_000_000),
+		...sizes('peer', 'nbody', 2_000_000, 2_000_000, 2_000_000),
+		...sizes('peer', 'shortest-path', 2_000_000, 2_000_000, 2_000_000),
+		...sizes('peer', 'aggregation', 2_000_000, 2_000_000, 2_000_000),
+		...sizes('third', 'nbody', 3_000_000, 3_000_000, 3_000_000),
+		...sizes('third', 'shortest-path', 3_000_000, 3_000_000, 3_000_000),
+		...sizes('third', 'aggregation', 3_000_000, 3_000_000, 3_000_000)
+	];
+	const card = buildAllCardData({ snapshotId: 'no-v2', results: rows }).find((entry) => entry.languageId === 'lonely')!;
+	for (const id of ['startup', 'memory', 'io']) {
+		const attribute = card.attributes.find((entry) => entry.id === id)!;
+		assert.equal(attribute.available, false);
+		assert.equal(attribute.rating, null);
+	}
 });

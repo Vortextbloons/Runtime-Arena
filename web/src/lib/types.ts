@@ -8,12 +8,28 @@ export type Sample = {
 	cpuTimeNanoseconds?: number;
 };
 
+export type StartupMeasurement = {
+	durationNanoseconds: number;
+	mode: string;
+};
+
+export type MemoryMeasurement = {
+	peakResidentBytes: number;
+	collector: string;
+};
+
+export type ParallelMeasurement = {
+	workerCount: number;
+	singleWorkerBaselineNanoseconds: number;
+	multiWorkerNanoseconds: number;
+};
+
 export type ArenaResult = {
 	benchmark: { id: string; version: number; size: string };
 	dataset?: { id: string; sha256: string; seed?: number };
-	language: { id: string; name: string; version: string };
+	language: { id: string; name: string; version: string; compilerVersion?: string };
 	build?: {
-		status: 'success' | 'failed' | 'skipped';
+		status: 'success' | 'failed' | 'skipped' | 'cached';
 		durationNanoseconds: number;
 		artifactSizeBytes?: number;
 		command: string[];
@@ -36,6 +52,14 @@ export type ArenaResult = {
 			p95KernelTimeNanoseconds: number;
 		};
 		metrics?: Record<string, { status: string; reason?: string }>;
+		/** Explicit process/runtime startup, separate from kernel workload time. */
+		startup?: StartupMeasurement;
+		/** Peak resident memory with collector identity for cross-language comparison. */
+		memory?: MemoryMeasurement;
+		/** Legacy alias used by some collectors before `memory.collector`. */
+		memoryCollector?: string;
+		/** Multi-worker scaling samples for Parallelism attribute. */
+		parallel?: ParallelMeasurement;
 	};
 	checker: { status: string; diagnostics: string[] };
 	provenance: {
