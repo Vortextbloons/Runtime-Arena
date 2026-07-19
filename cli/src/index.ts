@@ -18,6 +18,7 @@ import {
   type SizeConfig
 } from "./mutations.js";
 import { readTimingSamples } from "./timing.js";
+import { RunnerCache, stageIsolatedDatasets } from "./runner-cache.js";
 
 type Command = { command: string; arguments: string[]; workingDirectory?: string; artifact?: string };
 type Language = { id: string; name: string; enabled: boolean; detect: Command; build: Command & { artifact: string }; run: Command; environment: Record<string, string>; sourceExtensions?: string[] };
@@ -151,7 +152,11 @@ function currentMachine(): Machine {
   };
 }
 
-async function hashTree(directory: string, hash: ReturnType<typeof createHash>) {
+async function hashTree(directory: string, hash: ReturnType<typeof createHash>, cache?: RunnerCache) {
+  if (cache) {
+    await cache.appendTreeHash(directory, hash);
+    return;
+  }
   if (!await exists(directory)) return;
   for (const entry of (await readdir(directory, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
     if (["node_modules", "target", "dist", "build", "__pycache__", ".arena"].includes(entry.name)) continue;
@@ -173,7 +178,8 @@ async function fingerprintCell(
   toolchainVersion: string,
   compilerVersion: string,
   warmups: number,
-  iterations: number
+  iterations: number,
+  cache?: RunnerCache
 ) {
   const hash = createHash("sha256");
   for (const file of [
@@ -183,10 +189,10 @@ async function fingerprintCell(
     path.join(root, "cli", "src", "metrics.ts")
   ]) {
     hash.update(path.relative(root, file).replaceAll("\\", "/"));
-    hash.update(await readFile(file));
+    hash.update(cache ? await cache.readFile(file) : await readFile(file));
   }
-  await hashTree(path.join(root, config.benchmarkDirectory, benchmark.id, "implementations", language.id), hash);
-  await hashTree(path.join(root, "checker"), hash);
+  await hashTree(path.join(root, config.benchmarkDirectory, benchmark.id, "implementations", language.id), hash, cache);
+  await hashTree(path.join(root, "checker"), hash, cache);
   hash.update(JSON.stringify({
     benchmarkVersion: benchmark.version,
     measurementContractVersion: "1.0.0",
@@ -272,14 +278,14 @@ function expand(value: string, vars: Record<string, string>) {
   });
 }
 
-async function buildOne(language: Language, benchmark: Benchmark) {
+async function buildOne(language: Language, benchmark: Benchmark, cache?: RunnerCache) {
   const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
-  if (!await exists(implementationDir)) return { status: "missing", implementationDir, durationNs: 0, artifact: "" };
+  if (!await exists(implementationDir)) return { status: "missing" as const, implementationDir, durationNs: 0, artifact: "" };
   const rawArtifact = expand(language.build.artifact, { benchmarkId: benchmark.id });
   const artifact = path.resolve(implementationDir, process.platform === "win32" && !["typescript", "python", "lua", "javascript"].includes(language.id) ? `${rawArtifact}.exe` : rawArtifact);
   await mkdir(path.dirname(artifact), { recursive: true });
 
-  const fingerprint = await buildFingerprint(language, benchmark);
+  const fingerprint = await buildFingerprint(language, benchmark, cache);
   const cacheDir = path.join(root, ".arena", "build-cache", fingerprint);
   const cachedArtifact = path.join(cacheDir, path.relative(implementationDir, artifact));
   if (await exists(cachedArtifact)) {
@@ -339,11 +345,12 @@ async function pool<T>(items: T[], concurrency: number, fn: (item: T) => Promise
   while (active > 0) await wait();
 }
 
-async function buildFingerprint(language: Language, benchmark: Benchmark) {
+async function buildFingerprint(language: Language, benchmark: Benchmark, cache?: RunnerCache) {
   const hash = createHash("sha256");
-  hash.update(await readFile(path.join(root, config.languageDirectory, `${language.id}.json`)));
+  const languageManifest = path.join(root, config.languageDirectory, `${language.id}.json`);
+  hash.update(cache ? await cache.readFile(languageManifest) : await readFile(languageManifest));
   const implementationDir = path.join(root, config.benchmarkDirectory, benchmark.id, "implementations", language.id);
-  await hashTree(implementationDir, hash);
+  await hashTree(implementationDir, hash, cache);
   hash.update(JSON.stringify({ benchmarkId: benchmark.id, build: language.build }));
   return hash.digest("hex");
 }
@@ -388,6 +395,7 @@ async function runCommand(args: string[]) {
   const staleCells: Cell[] = [];
   let currentCells = 0;
   const mutationFilter = flags.get("--mutation");
+  const runnerCache = new RunnerCache(root);
 
   for (const benchmark of benchmarks) {
     const sizeNames = flags.get("--size") ? [flags.get("--size")!] : config.defaults.sizes.filter(name => benchmark.sizes[name]);
@@ -397,14 +405,14 @@ async function runCommand(args: string[]) {
       for (const cell of cells) {
         const input = path.join(root, "benchmarks", benchmark.id, "datasets", cell.dataset);
         if (!await exists(input)) throw new Error(`Missing dataset: ${input}`);
-        const datasetHash = createHash("sha256").update(await readFile(input)).digest("hex");
+        const datasetHash = await runnerCache.sha256(input);
         for (const { language, version, compilerVersion } of languages) {
           const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
           if (!await exists(implementationDir)) continue;
           const warmups = Number(flags.get("--warmup") ?? cell.warmupIterations);
           const iterations = Number(flags.get("--iterations") ?? cell.measuredIterations);
           const fingerprint = await fingerprintCell(
-            language, benchmark, sizeName, cell.mutation, cell.dataset, version, compilerVersion, warmups, iterations
+            language, benchmark, sizeName, cell.mutation, cell.dataset, version, compilerVersion, warmups, iterations, runnerCache
           );
           const key = cellKey(benchmark.id, sizeName, language.id, cell.mutation);
           const previous = canonical.get(key);
@@ -426,19 +434,28 @@ async function runCommand(args: string[]) {
   const results: BenchmarkResult[] = [];
   const plannedCells = staleCells.length;
 
+  type BuildResult = Awaited<ReturnType<typeof buildOne>>;
+  const builds = new Map<string, BuildResult>();
+  const buildTargets = [...new Map(
+    staleCells.map(cell => [`${cell.benchmark.id}/${cell.language.id}`, { language: cell.language, benchmark: cell.benchmark }])
+  ).values()];
+  await pool(buildTargets, Math.min(parallelism, buildTargets.length || 1), async ({ language, benchmark }) => {
+    builds.set(`${benchmark.id}/${language.id}`, await buildOne(language, benchmark, runnerCache));
+  });
+
+  const isolatedInputs = plannedCells ? await stageIsolatedDatasets(staleCells, tempRoot) : new Map<string, string>();
+
   await pool(staleCells, parallelism, async (cell) => {
     const { benchmark, sizeName, mutation, language, version, compilerVersion, fingerprint, key, input, datasetHash, datasetSeed, warmups, iterations } = cell;
-    const build = await buildOne(language, benchmark);
-    if (build.status === "missing") return;
+    const build = builds.get(`${benchmark.id}/${language.id}`);
+    if (!build || build.status === "missing") return;
     let samples: Array<Record<string, unknown> & { valid: boolean; kernelTimeNanoseconds: number }> = [];
     let totalProcessDurationNanoseconds = 0;
     let lastChecker = { status: "checker-error", checkerVersion: "unknown", diagnostics: [] as string[] };
     {
-      const iterationDir = path.join(tempRoot, benchmark.id, language.id);
+      const iterationDir = path.join(tempRoot, benchmark.id, language.id, sizeName, mutation ?? "default");
       await mkdir(iterationDir, { recursive: true });
-      const isolatedInput = path.join(iterationDir, `input${path.extname(input)}`);
-      await writeFile(isolatedInput, await readFile(input));
-      await chmod(isolatedInput, 0o444);
+      const isolatedInput = isolatedInputs.get(input)!;
       const output = path.join(iterationDir, "output.json");
       const timingOutput = path.join(iterationDir, "timing.json");
       const vars = { projectRoot: root, benchmarkId: benchmark.id, benchmarkDir: path.join(root, "benchmarks", benchmark.id), implementationDir: build.implementationDir, inputFile: isolatedInput, outputFile: output, timingOutputFile: timingOutput, warmupIterations: String(warmups), measuredIterations: String(iterations), artifact: build.artifact, runId: snapshotId, size: sizeName };
@@ -456,7 +473,6 @@ async function runCommand(args: string[]) {
       } catch (error) {
         lastChecker = { status: "checker-error", checkerVersion: lastChecker.checkerVersion, diagnostics: [`Invalid timing output: ${(error as Error).message}`] };
       }
-      await chmod(isolatedInput, 0o666);
     }
     const datasetId = mutation
       ? `${benchmark.id}-${sizeName}-${mutation}-${benchmark.version}`
@@ -633,6 +649,7 @@ async function resultsStatus(args: string[]) {
   const detectionsById = await detections();
   const benchmarks = (await discoverBenchmarks()).filter(b => !requestedBenchmarks.length || requestedBenchmarks.includes(b.id));
   const mutationFilter = flags.get("--mutation");
+  const runnerCache = new RunnerCache(root);
   const rows: Array<{ key: string; status: string; detail: string }> = [];
   for (const benchmark of benchmarks) {
     const sizes = flags.get("--size") ? [flags.get("--size")!] : config.defaults.sizes.filter(name => benchmark.sizes[name]);
@@ -654,7 +671,7 @@ async function resultsStatus(args: string[]) {
         const warmups = Number(flags.get("--warmup") ?? cell.warmupIterations);
         const iterations = Number(flags.get("--iterations") ?? cell.measuredIterations);
         const fingerprint = await fingerprintCell(
-          language, benchmark, sizeName, cell.mutation, cell.dataset, version, compilerVersion, warmups, iterations
+          language, benchmark, sizeName, cell.mutation, cell.dataset, version, compilerVersion, warmups, iterations, runnerCache
         );
         const saved = canonical.get(key);
         const status = !saved ? "missing" : saved.provenance?.fingerprint === fingerprint ? "current" : "stale";

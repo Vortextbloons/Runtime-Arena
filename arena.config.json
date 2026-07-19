@@ -11,7 +11,7 @@
     "metrics": ["kernelTime"]
   },
   "execution": {
-    "parallelism": 1,
+    "parallelism": 2,
     "preserveTemporaryFiles": false
   }
 }
