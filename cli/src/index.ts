@@ -54,7 +54,9 @@ function runProcess(command: string, args: string[], cwd = root, timeout = 30_00
     const started = process.hrtime.bigint();
     let stdout = "", stderr = "", timedOut = false, limitExceeded = false;
     const platformCommand = process.platform === "win32" && ["npm", "npx"].includes(command) ? `${command}.cmd` : command;
-    const child = spawn(platformCommand, args, { cwd, env: { ...process.env, ...env }, windowsHide: true, shell: false });
+    const resolvedEnv: Record<string, string> = { ...process.env };
+    for (const [k, v] of Object.entries(env)) resolvedEnv[k] = v.replaceAll("{PATH}", process.env[k] ?? "");
+    const child = spawn(platformCommand, args, { cwd, env: resolvedEnv, windowsHide: true, shell: false });
     const timer = setTimeout(() => { timedOut = true; child.kill("SIGKILL"); }, timeout);
     let capturedBytes = 0;
     const capture = (target: "stdout" | "stderr", data: Buffer) => {
@@ -247,7 +249,7 @@ async function buildOne(language: Language, benchmark: Benchmark) {
   const cwd = path.resolve(root, expand(language.build.workingDirectory ?? "{implementationDir}", vars));
   const buildEnv: Record<string, string> = language.id === "go" ? { GOCACHE: path.join(root, ".arena", "go-build-cache") } : {};
   if (language.id === "go") await mkdir(buildEnv.GOCACHE!, { recursive: true });
-  const proc = await runProcess(expand(language.build.command, vars), language.build.arguments.map(x => expand(x, vars)), cwd, 180_000, buildEnv);
+  const proc = await runProcess(expand(language.build.command, vars), language.build.arguments.map(x => expand(x, vars)), cwd, 180_000, { ...language.environment, ...buildEnv });
   if (proc.code !== 0) throw new Error(`Build failed for ${benchmark.id}/${language.id}:\n${proc.stderr || proc.stdout}`);
   return { status: "success", implementationDir, durationNs: proc.durationNs, artifact, command: [language.build.command, ...language.build.arguments], artifactSizeBytes: (await stat(artifact)).size };
 }

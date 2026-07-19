@@ -43,18 +43,18 @@ test('consistency scores zero variation at 100 and caps at zero', () => {
 	assert.equal(scores.find((score) => score.language.id === 'noisy')?.consistency, 0);
 });
 
-test('scalability measures retention of relative performance across sizes', () => {
-	const scores = scoreBenchmark(
-		[
-			result('leader', 'small', 1_000_000),
-			result('leader', 'large', 1_000_000),
-			result('variable', 'small', 1_000_000),
-			result('variable', 'large', 2_000_000)
-		],
-		'work'
-	);
-	assert.equal(scores.find((score) => score.language.id === 'leader')?.scalability, 100);
-	assert.equal(scores.find((score) => score.language.id === 'variable')?.scalability, 63.728031366);
+test('versatility penalizes weakness in any benchmark', () => {
+	const rows = [
+		result('balanced', 'small', 1_000_000),
+		{ ...result('balanced', 'small', 1_000_000), benchmark: { id: 'other', version: 1, size: 'small' } },
+		result('lopsided', 'small', 1_000_000),
+		{ ...result('lopsided', 'small', 8_000_000), benchmark: { id: 'other', version: 1, size: 'small' } }
+	];
+	const scores = scoreOverall(rows);
+	const balanced = scores.find((score) => score.language.id === 'balanced');
+	const lopsided = scores.find((score) => score.language.id === 'lopsided');
+	assert.equal(balanced?.versatility, 100);
+	assert.ok(lopsided!.versatility! < balanced!.versatility!);
 });
 
 test('missing, incorrect, and incomplete results are unranked', () => {
@@ -77,12 +77,12 @@ test('missing, incorrect, and incomplete results are unranked', () => {
 	}
 });
 
-test('overall uses an 80/10/10 speed, consistency, and scalability split', () => {
+test('overall uses an 80/10/10 speed, consistency, and flexibility split', () => {
 	const score = scoreBenchmark([result('only', 'small', 1_000_000, { deviation: 250_000 })], 'work')[0]!;
 	assert.equal(score.performance, 100);
 	assert.equal(score.consistency, 0);
-	assert.equal(score.scalability, 100);
-	assert.equal(score.overall, 90);
+	assert.equal(score.versatility, null);
+	assert.equal(score.overall, 80);
 });
 
 test('overall view uses a geometric mean across benchmarks', () => {
@@ -93,9 +93,9 @@ test('overall view uses a geometric mean across benchmarks', () => {
 		{ ...result('slow', 'small', 1_000_000), benchmark: { id: 'other', version: 1, size: 'small' } }
 	];
 	const scores = scoreOverall(rows);
-	assert.equal(scores[0]?.performance, 79.829838636);
-	assert.equal(scores[1]?.performance, 79.829838636);
-	assert.equal(scores[0]?.overall, 83.863870909);
+	assert.equal(scores[0]?.performance, 63.728031366);
+	assert.equal(scores[1]?.performance, 63.728031366);
+	assert.equal(scores[0]?.overall, 66.231434678);
 });
 
 test('overall still ranks a language that skips one benchmark', () => {
@@ -110,7 +110,7 @@ test('overall still ranks a language that skips one benchmark', () => {
 	const rust = scores.find((score) => score.language.id === 'rust');
 
 	assert.equal(lua?.eligible, true);
-	assert.equal(lua?.overall, 70.982425093);
+	assert.equal(lua?.overall, 67.355228229);
 	assert.deepEqual(
 		lua?.benchmarks?.map((entry) => entry.benchmarkId),
 		['work']

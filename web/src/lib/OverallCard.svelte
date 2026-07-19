@@ -20,7 +20,7 @@
 	const categories = [
 		{ key: 'performance', label: 'SPEED', icon: 'speed' },
 		{ key: 'consistency', label: 'STABLE', icon: 'stable' },
-		{ key: 'scalability', label: 'SCALE', icon: 'scale' }
+		{ key: 'versatility', label: 'FLEX', icon: 'flex' }
 	] as const;
 
 	const tierInfo = $derived(getScoreTier(score.overall));
@@ -161,6 +161,8 @@
 								<svg viewBox="0 0 16 16"><path d="M9 1 L3 9 L7 9 L6 15 L13 6 L9 6 Z" fill="currentColor" /></svg>
 							{:else if cat.icon === 'stable'}
 								<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.4" /><circle cx="8" cy="8" r="2" fill="currentColor" /></svg>
+							{:else if cat.icon === 'flex'}
+								<svg viewBox="0 0 16 16"><path d="M3 12 L5 7 L8 9 L13 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /><circle cx="3" cy="12" r="1.4" fill="currentColor" /><circle cx="13" cy="3" r="1.4" fill="currentColor" /></svg>
 							{:else}
 								<svg viewBox="0 0 16 16"><path d="M2 13 L6 7 L9 10 L14 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /><path d="M10 2 L14 2 L14 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
 							{/if}

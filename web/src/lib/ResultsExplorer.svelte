@@ -99,7 +99,7 @@
 		<div>
 			<p>{view === 'chart' ? 'Measured comparison' : 'Weighted overall score'}</p>
 			<h2>{activeBenchmark === 'overall' ? 'Overall' : activeBenchmark.replace(/[-_]+/g, ' ')}</h2>
-			<p class="qualification">Snapshot rankings · 80% geometric-mean speed · 10% stability · 10% scaling · skipped workloads noted</p>
+			<p class="qualification">Snapshot rankings · 80% geometric-mean speed · 10% stability · 10% flexibility · skipped workloads noted</p>
 		</div>
 		<p>
 			{view === 'chart' && activeBenchmark === 'overall'
@@ -151,8 +151,8 @@
 									<span>Benchmark</span>
 									<span>Overall</span>
 									<span>Performance</span>
-									<span>Stability diagnostic</span>
-									<span>Scaling diagnostic</span>
+									<span>Stability</span>
+									<span>Flex</span>
 								</div>
 								{#each expandedCard.benchmarks as bench (bench.benchmarkId)}
 									<div class="expanded-table-row">
@@ -160,7 +160,7 @@
 										<code>{Math.round(bench.overall)}</code>
 										<code>{Math.round(bench.performance)}</code>
 										<code>{Math.round(bench.consistency)}</code>
-										<code>{Math.round(bench.scalability)}</code>
+										<code>{Math.round(bench.performance)}</code>
 									</div>
 								{/each}
 							</div>

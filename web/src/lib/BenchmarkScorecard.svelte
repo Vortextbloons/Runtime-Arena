@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatDuration, formatVariation, scoreInterpretation } from './scoring';
+	import { formatDuration, formatVariation, performanceLabel, scoreInterpretation } from './scoring';
 	import { formatBenchmarkLabel, getScoreTier } from './tiers';
 	import type { BenchmarkScore } from './types';
 
@@ -7,7 +7,7 @@
 	const categories = [
 		{ key: 'performance', label: 'SPEED' },
 		{ key: 'consistency', label: 'STABLE' },
-		{ key: 'scalability', label: 'SCALE' }
+		{ key: 'versatility', label: 'FLEX' }
 	] as const;
 </script>
 
@@ -63,7 +63,7 @@
 					{#each categories as category (category.key)}
 						{@const value = score[category.key]}
 						<div class="cat">
-							<span class="cat-label">{category.label}{category.key === 'performance' ? ' · ranked' : ' · diagnostic'}</span>
+							<span class="cat-label">{category.label}{category.key === 'performance' ? ' · ranked' : category.key === 'versatility' ? ' · overall' : ' · diagnostic'}</span>
 							<div class="category-track"><i style:--score={`${value ?? 0}%`}></i></div>
 							<strong class="cat-value">{value === null ? '—' : Math.round(value)}</strong>
 						</div>
@@ -75,19 +75,19 @@
 				<summary>{score.eligible ? 'Show calculation' : 'Show diagnostics'}</summary>
 				{#if score.eligible}
 					<div class="formula">
-						<p><strong>Formula</strong> Geometric mean of fastest median ÷ this median. Stability and scaling do not affect rank.</p>
+						<p><strong>Formula</strong> Geometric mean of fastest median ÷ this median. Stability and flexibility do not affect rank.</p>
 						<p><strong>Cohort</strong> {formatBenchmarkLabel(score.benchmarkId)} · {score.expectedSizes.join(', ')} · accepted tiers whose fastest median is at least 1 ms</p>
 					</div>
 					{#if score.benchmarks}
 						<div class="size-table">
-							<div class="table-head"><span>Benchmark</span><span>Overall</span><span>Speed</span><span>Stability</span><span>Scaling</span></div>
+							<div class="table-head"><span>Benchmark</span><span>Overall</span><span>Speed</span><span>Stability</span><span>Flex</span></div>
 							{#each score.benchmarks as benchmark (benchmark.benchmarkId)}
 								<div class="size-row">
 									<strong>{formatBenchmarkLabel(benchmark.benchmarkId)}</strong>
 									<code>{benchmark.overall.toFixed(1)}</code>
 									<code>{benchmark.performance.toFixed(1)}</code>
 									<code>{benchmark.consistency.toFixed(1)}</code>
-									<code>{benchmark.scalability.toFixed(1)}</code>
+									<code>{benchmark.versatility != null ? benchmark.versatility.toFixed(1) : '—'}</code>
 								</div>
 							{/each}
 						</div>
@@ -100,7 +100,7 @@
 									<code>{formatDuration(size.medianNanoseconds)}</code>
 									<code>{formatDuration(size.p95Nanoseconds)}</code>
 									<code>{formatVariation(size.variation)}</code>
-									<code>{size.performance.toFixed(1)}</code>
+									<code>{size.performance.toFixed(1)} <span class="perf-label">{performanceLabel(size.medianNanoseconds / size.fastestMedianNanoseconds)}</span></code>
 								</div>
 							{/each}
 						</div>
@@ -299,6 +299,7 @@
 	.size-row { font-size: 0.75rem; }
 	.size-row strong { text-transform: none; }
 	.size-row code { font-family: var(--mono); }
+	.perf-label { color: var(--muted); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; }
 
 	ul { margin: 0.4rem 1.5rem 1.4rem; color: var(--warning); font-size: 0.78rem; }
 

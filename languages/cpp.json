@@ -4,14 +4,14 @@
   "name": "C++",
   "enabled": true,
   "detect": {
-    "command": "g++",
+    "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
     "arguments": ["--version"]
   },
   "build": {
     "workingDirectory": "{implementationDir}",
-    "command": "g++",
+    "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
     "arguments": ["-O3", "-std=c++23", "-I", "../../../../languages/cpp/include", "-o", "{artifact}", "main.cpp", "-lpthread"],
-    "artifact": "{benchmarkId}.exe"
+    "artifact": "{benchmarkId}"
   },
   "run": {
     "command": "{artifact}",
@@ -23,6 +23,8 @@
       "--iterations", "{measuredIterations}"
     ]
   },
-  "environment": {},
+  "environment": {
+    "PATH": "C:\\msys64\\ucrt64\\bin;{PATH}"
+  },
   "sourceExtensions": [".cpp", ".hpp", ".h"]
 }

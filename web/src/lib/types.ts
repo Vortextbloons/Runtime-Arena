@@ -61,6 +61,7 @@ export type SizeScore = {
 	size: string;
 	result: ArenaResult;
 	medianNanoseconds: number;
+	fastestMedianNanoseconds: number;
 	p95Nanoseconds: number;
 	variation: number;
 	performance: number;
@@ -74,7 +75,7 @@ export type BenchmarkScore = {
 	overall: number | null;
 	performance: number | null;
 	consistency: number | null;
-	scalability: number | null;
+	versatility: number | null;
 	sizes: SizeScore[];
 	expectedSizes: string[];
 	diagnostics: string[];
@@ -83,6 +84,6 @@ export type BenchmarkScore = {
 		overall: number;
 		performance: number;
 		consistency: number;
-		scalability: number;
+		versatility: number;
 	}>;
 };

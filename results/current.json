@@ -1,9 +1,9 @@
 {
   "schemaVersion": "3.0.0",
-  "snapshotId": "2026-07-19T08-54-25-617-6ce78522Z",
-  "updatedAt": "2026-07-19T08:54:25.617Z",
+  "snapshotId": "2026-07-19T09-30-14-428-72f31e01Z",
+  "updatedAt": "2026-07-19T09:30:14.428Z",
   "arenaVersion": "0.2.0",
-  "gitCommit": "ad300cd3e34193e9b727a883881ae270b75714f4",
+  "gitCommit": "7ee0c706f7d0b2272efd9e574a302a31751ac951",
   "gitDirty": true,
   "results": [
     {
@@ -6746,6 +6746,190 @@
     },
     {
       "benchmark": {
+        "id": "matrix-multiplication",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "matrix-multiplication-small-1",
+        "sha256": "66c7bd1e9a4b8cba3d12fc7e9d52c3739de41540ceec965938907466f29740d0",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "cpp",
+        "name": "C++",
+        "version": "g++.exe (Rev5, Built by MSYS2 project) 16.1.0\r\nCopyright (C) 2026 Free Software Foundation, Inc.\r\nThis is free software; see the source for copying conditions.  There is NO\r\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+        "compilerVersion": "g++.exe (Rev5, Built by MSYS2 project) 16.1.0\r\nCopyright (C) 2026 Free Software Foundation, Inc.\r\nThis is free software; see the source for copying conditions.  There is NO\r\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+        "compilerFlags": [
+          "-O3",
+          "-std=c++23",
+          "-I",
+          "../../../../languages/cpp/include",
+          "-o",
+          "{artifact}",
+          "main.cpp",
+          "-lpthread"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 3819119000,
+        "artifactSizeBytes": 570274,
+        "command": [
+          "C:\\msys64\\ucrt64\\bin\\g++.exe",
+          "-O3",
+          "-std=c++23",
+          "-I",
+          "../../../../languages/cpp/include",
+          "-o",
+          "{artifact}",
+          "main.cpp",
+          "-lpthread"
+        ]
+      },
+      "execution": {
+        "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
+        "totalProcessDurationNanoseconds": 92494200,
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "kernelTimeNanoseconds": 173200,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 199,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "kernelTimeNanoseconds": 173200,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 199,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "kernelTimeNanoseconds": 171600,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 199,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "kernelTimeNanoseconds": 174000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 199,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "kernelTimeNanoseconds": 168700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 199,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "kernelTimeNanoseconds": 169800,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 199,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "kernelTimeNanoseconds": 171100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 199,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "kernelTimeNanoseconds": 170100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 199,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "kernelTimeNanoseconds": 172100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 199,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "kernelTimeNanoseconds": 172200,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 199,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumKernelTimeNanoseconds": 168700,
+          "maximumKernelTimeNanoseconds": 174000,
+          "medianKernelTimeNanoseconds": 171600,
+          "meanKernelTimeNanoseconds": 171600,
+          "standardDeviationKernelTimeNanoseconds": 1601.2495120998476,
+          "p95KernelTimeNanoseconds": 174000,
+          "interquartileRangeKernelTimeNanoseconds": 3100
+        },
+        "metrics": {
+          "kernelTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "3ffccd4bca5efa3d2ad72ba1a3afacbd7ee8822c2064703733fe76c1f1b96e7f",
+        "measurementContractVersion": "1.0.0",
+        "measuredAt": "2026-07-19T09:29:45.676Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
         "id": "nbody",
         "version": 1,
         "size": "large"
@@ -9215,8 +9399,8 @@
       "language": {
         "id": "cpp",
         "name": "C++",
-        "version": "g++ (MinGW-W64 x86_64-ucrt-posix-seh, built by Brecht Sanders, r3) 16.1.0\r\nCopyright (C) 2026 Free Software Foundation, Inc.\r\nThis is free software; see the source for copying conditions.  There is NO\r\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
-        "compilerVersion": "g++ (MinGW-W64 x86_64-ucrt-posix-seh, built by Brecht Sanders, r3) 16.1.0\r\nCopyright (C) 2026 Free Software Foundation, Inc.\r\nThis is free software; see the source for copying conditions.  There is NO\r\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+        "version": "g++.exe (Rev5, Built by MSYS2 project) 16.1.0\r\nCopyright (C) 2026 Free Software Foundation, Inc.\r\nThis is free software; see the source for copying conditions.  There is NO\r\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+        "compilerVersion": "g++.exe (Rev5, Built by MSYS2 project) 16.1.0\r\nCopyright (C) 2026 Free Software Foundation, Inc.\r\nThis is free software; see the source for copying conditions.  There is NO\r\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
         "compilerFlags": [
           "-O3",
           "-std=c++23",
@@ -9230,10 +9414,10 @@
       },
       "build": {
         "status": "success",
-        "durationNanoseconds": 3615318700,
-        "artifactSizeBytes": 363873,
+        "durationNanoseconds": 4862309400,
+        "artifactSizeBytes": 580121,
         "command": [
-          "g++",
+          "C:\\msys64\\ucrt64\\bin\\g++.exe",
           "-O3",
           "-std=c++23",
           "-I",
@@ -9247,13 +9431,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 72128200,
+        "totalProcessDurationNanoseconds": 95576300,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 153600,
+            "kernelTimeNanoseconds": 189600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9262,7 +9446,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 149500,
+            "kernelTimeNanoseconds": 189900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9271,7 +9455,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 150100,
+            "kernelTimeNanoseconds": 190000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9280,7 +9464,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 149500,
+            "kernelTimeNanoseconds": 190200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9289,7 +9473,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 149800,
+            "kernelTimeNanoseconds": 190000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9298,7 +9482,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 149900,
+            "kernelTimeNanoseconds": 192700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9307,7 +9491,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 149400,
+            "kernelTimeNanoseconds": 190100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9316,7 +9500,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 154200,
+            "kernelTimeNanoseconds": 190200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9325,7 +9509,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 149000,
+            "kernelTimeNanoseconds": 190200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9334,7 +9518,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 149700,
+            "kernelTimeNanoseconds": 190100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9345,13 +9529,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 149000,
-          "maximumKernelTimeNanoseconds": 154200,
-          "medianKernelTimeNanoseconds": 149700,
-          "meanKernelTimeNanoseconds": 150470,
-          "standardDeviationKernelTimeNanoseconds": 1743.5882541471767,
-          "p95KernelTimeNanoseconds": 154200,
-          "interquartileRangeKernelTimeNanoseconds": 600
+          "minimumKernelTimeNanoseconds": 189600,
+          "maximumKernelTimeNanoseconds": 192700,
+          "medianKernelTimeNanoseconds": 190100,
+          "meanKernelTimeNanoseconds": 190300,
+          "standardDeviationKernelTimeNanoseconds": 818.535277187245,
+          "p95KernelTimeNanoseconds": 192700,
+          "interquartileRangeKernelTimeNanoseconds": 200
         },
         "metrics": {
           "kernelTime": {
@@ -9367,9 +9551,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "4a28580283e7b768575faed4e45b932545654fd66eb07c5432fffa1a1979c228",
+        "fingerprint": "e442eb3be24cac3d2d3ac96c2d57ad0f2b98c5eab8696e2a36a39b88424d7d4b",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T08:34:30.880Z",
+        "measuredAt": "2026-07-19T09:30:14.428Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -10414,6 +10598,1050 @@
         "fingerprint": "03fc335987ccd5c4c5c056faf6741d0aa70e8597a2a413754ad233ad470474aa",
         "measurementContractVersion": "1.0.0",
         "measuredAt": "2026-07-19T08:34:30.880Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "record-sorting",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "record-sorting-small-1",
+        "sha256": "5829bf0c1a0006ecb8482547bff432494938cc3f773b66b48722d64f09659c77",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-ldflags=-s -w",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 643355200,
+        "artifactSizeBytes": 2435072,
+        "command": [
+          "go",
+          "build",
+          "-ldflags=-s -w",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
+        "totalProcessDurationNanoseconds": 319219000,
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "kernelTimeNanoseconds": 1117100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "kernelTimeNanoseconds": 1060500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "kernelTimeNanoseconds": 1533700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "kernelTimeNanoseconds": 1277900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "kernelTimeNanoseconds": 1315300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "kernelTimeNanoseconds": 999300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "kernelTimeNanoseconds": 991200,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "kernelTimeNanoseconds": 985900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "kernelTimeNanoseconds": 982000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "kernelTimeNanoseconds": 1002500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumKernelTimeNanoseconds": 982000,
+          "maximumKernelTimeNanoseconds": 1533700,
+          "medianKernelTimeNanoseconds": 1002500,
+          "meanKernelTimeNanoseconds": 1126540,
+          "standardDeviationKernelTimeNanoseconds": 178699.22327755092,
+          "p95KernelTimeNanoseconds": 1533700,
+          "interquartileRangeKernelTimeNanoseconds": 286700
+        },
+        "metrics": {
+          "kernelTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "34530c76fd7f5081db7f64d9020a7a14441fb831be063db492a558886c5156e5",
+        "measurementContractVersion": "1.0.0",
+        "measuredAt": "2026-07-19T09:12:54.815Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "record-sorting",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "record-sorting-small-1",
+        "sha256": "5829bf0c1a0006ecb8482547bff432494938cc3f773b66b48722d64f09659c77",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "javascript",
+        "name": "JavaScript",
+        "version": "v26.4.0",
+        "compilerVersion": "v26.4.0",
+        "compilerFlags": [
+          "-e",
+          "0"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 46329500,
+        "artifactSizeBytes": 1202,
+        "command": [
+          "node",
+          "-e",
+          "0"
+        ]
+      },
+      "execution": {
+        "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
+        "totalProcessDurationNanoseconds": 127268100,
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "kernelTimeNanoseconds": 2713000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "kernelTimeNanoseconds": 4432000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "kernelTimeNanoseconds": 3779100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "kernelTimeNanoseconds": 4709600,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "kernelTimeNanoseconds": 5506600,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "kernelTimeNanoseconds": 4868300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "kernelTimeNanoseconds": 4008700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "kernelTimeNanoseconds": 4729100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "kernelTimeNanoseconds": 4113500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "kernelTimeNanoseconds": 3457000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumKernelTimeNanoseconds": 2713000,
+          "maximumKernelTimeNanoseconds": 5506600,
+          "medianKernelTimeNanoseconds": 4113500,
+          "meanKernelTimeNanoseconds": 4231690,
+          "standardDeviationKernelTimeNanoseconds": 756419.3023052757,
+          "p95KernelTimeNanoseconds": 5506600,
+          "interquartileRangeKernelTimeNanoseconds": 950000
+        },
+        "metrics": {
+          "kernelTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "6ef98df3d693c1961a47b5db0ab56c98676c672283fd3b6cf0703aea8a213da2",
+        "measurementContractVersion": "1.0.0",
+        "measuredAt": "2026-07-19T09:12:54.815Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "record-sorting",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "record-sorting-small-1",
+        "sha256": "5829bf0c1a0006ecb8482547bff432494938cc3f773b66b48722d64f09659c77",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "lua",
+        "name": "LuaJIT",
+        "version": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerVersion": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerFlags": [
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 21344000,
+        "artifactSizeBytes": 2934,
+        "command": [
+          "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "execution": {
+        "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
+        "totalProcessDurationNanoseconds": 186149200,
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "kernelTimeNanoseconds": 6965700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "kernelTimeNanoseconds": 7725900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "kernelTimeNanoseconds": 8449200,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "kernelTimeNanoseconds": 8327600,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "kernelTimeNanoseconds": 7920600,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "kernelTimeNanoseconds": 6993800,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "kernelTimeNanoseconds": 8081300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "kernelTimeNanoseconds": 8080500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "kernelTimeNanoseconds": 6171100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "kernelTimeNanoseconds": 6055300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumKernelTimeNanoseconds": 6055300,
+          "maximumKernelTimeNanoseconds": 8449200,
+          "medianKernelTimeNanoseconds": 7725900,
+          "meanKernelTimeNanoseconds": 7477100,
+          "standardDeviationKernelTimeNanoseconds": 829357.0787061505,
+          "p95KernelTimeNanoseconds": 8449200,
+          "interquartileRangeKernelTimeNanoseconds": 1115600
+        },
+        "metrics": {
+          "kernelTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "66a0b6801a498ce3a1cf6fe779134bb1df2588ac7c027715e9da3606eb63b5fc",
+        "measurementContractVersion": "1.0.0",
+        "measuredAt": "2026-07-19T09:12:54.815Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "record-sorting",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "record-sorting-small-1",
+        "sha256": "5829bf0c1a0006ecb8482547bff432494938cc3f773b66b48722d64f09659c77",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "python",
+        "name": "Python",
+        "version": "Python 3.14.6",
+        "compilerVersion": "Python 3.14.6",
+        "compilerFlags": [
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 63869800,
+        "artifactSizeBytes": 1306,
+        "command": [
+          "python",
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "execution": {
+        "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
+        "totalProcessDurationNanoseconds": 139758300,
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "kernelTimeNanoseconds": 5133100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "kernelTimeNanoseconds": 4833300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "kernelTimeNanoseconds": 5005800,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "kernelTimeNanoseconds": 5484100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "kernelTimeNanoseconds": 5076200,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "kernelTimeNanoseconds": 5324800,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "kernelTimeNanoseconds": 5107900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "kernelTimeNanoseconds": 4941000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "kernelTimeNanoseconds": 5126400,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "kernelTimeNanoseconds": 5064600,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumKernelTimeNanoseconds": 4833300,
+          "maximumKernelTimeNanoseconds": 5484100,
+          "medianKernelTimeNanoseconds": 5076200,
+          "meanKernelTimeNanoseconds": 5109720,
+          "standardDeviationKernelTimeNanoseconds": 174951.75792200546,
+          "p95KernelTimeNanoseconds": 5484100,
+          "interquartileRangeKernelTimeNanoseconds": 127300
+        },
+        "metrics": {
+          "kernelTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "03a1a15e0193681cd8a1a3fc11d85717bae7d8c2191aaca0c5dc888949c6f68e",
+        "measurementContractVersion": "1.0.0",
+        "measuredAt": "2026-07-19T09:12:46.818Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "record-sorting",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "record-sorting-small-1",
+        "sha256": "5829bf0c1a0006ecb8482547bff432494938cc3f773b66b48722d64f09659c77",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 5834847200,
+        "artifactSizeBytes": 292352,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
+        "totalProcessDurationNanoseconds": 69682100,
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "kernelTimeNanoseconds": 1555500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "kernelTimeNanoseconds": 1604700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "kernelTimeNanoseconds": 1558300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "kernelTimeNanoseconds": 1546000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "kernelTimeNanoseconds": 1598100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "kernelTimeNanoseconds": 1575500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "kernelTimeNanoseconds": 1587400,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "kernelTimeNanoseconds": 1618200,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "kernelTimeNanoseconds": 1590800,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "kernelTimeNanoseconds": 1570000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumKernelTimeNanoseconds": 1546000,
+          "maximumKernelTimeNanoseconds": 1618200,
+          "medianKernelTimeNanoseconds": 1575500,
+          "meanKernelTimeNanoseconds": 1580450,
+          "standardDeviationKernelTimeNanoseconds": 22166.87844510363,
+          "p95KernelTimeNanoseconds": 1618200,
+          "interquartileRangeKernelTimeNanoseconds": 39800
+        },
+        "metrics": {
+          "kernelTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "98dabce01ce5baa03817f6ece90b0711e3da8d7c028100145b6c7a19db0c8bfc",
+        "measurementContractVersion": "1.0.0",
+        "measuredAt": "2026-07-19T09:12:54.815Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "record-sorting",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "record-sorting-small-1",
+        "sha256": "5829bf0c1a0006ecb8482547bff432494938cc3f773b66b48722d64f09659c77",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 275429000,
+        "artifactSizeBytes": 1381,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
+        "totalProcessDurationNanoseconds": 87405700,
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "kernelTimeNanoseconds": 2321000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "kernelTimeNanoseconds": 2769700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "kernelTimeNanoseconds": 2788400,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "kernelTimeNanoseconds": 3308000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "kernelTimeNanoseconds": 2519400,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "kernelTimeNanoseconds": 3005100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "kernelTimeNanoseconds": 2128100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "kernelTimeNanoseconds": 3007300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "kernelTimeNanoseconds": 2148400,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "kernelTimeNanoseconds": 2734000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 1151,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumKernelTimeNanoseconds": 2128100,
+          "maximumKernelTimeNanoseconds": 3308000,
+          "medianKernelTimeNanoseconds": 2734000,
+          "meanKernelTimeNanoseconds": 2672940,
+          "standardDeviationKernelTimeNanoseconds": 370307.8508484528,
+          "p95KernelTimeNanoseconds": 3308000,
+          "interquartileRangeKernelTimeNanoseconds": 684100
+        },
+        "metrics": {
+          "kernelTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "0cf6d34f10b2d4be1b8109f5f19ba07cee1b61a78068ffc84422c3878877465f",
+        "measurementContractVersion": "1.0.0",
+        "measuredAt": "2026-07-19T09:12:54.815Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -14098,6 +15326,1234 @@
         "fingerprint": "f44fcb4822f563823866a3c2bb4da6eb300adbd630c29ef5a45c365f6e74e7f5",
         "measurementContractVersion": "1.0.0",
         "measuredAt": "2026-07-19T08:34:30.880Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "word-frequency",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "word-frequency-small-1",
+        "sha256": "aaeb63dc3db70a29d46a06c7b98a2813cdf25bc2e58dee6a7faf02904d27573c",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "cpp",
+        "name": "C++",
+        "version": "g++.exe (Rev5, Built by MSYS2 project) 16.1.0\r\nCopyright (C) 2026 Free Software Foundation, Inc.\r\nThis is free software; see the source for copying conditions.  There is NO\r\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+        "compilerVersion": "g++.exe (Rev5, Built by MSYS2 project) 16.1.0\r\nCopyright (C) 2026 Free Software Foundation, Inc.\r\nThis is free software; see the source for copying conditions.  There is NO\r\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+        "compilerFlags": [
+          "-O3",
+          "-std=c++23",
+          "-I",
+          "../../../../languages/cpp/include",
+          "-o",
+          "{artifact}",
+          "main.cpp",
+          "-lpthread"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 5177511400,
+        "artifactSizeBytes": 589099,
+        "command": [
+          "C:\\msys64\\ucrt64\\bin\\g++.exe",
+          "-O3",
+          "-std=c++23",
+          "-I",
+          "../../../../languages/cpp/include",
+          "-o",
+          "{artifact}",
+          "main.cpp",
+          "-lpthread"
+        ]
+      },
+      "execution": {
+        "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
+        "totalProcessDurationNanoseconds": 91365000,
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "kernelTimeNanoseconds": 400900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "kernelTimeNanoseconds": 238700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "kernelTimeNanoseconds": 247900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "kernelTimeNanoseconds": 236700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "kernelTimeNanoseconds": 232900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "kernelTimeNanoseconds": 229800,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "kernelTimeNanoseconds": 228000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "kernelTimeNanoseconds": 228600,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "kernelTimeNanoseconds": 227300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "kernelTimeNanoseconds": 226900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumKernelTimeNanoseconds": 226900,
+          "maximumKernelTimeNanoseconds": 400900,
+          "medianKernelTimeNanoseconds": 229800,
+          "meanKernelTimeNanoseconds": 249770,
+          "standardDeviationKernelTimeNanoseconds": 50764.73283688194,
+          "p95KernelTimeNanoseconds": 400900,
+          "interquartileRangeKernelTimeNanoseconds": 10700
+        },
+        "metrics": {
+          "kernelTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "d9e2c74a92a8b32f6268cf08db71065e7fbb9f7d65d21db9a24d9b05b3e10a56",
+        "measurementContractVersion": "1.0.0",
+        "measuredAt": "2026-07-19T09:30:00.056Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "word-frequency",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "word-frequency-small-1",
+        "sha256": "aaeb63dc3db70a29d46a06c7b98a2813cdf25bc2e58dee6a7faf02904d27573c",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-ldflags=-s -w",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 320693000,
+        "artifactSizeBytes": 2443264,
+        "command": [
+          "go",
+          "build",
+          "-ldflags=-s -w",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
+        "totalProcessDurationNanoseconds": 42582800,
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "kernelTimeNanoseconds": 373500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "kernelTimeNanoseconds": 264900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "kernelTimeNanoseconds": 274100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "kernelTimeNanoseconds": 273700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "kernelTimeNanoseconds": 278600,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "kernelTimeNanoseconds": 263400,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "kernelTimeNanoseconds": 262500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "kernelTimeNanoseconds": 308300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "kernelTimeNanoseconds": 346600,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "kernelTimeNanoseconds": 267200,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumKernelTimeNanoseconds": 262500,
+          "maximumKernelTimeNanoseconds": 373500,
+          "medianKernelTimeNanoseconds": 273700,
+          "meanKernelTimeNanoseconds": 291280,
+          "standardDeviationKernelTimeNanoseconds": 37089.669720826576,
+          "p95KernelTimeNanoseconds": 373500,
+          "interquartileRangeKernelTimeNanoseconds": 43400
+        },
+        "metrics": {
+          "kernelTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "0cf9e046fcf3631734c837090a494ce4ece7318815111805edd3625039d18a12",
+        "measurementContractVersion": "1.0.0",
+        "measuredAt": "2026-07-19T09:30:00.056Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "word-frequency",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "word-frequency-small-1",
+        "sha256": "aaeb63dc3db70a29d46a06c7b98a2813cdf25bc2e58dee6a7faf02904d27573c",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "javascript",
+        "name": "JavaScript",
+        "version": "v26.4.0",
+        "compilerVersion": "v26.4.0",
+        "compilerFlags": [
+          "-e",
+          "0"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 49393300,
+        "artifactSizeBytes": 1242,
+        "command": [
+          "node",
+          "-e",
+          "0"
+        ]
+      },
+      "execution": {
+        "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
+        "totalProcessDurationNanoseconds": 88032200,
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "kernelTimeNanoseconds": 996200,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "kernelTimeNanoseconds": 1047300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "kernelTimeNanoseconds": 1311800,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "kernelTimeNanoseconds": 728300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "kernelTimeNanoseconds": 595700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "kernelTimeNanoseconds": 733800,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "kernelTimeNanoseconds": 626400,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "kernelTimeNanoseconds": 965500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "kernelTimeNanoseconds": 410700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "kernelTimeNanoseconds": 475400,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumKernelTimeNanoseconds": 410700,
+          "maximumKernelTimeNanoseconds": 1311800,
+          "medianKernelTimeNanoseconds": 728300,
+          "meanKernelTimeNanoseconds": 789110,
+          "standardDeviationKernelTimeNanoseconds": 269464.975275081,
+          "p95KernelTimeNanoseconds": 1311800,
+          "interquartileRangeKernelTimeNanoseconds": 400500
+        },
+        "metrics": {
+          "kernelTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "632942d87ad74482a3a708a41f993cc9390ab005f38f6d8424c68996e596a96d",
+        "measurementContractVersion": "1.0.0",
+        "measuredAt": "2026-07-19T09:30:00.056Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "word-frequency",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "word-frequency-small-1",
+        "sha256": "aaeb63dc3db70a29d46a06c7b98a2813cdf25bc2e58dee6a7faf02904d27573c",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "lua",
+        "name": "LuaJIT",
+        "version": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerVersion": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerFlags": [
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 23389300,
+        "artifactSizeBytes": 2830,
+        "command": [
+          "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "execution": {
+        "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
+        "totalProcessDurationNanoseconds": 50544500,
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "kernelTimeNanoseconds": 662300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "kernelTimeNanoseconds": 700400,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "kernelTimeNanoseconds": 474700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "kernelTimeNanoseconds": 509700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "kernelTimeNanoseconds": 750200,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "kernelTimeNanoseconds": 865600,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "kernelTimeNanoseconds": 754500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "kernelTimeNanoseconds": 680200,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "kernelTimeNanoseconds": 814500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "kernelTimeNanoseconds": 659800,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumKernelTimeNanoseconds": 474700,
+          "maximumKernelTimeNanoseconds": 865600,
+          "medianKernelTimeNanoseconds": 680200,
+          "meanKernelTimeNanoseconds": 687190,
+          "standardDeviationKernelTimeNanoseconds": 116097.65243104617,
+          "p95KernelTimeNanoseconds": 865600,
+          "interquartileRangeKernelTimeNanoseconds": 94700
+        },
+        "metrics": {
+          "kernelTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "485f4772b197e3f797223b8facc7d6ff81b8c38748c7bfe26b82c37891562d3b",
+        "measurementContractVersion": "1.0.0",
+        "measuredAt": "2026-07-19T09:30:00.056Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "word-frequency",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "word-frequency-small-1",
+        "sha256": "aaeb63dc3db70a29d46a06c7b98a2813cdf25bc2e58dee6a7faf02904d27573c",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "python",
+        "name": "Python",
+        "version": "Python 3.14.6",
+        "compilerVersion": "Python 3.14.6",
+        "compilerFlags": [
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 85323100,
+        "artifactSizeBytes": 1242,
+        "command": [
+          "python",
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "execution": {
+        "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
+        "totalProcessDurationNanoseconds": 67749000,
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "kernelTimeNanoseconds": 650400,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 550,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "kernelTimeNanoseconds": 619500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 550,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "kernelTimeNanoseconds": 567900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 550,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "kernelTimeNanoseconds": 564600,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 550,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "kernelTimeNanoseconds": 553800,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 550,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "kernelTimeNanoseconds": 639300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 550,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "kernelTimeNanoseconds": 728100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 550,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "kernelTimeNanoseconds": 826700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 550,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "kernelTimeNanoseconds": 701500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 550,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "kernelTimeNanoseconds": 624700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 550,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumKernelTimeNanoseconds": 553800,
+          "maximumKernelTimeNanoseconds": 826700,
+          "medianKernelTimeNanoseconds": 624700,
+          "meanKernelTimeNanoseconds": 647650,
+          "standardDeviationKernelTimeNanoseconds": 80555.89674257248,
+          "p95KernelTimeNanoseconds": 826700,
+          "interquartileRangeKernelTimeNanoseconds": 133600
+        },
+        "metrics": {
+          "kernelTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "12da0f830c92464c7bed29b25eee71fff2953f0a5fa9d3f6163c693cca7d7cfe",
+        "measurementContractVersion": "1.0.0",
+        "measuredAt": "2026-07-19T09:30:00.056Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "word-frequency",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "word-frequency-small-1",
+        "sha256": "aaeb63dc3db70a29d46a06c7b98a2813cdf25bc2e58dee6a7faf02904d27573c",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 86344500,
+        "artifactSizeBytes": 295424,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
+        "totalProcessDurationNanoseconds": 29046900,
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "kernelTimeNanoseconds": 223800,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "kernelTimeNanoseconds": 230700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "kernelTimeNanoseconds": 224500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "kernelTimeNanoseconds": 222800,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "kernelTimeNanoseconds": 222900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "kernelTimeNanoseconds": 224000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "kernelTimeNanoseconds": 223700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "kernelTimeNanoseconds": 222200,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "kernelTimeNanoseconds": 223400,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "kernelTimeNanoseconds": 222000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumKernelTimeNanoseconds": 222000,
+          "maximumKernelTimeNanoseconds": 230700,
+          "medianKernelTimeNanoseconds": 223400,
+          "meanKernelTimeNanoseconds": 224000,
+          "standardDeviationKernelTimeNanoseconds": 2356.2682360037024,
+          "p95KernelTimeNanoseconds": 230700,
+          "interquartileRangeKernelTimeNanoseconds": 1200
+        },
+        "metrics": {
+          "kernelTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "eb3fd29fcd8f5122ecc5dca4c7b173dd00263c8488c6988b7c66b1ec760797c0",
+        "measurementContractVersion": "1.0.0",
+        "measuredAt": "2026-07-19T09:30:00.056Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "word-frequency",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "word-frequency-small-1",
+        "sha256": "aaeb63dc3db70a29d46a06c7b98a2813cdf25bc2e58dee6a7faf02904d27573c",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 298459200,
+        "artifactSizeBytes": 1410,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
+        "totalProcessDurationNanoseconds": 71229200,
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "kernelTimeNanoseconds": 799100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "kernelTimeNanoseconds": 460900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "kernelTimeNanoseconds": 449200,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "kernelTimeNanoseconds": 536300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "kernelTimeNanoseconds": 661600,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "kernelTimeNanoseconds": 785800,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "kernelTimeNanoseconds": 717000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "kernelTimeNanoseconds": 898700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "kernelTimeNanoseconds": 394900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "kernelTimeNanoseconds": 485700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 500,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumKernelTimeNanoseconds": 394900,
+          "maximumKernelTimeNanoseconds": 898700,
+          "medianKernelTimeNanoseconds": 536300,
+          "meanKernelTimeNanoseconds": 618920,
+          "standardDeviationKernelTimeNanoseconds": 166902.868759048,
+          "p95KernelTimeNanoseconds": 898700,
+          "interquartileRangeKernelTimeNanoseconds": 324900
+        },
+        "metrics": {
+          "kernelTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "8f3d9c16fb8df1555cdcf8e7c55fdc6e9f456cf13f1278adaa629e3bf1f64de0",
+        "measurementContractVersion": "1.0.0",
+        "measuredAt": "2026-07-19T09:30:00.056Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
