@@ -1,6 +1,6 @@
 # Runtime Arena — Complete Documentation
 > Auto-generated from docs/INDEX.md by scripts/combine-docs.mjs
-> Generated: 2026-07-19T08:50:21.746Z
+> Generated: 2026-07-19T20:39:48.789Z
 > Total files: 20
 
 ## Table of Contents
@@ -62,6 +62,8 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 **Fingerprinting**: A SHA-256 hash of all source files, manifests, datasets, checker code, toolchain version, and compiler version determines if a cell is "current" or "stale". `arena run` only re-executes cells whose fingerprint has changed.
 
+**Build caching**: A separate `buildFingerprint()` hashes language manifest + implementation source tree + benchmark ID + build config. Compiled artifacts are stored in `.arena/build-cache/<fingerprint>/` and reused if the hash matches, skipping the language build step entirely.
+
 **Atomic writes**: Results are written to a temp file then renamed. Failed checker results do not replace existing accepted results in the canonical snapshot.
 
 ## Data Flow
@@ -69,11 +71,15 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 1. CLI discovers language manifests from `languages/*.json`
 2. CLI discovers benchmark manifests from `benchmarks/*/benchmark.json`
 3. For each (benchmark, size, language) cell:
-   - Build the implementation using language-specific commands
+   - Build the implementation using language-specific commands (cached via `.arena/build-cache/<buildFingerprint>/`)
+   - Copy the dataset input to an isolated directory under `.arena/runs/` and make it read-only (`chmod 0o444`)
    - Spawn one persistent worker with `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations`
-   - Read kernel timing samples from the timing file (warmups already discarded by the worker)
-   - Validate output with the Go checker
+   - Check output size against `maxOutputBytes` limit before invoking the checker
+   - Validate output with the Go checker via `checkOutput()`
+   - Parse and validate timing samples via `readTimingSamples()` (checks 1-indexed sequential iteration, safe integers, exact count)
+   - Record metric availability via `metricAvailability()`
    - Record result with provenance (fingerprint, machine info)
+   - Validate the full snapshot against `result.schema.json` before writing
 4. Write canonical snapshot to `results/current.json`
 5. Web UI loads snapshot and computes scores
 
@@ -101,15 +107,24 @@ The CLI supplies `--input`, `--output`, `--timing-output`, `--warmup`, and `--it
 {"samples":[{"iteration":1,"kernelTimeNanoseconds":12345}]}
 ```
 
+The CLI validates timing sidecars via `readTimingSamples()`:
+- Iterations must be **1-indexed and sequential** (sample N must have `iteration: N`)
+- All `kernelTimeNanoseconds` values must be **non-negative safe integers**
+- Exactly `measuredIterations` samples are required
+- Extra or missing fields on the top-level object or on individual samples are **rejected**
+- Timing sidecars exceeding `maxOutputBytes` are also rejected
+
 Runtime startup, input parsing, state cloning, output encoding, file I/O, process shutdown, build time, and checker time are excluded from ranking. Total process duration is retained only as a diagnostic.
 
 ## Isolation and Correctness
 
-Each cell runs in an isolated directory under `.arena/runs/<snapshotId>/<benchmark>/<language>/`. Its copied input is read-only. The independent checker validates the final output once; a rejected output invalidates every timing sample. Missing, malformed, oversized, or incorrectly numbered timing samples also reject the cell.
+Each cell runs in an isolated directory under `.arena/runs/<snapshotId>/<benchmark>/<language>/`. Its copied input is read-only (`chmod 0o444`). Before the checker is invoked, output size is checked against the benchmark's `maxOutputBytes` limit; oversized output is rejected without invoking the checker. The independent checker validates the final output once; a rejected output invalidates every timing sample. Missing, malformed, oversized, or incorrectly numbered timing samples also reject the cell.
 
 ## Limits and Summary
 
 The per-iteration benchmark timeout is multiplied by the requested warmup and measured iteration count to bound the persistent process. Output and captured-stream limits remain enforced.
+
+**Build caching**: A separate `buildFingerprint()` (distinct from the execution `fingerprintCell`) hashes the language manifest, implementation source tree, benchmark ID, and build config. Compiled artifacts are stored in `.arena/build-cache/<buildFingerprint>/` and restored via `copyFile` on cache hits, skipping recompilation.
 
 The CLI preserves raw kernel samples and calculates minimum, maximum, median, mean, standard deviation, p95, and interquartile range in nanoseconds. Median kernel time is the primary ranking metric.
 
@@ -127,9 +142,11 @@ The fingerprinting system determines whether a benchmark cell needs re-execution
 
 A fingerprint is a SHA-256 hash that captures the complete state of a (benchmark, size, language) cell. If any input to the cell changes, the fingerprint changes, and the cell is marked stale.
 
-## What is Hashed
+There are two separate fingerprint systems: one for **execution staleness** (`fingerprintCell`) and one for **build caching** (`buildFingerprint`).
 
-The fingerprint includes:
+## What is Hashed (Execution Fingerprint)
+
+The execution fingerprint (`fingerprintCell`) includes:
 
 1. **Language manifest** — `languages/<language>.json`
 2. **Benchmark manifest** — `benchmarks/<benchmark>/benchmark.json`
@@ -153,6 +170,37 @@ fingerprintCell(language, benchmark, size, toolchainVersion, compilerVersion, wa
             + implementationSourceTree + checkerSourceTree
             + JSON({benchmarkVersion, measurementContractVersion: "1.0.0", size, warmups, iterations, metrics, toolchainVersion, compilerVersion}))
 ```
+
+## Build Cache Fingerprint
+
+Build caching uses a separate `buildFingerprint()` function that hashes fewer inputs than the execution fingerprint:
+
+```
+buildFingerprint(language, benchmark)
+  → SHA-256(languageManifest + implementationSourceTree + JSON({benchmarkId, build}))
+```
+
+This fingerprint is used only to decide whether a compiled artifact can be reused. The hashed inputs are:
+
+1. **Language manifest** — `languages/<language>.json`
+2. **All implementation source files** — `benchmarks/<benchmark>/implementations/<language>/` (recursive, excluding the same patterns as the execution fingerprint)
+3. **Benchmark ID and build config** — `{benchmarkId, build}` where `build` includes the language's build command, arguments, artifact template, and working directory
+
+### Cache Storage
+
+Compiled artifacts are stored in `.arena/build-cache/<buildFingerprint>/`:
+- On a **cache miss**, `buildOne()` compiles the implementation, then copies the resulting artifact into the cache directory
+- On a **cache hit**, the cached artifact is restored via `copyFile()` to the expected output location, skipping the compilation step entirely
+
+### Build Cache Invalidation
+
+The build fingerprint changes when:
+- Any source file in the implementation is modified
+- The language manifest is modified
+- The benchmark ID changes (a different workload produces a different artifact)
+- The build command, arguments, artifact path, or working directory changes
+
+Changes that **do not** invalidate the build cache (but do invalidate the execution fingerprint): dataset, checker source, metrics registry, toolchain/compiler version, warmup or iteration counts, or benchmark version metadata.
 
 ## Cell Status
 
@@ -219,14 +267,17 @@ Source: `checker/cmd/arena-checker/main.go`. Details: [checker.md](checker.md).
 
 ## Benchmarks (`benchmarks/`)
 
-Four workloads under `benchmarks/<id>/`. nbody, shortest-path, and aggregation are fully implemented in all seven languages. barrier-wave has implementations in Rust, Go, TypeScript, Python, JavaScript, and C++ (LuaJIT excluded).
+Seven workloads under `benchmarks/<id>/`. nbody, shortest-path, and aggregation are the original trio, fully implemented in all seven languages. barrier-wave has implementations in Rust, Go, TypeScript, Python, JavaScript, and C++ (LuaJIT excluded). word-frequency, record-sorting, and matrix-multiplication are newer additions.
 
 | Benchmark | Workload | Key Metrics | Status |
-|---|---|---|---|
+|-----------|---|---|---|
 | **nbody** | Gravitational N-body simulation | Numeric computation, tight loops | Complete |
 | **shortest-path** | Weighted directed graph shortest-path | Priority queues, memory access | Complete |
 | **aggregation** | CSV transaction record aggregation | Parsing, hash maps, sorting | Complete |
 | **barrier-wave** | Parallel phases with barriers | Fan-out/fan-in, synchronization | 6/7 languages complete; LuaJIT excluded |
+| **word-frequency** | Word count and frequency sort | Hash maps, sorting, checksum | Complete |
+| **record-sorting** | Multi-key record sorting | Tie-breaking sort, checksum | Complete |
+| **matrix-multiplication** | Matrix multiply (i→j→k) | Triple-loop arithmetic, checksum | Complete |
 
 Each has `small`, `medium`, and `large` datasets with per-size warmup/iteration counts in `benchmark.json`. Full reference: [benchmarks.md](../reference/benchmarks.md).
 
@@ -245,11 +296,11 @@ JSON Schema definitions for validation:
 | `benchmark.schema.json` | Benchmark manifests |
 | `language.schema.json` | Language manifests |
 | `result.schema.json` | Result snapshots |
-| `implementation-output.schema.json` | Implementation output shapes (nbody, shortest-path, aggregation; barrier-wave not yet branched) |
+| `implementation-output.schema.json` | Implementation output shapes (nbody, shortest-path, aggregation, word-frequency, record-sorting, matrix-multiplication; barrier-wave not yet branched) |
 
 ## Web (`web/`)
 
-SvelteKit static dashboard for viewing results. Loads `results/current.json`, computes scores (80% geometric-mean speed / 10% consistency / 10% scalability), and displays charts and 2K-style scorecards. Built with adapter-static for deployment anywhere. Scorecard design system: [scorecards.md](scorecards.md). Overview: [web.md](web.md).
+SvelteKit static dashboard for viewing results. Loads `results/current.json`, computes scores (75% geometric-mean speed / 25% flexibility), and displays charts and 2K-style scorecards with attribute meters, badges, division ranks, and takeovers. Built with adapter-static for deployment anywhere. Scorecard design system: [scorecards.md](scorecards.md). Overview: [web.md](web.md).
 
 ---
 
@@ -296,6 +347,8 @@ cli/
 
 **Platform awareness**: Handles Windows-specific concerns (`.exe` suffixes, `.cmd` wrappers for npm/npx, `windowsHide: true`).
 
+**Parallel execution**: A `--parallel` flag overrides the config's default parallelism (`config.execution.parallelism`). When `--parallel` is set, concurrency is set to `os.cpus().length` (all logical cores). Under the hood, `pool()` (line ~291 of `index.ts`) provides a bounded-concurrency semaphore — it runs a user-supplied async function over an array of items while keeping at most `concurrency` in-flight promises.
+
 **Results summary**: `arena results summary` reads `results/current.json`, filters by `--language`, `--benchmark`, and `--size`, then prints an ANSI-colored box-drawing table with benchmark, language, correctness, median kernel time, and relative-speed columns. Fastest entries are marked with a green ★. Color is auto-detected from TTY and suppressed with `NO_COLOR`.
 
 **Version string**: Result snapshots write `arenaVersion: "0.2.0"` (hardcoded in the CLI). Root/`cli` npm `package.json` may still say `0.1.0` — treat the snapshot field as the arena protocol version for results.
@@ -310,7 +363,13 @@ cli/
 
 ## Local Caches
 
-Go builds set `GOCACHE` to `.arena/go-build-cache` (language builds) or `.arena/go-checker-cache` (checker compilation via `build-checker.mjs`). Go test runs use `.arena/go-test-cache`. Run scratch directories live under `.arena/runs/<snapshotId>` and are deleted after a run unless `--preserve-temp` is set.
+| Cache | Purpose |
+|-------|---------|
+| `.arena/go-build-cache/` | Go `GOCACHE` for language builds |
+| `.arena/go-checker-cache/` | Go `GOCACHE` for checker compilation (`build-checker.mjs`) |
+| `.arena/go-test-cache/` | Go `GOCACHE` for checker test runs (`test-checker.mjs`) |
+| `.arena/build-cache/<fingerprint>/` | Generic build-artifact cache — stores compiled binaries keyed by a SHA-256 fingerprint of the language manifest, implementation directory, and build config (`buildFingerprint()` at line ~310) |
+| `.arena/runs/<snapshotId>/` | Per-run scratch directories; deleted after a run unless `--preserve-temp` is set |
 
 ---
 
@@ -387,6 +446,18 @@ Independently re-aggregates CSV data and compares:
 
 Independently re-runs the reference barrier-wave kernel and compares the full output object (schema version, digests, seeds). Rejects malformed hex seeds and schema mismatches. Covered by `TestBarrierWaveReference` and `TestBarrierWaveRejectsMalformedHex` in `main_test.go`.
 
+### word-frequency
+
+Independent word-counting re-implementation: counts word frequency, sorts by count descending then alphabetically for ties, generates a SHA-256 checksum of sorted entries. Covered by `TestWordFrequency`.
+
+### record-sorting
+
+Independently sorts records by score descending, then timestamp ascending, then id ascending. Produces `firstRecords` / `lastRecords` samples and a SHA-256 checksum. Covered by `TestRecordSortingTieBreaking`.
+
+### matrix-multiplication
+
+Independently performs i→j→k triple-loop matrix multiplication with bounds and dimension validation. Computes `valueSum`, `diagonalSum`, and a SHA-256 checksum. Covered by `TestMatrixMultiplication`.
+
 ## Usage
 
 ```bash
@@ -418,15 +489,41 @@ The web UI (`web/`) is an optional SvelteKit static dashboard for viewing benchm
 
 ```
 web/
-  package.json          # @runtime-arena/web, SvelteKit + Vite + adapter-static
-  svelte.config.js      # Static adapter, outputs to build/
+  package.json              # @runtime-arena/web, SvelteKit + Vite + adapter-static
+  svelte.config.js          # Static adapter, outputs to build/
   vite.config.ts
   src/
-    app.html            # HTML shell with dark theme (#0d1115)
+    app.html                # HTML shell with dark theme (#0d1115)
     lib/
-      types.ts          # TypeScript types (ArenaResult, ArenaRun, BenchmarkScore, SizeScore)
-      scoring.ts        # Scoring algorithm
-      scoring.test.ts   # Scoring tests
+      types.ts              # TypeScript types (ArenaResult, ArenaRun, BenchmarkScore, SizeScore)
+      scoring.ts            # Scoring algorithm
+      scoring.test.ts       # Scoring tests
+      tiers.ts              # Score tier definitions (getScoreTier, languageMonogram, formatBenchmarkLabel)
+      tiers.test.ts         # Tier unit tests
+      implementationLines.ts       # LOC-per-language data loader
+      cards.test.ts                # Integration tests for the card-building pipeline
+      cards/                      # 2K-style card data pipeline
+        index.ts                  # Public exports
+        types.ts                  # CardTier, CardAttribute, EarnedBadge, LanguageCardData, etc.
+        util.ts                   # cardTierFromOverall, cardTierLabel, percentileRank
+        buildCardData.ts          # buildAllCardData, buildCardDataForLanguage, applyBadgeBonusesToScores
+        classifications.ts        # Language classification catalog (execution model, role, memory model)
+        attributes/
+          definitions.ts          # BENCHMARK_ATTRIBUTE_IDS, attribute metadata
+          calculateAttributes.ts  # Attribute ratings from benchmark scores + raw values
+        badges/
+          definitions.ts          # V1 / V1.5 / V2 / V2.5 badge definitions
+          calculateBadgeTier.ts   # Hybrid badge tier calculation (awardHybridBadge)
+          calculateBadgeBonus.ts  # Badge bonus computation (top 3 featured badges, overall capped at 100)
+          awardBadges.ts          # Main badge award + featured selection logic
+        divisions/
+          calculateDivisionRanks.ts  # Division rank calculation
+        takeovers/
+          calculateTakeover.ts       # Primary / secondary takeover computation
+        archetypes/
+          buildNames.ts              # Build name generation
+      data/
+        implementation-lines.json    # Lines-of-code data per language/benchmark
       BenchmarkChart.svelte
       BenchmarkScorecard.svelte
       FilteredResults.svelte
@@ -434,36 +531,45 @@ web/
       OverallChart.svelte
       ResultsExplorer.svelte
     routes/
-      +page.svelte      # Main page
-      +page.ts           # Data loader
+      +page.svelte            # Main page
+      +page.ts                # Data loader
       +layout.svelte
       +layout.ts
-      benchmarks/[id]/  # Per-benchmark detail pages
-      languages/[id]/   # Per-language detail pages
-      methodology/      # Methodology explanation page
+      benchmarks/[id]/        # Per-benchmark detail pages
+      languages/[id]/         # Per-language detail pages
+      methodology/            # Methodology explanation page
   static/
-    results/            # Populated by prepare-results.ts
-  build/                # Static build output
+    results/                  # Populated by prepare-results.ts
+  build/                      # Static build output
 ```
 
 ## Scoring Algorithm
 
-The scoring system (`src/lib/scoring.ts`) computes a 0-100 weighted overall score from three components:
+The scoring system (`src/lib/scoring.ts`) computes a 0-100 weighted overall score from two measured components, then applies optional badge bonuses in `buildCardData.ts`:
 
-**Speed (80% weight)**
+**Speed (75% weight)**
 - Each eligible benchmark/size contributes `fastestMedian / thisMedian` as a 0-100 performance score.
 - Ratios are combined with a geometric mean across sizes and benchmarks.
 - A size tier is excluded for every language when its fastest valid median is below 1 ms.
 
-**Consistency (10% weight)**
-- Per size: `consistency = clampScore(100 − CV × 400)`, where CV is the coefficient of variation of kernel times.
-- Averaged across all eligible sizes within a benchmark.
+**Flexibility (25% weight)**
+- `versatility = 0.6 × min(benchmark performances) + 0.4 × average(benchmark performances)`, measuring breadth across completed workloads.
 
-**Scalability (10% weight)**
-- Per benchmark: `scalability = (minimumPerformance / maximumPerformance) × 100`, measuring how well performance holds up across small/medium/large sizes.
+**Stability (diagnostic)**
+- Per size: `consistency = clampScore(100 − CV × 400)`, where CV is the coefficient of variation of kernel times.
+- Shown on cards but not included in overall.
+
+**Badge bonuses**
+- Badges are awarded via `awardBadges()` (in `cards/badges/awardBadges.ts`) from four definition groups: **V1** (6 core badges), **V1.5** (2 build-time badges), **V2** (4 execution/control badges), **V2.5** (2 code-economy badges).
+- Each badge tier is calculated by `awardHybridBadge()` using a hybrid formula: `0.55 × absolute attribute rating + 0.45 × percentile rank` (when 3+ languages have comparable data).
+- Tier values: Bronze +0.5, Silver +1.0, Gold +1.5, Hall of Fame +2.0, Legend +2.5.
+- Featured selection (`selectFeaturedBadgeIds`) picks up to 3 badges, preferring higher tiers and distinct categories.
+- Total bonus is computed by `calculateBadgeBonus()`: sum of top 3 featured tiers, overall capped at 100 via `applyFinalOverall()`.
 
 **Overall**
-- `overall = 0.8 × geometric-mean speed + 0.1 × average consistency + 0.1 × average scalability`
+- `baseOverall = 0.75 × geometric-mean speed + 0.25 × flexibility`
+- `overall = min(100, baseOverall + badgeBonus)`
+- Per-benchmark card scores use speed only.
 - Correctness and complete sample counts remain strict eligibility gates **within** a benchmark.
 - Overall scores use the weighted formula across whatever benchmarks that language completed successfully. Skipping a workload (no cells in the snapshot) does not zero the overall card; coverage gaps are noted as diagnostics.
 
@@ -489,14 +595,17 @@ The web UI loads results from `/results/current.json` (statically served). The `
 
 ## Components
 
-| Component | Purpose |
-|-----------|---------|
+| Component / Module | Purpose |
+|--------------------|---------|
 | `OverallCard` | 2K-style collectible card for a language overall score |
 | `OverallChart` | Bar chart comparing all languages |
 | `BenchmarkChart` | Per-benchmark performance chart |
 | `BenchmarkScorecard` | Tier-tinted detail row for a benchmark/language |
 | `FilteredResults` | Filterable results table |
 | `ResultsExplorer` | Interactive results browser (chart / scorecard views) |
+| `cards/` | Card data pipeline: `buildAllCardData()`, `LanguageCardData`, badge system, attribute calculation, division ranks, takeovers, build names |
+| `tiers.ts` | Score tier definitions, language monograms, benchmark label formatting |
+| `implementationLines.ts` | Lines-of-code data loader |
 
 ## Scorecards
 
@@ -512,7 +621,7 @@ The Scorecard view uses a trading-card design system (tiers, gem rarity, attribu
 
 The web dashboard presents language results as NBA 2K–style collectible cards (`OverallCard.svelte`) and as tier-tinted list rows (`BenchmarkScorecard.svelte`). There is no separate card JSON schema or asset pipeline — both components render a computed `BenchmarkScore` from `web/src/lib/scoring.ts` / `web/src/lib/types.ts`.
 
-Shared visual helpers live in `web/src/lib/tiers.ts` (`getScoreTier`, `languageMonogram`, `formatBenchmarkLabel`). Unit tests: `tiers.test.ts`.
+Shared visual helpers live in `web/src/lib/tiers.ts` (`getScoreTier`, `languageMonogram`, `formatBenchmarkLabel`). The card data pipeline in `web/src/lib/cards/` adds `cardTierFromOverall()` (from `cards/util.ts`) for the S+/A/B/C/D letter grade shown on the card face, along with badge, attribute, takeover, division, and build-name logic. Unit tests: `tiers.test.ts`, `cards.test.ts`.
 
 ## Presentation Modes
 
@@ -521,20 +630,26 @@ Shared visual helpers live in `web/src/lib/tiers.ts` (`getScoreTier`, `languageM
 | Collectible card | `OverallCard` | Vertical trading-card silhouette (`card-2k`), used in the Scorecard view and the expanded-card overlay |
 | Detail row | `BenchmarkScorecard` | Horizontal ranked list with shared tier glow; expandable calculation/diagnostics |
 
-Both modes call `getScoreTier(score.overall)`. Only `OverallCard` implements the full 2K frame, art stage, attribute meters, tilt, and shimmer.
+`BenchmarkScorecard` calls `getScoreTier(score.overall)` for tier tinting. `OverallCard` also uses `getScoreTier(score.overall)` for the tier badge, gem, and glow colors. When card data (`LanguageCardData`) from `cards/buildCardData.ts` is available, `OverallCard` additionally shows a letter-grade tier (`cardTierFromOverall()`) from `cards/util.ts`, attribute meters, classifications, featured badges, takeovers, and division ranks. Only `OverallCard` implements the full 2K frame, art stage, attribute meters, tilt, and shimmer.
 
 ## Score → Card Mapping
 
-| Card surface | Score field | Notes |
-|--------------|-------------|-------|
-| Large SPEED number (OVR) | `overall` | Weighted composite: 80% geometric-mean speed + 10% consistency + 10% scalability (0–100). Displayed as a rounded integer; `null` → `—` |
-| SPEED / STABLE / SCALE meters | `performance`, `consistency`, `scalability` | Segmented 10-bar meters **plus** tabular numeric values beside each label |
-| Language name + monogram | `language.id` / `language.name` | Stable abbreviations (`RS`, `TS`, `PY`, `LJ`, `GO`, `C++`) via `languageMonogram` |
-| Footer runtime line | `language.id`, `language.version` | Version shows the first whitespace-delimited token |
-| Archetype / team label | `benchmarkId` | `formatBenchmarkLabel` → `ARENA` or id with `[-_]+` → spaces, uppercased |
-| Benchmark breakdown | `benchmarks[]` | Overall cards only; toggle reveals per-benchmark scores |
-| Diagnostics (compact) | `diagnostics[]` | Ineligible: `UNVERIFIED · N issues` + first line. Eligible but incomplete coverage: `PARTIAL · N notes` (e.g. skipped barrier-wave) |
-| Diagnostics (expanded) | full `diagnostics[]` | Shown in overlay / expanded card mode |
+| Card surface | Source | Notes |
+|--------------|--------|-------|
+| Large OVR number | `score.overall` | Weighted composite: 75% geometric-mean speed + 25% flexibility, plus badge bonuses (capped at 100 overall). Displayed as a rounded integer; `null` → `—` |
+| SPEED / STABLE / FLEX meters | `score.performance`, `consistency`, `versatility` | Segmented 10-bar meters **plus** tabular numeric values beside each label. STABLE is diagnostic only. |
+| Language name + monogram | `score.language` | Stable abbreviations (`RS`, `TS`, `PY`, `LJ`, `GO`, `C++`) via `languageMonogram` |
+| Footer runtime | `score.language.id` / `score.language.version` | Version shows the first whitespace-delimited token |
+| Archetype / team label | `card.buildName` (or `formatBenchmarkLabel`) | When card data present: `generateBuildName` → unique archetype name. Fallback: `ARENA` or id with `[-_]+` → spaces, uppercased |
+| Letter-grade tier | `card.cardTier` | S+, S, A+, A, B, C, D via `cardTierFromOverall()` from `cards/util.ts` |
+| Classifications | `card.displayClassifications` | Execution model + role chips (e.g. Native, Systems) from `cards/classifications.ts` |
+| Attribute meters | `card.attributes[]` | Up to 5 benchmark-driven attributes (COMPUTE, ALGORITHMS, DATA-PROCESSING, IO, PARALLELISM) + extended attributes in expanded view |
+| Takeovers | `card.takeover` | Primary / secondary specialisation labels from `cards/takeovers/calculateTakeover.ts` |
+| Division ranks | `card.featuredDivisionRank` | Best division placement (rank + division name + field size) |
+| Featured badges | `card.featuredBadgeIds` → `card.badges[]` | Up to 3 chips (name + tier label) with hover tooltip showing next-tier requirements |
+| Benchmark breakdown | `score.benchmarks[]` | Overall cards only; toggle reveals per-benchmark scores |
+| Diagnostics (compact) | `score.diagnostics[]` | Ineligible: `UNVERIFIED · N issues` + first line. Eligible but incomplete coverage: `PARTIAL · N notes` |
+| Diagnostics (expanded) | full `score.diagnostics[]` | Shown in overlay / expanded card mode |
 
 Leaderboard placement (RANK 01, 02, …) is separate from visual `tierLevel`. Tier tags (GO, PD, DIA, …) are rarity labels from score thresholds.
 
@@ -542,18 +657,20 @@ Leaderboard placement (RANK 01, 02, …) is separate from visual `tierLevel`. Ti
 
 Resolved by `getScoreTier(score: number | null)`:
 
-| `overall` | Band name | Gem (rarity) | Tag | `tierLevel` | CSS class |
-|-----------|-----------|--------------|-----|-------------|-----------|
-| ≥ 95 | UNTOUCHABLE | Galaxy Opal | GO | 7 | `galaxy-opal` |
-| ≥ 90 | INVINCIBLE | Pink Diamond | PD | 6 | `pink-diamond` |
-| ≥ 80 | DOMINANT | Diamond | DIA | 5 | `diamond` |
-| ≥ 70 | ELITE | Amethyst | AME | 4 | `amethyst` |
-| ≥ 60 | STANDARD | Ruby | RUB | 3 | `ruby` |
-| ≥ 45 | ROOKIE | Sapphire | SAP | 2 | `sapphire` |
-| &lt; 45 | COMMON | Emerald | EME | 1 | `emerald` |
-| `null` | UNVERIFIED | No Rank | — | 0 | `unranked` |
+| `overall` | Band name | Gem (rarity) | Tag | `tierLevel` | CSS class | `--tier-glow` | `--tier-gradient` |
+|-----------|-----------|--------------|-----|-------------|-----------|---------------|--------------------|
+| 100 | FLAWLESS | Dark Matter | DM | 9 | `dark-matter` | `#00e5ff` | `linear-gradient(135deg, #0a0612 0%, #1a0f3d 35%, #00d4ff 70%, #7b2fff 100%)` |
+| ≥ 99 | TRANSCENDENT | Prismatic Opal | PO | 8 | `prismatic-opal` | `#e8c4ff` | `linear-gradient(135deg, #ff6ec7 0%, #7afcff 35%, #ffe66d 65%, #b388ff 100%)` |
+| ≥ 95 | UNTOUCHABLE | Galaxy Opal | GO | 7 | `galaxy-opal` | `#ff2bd6` | `linear-gradient(135deg, #ff2bd6 0%, #b13bd6 45%, #6a1bd6 100%)` |
+| ≥ 90 | INVINCIBLE | Pink Diamond | PD | 6 | `pink-diamond` | `#ff5fa8` | `linear-gradient(135deg, #ff6db5 0%, #d6388a 50%, #6a1d4f 100%)` |
+| ≥ 80 | DOMINANT | Diamond | DIA | 5 | `diamond` | `#5ce6ff` | `linear-gradient(135deg, #5ce6ff 0%, #2d9fd6 50%, #103a5e 100%)` |
+| ≥ 70 | ELITE | Amethyst | AME | 4 | `amethyst` | `#b794ff` | `linear-gradient(135deg, #b794ff 0%, #7a4ed6 50%, #2a1850 100%)` |
+| ≥ 60 | STANDARD | Ruby | RUB | 3 | `ruby` | `#ff5a5a` | `linear-gradient(135deg, #ff5a5a 0%, #b32d2d 50%, #4a0e0e 100%)` |
+| ≥ 45 | ROOKIE | Sapphire | SAP | 2 | `sapphire` | `#6a8cff` | `linear-gradient(135deg, #6a8cff 0%, #2d4fb8 50%, #0e1a4a 100%)` |
+| &lt; 45 | COMMON | Emerald | EME | 1 | `emerald` | `#6affb8` | `linear-gradient(135deg, #6affb8 0%, #2db87a 50%, #0e4a2a 100%)` |
+| `null` | UNVERIFIED | No Rank | — | 0 | `unranked` | `#4a5560` | `linear-gradient(135deg, #4a5560 0%, #2a323a 50%, #0e141a 100%)` |
 
-`tierLevel` (`0 | 1 | … | 7`) drives shimmer intensity and `high-tier` styling (`tierLevel >= 5`). Each tier sets `--tier-glow` and `--tier-gradient`.
+`tierLevel` (`0 | 1 | … | 9`) drives shimmer intensity and `high-tier` styling (`tierLevel >= 5`). Apex cards (`tierLevel >= 8`) get stronger foil shimmer. Each tier sets `--tier-glow` and `--tier-gradient`.
 
 ## Language Visual Identity
 
@@ -571,6 +688,7 @@ Languages do **not** have fixed brand colorways. Appearance is:
 - **Art stage**: Grid, floating code particles, monogram with halo.
 - **Motion**: Pointer tilt (±6°) and particle float — disabled under `prefers-reduced-motion: reduce`.
 - **High tier**: Stronger top wash when `tierLevel >= 5`.
+- **Badges**: Badges are defined in four groups (`cards/badges/definitions.ts`): **V1** (6 core badges: Speedster, Compute Finisher, Data Wrangler, Pathfinder, Steady Hands, Scale Master), **V1.5** (Quick Build, Minimal Build), **V2** (Quick Draw, Memory Minder, Stream Controller, Parallel Engine), **V2.5** (Tight Code, High Yield). Tiers are computed via `awardHybridBadge()` which combines absolute attribute rating and percentile rank (when 3+ languages have data). Face shows up to three featured chips (name + tier) with hover tooltips showing the reason and next-tier requirements. Expanded cards show the full earned set as a compact chip grid.
 
 ## Dimensions
 
@@ -583,7 +701,7 @@ Languages do **not** have fixed brand colorways. Appearance is:
 
 Near rankings in `ResultsExplorer`, a small line clarifies scope:
 
-> Snapshot rankings · 80% geometric-mean speed · 10% consistency · 10% scalability · skipped workloads noted
+> Snapshot rankings · 75% geometric-mean speed · 25% flexibility · badge bonuses · skipped workloads noted
 
 ## Data Model
 
@@ -653,6 +771,7 @@ npm run arena -- run --output out.json
 - `--iterations` — Override measured iterations
 - `--force` — Force re-run even if fingerprint matches
 - `--all` — With `--force`, re-run all cells
+- `--parallel` — Use all CPU cores (overrides `execution.parallelism` in config)
 - `--quiet` — Suppress console output
 - `--no-save` — Don't write to results file
 - `--format json` — Output JSON snapshot to stdout
@@ -785,10 +904,10 @@ Root runner configuration at the repository root.
 | `defaults.warmupIterations` | Default warmup iterations (discarded) |
 | `defaults.measuredIterations` | Default measured iterations |
 | `defaults.metrics` | Default metrics to record |
-| `execution.parallelism` | **Present in config but unused** — the CLI does not read `config.execution`; cells run sequentially |
+| `execution.parallelism` | Number of cells to run concurrently (default: `1`). Override with `--parallel` flag |
 | `execution.preserveTemporaryFiles` | **Present in config but unused** — use CLI flag `--preserve-temp` instead |
 
-Temp run directories live under `.arena/runs/` and are deleted after each run unless `--preserve-temp` is set. Go builds also use `.arena/go-build-cache` via `GOCACHE`.
+Temp run directories live under `.arena/runs/` and are deleted after each run unless `--preserve-temp` is set. Build artifacts are cached in `.arena/build-cache/<fingerprint>/` (keyed on language manifest and implementation source). Go builds also use `.arena/go-build-cache` via `GOCACHE`.
 
 
 ## Language Manifests (`languages/*.json`)
@@ -956,7 +1075,7 @@ Each result is required to contain:
 
 ## implementation-output.schema.json
 
-Base output shape for implementations. Uses conditional validation based on the `benchmark` field to apply benchmark-specific output schemas for **nbody**, **shortest-path**, and **aggregation**. **barrier-wave** is not yet branched in this schema; the Go checker is the authority for that workload's output shape.
+Base output shape for implementations. Uses conditional validation based on the `benchmark` field to apply benchmark-specific output schemas for **nbody**, **shortest-path**, **aggregation**, **word-frequency**, **record-sorting**, and **matrix-multiplication**. **barrier-wave** is not yet branched in this schema; the Go checker is the authority for that workload's output shape.
 
 ---
 
@@ -1066,9 +1185,9 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 
 | Size | Warmup / Measured (typical) | N-body | Shortest path | Aggregation | Barrier Wave |
 |------|----------------------------|--------|---------------|-------------|--------------|
-| small | see manifest | 4 bodies × 5,000 steps (1 / 5) | 100 vertices × 30 queries (1 / 5) | 10,000 records (1 / 5) | 2 workers × 500 phases × 64 items (3 / 10) |
-| medium | see manifest | 6 bodies × 20,000 steps (3 / 10) | 300 vertices × 90 queries (3 / 10) | 50,000 records (3 / 10) | 4 workers × 250 phases × 1024 items (3 / 10) |
-| large | see manifest | 8 bodies × 50,000 steps (3 / 10) | 600 vertices × 180 queries (3 / 10) | 200,000 records (3 / 10) | 8 workers × 100 phases × 8192 items (2 / 8) |
+| small | see manifest | 12 bodies × 10,000 steps (2 / 5) | 400 vertices × 120 queries (2 / 5) | 100,000 records (2 / 5) | 2 workers × 1,500 phases × 64 items (2 / 5) |
+| medium | see manifest | 7 bodies × 25,000 steps (2 / 3) | 300 vertices × 90 queries (2 / 3) | 120,000 records (2 / 3) | 4 workers × 250 phases × 1,024 items (2 / 3) |
+| large | see manifest | 8 bodies × 50,000 steps (2 / 3) | 600 vertices × 180 queries (2 / 3) | 200,000 records (2 / 3) | 8 workers × 100 phases × 8,192 items (2 / 3) |
 
 Warmup and measured iteration counts come from each benchmark's `benchmark.json` size entries (not only `arena.config.json` defaults). Dataset paths are whatever `sizes.<name>.dataset` names — JSON or CSV.
 
@@ -1078,9 +1197,9 @@ All datasets are deterministic from a seed. Regenerating via `arena dataset gene
 
 | Size | Word frequency | Record sorting | Matrix multiplication |
 |------|----------------|----------------|-----------------------|
-| small | 10,000 words / 842 unique (3 / 10) | 10,000 records (3 / 10) | 64 × 64 (3 / 10) |
-| medium | 50,000 words / 3,421 unique (3 / 10) | 100,000 records (3 / 10) | 256 × 256 (3 / 10) |
-| large | 200,000 words / 8,421 unique (3 / 10) | 500,000 records (3 / 10) | 512 × 512 (3 / 10) |
+| small | 50,000 words / 3,421 unique (2 / 5) | 20,000 records (2 / 5) | 128 × 128 (2 / 5) |
+| medium | 50,000 words / 3,421 unique (2 / 3) | 100,000 records (2 / 3) | 256 × 256 (2 / 3) |
+| large | 200,000 words / 8,421 unique (2 / 3) | 500,000 records (2 / 3) | 512 × 512 (2 / 3) |
 
 ---
 
@@ -1150,7 +1269,7 @@ benchmarks/             # Workloads, datasets, implementations
   shortest-path/
   aggregation/
   barrier-wave/         # Rust/Go/TS/Python/C++; LuaJIT marked unavailable
-languages/              # Language manifests (rust, go, typescript, python, lua, cpp)
+languages/              # Language manifests (rust, go, typescript, python, lua, cpp, javascript)
 schemas/                # JSON Schema definitions
 results/                # Canonical result snapshots
 web/                    # SvelteKit dashboard
@@ -1272,6 +1391,7 @@ Useful extras:
 | `--output <file>` | Write results to a specific path |
 | `--warmup <n>` / `--iterations <n>` | Override dataset defaults |
 | `--preserve-temp` | Keep the temp run directory |
+| `--parallel` | Use all CPU cores (overrides `execution.parallelism` in config) |
 
 ### 4. Browse results
 
@@ -1362,7 +1482,8 @@ npm test
 This command:
 1. Builds the checker binary (`npm run build:checker`)
 2. Runs CLI and web workspace tests (`npm run test --workspaces --if-present`)
-3. Runs checker unit tests (`node scripts/test-checker.mjs`)
+3. Runs implementation line-count tests (`node scripts/count-implementation-loc.test.mjs`)
+4. Runs checker unit tests (`node scripts/test-checker.mjs`)
 
 ## Test Locations
 
@@ -1372,6 +1493,8 @@ This command:
 | CLI timing helpers | `cli/src/timing.test.ts` | Node test runner |
 | Web scoring | `web/src/lib/scoring.test.ts` | Node test runner |
 | Web tiers | `web/src/lib/tiers.test.ts` | Node test runner |
+| Web card data | `web/src/lib/cards.test.ts` | Node test runner |
+| Implementation LOC | `scripts/count-implementation-loc.test.mjs` | Node test runner |
 | Checker | `checker/cmd/arena-checker/main_test.go` | Go testing |
 
 ## CLI Tests
@@ -1483,7 +1606,9 @@ npm run arena -- run          # Run benchmarks
 npm run build:web             # Rebuild web UI with new results
 ```
 
-The `prepare-results.ts` script handles copying the latest results into the static build.
+The `prepare-results.ts` script copies the latest results into the static build,
+filtering to keep only `persistent-worker` mode entries with
+`measurementContractVersion "1.0.0"`.
 
 ---
 
@@ -1559,7 +1684,10 @@ and checker tests can still be completed and verified independently.
 3. Ensure the manifest matches `schemas/language.schema.json`.
 4. Add `benchmarks/<benchmark-id>/implementations/<language-id>/` for every
    supported benchmark you intend to ship (nbody, shortest-path, aggregation,
-   barrier-wave). Note that JavaScript (Node.js) implementations use the `javascript`
+   barrier-wave). Additional benchmarks are available but optional:
+   word-frequency, record-sorting, and matrix-multiplication
+   (implementations for these are pending across most languages).
+   Note that JavaScript (Node.js) implementations use the `javascript`
    language ID and `.mjs` source extension.
 5. Read each benchmark's `IMPLEMENTING.md` for the exact implementation
    contract — input/output formats, algorithm requirements, checksum rules,
@@ -1618,7 +1746,6 @@ commands on `PATH` when documenting or sharing manifests.
 
 Use this checklist to determine whether an implementation is efficient without
 making the comparison unfair.
-Use Conext7 To Help
 
 ## Correctness and Fairness
 
@@ -1723,11 +1850,12 @@ npm run arena -- results status     # Cell freshness
 npm run arena -- dataset generate --benchmark nbody --size small --seed 729418
 ```
 
-Generators registered for all four benchmarks. Deterministic from seed.
+Generators registered for all seven benchmarks. Deterministic from seed.
 
 ## Local Caches
 
 - `.arena/runs/<snapshotId>/` — per-run scratch (deleted unless `--preserve-temp`)
+- `.arena/build-cache/<fingerprint>/` — build artifact cache (compiled binaries reused when source hash matches)
 - `.arena/go-build-cache/` — Go `GOCACHE` for language builds
 - `.arena/go-checker-cache/` — Go `GOCACHE` for checker compilation
 - `.arena/go-test-cache/` — Go `GOCACHE` for checker tests

@@ -37,6 +37,8 @@ cli/
 
 **Platform awareness**: Handles Windows-specific concerns (`.exe` suffixes, `.cmd` wrappers for npm/npx, `windowsHide: true`).
 
+**Parallel execution**: A `--parallel` flag overrides the config's default parallelism (`config.execution.parallelism`). When `--parallel` is set, concurrency is set to `os.cpus().length` (all logical cores). Under the hood, `pool()` (line ~291 of `index.ts`) provides a bounded-concurrency semaphore — it runs a user-supplied async function over an array of items while keeping at most `concurrency` in-flight promises.
+
 **Results summary**: `arena results summary` reads `results/current.json`, filters by `--language`, `--benchmark`, and `--size`, then prints an ANSI-colored box-drawing table with benchmark, language, correctness, median kernel time, and relative-speed columns. Fastest entries are marked with a green ★. Color is auto-detected from TTY and suppressed with `NO_COLOR`.
 
 **Version string**: Result snapshots write `arenaVersion: "0.2.0"` (hardcoded in the CLI). Root/`cli` npm `package.json` may still say `0.1.0` — treat the snapshot field as the arena protocol version for results.
@@ -51,4 +53,10 @@ cli/
 
 ## Local Caches
 
-Go builds set `GOCACHE` to `.arena/go-build-cache` (language builds) or `.arena/go-checker-cache` (checker compilation via `build-checker.mjs`). Go test runs use `.arena/go-test-cache`. Run scratch directories live under `.arena/runs/<snapshotId>` and are deleted after a run unless `--preserve-temp` is set.
+| Cache | Purpose |
+|-------|---------|
+| `.arena/go-build-cache/` | Go `GOCACHE` for language builds |
+| `.arena/go-checker-cache/` | Go `GOCACHE` for checker compilation (`build-checker.mjs`) |
+| `.arena/go-test-cache/` | Go `GOCACHE` for checker test runs (`test-checker.mjs`) |
+| `.arena/build-cache/<fingerprint>/` | Generic build-artifact cache — stores compiled binaries keyed by a SHA-256 fingerprint of the language manifest, implementation directory, and build config (`buildFingerprint()` at line ~310) |
+| `.arena/runs/<snapshotId>/` | Per-run scratch directories; deleted after a run unless `--preserve-temp` is set |

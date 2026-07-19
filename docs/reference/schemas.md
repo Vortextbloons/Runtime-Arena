@@ -73,4 +73,4 @@ Each result is required to contain:
 
 ## implementation-output.schema.json
 
-Base output shape for implementations. Uses conditional validation based on the `benchmark` field to apply benchmark-specific output schemas for **nbody**, **shortest-path**, and **aggregation**. **barrier-wave** is not yet branched in this schema; the Go checker is the authority for that workload's output shape.
+Base output shape for implementations. Uses conditional validation based on the `benchmark` field to apply benchmark-specific output schemas for **nbody**, **shortest-path**, **aggregation**, **word-frequency**, **record-sorting**, and **matrix-multiplication**. **barrier-wave** is not yet branched in this schema; the Go checker is the authority for that workload's output shape.

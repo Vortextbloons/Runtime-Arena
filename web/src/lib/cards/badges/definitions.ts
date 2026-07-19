@@ -16,7 +16,7 @@ export type BadgeSource =
 	| 'PAR'
 	| 'LOC'
 	| 'ECO'
-	| 'pressure-proof';
+	;
 
 export type BadgeDefinition = {
 	id: string;
@@ -51,7 +51,7 @@ export const V1_BADGE_DEFINITIONS: BadgeDefinition[] = [
 	},
 	{
 		id: 'data-handler',
-		name: 'Data Handler',
+		name: 'Data Wrangler',
 		category: 'control',
 		source: 'DAT',
 		benchmarkId: 'aggregation',
@@ -73,13 +73,6 @@ export const V1_BADGE_DEFINITIONS: BadgeDefinition[] = [
 		legendRequiresCategoryWin: true
 	},
 	{
-		id: 'pressure-proof',
-		name: 'Pressure Proof',
-		category: 'reliability',
-		source: 'pressure-proof',
-		legendRequiresCategoryWin: true
-	},
-	{
 		id: 'scale-master',
 		name: 'Scale Master',
 		category: 'physical',
@@ -91,14 +84,14 @@ export const V1_BADGE_DEFINITIONS: BadgeDefinition[] = [
 export const V15_BADGE_DEFINITIONS: BadgeDefinition[] = [
 	{
 		id: 'fast-builder',
-		name: 'Fast Builder',
+		name: 'Quick Build',
 		category: 'physical',
 		source: 'BLD',
 		legendRequiresFastestRaw: true
 	},
 	{
 		id: 'lightweight-build',
-		name: 'Lightweight Build',
+		name: 'Minimal Build',
 		category: 'physical',
 		source: 'BIN',
 		legendRequiresSmallestRaw: true
@@ -148,7 +141,7 @@ export const V25_BADGE_DEFINITIONS: BadgeDefinition[] = [
 	},
 	{
 		id: 'code-economy',
-		name: 'Code Economy',
+		name: 'High Yield',
 		category: 'execution',
 		source: 'ECO',
 		legendRequiresLargestRaw: true

@@ -37,7 +37,7 @@ Root runner configuration at the repository root.
 | `execution.parallelism` | Number of cells to run concurrently (default: `1`). Override with `--parallel` flag |
 | `execution.preserveTemporaryFiles` | **Present in config but unused** — use CLI flag `--preserve-temp` instead |
 
-Temp run directories live under `.arena/runs/` and are deleted after each run unless `--preserve-temp` is set. Go builds also use `.arena/go-build-cache` via `GOCACHE`.
+Temp run directories live under `.arena/runs/` and are deleted after each run unless `--preserve-temp` is set. Build artifacts are cached in `.arena/build-cache/<fingerprint>/` (keyed on language manifest and implementation source). Go builds also use `.arena/go-build-cache` via `GOCACHE`.
 
 
 ## Language Manifests (`languages/*.json`)

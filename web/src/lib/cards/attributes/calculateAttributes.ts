@@ -34,27 +34,6 @@ export function overallScalability(benchmarkScores: BenchmarkScore[]): number | 
 	return normalizeScore(average(values));
 }
 
-/**
- * Pressure Proof retention for one language across eligible benchmarks.
- * retention = 100 × min(1, largeRelative / smallRelative) averaged over pairs.
- */
-export function pressureProofRetention(
-	languageId: string,
-	benchmarkScoresById: Record<string, BenchmarkScore[]>
-): number | null {
-	const retentions: number[] = [];
-	for (const scores of Object.values(benchmarkScoresById)) {
-		const score = scores.find((entry) => entry.language.id === languageId);
-		if (!score?.eligible) continue;
-		const small = score.sizes.find((size) => size.size === 'small');
-		const large = score.sizes.find((size) => size.size === 'large');
-		if (!small || !large || small.performance <= 0) continue;
-		retentions.push(normalizeScore(100 * Math.min(1, large.performance / small.performance)));
-	}
-	if (!retentions.length) return null;
-	return normalizeScore(average(retentions));
-}
-
 /** Relative score where higher raw values are better (best → 100). */
 export function relativeHigherIsBetter(value: number, field: number[]): number | null {
 	const positive = field.filter((entry) => Number.isFinite(entry) && entry > 0);

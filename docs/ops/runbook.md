@@ -40,11 +40,12 @@ npm run arena -- results status     # Cell freshness
 npm run arena -- dataset generate --benchmark nbody --size small --seed 729418
 ```
 
-Generators registered for all four benchmarks. Deterministic from seed.
+Generators registered for all seven benchmarks. Deterministic from seed.
 
 ## Local Caches
 
 - `.arena/runs/<snapshotId>/` — per-run scratch (deleted unless `--preserve-temp`)
+- `.arena/build-cache/<fingerprint>/` — build artifact cache (compiled binaries reused when source hash matches)
 - `.arena/go-build-cache/` — Go `GOCACHE` for language builds
 - `.arena/go-checker-cache/` — Go `GOCACHE` for checker compilation
 - `.arena/go-test-cache/` — Go `GOCACHE` for checker tests

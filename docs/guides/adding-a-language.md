@@ -6,7 +6,10 @@
 3. Ensure the manifest matches `schemas/language.schema.json`.
 4. Add `benchmarks/<benchmark-id>/implementations/<language-id>/` for every
    supported benchmark you intend to ship (nbody, shortest-path, aggregation,
-   barrier-wave). Note that JavaScript (Node.js) implementations use the `javascript`
+   barrier-wave). Additional benchmarks are available but optional:
+   word-frequency, record-sorting, and matrix-multiplication
+   (implementations for these are pending across most languages).
+   Note that JavaScript (Node.js) implementations use the `javascript`
    language ID and `.mjs` source extension.
 5. Read each benchmark's `IMPLEMENTING.md` for the exact implementation
    contract — input/output formats, algorithm requirements, checksum rules,

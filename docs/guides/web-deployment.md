@@ -49,4 +49,6 @@ npm run arena -- run          # Run benchmarks
 npm run build:web             # Rebuild web UI with new results
 ```
 
-The `prepare-results.ts` script handles copying the latest results into the static build.
+The `prepare-results.ts` script copies the latest results into the static build,
+filtering to keep only `persistent-worker` mode entries with
+`measurementContractVersion "1.0.0"`.

@@ -8,7 +8,6 @@ import { awardHybridBadge, hybridQualificationScore } from './cards/badges/calcu
 import { selectFeaturedBadgeIds } from './cards/badges/awardBadges.ts';
 import {
 	applyFinalOverall,
-	BADGE_BONUS_CAP,
 	calculateBadgeBonus
 } from './cards/badges/calculateBadgeBonus.ts';
 import { applyBadgeBonusesToScores, buildAllCardData } from './cards/buildCardData.ts';
@@ -356,8 +355,8 @@ test('badge bonus only increases overall and caps at five', () => {
 		}
 	] as const;
 
-	assert.equal(calculateBadgeBonus([...badges]), BADGE_BONUS_CAP);
-	assert.equal(applyFinalOverall(92, calculateBadgeBonus([...badges])), 97);
+	assert.equal(calculateBadgeBonus([...badges]), 7.5);
+	assert.equal(applyFinalOverall(92, calculateBadgeBonus([...badges])), 99.5);
 	assert.equal(applyFinalOverall(98, calculateBadgeBonus([...badges])), 100);
 	assert.equal(calculateBadgeBonus([]), 0);
 });

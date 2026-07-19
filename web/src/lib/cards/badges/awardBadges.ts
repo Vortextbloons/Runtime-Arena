@@ -1,7 +1,7 @@
 import type { ArenaResult, BenchmarkScore } from '../../types.ts';
 import type { CardAttribute, EarnedBadge } from '../types.ts';
 import { BADGE_TIER_ORDER } from '../types.ts';
-import { attributeMap, pressureProofRetention } from '../attributes/calculateAttributes.ts';
+import { attributeMap } from '../attributes/calculateAttributes.ts';
 import { awardHybridBadge } from './calculateBadgeTier.ts';
 import { ALL_BADGE_DEFINITIONS, type BadgeDefinition } from './definitions.ts';
 
@@ -68,60 +68,51 @@ function awardFromDefinition(
 	let hasFirstOverall: boolean | undefined;
 	let independentLegendEvidence = false;
 
-	if (definition.source === 'pressure-proof') {
-		absoluteScore = pressureProofRetention(languageId, benchmarkScoresById);
-		if (absoluteScore === null) return null;
-		fieldScores = languageIds
-			.map((id) => pressureProofRetention(id, benchmarkScoresById))
-			.filter((value): value is number => value !== null);
+	const map = attributeMap(attributes);
+	const attribute = map[definition.source];
+	if (!attribute?.available || attribute.rating === null) return null;
+	absoluteScore = attribute.rating;
+	fieldScores = fieldScoresForAbbreviation(definition.source, languageAttributes, languageIds);
+	if (definition.legendRequiresSizeSweep && definition.benchmarkId) {
+		hasSizeSweep = languageHasSizeSweep(languageId, benchmarkScoresById[definition.benchmarkId] ?? []);
+		independentLegendEvidence = hasSizeSweep;
+	}
+	if (definition.legendRequiresCategoryWin) {
 		hasCategoryWin = isCategoryWin(absoluteScore, fieldScores);
-	} else {
-		const map = attributeMap(attributes);
-		const attribute = map[definition.source];
-		if (!attribute?.available || attribute.rating === null) return null;
-		absoluteScore = attribute.rating;
-		fieldScores = fieldScoresForAbbreviation(definition.source, languageAttributes, languageIds);
-		if (definition.legendRequiresSizeSweep && definition.benchmarkId) {
-			hasSizeSweep = languageHasSizeSweep(languageId, benchmarkScoresById[definition.benchmarkId] ?? []);
-			independentLegendEvidence = hasSizeSweep;
+	}
+	if (definition.legendRequiresFirstOverall) {
+		hasFirstOverall = isFirstOverall(languageId, overallScores);
+	}
+	if (definition.legendRequiresFastestRaw || definition.legendRequiresSmallestRaw) {
+		const rawValues = languageIds
+			.map((id) => {
+				const peer = attributeMap(languageAttributes.get(id) ?? [])[definition.source];
+				return peer?.available ? peer.rawValue : undefined;
+			})
+			.filter((value): value is number => typeof value === 'number' && value > 0);
+		const ownRaw = attribute.rawValue;
+		if (typeof ownRaw === 'number' && rawValues.length) {
+			const best = Math.min(...rawValues);
+			hasCategoryWin = ownRaw === best;
+			independentLegendEvidence = hasCategoryWin;
+		} else {
+			hasCategoryWin = false;
 		}
-		if (definition.legendRequiresCategoryWin) {
-			hasCategoryWin = isCategoryWin(absoluteScore, fieldScores);
-		}
-		if (definition.legendRequiresFirstOverall) {
-			hasFirstOverall = isFirstOverall(languageId, overallScores);
-		}
-		if (definition.legendRequiresFastestRaw || definition.legendRequiresSmallestRaw) {
-			const rawValues = languageIds
-				.map((id) => {
-					const peer = attributeMap(languageAttributes.get(id) ?? [])[definition.source];
-					return peer?.available ? peer.rawValue : undefined;
-				})
-				.filter((value): value is number => typeof value === 'number' && value > 0);
-			const ownRaw = attribute.rawValue;
-			if (typeof ownRaw === 'number' && rawValues.length) {
-				const best = Math.min(...rawValues);
-				hasCategoryWin = ownRaw === best;
-				independentLegendEvidence = hasCategoryWin;
-			} else {
-				hasCategoryWin = false;
-			}
-		}
-		if (definition.legendRequiresLargestRaw) {
-			const rawValues = languageIds
-				.map((id) => {
-					const peer = attributeMap(languageAttributes.get(id) ?? [])[definition.source];
-					return peer?.available ? peer.rawValue : undefined;
-				})
-				.filter((value): value is number => typeof value === 'number' && value > 0);
-			const ownRaw = attribute.rawValue;
-			if (typeof ownRaw === 'number' && rawValues.length) {
-				const best = Math.max(...rawValues);
-				hasCategoryWin = ownRaw === best;
-				independentLegendEvidence = hasCategoryWin;
-			} else {
-				hasCategoryWin = false;
-			}
+	}
+	if (definition.legendRequiresLargestRaw) {
+		const rawValues = languageIds
+			.map((id) => {
+				const peer = attributeMap(languageAttributes.get(id) ?? [])[definition.source];
+				return peer?.available ? peer.rawValue : undefined;
+			})
+			.filter((value): value is number => typeof value === 'number' && value > 0);
+		const ownRaw = attribute.rawValue;
+		if (typeof ownRaw === 'number' && rawValues.length) {
+			const best = Math.max(...rawValues);
+			hasCategoryWin = ownRaw === best;
+			independentLegendEvidence = hasCategoryWin;
+		} else {
+			hasCategoryWin = false;
 		}
 	}
 

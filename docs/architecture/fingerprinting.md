@@ -6,9 +6,11 @@ The fingerprinting system determines whether a benchmark cell needs re-execution
 
 A fingerprint is a SHA-256 hash that captures the complete state of a (benchmark, size, language) cell. If any input to the cell changes, the fingerprint changes, and the cell is marked stale.
 
-## What is Hashed
+There are two separate fingerprint systems: one for **execution staleness** (`fingerprintCell`) and one for **build caching** (`buildFingerprint`).
 
-The fingerprint includes:
+## What is Hashed (Execution Fingerprint)
+
+The execution fingerprint (`fingerprintCell`) includes:
 
 1. **Language manifest** — `languages/<language>.json`
 2. **Benchmark manifest** — `benchmarks/<benchmark>/benchmark.json`
@@ -32,6 +34,37 @@ fingerprintCell(language, benchmark, size, toolchainVersion, compilerVersion, wa
             + implementationSourceTree + checkerSourceTree
             + JSON({benchmarkVersion, measurementContractVersion: "1.0.0", size, warmups, iterations, metrics, toolchainVersion, compilerVersion}))
 ```
+
+## Build Cache Fingerprint
+
+Build caching uses a separate `buildFingerprint()` function that hashes fewer inputs than the execution fingerprint:
+
+```
+buildFingerprint(language, benchmark)
+  → SHA-256(languageManifest + implementationSourceTree + JSON({benchmarkId, build}))
+```
+
+This fingerprint is used only to decide whether a compiled artifact can be reused. The hashed inputs are:
+
+1. **Language manifest** — `languages/<language>.json`
+2. **All implementation source files** — `benchmarks/<benchmark>/implementations/<language>/` (recursive, excluding the same patterns as the execution fingerprint)
+3. **Benchmark ID and build config** — `{benchmarkId, build}` where `build` includes the language's build command, arguments, artifact template, and working directory
+
+### Cache Storage
+
+Compiled artifacts are stored in `.arena/build-cache/<buildFingerprint>/`:
+- On a **cache miss**, `buildOne()` compiles the implementation, then copies the resulting artifact into the cache directory
+- On a **cache hit**, the cached artifact is restored via `copyFile()` to the expected output location, skipping the compilation step entirely
+
+### Build Cache Invalidation
+
+The build fingerprint changes when:
+- Any source file in the implementation is modified
+- The language manifest is modified
+- The benchmark ID changes (a different workload produces a different artifact)
+- The build command, arguments, artifact path, or working directory changes
+
+Changes that **do not** invalidate the build cache (but do invalidate the execution fingerprint): dataset, checker source, metrics registry, toolchain/compiler version, warmup or iteration counts, or benchmark version metadata.
 
 ## Cell Status
 

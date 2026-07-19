@@ -6,9 +6,9 @@ Extensible cross-language benchmarking system for comparing programming language
 
 ## Status
 
-The command-line benchmark workflow is implemented for Rust, Go, TypeScript, Python, LuaJIT, C++, and JavaScript across **nbody**, **shortest-path**, **aggregation**, and **barrier-wave**. It includes deterministic datasets, independent Go validation, result-schema validation, terminal rankings, and one incrementally maintained canonical result snapshot.
+The command-line benchmark workflow is implemented for Rust, Go, TypeScript, Python, LuaJIT, C++, and JavaScript across **nbody**, **shortest-path**, **aggregation**, **barrier-wave**, **word-frequency**, **record-sorting**, and **matrix-multiplication**. It includes deterministic datasets, independent Go validation, result-schema validation, terminal rankings, and one incrementally maintained canonical result snapshot.
 
-**Barrier Wave** is an additional workload with committed datasets and checker support; it is implemented in 6 languages (all except LuaJIT).
+**Barrier Wave** is implemented in 6 languages (all except LuaJIT). All other benchmarks have implementations in all 7 languages.
 
 The SvelteKit web interface remains optional scaffolding and is not required for benchmark execution.
 
@@ -24,7 +24,10 @@ runtime-arena/
 │   ├── nbody/
 │   ├── shortest-path/
 │   ├── aggregation/
-│   └── barrier-wave/          # 6/7 languages implemented
+│   ├── barrier-wave/          # 6/7 languages implemented
+│   ├── word-frequency/
+│   ├── record-sorting/
+│   └── matrix-multiplication/
 ├── languages/                 Language manifests (rust, go, typescript, python, lua, cpp, javascript)
 ├── schemas/                   JSON Schema for manifests and results
 ├── results/                   Canonical benchmark result snapshot
@@ -85,8 +88,9 @@ npm run arena -- results current
 
 `arena run` executes only missing or stale benchmark/language/size cells. Use
 selectors to narrow the work, `--force` to refresh selected current cells, or
-`--force --all` to intentionally refresh every runnable cell. Accepted results
-are merged atomically into `results/current.json`; failed attempts do not replace
+`--force --all` to intentionally refresh every runnable cell. Pass `--parallel`
+to run cells concurrently using all available CPU cores. Accepted results are
+merged atomically into `results/current.json`; failed attempts do not replace
 an existing accepted result.
 
 With no `--size` flag, the runner considers every configured default size.
@@ -95,6 +99,9 @@ Generate a deterministic replacement dataset and its hash metadata with:
 ```bash
 npm run arena -- dataset generate --benchmark shortest-path --size large --seed 729418
 ```
+
+Generators are registered for all seven benchmarks (nbody, shortest-path,
+aggregation, barrier-wave, word-frequency, record-sorting, matrix-multiplication).
 
 Build the optional static results interface:
 

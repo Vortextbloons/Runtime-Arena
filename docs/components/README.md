@@ -16,14 +16,17 @@ Source: `checker/cmd/arena-checker/main.go`. Details: [checker.md](checker.md).
 
 ## Benchmarks (`benchmarks/`)
 
-Four workloads under `benchmarks/<id>/`. nbody, shortest-path, and aggregation are fully implemented in all seven languages. barrier-wave has implementations in Rust, Go, TypeScript, Python, JavaScript, and C++ (LuaJIT excluded).
+Seven workloads under `benchmarks/<id>/`. nbody, shortest-path, and aggregation are the original trio, fully implemented in all seven languages. barrier-wave has implementations in Rust, Go, TypeScript, Python, JavaScript, and C++ (LuaJIT excluded). word-frequency, record-sorting, and matrix-multiplication are newer additions.
 
 | Benchmark | Workload | Key Metrics | Status |
-|---|---|---|---|
+|-----------|---|---|---|
 | **nbody** | Gravitational N-body simulation | Numeric computation, tight loops | Complete |
 | **shortest-path** | Weighted directed graph shortest-path | Priority queues, memory access | Complete |
 | **aggregation** | CSV transaction record aggregation | Parsing, hash maps, sorting | Complete |
 | **barrier-wave** | Parallel phases with barriers | Fan-out/fan-in, synchronization | 6/7 languages complete; LuaJIT excluded |
+| **word-frequency** | Word count and frequency sort | Hash maps, sorting, checksum | Complete |
+| **record-sorting** | Multi-key record sorting | Tie-breaking sort, checksum | Complete |
+| **matrix-multiplication** | Matrix multiply (i→j→k) | Triple-loop arithmetic, checksum | Complete |
 
 Each has `small`, `medium`, and `large` datasets with per-size warmup/iteration counts in `benchmark.json`. Full reference: [benchmarks.md](../reference/benchmarks.md).
 
@@ -42,8 +45,8 @@ JSON Schema definitions for validation:
 | `benchmark.schema.json` | Benchmark manifests |
 | `language.schema.json` | Language manifests |
 | `result.schema.json` | Result snapshots |
-| `implementation-output.schema.json` | Implementation output shapes (nbody, shortest-path, aggregation; barrier-wave not yet branched) |
+| `implementation-output.schema.json` | Implementation output shapes (nbody, shortest-path, aggregation, word-frequency, record-sorting, matrix-multiplication; barrier-wave not yet branched) |
 
 ## Web (`web/`)
 
-SvelteKit static dashboard for viewing results. Loads `results/current.json`, computes scores (80% geometric-mean speed / 10% consistency / 10% scalability), and displays charts and 2K-style scorecards. Built with adapter-static for deployment anywhere. Scorecard design system: [scorecards.md](scorecards.md). Overview: [web.md](web.md).
+SvelteKit static dashboard for viewing results. Loads `results/current.json`, computes scores (75% geometric-mean speed / 25% flexibility), and displays charts and 2K-style scorecards with attribute meters, badges, division ranks, and takeovers. Built with adapter-static for deployment anywhere. Scorecard design system: [scorecards.md](scorecards.md). Overview: [web.md](web.md).

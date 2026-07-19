@@ -9,7 +9,8 @@ npm test
 This command:
 1. Builds the checker binary (`npm run build:checker`)
 2. Runs CLI and web workspace tests (`npm run test --workspaces --if-present`)
-3. Runs checker unit tests (`node scripts/test-checker.mjs`)
+3. Runs implementation line-count tests (`node scripts/count-implementation-loc.test.mjs`)
+4. Runs checker unit tests (`node scripts/test-checker.mjs`)
 
 ## Test Locations
 
@@ -19,6 +20,8 @@ This command:
 | CLI timing helpers | `cli/src/timing.test.ts` | Node test runner |
 | Web scoring | `web/src/lib/scoring.test.ts` | Node test runner |
 | Web tiers | `web/src/lib/tiers.test.ts` | Node test runner |
+| Web card data | `web/src/lib/cards.test.ts` | Node test runner |
+| Implementation LOC | `scripts/count-implementation-loc.test.mjs` | Node test runner |
 | Checker | `checker/cmd/arena-checker/main_test.go` | Go testing |
 
 ## CLI Tests

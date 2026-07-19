@@ -60,7 +60,7 @@ benchmarks/             # Workloads, datasets, implementations
   shortest-path/
   aggregation/
   barrier-wave/         # Rust/Go/TS/Python/C++; LuaJIT marked unavailable
-languages/              # Language manifests (rust, go, typescript, python, lua, cpp)
+languages/              # Language manifests (rust, go, typescript, python, lua, cpp, javascript)
 schemas/                # JSON Schema definitions
 results/                # Canonical result snapshots
 web/                    # SvelteKit dashboard

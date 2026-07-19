@@ -67,6 +67,18 @@ Independently re-aggregates CSV data and compares:
 
 Independently re-runs the reference barrier-wave kernel and compares the full output object (schema version, digests, seeds). Rejects malformed hex seeds and schema mismatches. Covered by `TestBarrierWaveReference` and `TestBarrierWaveRejectsMalformedHex` in `main_test.go`.
 
+### word-frequency
+
+Independent word-counting re-implementation: counts word frequency, sorts by count descending then alphabetically for ties, generates a SHA-256 checksum of sorted entries. Covered by `TestWordFrequency`.
+
+### record-sorting
+
+Independently sorts records by score descending, then timestamp ascending, then id ascending. Produces `firstRecords` / `lastRecords` samples and a SHA-256 checksum. Covered by `TestRecordSortingTieBreaking`.
+
+### matrix-multiplication
+
+Independently performs i→j→k triple-loop matrix multiplication with bounds and dimension validation. Computes `valueSum`, `diagonalSum`, and a SHA-256 checksum. Covered by `TestMatrixMultiplication`.
+
 ## Usage
 
 ```bash

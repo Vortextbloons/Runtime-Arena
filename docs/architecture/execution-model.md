@@ -16,14 +16,23 @@ The CLI supplies `--input`, `--output`, `--timing-output`, `--warmup`, and `--it
 {"samples":[{"iteration":1,"kernelTimeNanoseconds":12345}]}
 ```
 
+The CLI validates timing sidecars via `readTimingSamples()`:
+- Iterations must be **1-indexed and sequential** (sample N must have `iteration: N`)
+- All `kernelTimeNanoseconds` values must be **non-negative safe integers**
+- Exactly `measuredIterations` samples are required
+- Extra or missing fields on the top-level object or on individual samples are **rejected**
+- Timing sidecars exceeding `maxOutputBytes` are also rejected
+
 Runtime startup, input parsing, state cloning, output encoding, file I/O, process shutdown, build time, and checker time are excluded from ranking. Total process duration is retained only as a diagnostic.
 
 ## Isolation and Correctness
 
-Each cell runs in an isolated directory under `.arena/runs/<snapshotId>/<benchmark>/<language>/`. Its copied input is read-only. The independent checker validates the final output once; a rejected output invalidates every timing sample. Missing, malformed, oversized, or incorrectly numbered timing samples also reject the cell.
+Each cell runs in an isolated directory under `.arena/runs/<snapshotId>/<benchmark>/<language>/`. Its copied input is read-only (`chmod 0o444`). Before the checker is invoked, output size is checked against the benchmark's `maxOutputBytes` limit; oversized output is rejected without invoking the checker. The independent checker validates the final output once; a rejected output invalidates every timing sample. Missing, malformed, oversized, or incorrectly numbered timing samples also reject the cell.
 
 ## Limits and Summary
 
 The per-iteration benchmark timeout is multiplied by the requested warmup and measured iteration count to bound the persistent process. Output and captured-stream limits remain enforced.
+
+**Build caching**: A separate `buildFingerprint()` (distinct from the execution `fingerprintCell`) hashes the language manifest, implementation source tree, benchmark ID, and build config. Compiled artifacts are stored in `.arena/build-cache/<buildFingerprint>/` and restored via `copyFile` on cache hits, skipping recompilation.
 
 The CLI preserves raw kernel samples and calculates minimum, maximum, median, mean, standard deviation, p95, and interquartile range in nanoseconds. Median kernel time is the primary ranking metric.

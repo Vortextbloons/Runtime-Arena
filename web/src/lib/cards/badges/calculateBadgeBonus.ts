@@ -11,8 +11,6 @@ export const BADGE_OVR_BONUS: Record<BadgeTier, number> = {
 	legend: 2.5
 };
 
-export const BADGE_BONUS_CAP = 5;
-
 export function applyFinalOverall(baseOverall: number, badgeBonus: number): number {
 	return normalizeScore(Math.min(100, baseOverall + Math.max(0, badgeBonus)));
 }
@@ -30,5 +28,5 @@ export function calculateBadgeBonus(badges: EarnedBadge[], featuredBadgeIds?: st
 		.slice(0, 3);
 
 	const raw = featured.reduce((total, badge) => total + BADGE_OVR_BONUS[badge.tier], 0);
-	return normalizeScore(Math.min(BADGE_BONUS_CAP, clampScore(raw)));
+	return normalizeScore(clampScore(raw));
 }
