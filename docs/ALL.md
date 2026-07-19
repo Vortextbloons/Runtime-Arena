@@ -1,6 +1,6 @@
 # Runtime Arena — Complete Documentation
 > Auto-generated from docs/INDEX.md by scripts/combine-docs.mjs
-> Generated: 2026-07-19T05:40:22.337Z
+> Generated: 2026-07-19T06:01:04.092Z
 > Total files: 19
 
 ## Table of Contents
@@ -57,7 +57,7 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 ## Execution Model
 
-**Cold-process mode**: Each benchmark iteration spawns a fresh process. Warmup iterations are discarded; only measured iterations count. This prevents JIT warmup persistence from skewing results.
+**Persistent-worker mode**: Each (benchmark, size, language) cell runs in one process. The CLI passes `--warmup` and `--iterations`; the implementation discards warmup work and records only measured kernel samples via `--timing-output`. Full contract: [execution-model.md](execution-model.md).
 
 **Fingerprinting**: A SHA-256 hash of all source files, manifests, datasets, checker code, toolchain version, and compiler version determines if a cell is "current" or "stale". `arena run` only re-executes cells whose fingerprint has changed.
 
@@ -69,8 +69,8 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 2. CLI discovers benchmark manifests from `benchmarks/*/benchmark.json`
 3. For each (benchmark, size, language) cell:
    - Build the implementation using language-specific commands
-   - Run warmup iterations (discarded)
-   - Run measured iterations, capturing wall time
+   - Spawn one persistent worker with `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations`
+   - Read kernel timing samples from the timing file (warmups already discarded by the worker)
    - Validate output with the Go checker
    - Record result with provenance (fingerprint, machine info)
 4. Write canonical snapshot to `results/current.json`
@@ -78,7 +78,7 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 ## Scoring Algorithm
 
-- **Overall speed**: Geometric mean of `fastest median / language median` across eligible sizes and benchmarks
+- **Overall speed**: Geometric mean of `fastest median / language median` across eligible sizes and the benchmarks that language completed in the snapshot (skipping a workload does not zero overall)
 - **Timing floor**: A size tier is excluded for all languages when its fastest valid median is below 1 ms
 - **Consistency**: Reported separately from coefficient of variation; it does not affect rank
 - **Scalability**: Reported separately from relative performance retention; it does not affect rank
@@ -139,11 +139,17 @@ The fingerprint includes:
 
 1. **Language manifest** — `languages/<language>.json`
 2. **Benchmark manifest** — `benchmarks/<benchmark>/benchmark.json`
-3. **Dataset** — `benchmarks/<benchmark>/datasets/<size>.json`
+3. **Dataset** — path from `sizes.<size>.dataset` under `benchmarks/<benchmark>/datasets/` (may be `.json`, `.csv`, or another extension)
 4. **Metrics registry** — `cli/src/metrics.ts`
 5. **All implementation source files** — `benchmarks/<benchmark>/implementations/<language>/` (recursive, excluding `node_modules`, `target`, `dist`, `build`, `__pycache__`, `.arena`)
 6. **All checker source files** — `checker/` (recursive)
-7. **Configuration metadata** — benchmark version, size name, warmup/iteration counts, metrics, toolchain version, compiler version
+7. **Configuration metadata** — JSON object including:
+   - `benchmarkVersion`
+   - `measurementContractVersion` (`"1.0.0"`)
+   - `size`
+   - `warmups` / `iterations`
+   - `metrics`
+   - `toolchainVersion` / `compilerVersion`
 
 ## How it Works
 
@@ -151,7 +157,7 @@ The fingerprint includes:
 fingerprintCell(language, benchmark, size, toolchainVersion, compilerVersion, warmups, iterations)
   → SHA-256(languageManifest + benchmarkManifest + dataset + metricsRegistry
             + implementationSourceTree + checkerSourceTree
-            + JSON({benchmarkVersion, size, warmups, iterations, metrics, toolchainVersion, compilerVersion}))
+            + JSON({benchmarkVersion, measurementContractVersion: "1.0.0", size, warmups, iterations, metrics, toolchainVersion, compilerVersion}))
 ```
 
 ## Cell Status
@@ -189,6 +195,7 @@ A cell's fingerprint changes when:
 - The metrics registry is modified
 - The toolchain or compiler version changes
 - Warmup or iteration counts change
+- The measurement contract version embedded in the fingerprint metadata changes
 
 ## Machine Provenance
 
@@ -208,29 +215,32 @@ Runtime Arena consists of six main components.
 
 TypeScript command-line tool (`arena`) — the primary entry point. Handles discovery, building, execution, validation, and result storage. Commands: `doctor`, `list`, `build`, `run`, `check`, `dataset`, `results`, `web`.
 
-Source: `cli/src/index.ts` (597 lines) with modules for `metrics.ts` and `timing.ts`
+Source: `cli/src/index.ts` with modules for `metrics.ts` and `timing.ts`. Details: [cli.md](cli.md).
 
 ## Checker (`checker/`)
 
 Independent Go program that validates benchmark output correctness. Re-implements the same algorithms as implementations to ensure no shared code masks bugs. Exit codes: 0=accepted, 1=wrong-answer, 2=malformed-output, 3=unsupported-version, 4=other.
 
-Source: `checker/cmd/arena-checker/main.go`
+Source: `checker/cmd/arena-checker/main.go`. Details: [checker.md](checker.md).
 
 ## Benchmarks (`benchmarks/`)
 
-Three benchmark workloads, each with datasets and implementations in all five languages:
+Four workloads under `benchmarks/<id>/`. Three are fully implemented in all five languages; barrier-wave is checker-ready with implementations in progress.
 
-| Benchmark | Workload | Key Metrics |
-|---|---|---|
-| **nbody** | Gravitational N-body simulation | Numeric computation, tight loops |
-| **shortest-path** | Weighted directed graph shortest-path | Priority queues, memory access |
-| **aggregation** | CSV transaction record aggregation | Parsing, hash maps, sorting |
+| Benchmark | Workload | Key Metrics | Status |
+|---|---|---|---|
+| **nbody** | Gravitational N-body simulation | Numeric computation, tight loops | Complete |
+| **shortest-path** | Weighted directed graph shortest-path | Priority queues, memory access | Complete |
+| **aggregation** | CSV transaction record aggregation | Parsing, hash maps, sorting | Complete |
+| **barrier-wave** | Parallel phases with barriers | Fan-out/fan-in, synchronization | WIP implementations |
 
-Each has `small`, `medium`, and `large` datasets with different warmup/iteration counts.
+Each has `small`, `medium`, and `large` datasets with per-size warmup/iteration counts in `benchmark.json`. Full reference: [benchmarks.md](../reference/benchmarks.md).
 
 ## Languages (`languages/`)
 
-JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `typescript.json`, `python.json`, `lua.json`. All accept `--input <file> --output <file>`.
+JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `typescript.json`, `python.json`, `lua.json`. Run argument templates must include `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations` (persistent-worker contract).
+
+Detect/build/run commands may use machine-local absolute paths (the LuaJIT manifest often does on Windows). Prefer portable commands when possible; absolute paths are valid when the toolchain is not on `PATH`.
 
 ## Schemas (`schemas/`)
 
@@ -241,11 +251,11 @@ JSON Schema definitions for validation:
 | `benchmark.schema.json` | Benchmark manifests |
 | `language.schema.json` | Language manifests |
 | `result.schema.json` | Result snapshots |
-| `implementation-output.schema.json` | Implementation output shapes |
+| `implementation-output.schema.json` | Implementation output shapes (nbody, shortest-path, aggregation; barrier-wave not yet branched) |
 
 ## Web (`web/`)
 
-SvelteKit static dashboard for viewing results. Loads `results/current.json`, computes scores, and displays charts and 2K-style scorecards. Built with adapter-static for deployment anywhere. Scorecard design system: [scorecards.md](scorecards.md).
+SvelteKit static dashboard for viewing results. Loads `results/current.json`, computes scores, and displays charts and 2K-style scorecards. Built with adapter-static for deployment anywhere. Scorecard design system: [scorecards.md](scorecards.md). Overview: [web.md](web.md).
 
 ---
 
@@ -264,20 +274,22 @@ cli/
   package.json          # @runtime-arena/cli, type: module, bin: arena
   tsconfig.json         # ES2024, NodeNext, strict
   src/
-    index.ts            # Main CLI logic (597 lines)
+    index.ts            # Main CLI logic (commands, discovery, run, fingerprints)
     metrics.ts          # Metric registry (kernelTime)
     timing.ts           # Timing sample reader
-    commands/           # Sub-command dispatch (in progress)
-    discovery/          # Language and benchmark discovery
-    execution/          # Build and run orchestration
-    metrics/            # Metric collection
-    reporting/          # Output formatting
-    results/            # Result storage
+    commands/           # Placeholder (.gitkeep) — not yet extracted
+    discovery/          # Placeholder (.gitkeep)
+    execution/          # Placeholder (.gitkeep)
+    metrics/            # Placeholder (.gitkeep)
+    reporting/          # Placeholder (.gitkeep)
+    results/            # Placeholder (.gitkeep)
   test/
-    cli.test.ts         # Integration tests (8 test cases)
-    timing.test.ts      # Timing sample tests
+    cli.test.ts         # Integration tests
+    timing.test.ts      # Timing sample tests (also under src/)
   dist/                 # Compiled output
 ```
+
+`timing.test.ts` lives at `cli/src/timing.test.ts` (next to `timing.ts`).
 
 ## Dependencies
 
@@ -287,13 +299,15 @@ cli/
 
 ## Key Design Decisions
 
-**Modular structure**: Core logic lives in `index.ts` (597 lines) with supporting modules (`metrics.ts`, `timing.ts`). Subdirectories under `src/` provide structure for commands, discovery, execution, metrics, reporting, and results — ready for extraction as the codebase grows.
+**Mostly monolithic today**: Runtime behavior lives in `index.ts` with helpers in `metrics.ts` and `timing.ts`. Subdirectories under `src/` are empty placeholders reserved for a future split; do not treat them as active modules.
 
 **Discovery-based**: Languages and benchmarks are discovered by scanning directories for manifest files. No hardcoded lists.
 
 **Incremental execution**: The fingerprint system ensures only changed cells are re-executed, making iterative development fast.
 
 **Platform awareness**: Handles Windows-specific concerns (`.exe` suffixes, `.cmd` wrappers for npm/npx, `windowsHide: true`).
+
+**Version string**: Result snapshots write `arenaVersion: "0.2.0"` (hardcoded in the CLI). Root/`cli` npm `package.json` may still say `0.1.0` — treat the snapshot field as the arena protocol version for results.
 
 ## Metric Registry
 
@@ -302,6 +316,10 @@ cli/
 | Metric | Status | Notes |
 |--------|--------|-------|
 | `kernelTime` | Available | Measured inside the persistent benchmark process |
+
+## Local Caches
+
+Go builds set `GOCACHE` to `.arena/go-build-cache`. Run scratch directories live under `.arena/runs/<snapshotId>` and are deleted after a run unless `--preserve-temp` is set.
 
 ---
 
@@ -317,16 +335,18 @@ The checker (`checker/`) is an independent Go program that validates benchmark o
 
 ```
 checker/
-  go.mod                # module github.com/runtime-arena/checker, go 1.26
+  go.mod                # module github.com/runtime-arena/checker
   cmd/
     arena-checker/
-      main.go           # All checker logic (464 lines)
-      main_test.go      # Unit tests (5 test cases)
+      main.go           # All checker logic (single package today)
+      main_test.go      # Unit tests
   internal/
-    benchmarks/         # Benchmark-specific validation (in progress)
-    output/             # Output parsing and formatting (in progress)
-    validation/         # Common validation utilities (in progress)
+    benchmarks/         # Placeholder (.gitkeep) — not yet extracted
+    output/             # Placeholder (.gitkeep)
+    validation/         # Placeholder (.gitkeep)
 ```
+
+All validation currently lives in `main.go`. The `internal/` tree is reserved for a future split.
 
 ## Design Principles
 
@@ -374,6 +394,10 @@ Independently re-aggregates CSV data and compares:
 - Category breakdowns (sorted alphabetically)
 - Top 10 accounts (sorted by value descending)
 - SHA-256 checksum of sorted output
+
+### barrier-wave
+
+Independently re-runs the reference barrier-wave kernel and compares the full output object (schema version, digests, seeds). Rejects malformed hex seeds and schema mismatches. Covered by `TestBarrierWaveReference` and `TestBarrierWaveRejectsMalformedHex` in `main_test.go`.
 
 ## Usage
 
@@ -441,7 +465,8 @@ The scoring system (`src/lib/scoring.ts`) computes a 0-100 speed score:
 - Each eligible benchmark/size contributes `fastestMedian / thisMedian`.
 - Ratios are combined with a geometric mean across sizes and benchmarks.
 - A size tier is excluded for every language when its fastest valid median is below 1 ms.
-- Correctness and complete sample counts remain strict eligibility gates.
+- Correctness and complete sample counts remain strict eligibility gates **within** a benchmark.
+- Overall scores use the geometric mean of whatever benchmarks that language completed successfully. Skipping a workload (no cells in the snapshot) does not zero the overall card; coverage gaps are noted as diagnostics.
 - Consistency and scalability are displayed as diagnostics but do not affect rank.
 
 ## Build & Deploy
@@ -489,7 +514,7 @@ The Scorecard view uses a trading-card design system (tiers, gem rarity, attribu
 
 The web dashboard presents language results as NBA 2K–style collectible cards (`OverallCard.svelte`) and as tier-tinted list rows (`BenchmarkScorecard.svelte`). There is no separate card JSON schema or asset pipeline — both components render a computed `BenchmarkScore` from `web/src/lib/scoring.ts` / `web/src/lib/types.ts`.
 
-Source of truth for visuals: `web/src/lib/OverallCard.svelte` and `web/src/lib/BenchmarkScorecard.svelte`.
+Shared visual helpers live in `web/src/lib/tiers.ts` (`getScoreTier`, `languageMonogram`, `formatBenchmarkLabel`). Unit tests: `tiers.test.ts`.
 
 ## Presentation Modes
 
@@ -498,29 +523,28 @@ Source of truth for visuals: `web/src/lib/OverallCard.svelte` and `web/src/lib/B
 | Collectible card | `OverallCard` | Vertical trading-card silhouette (`card-2k`), used in the Scorecard view and the expanded-card overlay |
 | Detail row | `BenchmarkScorecard` | Horizontal ranked list with shared tier glow; expandable calculation/diagnostics |
 
-Both modes share the same tier thresholds and glow palette. Only `OverallCard` implements the full 2K frame, art stage, attribute meters, tilt, and shimmer.
+Both modes call `getScoreTier(score.overall)`. Only `OverallCard` implements the full 2K frame, art stage, attribute meters, tilt, and shimmer.
 
 ## Score → Card Mapping
-
-Cards consume a `BenchmarkScore`. Relevant fields:
 
 | Card surface | Score field | Notes |
 |--------------|-------------|-------|
 | Large SPEED number (OVR) | `overall` | Same value as `performance` (geometric-mean speed, 0–100). Displayed as a rounded integer; `null` → `—` |
-| SPEED / STABLE / SCALE meters | `performance`, `consistency`, `scalability` | Each meter fills `round(value / 10)` of 10 segments (clamped 0–10) |
-| Language name + monogram | `language.name` | Monogram is the first character of the name (not a per-language brand color) |
+| SPEED / STABLE / SCALE meters | `performance`, `consistency`, `scalability` | Segmented 10-bar meters **plus** tabular numeric values beside each label |
+| Language name + monogram | `language.id` / `language.name` | Stable abbreviations (`RS`, `TS`, `PY`, `LJ`, `GO`, `C++`) via `languageMonogram` |
 | Footer runtime line | `language.id`, `language.version` | Version shows the first whitespace-delimited token |
-| Archetype / team label | `benchmarkId` | `overall` → `ARENA`; otherwise the benchmark id with underscores as spaces |
-| Benchmark breakdown | `benchmarks[]` | Overall cards only; toggle reveals per-benchmark overall/performance/consistency/scalability |
-| Diagnostics strip | `diagnostics[0]` | Shown when `eligible` is false |
+| Archetype / team label | `benchmarkId` | `formatBenchmarkLabel` → `ARENA` or id with `[-_]+` → spaces, uppercased |
+| Benchmark breakdown | `benchmarks[]` | Overall cards only; toggle reveals per-benchmark scores |
+| Diagnostics (compact) | `diagnostics[]` | Ineligible: `UNVERIFIED · N issues` + first line. Eligible but incomplete coverage: `PARTIAL · N notes` (e.g. skipped barrier-wave) |
+| Diagnostics (expanded) | full `diagnostics[]` | Shown in overlay / expanded card mode |
 
-Rank order in list views is sort order from scoring (higher `overall` first), not a letter grade. Tier tags on the card (GO, PD, DIA, …) are rarity labels derived from score thresholds, not placement rank.
+Leaderboard placement (RANK 01, 02, …) is separate from visual `tierLevel`. Tier tags (GO, PD, DIA, …) are rarity labels from score thresholds.
 
 ## Tiers and Rarity
 
-Visual “rarity” is entirely score-driven. There is no independent rarity enum in results JSON.
+Resolved by `getScoreTier(score: number | null)`:
 
-| `overall` | Band name | Gem (rarity) | Tag | Rank weight | CSS class |
+| `overall` | Band name | Gem (rarity) | Tag | `tierLevel` | CSS class |
 |-----------|-----------|--------------|-----|-------------|-----------|
 | ≥ 95 | UNTOUCHABLE | Galaxy Opal | GO | 7 | `galaxy-opal` |
 | ≥ 90 | INVINCIBLE | Pink Diamond | PD | 6 | `pink-diamond` |
@@ -529,42 +553,26 @@ Visual “rarity” is entirely score-driven. There is no independent rarity enu
 | ≥ 60 | STANDARD | Ruby | RUB | 3 | `ruby` |
 | ≥ 45 | ROOKIE | Sapphire | SAP | 2 | `sapphire` |
 | &lt; 45 | COMMON | Emerald | EME | 1 | `emerald` |
-| `null` (ineligible) | UNVERIFIED | No Rank | — | 0 | `unranked` |
+| `null` | UNVERIFIED | No Rank | — | 0 | `unranked` |
 
-`rank` (1–7) drives shimmer intensity and the `high-tier` treatment (rank ≥ 5: Diamond and above). Glow colors:
-
-| Class | Glow |
-|-------|------|
-| `galaxy-opal` | `#ff2bd6` |
-| `pink-diamond` | `#ff5fa8` |
-| `diamond` | `#5ce6ff` |
-| `amethyst` | `#b794ff` |
-| `ruby` | `#ff5a5a` |
-| `sapphire` | `#6a8cff` |
-| `emerald` | `#6affb8` |
-| `unranked` | `#4a5560` |
-
-Each tier also sets a matching diagonal gradient on the card edge (`--tier-gradient`).
+`tierLevel` (`0 | 1 | … | 7`) drives shimmer intensity and `high-tier` styling (`tierLevel >= 5`). Each tier sets `--tier-glow` and `--tier-gradient`.
 
 ## Language Visual Identity
 
-Languages do **not** have fixed brand themes, borders, or colorways. Appearance is:
+Languages do **not** have fixed brand colorways. Appearance is:
 
-1. Tier palette from `overall` (shared across all languages at that score).
-2. Monogram art from the first letter of `language.name`.
-3. Name split into first token vs remainder for typography hierarchy.
+1. Tier palette from `overall`.
+2. Stable monogram from language id (`RS` / `TS` / …).
+3. Name typography split into first token vs remainder.
 4. Runtime footer from `language.id` and version.
-
-Changing a language’s display name changes the monogram; changing its score changes the entire tier look.
 
 ## Card Chrome and Effects (`OverallCard`)
 
-- **Silhouette**: Angular `clip-path` (cut top-right and bottom-left) with small corner shards.
-- **Layers**: Edge gradient, diagonal scanline pattern, holographic shimmer, vignette.
-- **Art stage**: Grid backdrop, floating code-token particles (`{`, `<`, `/>`, …), large monogram with halo/floor glow.
-- **Tier band**: Full-width band showing the band name (e.g. DOMINANT) with shine and rivet accents.
-- **Motion**: Pointer-tracking 3D tilt (`perspective` + `rotateX` / `rotateY`, ±6°); hover deepens drop-shadow and tier glow; particle float animation.
-- **High tier**: Stronger top radial wash when rank ≥ 5.
+- **Silhouette**: Angular `clip-path` with corner shards.
+- **Layers**: Edge gradient, scanlines, holographic shimmer, vignette.
+- **Art stage**: Grid, floating code particles, monogram with halo.
+- **Motion**: Pointer tilt (±6°) and particle float — disabled under `prefers-reduced-motion: reduce`.
+- **High tier**: Stronger top wash when `tierLevel >= 5`.
 
 ## Dimensions
 
@@ -573,39 +581,15 @@ Changing a language’s display name changes the monogram; changing its score ch
 | Default | 320px | 5 / 8.2 |
 | ≤ 600px | 280px | same |
 
-Width is `100%` up to the max; height follows the aspect ratio. Cards are centered in their grid cell.
+## Snapshot Qualification
 
-## Data Model (No Card Schema)
+Near rankings in `ResultsExplorer`, a small line clarifies scope:
 
-There is no `card.json` or collectible payload. The UI model is `BenchmarkScore` in `web/src/lib/types.ts`:
+> Snapshot rankings · accepted geometric-mean speed only · stability and scaling are diagnostic
 
-```ts
-type BenchmarkScore = {
-  benchmarkId: string;
-  language: { id: string; name: string; version: string };
-  eligible: boolean;
-  overall: number | null;
-  performance: number | null;
-  consistency: number | null;
-  scalability: number | null;
-  sizes: SizeScore[];
-  expectedSizes: string[];
-  diagnostics: string[];
-  benchmarks?: Array<{
-    benchmarkId: string;
-    overall: number;
-    performance: number;
-    consistency: number;
-    scalability: number;
-  }>;
-};
-```
+## Data Model
 
-Persisted run data remains `results/current.json` (`ArenaRun` / `ArenaResult`). Scores and tiers are derived client-side at view time.
-
-## Where Cards Appear
-
-`ResultsExplorer.svelte` toggles Chart vs Scorecard. The Scorecard view renders one `OverallCard` per overall language score; clicking a card expands it in an overlay. Per-benchmark detail uses `BenchmarkScorecard` rows (same tiers, list chrome).
+Persisted runs remain `ArenaRun` / `ArenaResult`. Scores and tiers are derived client-side. See `BenchmarkScore` in `web/src/lib/types.ts`.
 
 ---
 
@@ -729,6 +713,7 @@ The `results/current.json` snapshot contains:
       "build": { "status": "success", "durationNanoseconds": 0, "artifactSizeBytes": 0, "command": [...] },
       "execution": {
         "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
         "warmupIterations": 1,
         "measuredIterations": 5,
         "samples": [...],
@@ -736,11 +721,13 @@ The `results/current.json` snapshot contains:
         "metrics": { "kernelTime": { "status": "available", "unit": "nanoseconds" } }
       },
       "checker": { "language": "go", "version": "1.0.0", "status": "accepted", "diagnostics": [] },
-      "provenance": { "fingerprint": "...", "measuredAt": "...", "machine": { "operatingSystem": {...}, "cpu": {...}, "memoryBytes": 0 } }
+      "provenance": { "fingerprint": "...", "measurementContractVersion": "1.0.0", "measuredAt": "...", "machine": { "operatingSystem": {...}, "cpu": {...}, "memoryBytes": 0 } }
     }
   ]
 }
 ```
+
+`arenaVersion` is hardcoded in the CLI as `"0.2.0"` when writing snapshots. npm package versions may lag that string.
 
 ## Checker Exit Codes
 
@@ -794,8 +781,11 @@ Root runner configuration at the repository root.
 | `defaults.warmupIterations` | Default warmup iterations (discarded) |
 | `defaults.measuredIterations` | Default measured iterations |
 | `defaults.metrics` | Default metrics to record |
-| `execution.parallelism` | Concurrent execution (currently 1) |
-| `execution.preserveTemporaryFiles` | Keep temp run directories |
+| `execution.parallelism` | **Present in config but unused** — the CLI does not read `config.execution`; cells run sequentially |
+| `execution.preserveTemporaryFiles` | **Present in config but unused** — use CLI flag `--preserve-temp` instead |
+
+Temp run directories live under `.arena/runs/` and are deleted after each run unless `--preserve-temp` is set. Go builds also use `.arena/go-build-cache` via `GOCACHE`.
+
 
 ## Language Manifests (`languages/*.json`)
 
@@ -873,7 +863,9 @@ Each benchmark has a manifest defining sizes, metrics, and limits.
 
 ## Environment Variables
 
-The CLI detects toolchains by running the commands defined in each language manifest's `detect` block (e.g., `rustc --version`, `go version`). It does not read toolchain-specific environment variables like `RUSTC` or `GOPATH`. No custom Runtime Arena environment variables are defined.
+The CLI detects toolchains by running the commands defined in each language manifest's `detect` block (e.g., `rustc --version`, `go version`). It does not read toolchain-specific environment variables like `RUSTC` or `GOPATH`. No custom Runtime Arena environment variables are defined for users.
+
+Internally, Go builds set `GOCACHE` to `.arena/go-build-cache` under the repository root.
 
 ---
 
@@ -941,7 +933,7 @@ Validates result snapshots (`results/current.json`).
 - `schemaVersion` — Semver string; the schema validates against `^\d+\.\d+\.\d+$` (the CLI currently writes `"3.0.0"`)
 - `snapshotId` — Unique run identifier
 - `updatedAt` — ISO 8601 timestamp
-- `arenaVersion` — CLI version
+- `arenaVersion` — Protocol version written into snapshots (CLI currently hardcodes `"0.2.0"`; may differ from npm `package.json` version)
 - `gitCommit` / `gitDirty` — Git state (both nullable)
 - `results[]` — Array of benchmark results
 
@@ -956,7 +948,7 @@ Each result is required to contain:
 
 ## implementation-output.schema.json
 
-Base output shape for implementations. Uses conditional validation based on the `benchmark` field to apply benchmark-specific output schemas.
+Base output shape for implementations. Uses conditional validation based on the `benchmark` field to apply benchmark-specific output schemas for **nbody**, **shortest-path**, and **aggregation**. **barrier-wave** is not yet branched in this schema; the Go checker is the authority for that workload's output shape.
 
 ---
 
@@ -966,7 +958,16 @@ Base output shape for implementations. Uses conditional validation based on the 
 
 # Benchmarks Reference
 
-Runtime Arena includes three benchmark workloads, each designed to stress different aspects of language runtimes.
+Runtime Arena currently defines four benchmark workloads. Three are fully implemented across Rust, Go, TypeScript, Python, and LuaJIT. **Barrier Wave** has committed datasets and checker support; language implementations are in progress.
+
+| Benchmark | Status | Stresses |
+|-----------|--------|----------|
+| `nbody` | Complete (5 languages) | Numeric computation, tight loops |
+| `shortest-path` | Complete (5 languages) | Priority queues, graph traversal |
+| `aggregation` | Complete (5 languages) | Parsing, hash maps, sorting, GC |
+| `barrier-wave` | Datasets + checker ready; implementations WIP | Structured parallel concurrency, barriers |
+
+Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md`.
 
 ## nbody
 
@@ -996,7 +997,7 @@ Runtime Arena includes three benchmark workloads, each designed to stress differ
 
 **Workload:** CSV transaction record aggregation.
 
-**Input:** CSV with columns `timestamp`, `account_id`, `category`, `quantity`, `unit_price`.
+**Input:** CSV with columns `timestamp`, `account_id`, `category`, `quantity`, `unit_price` (dataset file is typically `*.csv`, not JSON).
 
 **Output:** JSON with `recordCount`, `totalQuantity`, `totalValueMinorUnits`, `categories[]`, `topAccounts[]`, `minimumTransactionMinorUnits`, `maximumTransactionMinorUnits`, `checksum`.
 
@@ -1004,19 +1005,37 @@ Runtime Arena includes three benchmark workloads, each designed to stress differ
 
 **Algorithm:** Parse CSV, aggregate by category and account, sort categories alphabetically, sort accounts by value descending (top 10), compute SHA-256 checksum.
 
+## barrier-wave
+
+**Workload:** Persistent worker pool with deterministic fan-out/fan-in and a barrier between every phase. Each worker owns a fixed shard, applies a 32-bit mixing kernel, and returns local XOR/sum; the coordinator reduces in worker-ID order.
+
+**Input:** JSON (`schemaVersion` `1.0.0`) with `workerCount`, `phaseCount`, `itemsPerWorker`, `roundsPerItem`, `initialSeed` (8 lowercase hex chars).
+
+**Output:** JSON with digest/seed fields defined in `benchmarks/barrier-wave/IMPLEMENTING.md`.
+
+**Stresses:** Real parallel workers, synchronization, reduction order, communication inside the kernel timing boundary.
+
+**Status notes:**
+- Checker task `barrier-wave` is implemented and tested.
+- Datasets are committed fixtures (`generatorVersion` `1.0.0` in metadata). `arena dataset generate` has **no** barrier-wave generator yet (only nbody, shortest-path, aggregation).
+- Language implementations are incomplete relative to the other three benchmarks; see the tree under `benchmarks/barrier-wave/implementations/`.
+- `schemas/implementation-output.schema.json` does not yet include a barrier-wave branch; correctness is enforced by the Go checker.
+
 ## Dataset Sizes
 
-| Size | Warmup | Measured | N-body | Shortest path | Aggregation |
-|------|--------|----------|--------|---------------|-------------|
-| small | 1 | 5 | 4 bodies × 5,000 steps | 100 vertices × 30 queries | 10,000 records |
-| medium | 3 | 10 | 6 bodies × 20,000 steps | 300 vertices × 90 queries | 50,000 records |
-| large | 3 | 10 | 8 bodies × 50,000 steps | 600 vertices × 180 queries | 200,000 records |
+| Size | Warmup / Measured (typical) | N-body | Shortest path | Aggregation | Barrier Wave |
+|------|----------------------------|--------|---------------|-------------|--------------|
+| small | see manifest | 4 bodies × 5,000 steps (1 / 5) | 100 vertices × 30 queries (1 / 5) | 10,000 records (1 / 5) | 2 workers × 500 phases × 64 items (3 / 10) |
+| medium | see manifest | 6 bodies × 20,000 steps (3 / 10) | 300 vertices × 90 queries (3 / 10) | 50,000 records (3 / 10) | 4 workers × 250 phases × 1024 items (3 / 10) |
+| large | see manifest | 8 bodies × 50,000 steps (3 / 10) | 600 vertices × 180 queries (3 / 10) | 200,000 records (3 / 10) | 8 workers × 100 phases × 8192 items (2 / 8) |
 
-Datasets are deterministic — generated from a seed and committed as fixtures with SHA-256 hashes.
+Warmup and measured iteration counts come from each benchmark's `benchmark.json` size entries (not only `arena.config.json` defaults). Dataset paths are whatever `sizes.<name>.dataset` names — JSON or CSV.
+
+Datasets for the three generated benchmarks are deterministic from a seed. Regenerating them via `arena dataset generate` writes metadata with `generatorVersion` `"2.0.0"`. Barrier-wave fixtures were committed separately and are not regenerable through the CLI yet.
 
 ## Adding a New Benchmark
 
-See [guides/adding-a-benchmark.md](../guides/adding-a-benchmark.md).
+See [guides/adding-a-benchmark.md](../guides/adding-a-benchmark.md). Register a dataset generator in the CLI if you want `arena dataset generate` support.
 
 ---
 
@@ -1061,8 +1080,10 @@ npm run build:checker
 
 ```
 cli/                    # TypeScript CLI (arena command)
-  src/index.ts          # Main CLI logic (monolithic)
+  src/index.ts          # Main CLI logic (monolithic today)
   src/metrics.ts        # Metric registry
+  src/timing.ts         # Timing sample reader
+  src/timing.test.ts    # Timing unit tests
   test/cli.test.ts      # Integration tests
 checker/                # Independent Go checker
   cmd/arena-checker/main.go
@@ -1070,13 +1091,17 @@ benchmarks/             # Workloads, datasets, implementations
   nbody/
   shortest-path/
   aggregation/
+  barrier-wave/         # Checker-ready; language impls WIP
 languages/              # Language manifests (rust, go, typescript, python, lua)
 schemas/                # JSON Schema definitions
 results/                # Canonical result snapshots
 web/                    # SvelteKit dashboard
 scripts/                # Build and utility scripts
-docs/                   # Project documentation
+docs/                   # Canonical project documentation
+refs/                   # Informal draft copies of some guides (not authoritative)
 ```
+
+Canonical docs live under `docs/`. If a file also exists under `refs/`, prefer `docs/guides/`.
 
 ## Adding a Benchmark
 
@@ -1123,14 +1148,15 @@ npm test
 
 This command:
 1. Builds the checker binary (`npm run build:checker`)
-2. Runs CLI integration tests (`npm run test --workspaces --if-present`)
+2. Runs CLI and web workspace tests (`npm run test --workspaces --if-present`)
 3. Runs checker unit tests (`node scripts/test-checker.mjs`)
 
 ## Test Locations
 
 | Component | Test File | Framework |
 |-----------|-----------|-----------|
-| CLI | `cli/test/cli.test.ts` | Node test runner |
+| CLI integration | `cli/test/cli.test.ts` | Node test runner |
+| CLI timing helpers | `cli/src/timing.test.ts` | Node test runner |
 | Web scoring | `web/src/lib/scoring.test.ts` | Node test runner |
 | Checker | `checker/cmd/arena-checker/main_test.go` | Go testing |
 
@@ -1145,12 +1171,15 @@ Integration tests in `cli/test/cli.test.ts` verify:
 - `dataset generate` creates deterministic datasets
 - `results` command reads snapshots
 
+Timing unit tests in `cli/src/timing.test.ts` cover reading/parsing timing sample files.
+
 ## Checker Tests
 
 Unit tests in `checker/cmd/arena-checker/main_test.go` verify:
-- Deterministic simulation produces consistent results
-- Alternate optimal paths are accepted
+- Deterministic nbody simulation produces consistent results
+- Alternate optimal shortest-paths are accepted
 - Aggregation correctness with known datasets
+- Barrier-wave reference output and rejection of malformed hex
 - Strict JSON rejection of unknown/duplicate fields
 
 Run checker tests manually:
@@ -1181,6 +1210,7 @@ When adding a new benchmark:
 1. Add checker unit tests in `checker/cmd/arena-checker/main_test.go`
 2. Verify the CLI can discover, build, and run the benchmark
 3. Verify the checker accepts correct output and rejects incorrect output
+4. If you add `arena dataset generate` support, cover deterministic regeneration
 
 ---
 
@@ -1265,16 +1295,23 @@ The `prepare-results.ts` script handles copying the latest results into the stat
    pseudocode, checksum/hash rules, checker validation rules, gotchas,
    scaffolding templates per language, and a verification command. Use
    existing `IMPLEMENTING.md` files as a template.
-4. Add deterministic `small`, `medium`, and `large` datasets.
+4. Add deterministic `small`, `medium`, and `large` datasets (commit fixtures
+   with metadata). If you want `arena dataset generate` support, register a
+   generator branch in `cli/src/index.ts` (`datasetCommand`) — without that,
+   generate fails with "No generator registered".
 5. Create `benchmark.json` using an existing benchmark as a template. It must
    match `schemas/benchmark.schema.json`.
-6. Add independent validation logic to the Go checker.
- 7. Add implementations under `implementations/<language-id>/` that produce
-    output accepted by the checker. Use each language's best idioms — prefer
-    native types, optimized data structures, and language-appropriate
-    algorithmic choices. The checker validates the output; the internal
-    implementation can differ freely across languages.
- 8. Confirm discovery and run a small test:
+6. Add independent validation logic to the Go checker (and unit tests).
+7. Optionally extend `schemas/implementation-output.schema.json` with a
+   benchmark-specific branch; the checker remains the correctness authority.
+8. Add implementations under `implementations/<language-id>/` that produce
+   output accepted by the checker. Use each language's best idioms — prefer
+   native types, optimized data structures, and language-appropriate
+   algorithmic choices. The checker validates the output; the internal
+   implementation can differ freely across languages. Implementations must
+   honor the persistent-worker flags (`--input`, `--output`, `--timing-output`,
+   `--warmup`, `--iterations`).
+9. Confirm discovery and run a small test:
 
     ```bash
     npm run build:checker
@@ -1300,7 +1337,8 @@ validation work in the timed workload.
    run arguments, environment variables, and source extensions.
 3. Ensure the manifest matches `schemas/language.schema.json`.
 4. Add `benchmarks/<benchmark-id>/implementations/<language-id>/` for every
-   supported benchmark.
+   supported benchmark you intend to ship (start with the three complete
+   workloads; barrier-wave when ready).
 5. Read each benchmark's `IMPLEMENTING.md` for the exact implementation
    contract — input/output formats, algorithm requirements, checksum rules,
    and checker gotchas:
@@ -1308,16 +1346,24 @@ validation work in the timed workload.
    - `benchmarks/nbody/IMPLEMENTING.md`
    - `benchmarks/shortest-path/IMPLEMENTING.md`
    - `benchmarks/aggregation/IMPLEMENTING.md`
+   - `benchmarks/barrier-wave/IMPLEMENTING.md` (when implementing barrier-wave)
 
-6. Each implementation must accept:
+6. Each implementation must accept the persistent-worker CLI contract:
 
    ```text
-   --input <input-file> --output <output-file>
+   --input <input-file>
+   --output <output-file>
+   --timing-output <timing-file>
+   --warmup <n>
+   --iterations <n>
    ```
 
- 7. Use optimized release builds. Produce output that passes the checker —
-    the internal approach can differ from other language implementations.
-    Use the language's best idioms, data structures, and patterns.
+   Language manifests must pass these through the `run.arguments` template
+   (see `docs/architecture/execution-model.md`).
+
+7. Use optimized release builds. Produce output that passes the checker —
+   the internal approach can differ from other language implementations.
+   Use the language's best idioms, data structures, and patterns.
 8. Verify the integration:
 
    ```bash
@@ -1329,6 +1375,10 @@ validation work in the timed workload.
 
 The CLI discovers valid language manifests automatically; avoid adding
 language-specific branches to the runner.
+
+**Note:** `detect` / `build` / `run` commands may be absolute paths on a given
+machine (for example a local LuaJIT install). That is supported; prefer
+commands on `PATH` when documenting or sharing manifests.
 
 ---
 
@@ -1439,7 +1489,14 @@ This copies `results/current.json` into `web/static/results/` and builds the Sve
 npm run arena -- dataset generate --benchmark nbody --size small --seed 729418
 ```
 
-Datasets are deterministic — the same seed produces the same data.
+Generators are registered for `nbody`, `shortest-path`, and `aggregation` only. Other benchmarks (including `barrier-wave`) use committed fixtures and fail with "No generator registered" until a generator is added.
+
+Successful generation writes metadata with `generatorVersion` `"2.0.0"`. Datasets are deterministic — the same seed produces the same data.
+
+## Local Caches
+
+- `.arena/runs/<snapshotId>/` — per-run scratch (deleted unless `--preserve-temp`)
+- `.arena/go-build-cache/` — Go `GOCACHE` for language builds
 
 ## Rebuilding the Checker
 

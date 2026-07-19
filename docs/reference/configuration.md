@@ -34,8 +34,11 @@ Root runner configuration at the repository root.
 | `defaults.warmupIterations` | Default warmup iterations (discarded) |
 | `defaults.measuredIterations` | Default measured iterations |
 | `defaults.metrics` | Default metrics to record |
-| `execution.parallelism` | Concurrent execution (currently 1) |
-| `execution.preserveTemporaryFiles` | Keep temp run directories |
+| `execution.parallelism` | **Present in config but unused** — the CLI does not read `config.execution`; cells run sequentially |
+| `execution.preserveTemporaryFiles` | **Present in config but unused** — use CLI flag `--preserve-temp` instead |
+
+Temp run directories live under `.arena/runs/` and are deleted after each run unless `--preserve-temp` is set. Go builds also use `.arena/go-build-cache` via `GOCACHE`.
+
 
 ## Language Manifests (`languages/*.json`)
 
@@ -113,4 +116,6 @@ Each benchmark has a manifest defining sizes, metrics, and limits.
 
 ## Environment Variables
 
-The CLI detects toolchains by running the commands defined in each language manifest's `detect` block (e.g., `rustc --version`, `go version`). It does not read toolchain-specific environment variables like `RUSTC` or `GOPATH`. No custom Runtime Arena environment variables are defined.
+The CLI detects toolchains by running the commands defined in each language manifest's `detect` block (e.g., `rustc --version`, `go version`). It does not read toolchain-specific environment variables like `RUSTC` or `GOPATH`. No custom Runtime Arena environment variables are defined for users.
+
+Internally, Go builds set `GOCACHE` to `.arena/go-build-cache` under the repository root.

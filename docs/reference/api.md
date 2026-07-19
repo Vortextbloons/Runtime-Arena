@@ -114,6 +114,7 @@ The `results/current.json` snapshot contains:
       "build": { "status": "success", "durationNanoseconds": 0, "artifactSizeBytes": 0, "command": [...] },
       "execution": {
         "mode": "persistent-worker",
+        "measurementContractVersion": "1.0.0",
         "warmupIterations": 1,
         "measuredIterations": 5,
         "samples": [...],
@@ -121,11 +122,13 @@ The `results/current.json` snapshot contains:
         "metrics": { "kernelTime": { "status": "available", "unit": "nanoseconds" } }
       },
       "checker": { "language": "go", "version": "1.0.0", "status": "accepted", "diagnostics": [] },
-      "provenance": { "fingerprint": "...", "measuredAt": "...", "machine": { "operatingSystem": {...}, "cpu": {...}, "memoryBytes": 0 } }
+      "provenance": { "fingerprint": "...", "measurementContractVersion": "1.0.0", "measuredAt": "...", "machine": { "operatingSystem": {...}, "cpu": {...}, "memoryBytes": 0 } }
     }
   ]
 }
 ```
+
+`arenaVersion` is hardcoded in the CLI as `"0.2.0"` when writing snapshots. npm package versions may lag that string.
 
 ## Checker Exit Codes
 

@@ -41,7 +41,8 @@ The scoring system (`src/lib/scoring.ts`) computes a 0-100 speed score:
 - Each eligible benchmark/size contributes `fastestMedian / thisMedian`.
 - Ratios are combined with a geometric mean across sizes and benchmarks.
 - A size tier is excluded for every language when its fastest valid median is below 1 ms.
-- Correctness and complete sample counts remain strict eligibility gates.
+- Correctness and complete sample counts remain strict eligibility gates **within** a benchmark.
+- Overall scores use the geometric mean of whatever benchmarks that language completed successfully. Skipping a workload (no cells in the snapshot) does not zero the overall card; coverage gaps are noted as diagnostics.
 - Consistency and scalability are displayed as diagnostics but do not affect rank.
 
 ## Build & Deploy

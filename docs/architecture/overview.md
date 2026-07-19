@@ -24,7 +24,7 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 ## Execution Model
 
-**Cold-process mode**: Each benchmark iteration spawns a fresh process. Warmup iterations are discarded; only measured iterations count. This prevents JIT warmup persistence from skewing results.
+**Persistent-worker mode**: Each (benchmark, size, language) cell runs in one process. The CLI passes `--warmup` and `--iterations`; the implementation discards warmup work and records only measured kernel samples via `--timing-output`. Full contract: [execution-model.md](execution-model.md).
 
 **Fingerprinting**: A SHA-256 hash of all source files, manifests, datasets, checker code, toolchain version, and compiler version determines if a cell is "current" or "stale". `arena run` only re-executes cells whose fingerprint has changed.
 
@@ -36,8 +36,8 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 2. CLI discovers benchmark manifests from `benchmarks/*/benchmark.json`
 3. For each (benchmark, size, language) cell:
    - Build the implementation using language-specific commands
-   - Run warmup iterations (discarded)
-   - Run measured iterations, capturing wall time
+   - Spawn one persistent worker with `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations`
+   - Read kernel timing samples from the timing file (warmups already discarded by the worker)
    - Validate output with the Go checker
    - Record result with provenance (fingerprint, machine info)
 4. Write canonical snapshot to `results/current.json`
@@ -45,7 +45,7 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 ## Scoring Algorithm
 
-- **Overall speed**: Geometric mean of `fastest median / language median` across eligible sizes and benchmarks
+- **Overall speed**: Geometric mean of `fastest median / language median` across eligible sizes and the benchmarks that language completed in the snapshot (skipping a workload does not zero overall)
 - **Timing floor**: A size tier is excluded for all languages when its fastest valid median is below 1 ms
 - **Consistency**: Reported separately from coefficient of variation; it does not affect rank
 - **Scalability**: Reported separately from relative performance retention; it does not affect rank

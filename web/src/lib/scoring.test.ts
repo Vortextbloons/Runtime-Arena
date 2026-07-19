@@ -98,6 +98,44 @@ test('overall view uses a geometric mean across benchmarks', () => {
 	assert.equal(scores[0]?.overall, 50);
 });
 
+test('overall still ranks a language that skips one benchmark', () => {
+	const rows = [
+		result('rust', 'small', 1_000_000),
+		{ ...result('rust', 'small', 1_000_000), benchmark: { id: 'barrier-wave', version: 1, size: 'small' } },
+		result('lua', 'small', 2_000_000)
+		// lua has no barrier-wave results
+	];
+	const scores = scoreOverall(rows);
+	const lua = scores.find((score) => score.language.id === 'lua');
+	const rust = scores.find((score) => score.language.id === 'rust');
+
+	assert.equal(lua?.eligible, true);
+	assert.equal(lua?.overall, 50);
+	assert.deepEqual(
+		lua?.benchmarks?.map((entry) => entry.benchmarkId),
+		['work']
+	);
+	assert.ok(lua?.diagnostics.some((line) => /Skipped barrier-wave/.test(line)));
+
+	assert.equal(rust?.eligible, true);
+	assert.equal(rust?.overall, 100);
+	assert.deepEqual(
+		rust?.benchmarks?.map((entry) => entry.benchmarkId).toSorted(),
+		['barrier-wave', 'work']
+	);
+});
+
+test('overall stays unranked when every benchmark is ineligible', () => {
+	const rows = [
+		result('broken', 'small', 1_000_000, { status: 'wrong-answer' }),
+		{ ...result('ok', 'small', 1_000_000), benchmark: { id: 'other', version: 1, size: 'small' } }
+	];
+	const scores = scoreOverall(rows);
+	const broken = scores.find((score) => score.language.id === 'broken');
+	assert.equal(broken?.eligible, false);
+	assert.equal(broken?.overall, null);
+});
+
 test('an entire sub-millisecond size tier is excluded from every language score', () => {
 	const scores = scoreBenchmark([
 		result('fast', 'small', 500_000),

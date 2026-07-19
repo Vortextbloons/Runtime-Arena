@@ -56,7 +56,14 @@ This copies `results/current.json` into `web/static/results/` and builds the Sve
 npm run arena -- dataset generate --benchmark nbody --size small --seed 729418
 ```
 
-Datasets are deterministic — the same seed produces the same data.
+Generators are registered for `nbody`, `shortest-path`, and `aggregation` only. Other benchmarks (including `barrier-wave`) use committed fixtures and fail with "No generator registered" until a generator is added.
+
+Successful generation writes metadata with `generatorVersion` `"2.0.0"`. Datasets are deterministic — the same seed produces the same data.
+
+## Local Caches
+
+- `.arena/runs/<snapshotId>/` — per-run scratch (deleted unless `--preserve-temp`)
+- `.arena/go-build-cache/` — Go `GOCACHE` for language builds
 
 ## Rebuilding the Checker
 

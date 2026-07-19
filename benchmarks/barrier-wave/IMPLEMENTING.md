@@ -7,10 +7,21 @@ truth for correctness.
 
 ## CLI contract
 
-The program accepts `--input <file>` and `--output <file>`, writes exactly one
-JSON result to the output path, exits zero on success, and writes diagnostics
-only to stderr. Input parsing, worker creation and shutdown, JSON serialization,
-and file I/O are outside the kernel timing boundary.
+The program must accept the persistent-worker flags used by every arena
+workload:
+
+```text
+--input <file>
+--output <file>
+--timing-output <file>
+--warmup <n>
+--iterations <n>
+```
+
+Write exactly one JSON result to the output path, write kernel timing samples
+to the timing-output path, exit zero on success, and write diagnostics only to
+stderr. Input parsing, worker creation and shutdown, JSON serialization, and
+file I/O are outside the kernel timing boundary.
 
 Create one persistent pool before warmups begin. Every measured or warmup
 iteration must run the full workload without caching. Rust uses native threads,

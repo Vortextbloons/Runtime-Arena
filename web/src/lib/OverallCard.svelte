@@ -1,11 +1,14 @@
 <script lang="ts">
+	import { formatBenchmarkLabel, getScoreTier, languageMonogram } from './tiers';
 	import type { BenchmarkScore } from './types';
 
 	let {
 		score,
+		expanded = false,
 		onexpand
 	}: {
 		score: BenchmarkScore;
+		expanded?: boolean;
 		onexpand?: () => void;
 	} = $props();
 
@@ -20,49 +23,33 @@
 		{ key: 'scalability', label: 'SCALE', icon: 'scale' }
 	] as const;
 
-	function tier(overall: number): {
-		name: string;
-		sub: string;
-		tag: string;
-		class: string;
-		gradient: string;
-		glow: string;
-		rank: number;
-	} {
-		if (overall >= 95) return { name: 'UNTOUCHABLE', sub: 'Galaxy Opal', tag: 'GO', class: 'galaxy-opal', gradient: 'linear-gradient(135deg, #ff2bd6 0%, #b13bd6 45%, #6a1bd6 100%)', glow: '#ff2bd6', rank: 7 };
-		if (overall >= 90) return { name: 'INVINCIBLE', sub: 'Pink Diamond', tag: 'PD', class: 'pink-diamond', gradient: 'linear-gradient(135deg, #ff6db5 0%, #d6388a 50%, #6a1d4f 100%)', glow: '#ff5fa8', rank: 6 };
-		if (overall >= 80) return { name: 'DOMINANT', sub: 'Diamond', tag: 'DIA', class: 'diamond', gradient: 'linear-gradient(135deg, #5ce6ff 0%, #2d9fd6 50%, #103a5e 100%)', glow: '#5ce6ff', rank: 5 };
-		if (overall >= 70) return { name: 'ELITE', sub: 'Amethyst', tag: 'AME', class: 'amethyst', gradient: 'linear-gradient(135deg, #b794ff 0%, #7a4ed6 50%, #2a1850 100%)', glow: '#b794ff', rank: 4 };
-		if (overall >= 60) return { name: 'STANDARD', sub: 'Ruby', tag: 'RUB', class: 'ruby', gradient: 'linear-gradient(135deg, #ff5a5a 0%, #b32d2d 50%, #4a0e0e 100%)', glow: '#ff5a5a', rank: 3 };
-		if (overall >= 45) return { name: 'ROOKIE', sub: 'Sapphire', tag: 'SAP', class: 'sapphire', gradient: 'linear-gradient(135deg, #6a8cff 0%, #2d4fb8 50%, #0e1a4a 100%)', glow: '#6a8cff', rank: 2 };
-		return { name: 'COMMON', sub: 'Emerald', tag: 'EME', class: 'emerald', gradient: 'linear-gradient(135deg, #6affb8 0%, #2db87a 50%, #0e4a2a 100%)', glow: '#6affb8', rank: 1 };
-	}
-
-	const tierInfo = $derived(
-		score.overall !== null ? tier(score.overall) : { name: 'UNVERIFIED', sub: 'No Rank', tag: '—', class: 'unranked', gradient: 'linear-gradient(135deg, #4a5560 0%, #2a323a 50%, #0e141a 100%)', glow: '#4a5560', rank: 0 }
-	);
-
+	const tierInfo = $derived(getScoreTier(score.overall));
 	const versionTag = $derived(score.language.version.split(' ')[0] ?? score.language.id);
-	const teamLabel = $derived(score.benchmarkId === 'overall' ? 'ARENA' : score.benchmarkId.replace(/_/g, ' '));
+	const teamLabel = $derived(formatBenchmarkLabel(score.benchmarkId));
 	const nameParts = $derived(score.language.name.split(/\s+/).filter(Boolean));
 	const firstName = $derived(nameParts[0] ?? score.language.name);
 	const restName = $derived(nameParts.length > 1 ? nameParts.slice(1).join(' ') : '');
-	const monogram = $derived((score.language.name[0] ?? '?').toUpperCase());
-
+	const monogram = $derived(languageMonogram(score.language));
 	const overallDisplay = $derived(score.overall === null ? '—' : Math.round(score.overall));
 	const overallDigits = $derived(String(overallDisplay).padStart(2, '0').split(''));
-
-	const isHighTier = $derived(tierInfo.rank >= 5);
-
+	const isHighTier = $derived(tierInfo.tierLevel >= 5);
 	const ovrCopy = $derived(score.overall === null ? '—' : String(Math.round(score.overall)));
+	const issueCount = $derived(score.diagnostics.length);
+	const issueLabel = $derived(
+		issueCount === 1 ? 'UNVERIFIED · 1 issue' : `UNVERIFIED · ${issueCount} issues`
+	);
 
 	function filled(value: number | null): number {
 		if (value === null) return 0;
 		return Math.max(0, Math.min(10, Math.round(value / 10)));
 	}
 
+	function prefersReducedMotion(): boolean {
+		return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+	}
+
 	function onMove(e: MouseEvent) {
-		if (!cardEl) return;
+		if (!cardEl || prefersReducedMotion()) return;
 		const rect = cardEl.getBoundingClientRect();
 		const x = (e.clientX - rect.left) / rect.width - 0.5;
 		const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -79,15 +66,16 @@
 <div
 	bind:this={cardEl}
 	class="card-2k tier-{tierInfo.class} {isHighTier ? 'high-tier' : ''}"
-	onclick={onexpand}
-	onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') onexpand?.(); }}
+	class:expanded
+	onclick={expanded ? undefined : onexpand}
+	onkeydown={expanded ? undefined : (e) => { if (e.key === 'Enter' || e.key === ' ') onexpand?.(); }}
 	onmousemove={onMove}
 	onmouseleave={onLeave}
-	role="button"
-	tabindex="0"
+	role={expanded ? 'group' : 'button'}
+	tabindex={expanded ? undefined : 0}
 	style:--tier-gradient={tierInfo.gradient}
 	style:--tier-glow={tierInfo.glow}
-	style:--tier-rank={tierInfo.rank}
+	style:--tier-level={tierInfo.tierLevel}
 	style:--tilt-x={`${tiltX}deg`}
 	style:--tilt-y={`${tiltY}deg`}
 >
@@ -148,7 +136,7 @@
 			</div>
 			<div class="archetype">
 				<span class="archetype-marker" aria-hidden="true"></span>
-				<span class="archetype-text">{teamLabel.toUpperCase()}</span>
+				<span class="archetype-text">{teamLabel}</span>
 				<span class="archetype-marker" aria-hidden="true"></span>
 			</div>
 		</div>
@@ -180,7 +168,7 @@
 						<span class="attribute-label">{cat.label}</span>
 						<span class="attribute-value">{value === null ? '—' : Math.round(value)}</span>
 					</div>
-					<div class="attribute-bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow={value ?? 0}>
+					<div class="attribute-bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow={value ?? 0} aria-label={`${cat.label} ${value === null ? 'unavailable' : Math.round(value)}`}>
 						{#each Array(10) as _, i (i)}
 							<span class="seg" class:on={i < segs}></span>
 						{/each}
@@ -203,7 +191,7 @@
 					<div class="benchmarks-list">
 						{#each score.benchmarks as bench (bench.benchmarkId)}
 							<div class="bench-row">
-								<span class="bench-name">{bench.benchmarkId.replace(/_/g, ' ')}</span>
+								<span class="bench-name">{formatBenchmarkLabel(bench.benchmarkId)}</span>
 								<div class="bench-rail">
 									<div class="bench-rail-fill" style:--pct={`${bench.overall}%`}></div>
 								</div>
@@ -223,8 +211,25 @@
 			<span class="ovr-mini" aria-label="Geometric-mean speed score">{ovrCopy}</span>
 		</footer>
 
-		{#if !score.eligible && score.diagnostics.length}
-			<div class="diagnostics">{score.diagnostics[0]}</div>
+		{#if issueCount}
+			<div class="diagnostics" class:coverage={score.eligible}>
+				<div class="diagnostics-head">
+					{#if score.eligible}
+						PARTIAL · {issueCount === 1 ? '1 note' : `${issueCount} notes`}
+					{:else}
+						{issueLabel}
+					{/if}
+				</div>
+				{#if expanded}
+					<ul class="diagnostics-list">
+						{#each score.diagnostics as diagnostic, diagnosticIndex (`${diagnosticIndex}-${diagnostic}`)}
+							<li>{diagnostic}</li>
+						{/each}
+					</ul>
+				{:else}
+					<p class="diagnostics-preview">{score.diagnostics[0]}</p>
+				{/if}
+			</div>
 		{/if}
 	</div>
 </div>
@@ -234,7 +239,7 @@
 	.card-2k {
 		--tier-gradient: linear-gradient(135deg, #4a5560 0%, #2a323a 50%, #0e141a 100%);
 		--tier-glow: #4a5560;
-		--tier-rank: 0;
+		--tier-level: 0;
 		--tilt-x: 0deg;
 		--tilt-y: 0deg;
 		position: relative;
@@ -256,6 +261,10 @@
 
 	.card-2k:hover {
 		filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 18px var(--tier-glow));
+	}
+
+	.card-2k.expanded {
+		cursor: default;
 	}
 
 	/* --- Aggressive silhouette: large top-right, smaller bottom-left, plus tier-driven extensions --- */
@@ -358,7 +367,7 @@
 		pointer-events: none;
 	}
 
-	/* Holographic shimmer, intensity scales with tier rank */
+	/* Holographic shimmer, intensity scales with tier level */
 	.card-shimmer {
 		position: absolute;
 		inset: 0;
@@ -373,12 +382,12 @@
 		background:
 			linear-gradient(
 				115deg,
-				transparent calc(30% - 12% * var(--tier-rank) / 7),
-				color-mix(in srgb, var(--tier-glow) calc(8% + 5% * var(--tier-rank) / 7), transparent) 50%,
-				transparent calc(70% + 12% * var(--tier-rank) / 7)
+				transparent calc(30% - 12% * var(--tier-level) / 7),
+				color-mix(in srgb, var(--tier-glow) calc(8% + 5% * var(--tier-level) / 7), transparent) 50%,
+				transparent calc(70% + 12% * var(--tier-level) / 7)
 			);
 		mix-blend-mode: screen;
-		opacity: calc(0.25 + 0.55 * var(--tier-rank) / 7);
+		opacity: calc(0.25 + 0.55 * var(--tier-level) / 7);
 		pointer-events: none;
 	}
 
@@ -575,8 +584,8 @@
 	.monogram {
 		position: relative;
 		z-index: 1;
-		font: 900 clamp(5.5rem, 19vw, 8.5rem) / 0.78 var(--display);
-		letter-spacing: -0.08em;
+		font: 900 clamp(3.4rem, 12vw, 5.6rem) / 0.85 var(--display);
+		letter-spacing: -0.04em;
 		background: linear-gradient(180deg, #ffffff 0%, color-mix(in srgb, var(--tier-glow) 100%, #fff 0%) 50%, color-mix(in srgb, var(--tier-glow) 80%, #0a0e14 20%) 100%);
 		-webkit-background-clip: text;
 		background-clip: text;
@@ -730,10 +739,13 @@
 	}
 
 	.attribute-value {
-		font: 900 0.78rem var(--display);
+		min-width: 1.6rem;
+		text-align: right;
+		font: 900 0.85rem / 1 var(--mono);
+		font-variant-numeric: tabular-nums;
 		color: #fff;
 		text-shadow: 0 0 8px color-mix(in srgb, var(--tier-glow) 70%, transparent);
-		letter-spacing: -0.02em;
+		letter-spacing: 0;
 	}
 
 	.attribute-bar {
@@ -882,13 +894,33 @@
 	.diagnostics {
 		position: relative;
 		z-index: 2;
-		padding: 0.4rem 0.3rem 0.25rem;
+		padding: 0.4rem 0.3rem 0.35rem;
 		margin: 0 -0.2rem -0.2rem;
 		font: 600 0.55rem var(--mono);
 		color: #ffd9a0;
 		background: rgba(255, 130, 80, 0.08);
 		border-top: 1px solid rgba(255, 130, 80, 0.35);
 		letter-spacing: 0.04em;
+	}
+
+	.diagnostics.coverage {
+		color: color-mix(in srgb, var(--tier-glow) 70%, #c8d0d8);
+		background: color-mix(in srgb, var(--tier-glow) 8%, rgba(0, 0, 0, 0.35));
+		border-top-color: color-mix(in srgb, var(--tier-glow) 35%, transparent);
+	}
+
+	.diagnostics-preview {
+		margin: 0;
+		opacity: 0.9;
+		line-height: 1.35;
+	}
+
+	.diagnostics-list {
+		margin: 0.2rem 0 0;
+		padding-left: 1rem;
+		display: grid;
+		gap: 0.2rem;
+		line-height: 1.35;
 	}
 
 	/* High-tier cards get a stronger gem and a faint top-light */
@@ -900,5 +932,20 @@
 
 	@media (max-width: 600px) {
 		.card-2k { max-width: 280px; }
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.card-2k,
+		.card-shimmer,
+		.shimmer,
+		.particle {
+			animation: none !important;
+			transition: none !important;
+			transform: none !important;
+		}
+
+		.card-2k:hover {
+			filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.55));
+		}
 	}
 </style>

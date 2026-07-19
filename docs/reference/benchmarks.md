@@ -1,6 +1,15 @@
 # Benchmarks Reference
 
-Runtime Arena includes three benchmark workloads, each designed to stress different aspects of language runtimes.
+Runtime Arena currently defines four benchmark workloads. Three are fully implemented across Rust, Go, TypeScript, Python, and LuaJIT. **Barrier Wave** has committed datasets and checker support; language implementations are in progress.
+
+| Benchmark | Status | Stresses |
+|-----------|--------|----------|
+| `nbody` | Complete (5 languages) | Numeric computation, tight loops |
+| `shortest-path` | Complete (5 languages) | Priority queues, graph traversal |
+| `aggregation` | Complete (5 languages) | Parsing, hash maps, sorting, GC |
+| `barrier-wave` | Datasets + checker ready; implementations WIP | Structured parallel concurrency, barriers |
+
+Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md`.
 
 ## nbody
 
@@ -30,7 +39,7 @@ Runtime Arena includes three benchmark workloads, each designed to stress differ
 
 **Workload:** CSV transaction record aggregation.
 
-**Input:** CSV with columns `timestamp`, `account_id`, `category`, `quantity`, `unit_price`.
+**Input:** CSV with columns `timestamp`, `account_id`, `category`, `quantity`, `unit_price` (dataset file is typically `*.csv`, not JSON).
 
 **Output:** JSON with `recordCount`, `totalQuantity`, `totalValueMinorUnits`, `categories[]`, `topAccounts[]`, `minimumTransactionMinorUnits`, `maximumTransactionMinorUnits`, `checksum`.
 
@@ -38,16 +47,34 @@ Runtime Arena includes three benchmark workloads, each designed to stress differ
 
 **Algorithm:** Parse CSV, aggregate by category and account, sort categories alphabetically, sort accounts by value descending (top 10), compute SHA-256 checksum.
 
+## barrier-wave
+
+**Workload:** Persistent worker pool with deterministic fan-out/fan-in and a barrier between every phase. Each worker owns a fixed shard, applies a 32-bit mixing kernel, and returns local XOR/sum; the coordinator reduces in worker-ID order.
+
+**Input:** JSON (`schemaVersion` `1.0.0`) with `workerCount`, `phaseCount`, `itemsPerWorker`, `roundsPerItem`, `initialSeed` (8 lowercase hex chars).
+
+**Output:** JSON with digest/seed fields defined in `benchmarks/barrier-wave/IMPLEMENTING.md`.
+
+**Stresses:** Real parallel workers, synchronization, reduction order, communication inside the kernel timing boundary.
+
+**Status notes:**
+- Checker task `barrier-wave` is implemented and tested.
+- Datasets are committed fixtures (`generatorVersion` `1.0.0` in metadata). `arena dataset generate` has **no** barrier-wave generator yet (only nbody, shortest-path, aggregation).
+- Language implementations are incomplete relative to the other three benchmarks; see the tree under `benchmarks/barrier-wave/implementations/`.
+- `schemas/implementation-output.schema.json` does not yet include a barrier-wave branch; correctness is enforced by the Go checker.
+
 ## Dataset Sizes
 
-| Size | Warmup | Measured | N-body | Shortest path | Aggregation |
-|------|--------|----------|--------|---------------|-------------|
-| small | 1 | 5 | 4 bodies × 5,000 steps | 100 vertices × 30 queries | 10,000 records |
-| medium | 3 | 10 | 6 bodies × 20,000 steps | 300 vertices × 90 queries | 50,000 records |
-| large | 3 | 10 | 8 bodies × 50,000 steps | 600 vertices × 180 queries | 200,000 records |
+| Size | Warmup / Measured (typical) | N-body | Shortest path | Aggregation | Barrier Wave |
+|------|----------------------------|--------|---------------|-------------|--------------|
+| small | see manifest | 4 bodies × 5,000 steps (1 / 5) | 100 vertices × 30 queries (1 / 5) | 10,000 records (1 / 5) | 2 workers × 500 phases × 64 items (3 / 10) |
+| medium | see manifest | 6 bodies × 20,000 steps (3 / 10) | 300 vertices × 90 queries (3 / 10) | 50,000 records (3 / 10) | 4 workers × 250 phases × 1024 items (3 / 10) |
+| large | see manifest | 8 bodies × 50,000 steps (3 / 10) | 600 vertices × 180 queries (3 / 10) | 200,000 records (3 / 10) | 8 workers × 100 phases × 8192 items (2 / 8) |
 
-Datasets are deterministic — generated from a seed and committed as fixtures with SHA-256 hashes.
+Warmup and measured iteration counts come from each benchmark's `benchmark.json` size entries (not only `arena.config.json` defaults). Dataset paths are whatever `sizes.<name>.dataset` names — JSON or CSV.
+
+Datasets for the three generated benchmarks are deterministic from a seed. Regenerating them via `arena dataset generate` writes metadata with `generatorVersion` `"2.0.0"`. Barrier-wave fixtures were committed separately and are not regenerable through the CLI yet.
 
 ## Adding a New Benchmark
 
-See [guides/adding-a-benchmark.md](../guides/adding-a-benchmark.md).
+See [guides/adding-a-benchmark.md](../guides/adding-a-benchmark.md). Register a dataset generator in the CLI if you want `arena dataset generate` support.

@@ -8,14 +8,15 @@ npm test
 
 This command:
 1. Builds the checker binary (`npm run build:checker`)
-2. Runs CLI integration tests (`npm run test --workspaces --if-present`)
+2. Runs CLI and web workspace tests (`npm run test --workspaces --if-present`)
 3. Runs checker unit tests (`node scripts/test-checker.mjs`)
 
 ## Test Locations
 
 | Component | Test File | Framework |
 |-----------|-----------|-----------|
-| CLI | `cli/test/cli.test.ts` | Node test runner |
+| CLI integration | `cli/test/cli.test.ts` | Node test runner |
+| CLI timing helpers | `cli/src/timing.test.ts` | Node test runner |
 | Web scoring | `web/src/lib/scoring.test.ts` | Node test runner |
 | Checker | `checker/cmd/arena-checker/main_test.go` | Go testing |
 
@@ -30,12 +31,15 @@ Integration tests in `cli/test/cli.test.ts` verify:
 - `dataset generate` creates deterministic datasets
 - `results` command reads snapshots
 
+Timing unit tests in `cli/src/timing.test.ts` cover reading/parsing timing sample files.
+
 ## Checker Tests
 
 Unit tests in `checker/cmd/arena-checker/main_test.go` verify:
-- Deterministic simulation produces consistent results
-- Alternate optimal paths are accepted
+- Deterministic nbody simulation produces consistent results
+- Alternate optimal shortest-paths are accepted
 - Aggregation correctness with known datasets
+- Barrier-wave reference output and rejection of malformed hex
 - Strict JSON rejection of unknown/duplicate fields
 
 Run checker tests manually:
@@ -66,3 +70,4 @@ When adding a new benchmark:
 1. Add checker unit tests in `checker/cmd/arena-checker/main_test.go`
 2. Verify the CLI can discover, build, and run the benchmark
 3. Verify the checker accepts correct output and rejects incorrect output
+4. If you add `arena dataset generate` support, cover deterministic regeneration

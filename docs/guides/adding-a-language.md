@@ -5,7 +5,8 @@
    run arguments, environment variables, and source extensions.
 3. Ensure the manifest matches `schemas/language.schema.json`.
 4. Add `benchmarks/<benchmark-id>/implementations/<language-id>/` for every
-   supported benchmark.
+   supported benchmark you intend to ship (start with the three complete
+   workloads; barrier-wave when ready).
 5. Read each benchmark's `IMPLEMENTING.md` for the exact implementation
    contract — input/output formats, algorithm requirements, checksum rules,
    and checker gotchas:
@@ -13,16 +14,24 @@
    - `benchmarks/nbody/IMPLEMENTING.md`
    - `benchmarks/shortest-path/IMPLEMENTING.md`
    - `benchmarks/aggregation/IMPLEMENTING.md`
+   - `benchmarks/barrier-wave/IMPLEMENTING.md` (when implementing barrier-wave)
 
-6. Each implementation must accept:
+6. Each implementation must accept the persistent-worker CLI contract:
 
    ```text
-   --input <input-file> --output <output-file>
+   --input <input-file>
+   --output <output-file>
+   --timing-output <timing-file>
+   --warmup <n>
+   --iterations <n>
    ```
 
- 7. Use optimized release builds. Produce output that passes the checker —
-    the internal approach can differ from other language implementations.
-    Use the language's best idioms, data structures, and patterns.
+   Language manifests must pass these through the `run.arguments` template
+   (see `docs/architecture/execution-model.md`).
+
+7. Use optimized release builds. Produce output that passes the checker —
+   the internal approach can differ from other language implementations.
+   Use the language's best idioms, data structures, and patterns.
 8. Verify the integration:
 
    ```bash
@@ -34,3 +43,7 @@
 
 The CLI discovers valid language manifests automatically; avoid adding
 language-specific branches to the runner.
+
+**Note:** `detect` / `build` / `run` commands may be absolute paths on a given
+machine (for example a local LuaJIT install). That is supported; prefer
+commands on `PATH` when documenting or sharing manifests.

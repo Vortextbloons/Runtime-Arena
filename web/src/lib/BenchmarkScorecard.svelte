@@ -1,28 +1,19 @@
 <script lang="ts">
 	import { formatDuration, formatVariation, scoreInterpretation } from './scoring';
+	import { formatBenchmarkLabel, getScoreTier } from './tiers';
 	import type { BenchmarkScore } from './types';
 
 	let { scores }: { scores: BenchmarkScore[] } = $props();
 	const categories = [
 		{ key: 'performance', label: 'SPEED' },
-		{ key: 'consistency', label: 'STABILITY' },
-		{ key: 'scalability', label: 'SCALING' }
+		{ key: 'consistency', label: 'STABLE' },
+		{ key: 'scalability', label: 'SCALE' }
 	] as const;
-
-	function tier(overall: number): { name: string; sub: string; class: string; glow: string } {
-		if (overall >= 95) return { name: 'UNTOUCHABLE', sub: 'Galaxy Opal', class: 'galaxy-opal', glow: '#ff2bd6' };
-		if (overall >= 90) return { name: 'INVINCIBLE', sub: 'Pink Diamond', class: 'pink-diamond', glow: '#ff5fa8' };
-		if (overall >= 80) return { name: 'DOMINANT', sub: 'Diamond', class: 'diamond', glow: '#5ce6ff' };
-		if (overall >= 70) return { name: 'ELITE', sub: 'Amethyst', class: 'amethyst', glow: '#b794ff' };
-		if (overall >= 60) return { name: 'STANDARD', sub: 'Ruby', class: 'ruby', glow: '#ff5a5a' };
-		if (overall >= 45) return { name: 'ROOKIE', sub: 'Sapphire', class: 'sapphire', glow: '#6a8cff' };
-		return { name: 'COMMON', sub: 'Emerald', class: 'emerald', glow: '#6affb8' };
-	}
 </script>
 
 <div class="score-list">
 	{#each scores as score, index (`${score.benchmarkId}-${score.language.id}`)}
-		{@const tierInfo = score.overall !== null ? tier(score.overall) : { name: 'UNVERIFIED', sub: 'No Rank', class: 'unranked', glow: '#4a5560' }}
+		{@const tierInfo = getScoreTier(score.overall)}
 		<article
 			class="row {tierInfo.class}"
 			style:--tier-glow={tierInfo.glow}
@@ -35,7 +26,7 @@
 				</div>
 
 				<div class="identity">
-					<p>{score.benchmarkId.replace(/_/g, ' ')}</p>
+					<p>{formatBenchmarkLabel(score.benchmarkId)}</p>
 					<h2>{score.language.name}</h2>
 					<div class="identity-meta">
 						<span class="tier-chip">{tierInfo.sub}</span>
@@ -56,16 +47,25 @@
 				</div>
 
 				<p class="interpretation">
-					{score.overall === null ? score.diagnostics[0] ?? 'This result is not eligible for ranking.' : scoreInterpretation(score.overall)}
+					{#if score.overall === null}
+						{#if score.diagnostics.length}
+							<span class="issue-count">{score.diagnostics.length === 1 ? 'UNVERIFIED · 1 issue' : `UNVERIFIED · ${score.diagnostics.length} issues`}</span>
+							{score.diagnostics[0]}
+						{:else}
+							This result is not eligible for ranking.
+						{/if}
+					{:else}
+						{scoreInterpretation(score.overall)}
+					{/if}
 				</p>
 
 				<div class="categories">
 					{#each categories as category (category.key)}
 						{@const value = score[category.key]}
 						<div class="cat">
-							<span>{category.label}{category.key === 'performance' ? ' · ranked' : ' · diagnostic'}</span>
+							<span class="cat-label">{category.label}{category.key === 'performance' ? ' · ranked' : ' · diagnostic'}</span>
 							<div class="category-track"><i style:--score={`${value ?? 0}%`}></i></div>
-							<strong>{value === null ? '—' : Math.round(value)}</strong>
+							<strong class="cat-value">{value === null ? '—' : Math.round(value)}</strong>
 						</div>
 					{/each}
 				</div>
@@ -76,14 +76,14 @@
 				{#if score.eligible}
 					<div class="formula">
 						<p><strong>Formula</strong> Geometric mean of fastest median ÷ this median. Stability and scaling do not affect rank.</p>
-						<p><strong>Cohort</strong> {score.benchmarkId} · {score.expectedSizes.join(', ')} · accepted tiers whose fastest median is at least 1 ms</p>
+						<p><strong>Cohort</strong> {formatBenchmarkLabel(score.benchmarkId)} · {score.expectedSizes.join(', ')} · accepted tiers whose fastest median is at least 1 ms</p>
 					</div>
 					{#if score.benchmarks}
 						<div class="size-table">
 							<div class="table-head"><span>Benchmark</span><span>Speed</span><span>Performance</span><span>Stability</span><span>Scaling</span></div>
 							{#each score.benchmarks as benchmark (benchmark.benchmarkId)}
 								<div class="size-row">
-									<strong>{benchmark.benchmarkId.replace(/_/g, ' ')}</strong>
+									<strong>{formatBenchmarkLabel(benchmark.benchmarkId)}</strong>
 									<code>{benchmark.overall.toFixed(1)}</code>
 									<code>{benchmark.performance.toFixed(1)}</code>
 									<code>{benchmark.consistency.toFixed(1)}</code>
@@ -106,6 +106,9 @@
 						</div>
 					{/if}
 				{:else}
+					{#if score.diagnostics.length}
+						<p class="issue-count">{score.diagnostics.length === 1 ? 'UNVERIFIED · 1 issue' : `UNVERIFIED · ${score.diagnostics.length} issues`}</p>
+					{/if}
 					<ul>
 						{#each score.diagnostics as diagnostic, diagnosticIndex (`${diagnosticIndex}-${diagnostic}`)}
 							<li>{diagnostic}</li>
@@ -188,7 +191,7 @@
 	}
 
 	.identity p, .identity h2 { margin: 0; }
-	.identity p { color: color-mix(in srgb, var(--tier-glow) 90%, #fff); font: 800 0.62rem var(--mono); text-transform: uppercase; letter-spacing: 0.12em; }
+	.identity p { color: color-mix(in srgb, var(--tier-glow) 90%, #fff); font: 800 0.62rem var(--mono); text-transform: none; letter-spacing: 0.12em; }
 	.identity h2 { margin: 0.25rem 0 0.45rem; font-size: 1.4rem; letter-spacing: -0.02em; }
 
 	.identity-meta {
@@ -269,9 +272,18 @@
 	.categories { grid-column: 4; display: grid; gap: 0.55rem; }
 	.categories .cat { display: grid; grid-template-columns: 7.2rem 1fr 2rem; gap: 0.75rem; align-items: center; }
 	.categories span, .categories strong { font: 700 0.66rem var(--mono); }
-	.categories strong { text-align: right; }
+	.categories .cat-value { text-align: right; font-variant-numeric: tabular-nums; }
 	.category-track { height: 0.3rem; background: #0d1419; border-radius: 1rem; overflow: hidden; border: 1px solid color-mix(in srgb, var(--tier-glow) 20%, transparent); }
 	.category-track i { display: block; width: var(--score); height: 100%; background: linear-gradient(90deg, color-mix(in srgb, var(--tier-glow) 50%, #0d1419), var(--tier-glow)); box-shadow: 0 0 6px color-mix(in srgb, var(--tier-glow) 60%, transparent); }
+
+	.issue-count {
+		display: block;
+		margin-bottom: 0.35rem;
+		color: var(--warning);
+		font: 800 0.62rem var(--mono);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
 
 	details { border-top: 1px solid color-mix(in srgb, var(--tier-glow) 25%, var(--rule)); position: relative; }
 	summary { padding: 0.8rem 1.5rem; color: color-mix(in srgb, var(--tier-glow) 90%, #fff); cursor: pointer; font: 800 0.66rem var(--mono); text-transform: uppercase; letter-spacing: 0.1em; }
@@ -285,7 +297,7 @@
 	.table-head, .size-row { display: grid; grid-template-columns: 1fr repeat(4, 1.2fr); gap: 0.75rem; padding: 0.65rem 0; border-bottom: 1px solid color-mix(in srgb, var(--tier-glow) 14%, var(--rule)); }
 	.table-head { color: var(--muted); font: 600 0.6rem var(--mono); text-transform: uppercase; }
 	.size-row { font-size: 0.75rem; }
-	.size-row strong { text-transform: capitalize; }
+	.size-row strong { text-transform: none; }
 	.size-row code { font-family: var(--mono); }
 
 	ul { margin: 0.4rem 1.5rem 1.4rem; color: var(--warning); font-size: 0.78rem; }

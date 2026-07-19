@@ -6,16 +6,18 @@ The checker (`checker/`) is an independent Go program that validates benchmark o
 
 ```
 checker/
-  go.mod                # module github.com/runtime-arena/checker, go 1.26
+  go.mod                # module github.com/runtime-arena/checker
   cmd/
     arena-checker/
-      main.go           # All checker logic (464 lines)
-      main_test.go      # Unit tests (5 test cases)
+      main.go           # All checker logic (single package today)
+      main_test.go      # Unit tests
   internal/
-    benchmarks/         # Benchmark-specific validation (in progress)
-    output/             # Output parsing and formatting (in progress)
-    validation/         # Common validation utilities (in progress)
+    benchmarks/         # Placeholder (.gitkeep) — not yet extracted
+    output/             # Placeholder (.gitkeep)
+    validation/         # Placeholder (.gitkeep)
 ```
+
+All validation currently lives in `main.go`. The `internal/` tree is reserved for a future split.
 
 ## Design Principles
 
@@ -63,6 +65,10 @@ Independently re-aggregates CSV data and compares:
 - Category breakdowns (sorted alphabetically)
 - Top 10 accounts (sorted by value descending)
 - SHA-256 checksum of sorted output
+
+### barrier-wave
+
+Independently re-runs the reference barrier-wave kernel and compares the full output object (schema version, digests, seeds). Rejects malformed hex seeds and schema mismatches. Covered by `TestBarrierWaveReference` and `TestBarrierWaveRejectsMalformedHex` in `main_test.go`.
 
 ## Usage
 

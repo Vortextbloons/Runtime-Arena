@@ -16,3 +16,5 @@ npm run build:checker
 npm run prepare-results
 npm run combine-docs
 ```
+
+There is no `verify-environment` script; use `npm run doctor` / `npm run arena -- doctor` for toolchain checks.

@@ -9,20 +9,22 @@ cli/
   package.json          # @runtime-arena/cli, type: module, bin: arena
   tsconfig.json         # ES2024, NodeNext, strict
   src/
-    index.ts            # Main CLI logic (597 lines)
+    index.ts            # Main CLI logic (commands, discovery, run, fingerprints)
     metrics.ts          # Metric registry (kernelTime)
     timing.ts           # Timing sample reader
-    commands/           # Sub-command dispatch (in progress)
-    discovery/          # Language and benchmark discovery
-    execution/          # Build and run orchestration
-    metrics/            # Metric collection
-    reporting/          # Output formatting
-    results/            # Result storage
+    commands/           # Placeholder (.gitkeep) — not yet extracted
+    discovery/          # Placeholder (.gitkeep)
+    execution/          # Placeholder (.gitkeep)
+    metrics/            # Placeholder (.gitkeep)
+    reporting/          # Placeholder (.gitkeep)
+    results/            # Placeholder (.gitkeep)
   test/
-    cli.test.ts         # Integration tests (8 test cases)
-    timing.test.ts      # Timing sample tests
+    cli.test.ts         # Integration tests
+    timing.test.ts      # Timing sample tests (also under src/)
   dist/                 # Compiled output
 ```
+
+`timing.test.ts` lives at `cli/src/timing.test.ts` (next to `timing.ts`).
 
 ## Dependencies
 
@@ -32,13 +34,15 @@ cli/
 
 ## Key Design Decisions
 
-**Modular structure**: Core logic lives in `index.ts` (597 lines) with supporting modules (`metrics.ts`, `timing.ts`). Subdirectories under `src/` provide structure for commands, discovery, execution, metrics, reporting, and results — ready for extraction as the codebase grows.
+**Mostly monolithic today**: Runtime behavior lives in `index.ts` with helpers in `metrics.ts` and `timing.ts`. Subdirectories under `src/` are empty placeholders reserved for a future split; do not treat them as active modules.
 
 **Discovery-based**: Languages and benchmarks are discovered by scanning directories for manifest files. No hardcoded lists.
 
 **Incremental execution**: The fingerprint system ensures only changed cells are re-executed, making iterative development fast.
 
 **Platform awareness**: Handles Windows-specific concerns (`.exe` suffixes, `.cmd` wrappers for npm/npx, `windowsHide: true`).
+
+**Version string**: Result snapshots write `arenaVersion: "0.2.0"` (hardcoded in the CLI). Root/`cli` npm `package.json` may still say `0.1.0` — treat the snapshot field as the arena protocol version for results.
 
 ## Metric Registry
 
@@ -47,3 +51,7 @@ cli/
 | Metric | Status | Notes |
 |--------|--------|-------|
 | `kernelTime` | Available | Measured inside the persistent benchmark process |
+
+## Local Caches
+
+Go builds set `GOCACHE` to `.arena/go-build-cache`. Run scratch directories live under `.arena/runs/<snapshotId>` and are deleted after a run unless `--preserve-temp` is set.

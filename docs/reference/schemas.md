@@ -58,7 +58,7 @@ Validates result snapshots (`results/current.json`).
 - `schemaVersion` — Semver string; the schema validates against `^\d+\.\d+\.\d+$` (the CLI currently writes `"3.0.0"`)
 - `snapshotId` — Unique run identifier
 - `updatedAt` — ISO 8601 timestamp
-- `arenaVersion` — CLI version
+- `arenaVersion` — Protocol version written into snapshots (CLI currently hardcodes `"0.2.0"`; may differ from npm `package.json` version)
 - `gitCommit` / `gitDirty` — Git state (both nullable)
 - `results[]` — Array of benchmark results
 
@@ -73,4 +73,4 @@ Each result is required to contain:
 
 ## implementation-output.schema.json
 
-Base output shape for implementations. Uses conditional validation based on the `benchmark` field to apply benchmark-specific output schemas.
+Base output shape for implementations. Uses conditional validation based on the `benchmark` field to apply benchmark-specific output schemas for **nbody**, **shortest-path**, and **aggregation**. **barrier-wave** is not yet branched in this schema; the Go checker is the authority for that workload's output shape.

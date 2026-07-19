@@ -98,11 +98,12 @@
 	<div class="view-intro">
 		<div>
 			<p>{view === 'chart' ? 'Measured comparison' : 'Execution speed'}</p>
-			<h2>{activeBenchmark}</h2>
+			<h2>{activeBenchmark === 'overall' ? 'Overall' : activeBenchmark.replace(/[-_]+/g, ' ')}</h2>
+			<p class="qualification">Snapshot rankings · accepted geometric-mean speed over completed benchmarks · skipped workloads noted · stability and scaling are diagnostic</p>
 		</div>
 		<p>
 			{view === 'chart' && activeBenchmark === 'overall'
-				? 'Each bar is the geometric mean of normalized speed across all ranked benchmarks.'
+				? 'Each bar is the geometric mean of normalized speed across the benchmarks that language completed in this snapshot.'
 				: view === 'chart'
 					? 'Shorter bars are faster. Muted dots show each measured sample.'
 				: 'Scores are relative to accepted languages in this benchmark and run.'}
@@ -130,28 +131,40 @@
 	{#if expandedCard}
 		<div class="card-overlay" onclick={(e) => { if (e.target === e.currentTarget) expandedCard = null; }} onkeydown={(e) => { if (e.key === 'Escape') expandedCard = null; }} role="dialog" aria-modal="true" tabindex="-1">
 			<div class="card-overlay-inner" role="group">
-				<OverallCard score={expandedCard} />
-				{#if expandedCard.benchmarks && expandedCard.benchmarks.length}
+				<OverallCard score={expandedCard} expanded />
+				{#if (!expandedCard.eligible && expandedCard.diagnostics.length) || (expandedCard.benchmarks && expandedCard.benchmarks.length)}
 					<div class="expanded-details">
-						<h3>Benchmark breakdown</h3>
-						<div class="expanded-table">
-							<div class="expanded-table-head">
-								<span>Benchmark</span>
-								<span>Speed</span>
-								<span>Performance</span>
-								<span>Stability diagnostic</span>
-								<span>Scaling diagnostic</span>
-							</div>
-							{#each expandedCard.benchmarks as bench (bench.benchmarkId)}
-								<div class="expanded-table-row">
-									<strong>{bench.benchmarkId}</strong>
-									<code>{Math.round(bench.overall)}</code>
-									<code>{Math.round(bench.performance)}</code>
-									<code>{Math.round(bench.consistency)}</code>
-									<code>{Math.round(bench.scalability)}</code>
+						{#if !expandedCard.eligible && expandedCard.diagnostics.length}
+							<section class="expanded-diagnostics">
+								<h3>{expandedCard.diagnostics.length === 1 ? 'UNVERIFIED · 1 issue' : `UNVERIFIED · ${expandedCard.diagnostics.length} issues`}</h3>
+								<ul>
+									{#each expandedCard.diagnostics as diagnostic, diagnosticIndex (`${diagnosticIndex}-${diagnostic}`)}
+										<li>{diagnostic}</li>
+									{/each}
+								</ul>
+							</section>
+						{/if}
+						{#if expandedCard.benchmarks && expandedCard.benchmarks.length}
+							<h3>Benchmark breakdown</h3>
+							<div class="expanded-table">
+								<div class="expanded-table-head">
+									<span>Benchmark</span>
+									<span>Speed</span>
+									<span>Performance</span>
+									<span>Stability diagnostic</span>
+									<span>Scaling diagnostic</span>
 								</div>
-							{/each}
-						</div>
+								{#each expandedCard.benchmarks as bench (bench.benchmarkId)}
+									<div class="expanded-table-row">
+										<strong>{bench.benchmarkId.replace(/[-_]+/g, ' ')}</strong>
+										<code>{Math.round(bench.overall)}</code>
+										<code>{Math.round(bench.performance)}</code>
+										<code>{Math.round(bench.consistency)}</code>
+										<code>{Math.round(bench.scalability)}</code>
+									</div>
+								{/each}
+							</div>
+						{/if}
 					</div>
 				{/if}
 				<button class="expanded-close" onclick={() => expandedCard = null} type="button">✕</button>
@@ -199,6 +212,14 @@
 	.view-intro { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding: 2rem 0 1rem; }
 	.view-intro p { max-width: 34rem; margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
 	.view-intro div p { color: var(--accent); font: 650 .62rem var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+	.view-intro .qualification {
+		margin-top: 0.55rem;
+		max-width: 28rem;
+		color: var(--muted);
+		font: 600 0.68rem / 1.4 var(--mono);
+		letter-spacing: 0.02em;
+		text-transform: none;
+	}
 	.view-intro h2 { margin: .2rem 0 0; font-size: 1.65rem; text-transform: capitalize; }
 	.run-details { margin-top: 1rem; border: 1px solid var(--rule); border-radius: .7rem; background: var(--panel); }
 	.run-details summary { padding: 1rem 1.2rem; color: var(--muted); cursor: pointer; font: 650 .68rem var(--mono); text-transform: uppercase; letter-spacing: .06em; }
@@ -262,14 +283,30 @@
 		border: 1px solid var(--rule);
 		border-radius: 1rem;
 		padding: 1.5rem;
+		display: grid;
+		gap: 1.2rem;
 	}
 
 	.expanded-details h3 {
-		margin: 0 0 1rem;
+		margin: 0 0 0.75rem;
 		font: 650 0.72rem var(--mono);
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
 		color: var(--muted);
+	}
+
+	.expanded-diagnostics h3 {
+		color: var(--warning);
+	}
+
+	.expanded-diagnostics ul {
+		margin: 0;
+		padding-left: 1.1rem;
+		color: var(--muted);
+		font-size: 0.82rem;
+		line-height: 1.45;
+		display: grid;
+		gap: 0.35rem;
 	}
 
 	.expanded-table {

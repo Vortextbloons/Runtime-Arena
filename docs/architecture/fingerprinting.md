@@ -12,11 +12,17 @@ The fingerprint includes:
 
 1. **Language manifest** — `languages/<language>.json`
 2. **Benchmark manifest** — `benchmarks/<benchmark>/benchmark.json`
-3. **Dataset** — `benchmarks/<benchmark>/datasets/<size>.json`
+3. **Dataset** — path from `sizes.<size>.dataset` under `benchmarks/<benchmark>/datasets/` (may be `.json`, `.csv`, or another extension)
 4. **Metrics registry** — `cli/src/metrics.ts`
 5. **All implementation source files** — `benchmarks/<benchmark>/implementations/<language>/` (recursive, excluding `node_modules`, `target`, `dist`, `build`, `__pycache__`, `.arena`)
 6. **All checker source files** — `checker/` (recursive)
-7. **Configuration metadata** — benchmark version, size name, warmup/iteration counts, metrics, toolchain version, compiler version
+7. **Configuration metadata** — JSON object including:
+   - `benchmarkVersion`
+   - `measurementContractVersion` (`"1.0.0"`)
+   - `size`
+   - `warmups` / `iterations`
+   - `metrics`
+   - `toolchainVersion` / `compilerVersion`
 
 ## How it Works
 
@@ -24,7 +30,7 @@ The fingerprint includes:
 fingerprintCell(language, benchmark, size, toolchainVersion, compilerVersion, warmups, iterations)
   → SHA-256(languageManifest + benchmarkManifest + dataset + metricsRegistry
             + implementationSourceTree + checkerSourceTree
-            + JSON({benchmarkVersion, size, warmups, iterations, metrics, toolchainVersion, compilerVersion}))
+            + JSON({benchmarkVersion, measurementContractVersion: "1.0.0", size, warmups, iterations, metrics, toolchainVersion, compilerVersion}))
 ```
 
 ## Cell Status
@@ -62,6 +68,7 @@ A cell's fingerprint changes when:
 - The metrics registry is modified
 - The toolchain or compiler version changes
 - Warmup or iteration counts change
+- The measurement contract version embedded in the fingerprint metadata changes
 
 ## Machine Provenance
 

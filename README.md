@@ -2,11 +2,13 @@
 
 Extensible cross-language benchmarking system for comparing programming language implementations under identical workloads.
 
-**Version:** 0.2.0
+**Version:** 0.2.0 (result snapshot `arenaVersion`; npm package.json may still report 0.1.0)
 
 ## Status
 
-The command-line benchmark workflow is implemented for Rust, Go, TypeScript, Python, and Lua across all three initial benchmarks. It includes deterministic datasets, independent Go validation, result-schema validation, terminal rankings, and one incrementally maintained canonical result snapshot.
+The command-line benchmark workflow is implemented for Rust, Go, TypeScript, Python, and LuaJIT across **nbody**, **shortest-path**, and **aggregation**. It includes deterministic datasets, independent Go validation, result-schema validation, terminal rankings, and one incrementally maintained canonical result snapshot.
+
+**Barrier Wave** is an additional workload with committed datasets and checker support; language implementations are in progress and not yet part of the full five-language matrix.
 
 The SvelteKit web interface remains optional scaffolding and is not required for benchmark execution.
 
@@ -21,12 +23,13 @@ runtime-arena/
 ├── benchmarks/                Benchmark manifests + implementations
 │   ├── nbody/
 │   ├── shortest-path/
-│   └── aggregation/
+│   ├── aggregation/
+│   └── barrier-wave/          # WIP language implementations
 ├── languages/                 Language manifests (rust, go, typescript, python, lua)
 ├── schemas/                   JSON Schema for manifests and results
 ├── results/                   Canonical benchmark result snapshot
 ├── web/                       Optional SvelteKit results UI
-└── scripts/                   Environment / results utilities
+└── scripts/                   Build / results utilities
 ```
 
 ## Prerequisites

@@ -2,7 +2,7 @@
 
 The web dashboard presents language results as NBA 2K–style collectible cards (`OverallCard.svelte`) and as tier-tinted list rows (`BenchmarkScorecard.svelte`). There is no separate card JSON schema or asset pipeline — both components render a computed `BenchmarkScore` from `web/src/lib/scoring.ts` / `web/src/lib/types.ts`.
 
-Source of truth for visuals: `web/src/lib/OverallCard.svelte` and `web/src/lib/BenchmarkScorecard.svelte`.
+Shared visual helpers live in `web/src/lib/tiers.ts` (`getScoreTier`, `languageMonogram`, `formatBenchmarkLabel`). Unit tests: `tiers.test.ts`.
 
 ## Presentation Modes
 
@@ -11,29 +11,28 @@ Source of truth for visuals: `web/src/lib/OverallCard.svelte` and `web/src/lib/B
 | Collectible card | `OverallCard` | Vertical trading-card silhouette (`card-2k`), used in the Scorecard view and the expanded-card overlay |
 | Detail row | `BenchmarkScorecard` | Horizontal ranked list with shared tier glow; expandable calculation/diagnostics |
 
-Both modes share the same tier thresholds and glow palette. Only `OverallCard` implements the full 2K frame, art stage, attribute meters, tilt, and shimmer.
+Both modes call `getScoreTier(score.overall)`. Only `OverallCard` implements the full 2K frame, art stage, attribute meters, tilt, and shimmer.
 
 ## Score → Card Mapping
-
-Cards consume a `BenchmarkScore`. Relevant fields:
 
 | Card surface | Score field | Notes |
 |--------------|-------------|-------|
 | Large SPEED number (OVR) | `overall` | Same value as `performance` (geometric-mean speed, 0–100). Displayed as a rounded integer; `null` → `—` |
-| SPEED / STABLE / SCALE meters | `performance`, `consistency`, `scalability` | Each meter fills `round(value / 10)` of 10 segments (clamped 0–10) |
-| Language name + monogram | `language.name` | Monogram is the first character of the name (not a per-language brand color) |
+| SPEED / STABLE / SCALE meters | `performance`, `consistency`, `scalability` | Segmented 10-bar meters **plus** tabular numeric values beside each label |
+| Language name + monogram | `language.id` / `language.name` | Stable abbreviations (`RS`, `TS`, `PY`, `LJ`, `GO`, `C++`) via `languageMonogram` |
 | Footer runtime line | `language.id`, `language.version` | Version shows the first whitespace-delimited token |
-| Archetype / team label | `benchmarkId` | `overall` → `ARENA`; otherwise the benchmark id with underscores as spaces |
-| Benchmark breakdown | `benchmarks[]` | Overall cards only; toggle reveals per-benchmark overall/performance/consistency/scalability |
-| Diagnostics strip | `diagnostics[0]` | Shown when `eligible` is false |
+| Archetype / team label | `benchmarkId` | `formatBenchmarkLabel` → `ARENA` or id with `[-_]+` → spaces, uppercased |
+| Benchmark breakdown | `benchmarks[]` | Overall cards only; toggle reveals per-benchmark scores |
+| Diagnostics (compact) | `diagnostics[]` | Ineligible: `UNVERIFIED · N issues` + first line. Eligible but incomplete coverage: `PARTIAL · N notes` (e.g. skipped barrier-wave) |
+| Diagnostics (expanded) | full `diagnostics[]` | Shown in overlay / expanded card mode |
 
-Rank order in list views is sort order from scoring (higher `overall` first), not a letter grade. Tier tags on the card (GO, PD, DIA, …) are rarity labels derived from score thresholds, not placement rank.
+Leaderboard placement (RANK 01, 02, …) is separate from visual `tierLevel`. Tier tags (GO, PD, DIA, …) are rarity labels from score thresholds.
 
 ## Tiers and Rarity
 
-Visual “rarity” is entirely score-driven. There is no independent rarity enum in results JSON.
+Resolved by `getScoreTier(score: number | null)`:
 
-| `overall` | Band name | Gem (rarity) | Tag | Rank weight | CSS class |
+| `overall` | Band name | Gem (rarity) | Tag | `tierLevel` | CSS class |
 |-----------|-----------|--------------|-----|-------------|-----------|
 | ≥ 95 | UNTOUCHABLE | Galaxy Opal | GO | 7 | `galaxy-opal` |
 | ≥ 90 | INVINCIBLE | Pink Diamond | PD | 6 | `pink-diamond` |
@@ -42,42 +41,26 @@ Visual “rarity” is entirely score-driven. There is no independent rarity enu
 | ≥ 60 | STANDARD | Ruby | RUB | 3 | `ruby` |
 | ≥ 45 | ROOKIE | Sapphire | SAP | 2 | `sapphire` |
 | &lt; 45 | COMMON | Emerald | EME | 1 | `emerald` |
-| `null` (ineligible) | UNVERIFIED | No Rank | — | 0 | `unranked` |
+| `null` | UNVERIFIED | No Rank | — | 0 | `unranked` |
 
-`rank` (1–7) drives shimmer intensity and the `high-tier` treatment (rank ≥ 5: Diamond and above). Glow colors:
-
-| Class | Glow |
-|-------|------|
-| `galaxy-opal` | `#ff2bd6` |
-| `pink-diamond` | `#ff5fa8` |
-| `diamond` | `#5ce6ff` |
-| `amethyst` | `#b794ff` |
-| `ruby` | `#ff5a5a` |
-| `sapphire` | `#6a8cff` |
-| `emerald` | `#6affb8` |
-| `unranked` | `#4a5560` |
-
-Each tier also sets a matching diagonal gradient on the card edge (`--tier-gradient`).
+`tierLevel` (`0 | 1 | … | 7`) drives shimmer intensity and `high-tier` styling (`tierLevel >= 5`). Each tier sets `--tier-glow` and `--tier-gradient`.
 
 ## Language Visual Identity
 
-Languages do **not** have fixed brand themes, borders, or colorways. Appearance is:
+Languages do **not** have fixed brand colorways. Appearance is:
 
-1. Tier palette from `overall` (shared across all languages at that score).
-2. Monogram art from the first letter of `language.name`.
-3. Name split into first token vs remainder for typography hierarchy.
+1. Tier palette from `overall`.
+2. Stable monogram from language id (`RS` / `TS` / …).
+3. Name typography split into first token vs remainder.
 4. Runtime footer from `language.id` and version.
-
-Changing a language’s display name changes the monogram; changing its score changes the entire tier look.
 
 ## Card Chrome and Effects (`OverallCard`)
 
-- **Silhouette**: Angular `clip-path` (cut top-right and bottom-left) with small corner shards.
-- **Layers**: Edge gradient, diagonal scanline pattern, holographic shimmer, vignette.
-- **Art stage**: Grid backdrop, floating code-token particles (`{`, `<`, `/>`, …), large monogram with halo/floor glow.
-- **Tier band**: Full-width band showing the band name (e.g. DOMINANT) with shine and rivet accents.
-- **Motion**: Pointer-tracking 3D tilt (`perspective` + `rotateX` / `rotateY`, ±6°); hover deepens drop-shadow and tier glow; particle float animation.
-- **High tier**: Stronger top radial wash when rank ≥ 5.
+- **Silhouette**: Angular `clip-path` with corner shards.
+- **Layers**: Edge gradient, scanlines, holographic shimmer, vignette.
+- **Art stage**: Grid, floating code particles, monogram with halo.
+- **Motion**: Pointer tilt (±6°) and particle float — disabled under `prefers-reduced-motion: reduce`.
+- **High tier**: Stronger top wash when `tierLevel >= 5`.
 
 ## Dimensions
 
@@ -86,36 +69,12 @@ Changing a language’s display name changes the monogram; changing its score ch
 | Default | 320px | 5 / 8.2 |
 | ≤ 600px | 280px | same |
 
-Width is `100%` up to the max; height follows the aspect ratio. Cards are centered in their grid cell.
+## Snapshot Qualification
 
-## Data Model (No Card Schema)
+Near rankings in `ResultsExplorer`, a small line clarifies scope:
 
-There is no `card.json` or collectible payload. The UI model is `BenchmarkScore` in `web/src/lib/types.ts`:
+> Snapshot rankings · accepted geometric-mean speed only · stability and scaling are diagnostic
 
-```ts
-type BenchmarkScore = {
-  benchmarkId: string;
-  language: { id: string; name: string; version: string };
-  eligible: boolean;
-  overall: number | null;
-  performance: number | null;
-  consistency: number | null;
-  scalability: number | null;
-  sizes: SizeScore[];
-  expectedSizes: string[];
-  diagnostics: string[];
-  benchmarks?: Array<{
-    benchmarkId: string;
-    overall: number;
-    performance: number;
-    consistency: number;
-    scalability: number;
-  }>;
-};
-```
+## Data Model
 
-Persisted run data remains `results/current.json` (`ArenaRun` / `ArenaResult`). Scores and tiers are derived client-side at view time.
-
-## Where Cards Appear
-
-`ResultsExplorer.svelte` toggles Chart vs Scorecard. The Scorecard view renders one `OverallCard` per overall language score; clicking a card expands it in an overlay. Per-benchmark detail uses `BenchmarkScorecard` rows (same tiers, list chrome).
+Persisted runs remain `ArenaRun` / `ArenaResult`. Scores and tiers are derived client-side. See `BenchmarkScore` in `web/src/lib/types.ts`.

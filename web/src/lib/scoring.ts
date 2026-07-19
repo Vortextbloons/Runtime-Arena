@@ -139,11 +139,27 @@ export function scoreOverall(results: ArenaResult[]): BenchmarkScore[] {
 
 	return [...languages.values()]
 		.map((language): BenchmarkScore => {
-			const entries = benchmarkIds
-				.map((benchmarkId) => benchmarkScores.get(benchmarkId)?.find((score) => score.language.id === language.id))
-				.filter((score): score is BenchmarkScore => Boolean(score));
-			const invalid = entries.filter((score) => !score.eligible);
-			if (entries.length !== benchmarkIds.length || invalid.length) {
+			const byBenchmark = benchmarkIds.map((benchmarkId) => ({
+				benchmarkId,
+				score: benchmarkScores.get(benchmarkId)?.find((entry) => entry.language.id === language.id)
+			}));
+			const present = byBenchmark.filter(
+				(entry): entry is { benchmarkId: string; score: BenchmarkScore } => Boolean(entry.score)
+			);
+			const eligibleEntries = present.filter((entry) => entry.score.eligible).map((entry) => entry.score);
+			const missing = benchmarkIds.filter((id) => !present.some((entry) => entry.benchmarkId === id));
+			const invalid = present.filter((entry) => !entry.score.eligible);
+
+			const diagnostics = [
+				...missing.map((id) => `Skipped ${id} (no results in this snapshot).`),
+				...invalid.flatMap((entry) =>
+					entry.score.diagnostics.map((diagnostic) => `${entry.benchmarkId}: ${diagnostic}`)
+				)
+			];
+
+			// Overall ranks from whatever eligible benchmarks this language completed.
+			// Skipping a workload (e.g. LuaJIT on barrier-wave) no longer zeros the card.
+			if (!eligibleEntries.length) {
 				return {
 					benchmarkId: 'overall',
 					language,
@@ -154,18 +170,13 @@ export function scoreOverall(results: ArenaResult[]): BenchmarkScore[] {
 					scalability: null,
 					sizes: [],
 					expectedSizes: benchmarkIds,
-					diagnostics: [
-						...benchmarkIds
-							.filter((id) => !entries.some((entry) => entry.benchmarkId === id))
-							.map((id) => `Missing ${id} benchmark results.`),
-						...invalid.flatMap((entry) => entry.diagnostics.map((diagnostic) => `${entry.benchmarkId}: ${diagnostic}`))
-					]
+					diagnostics: diagnostics.length ? diagnostics : ['No eligible benchmark results.']
 				};
 			}
 
-			const performance = normalizeScore(geometricMean(entries.map((score) => score.performance!)));
-			const consistency = average(entries.map((score) => score.consistency!));
-			const scalability = average(entries.map((score) => score.scalability!));
+			const performance = normalizeScore(geometricMean(eligibleEntries.map((score) => score.performance!)));
+			const consistency = average(eligibleEntries.map((score) => score.consistency!));
+			const scalability = average(eligibleEntries.map((score) => score.scalability!));
 			const overall = performance;
 
 			return {
@@ -177,9 +188,9 @@ export function scoreOverall(results: ArenaResult[]): BenchmarkScore[] {
 				consistency,
 				scalability,
 				sizes: [],
-				expectedSizes: benchmarkIds,
-				diagnostics: [],
-				benchmarks: entries.map((entry) => ({
+				expectedSizes: eligibleEntries.map((entry) => entry.benchmarkId),
+				diagnostics,
+				benchmarks: eligibleEntries.map((entry) => ({
 					benchmarkId: entry.benchmarkId,
 					overall: entry.overall!,
 					performance: entry.performance!,

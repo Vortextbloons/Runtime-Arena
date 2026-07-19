@@ -37,28 +37,41 @@ A final integration agent must review all documentation changes, resolve contrad
 
 ## Existing Documentation Structure
 
-Follow this structure when updating documentation:
+Follow this structure when updating documentation (keep in sync with `docs/INDEX.md`):
 
 ```text
 docs/
 ├── INDEX.md
-├── ALL.md
+├── ALL.md                  # generated — do not edit by hand
 ├── Update.md
 ├── Clean.md
 ├── architecture/
-│   └── overview.md
+│   ├── overview.md
+│   ├── execution-model.md
+│   └── fingerprinting.md
 ├── components/
-│   └── README.md
+│   ├── README.md
+│   ├── cli.md
+│   ├── checker.md
+│   ├── web.md
+│   └── scorecards.md
 ├── guides/
-│   └── development.md
+│   ├── development.md
+│   ├── testing.md
+│   ├── web-deployment.md
+│   ├── adding-a-benchmark.md
+│   ├── adding-a-language.md
+│   └── reviewing-benchmark-optimization.md
 ├── reference/
 │   ├── api.md
-│   └── configuration.md
+│   ├── configuration.md
+│   ├── schemas.md
+│   └── benchmarks.md
 └── ops/
     └── runbook.md
 ```
 
-Add new subfolders or files when a topic grows too large for its current location.
+Add new subfolders or files when a topic grows too large for its current location. Update `docs/INDEX.md` and regenerate `docs/ALL.md` via `npm run combine-docs`.
 
 ## Parallel Workflow
 

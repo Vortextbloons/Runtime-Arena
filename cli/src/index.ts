@@ -553,6 +553,14 @@ async function datasetCommand(args: string[]) {
     const rows = ["timestamp,account_id,category,quantity,unit_price"];
     for (let i = 0; i < recordCount; i++) rows.push(`2026-01-01T00:00:${String(i % 60).padStart(2, "0")}Z,A${1 + Math.floor(random() * 100)},${categories[Math.floor(random() * categories.length)]},${1 + Math.floor(random() * 10)},${99 + Math.floor(random() * 9901)}`);
     content = `${rows.join("\n")}\n`;
+  } else if (benchmarkId === "barrier-wave") {
+    const profile = {
+      small: { workerCount: 2, phaseCount: 500, itemsPerWorker: 64, roundsPerItem: 8 },
+      medium: { workerCount: 4, phaseCount: 250, itemsPerWorker: 1024, roundsPerItem: 16 },
+      large: { workerCount: 8, phaseCount: 100, itemsPerWorker: 8192, roundsPerItem: 16 }
+    }[sizeName];
+    if (!profile) throw new Error(`No barrier-wave generation profile for size '${sizeName}'`);
+    content = `${JSON.stringify({ schemaVersion: "1.0.0", ...profile, initialSeed: seed.toString(16).padStart(8, "0") })}\n`;
   } else throw new Error(`No generator registered for ${benchmarkId}`);
   const destination = path.join(root, config.benchmarkDirectory, benchmarkId, "datasets", size.dataset);
   await writeFile(destination, content);

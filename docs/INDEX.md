@@ -9,7 +9,7 @@ High-level system design, component responsibilities, and data flow.
 | File | Description |
 |------|-------------|
 | [architecture/overview.md](architecture/overview.md) | System architecture, trust boundaries, execution model |
-| [architecture/execution-model.md](architecture/execution-model.md) | Cold-process execution, isolation, timing, limits |
+| [architecture/execution-model.md](architecture/execution-model.md) | Persistent-worker execution, isolation, timing, limits |
 | [architecture/fingerprinting.md](architecture/fingerprinting.md) | SHA-256 fingerprinting system for incremental execution |
 
 ## Components
@@ -31,7 +31,7 @@ API documentation, configuration, and protocol specification.
 | [reference/api.md](reference/api.md) | CLI commands, flags, and output formats |
 | [reference/configuration.md](reference/configuration.md) | arena.config.json, language manifests, benchmark manifests |
 | [reference/schemas.md](reference/schemas.md) | JSON Schema definitions for validation |
-| [reference/benchmarks.md](reference/benchmarks.md) | Benchmark workloads — nbody, shortest-path, aggregation |
+| [reference/benchmarks.md](reference/benchmarks.md) | Benchmark workloads — nbody, shortest-path, aggregation, barrier-wave |
 
 ## Guides
 

@@ -15,4 +15,6 @@ inside it. Implementations must use real parallel workers; event-loop tasks,
 coroutines, or a serial loop do not satisfy the benchmark.
 
 See [IMPLEMENTING.md](IMPLEMENTING.md) for the complete language-independent
-contract. Language implementations are intentionally not included yet.
+contract. Checker validation and committed datasets are in place. Language
+implementations under `implementations/` are in progress and not yet complete
+across all five arena languages.

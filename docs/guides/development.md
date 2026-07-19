@@ -35,8 +35,10 @@ npm run build:checker
 
 ```
 cli/                    # TypeScript CLI (arena command)
-  src/index.ts          # Main CLI logic (monolithic)
+  src/index.ts          # Main CLI logic (monolithic today)
   src/metrics.ts        # Metric registry
+  src/timing.ts         # Timing sample reader
+  src/timing.test.ts    # Timing unit tests
   test/cli.test.ts      # Integration tests
 checker/                # Independent Go checker
   cmd/arena-checker/main.go
@@ -44,13 +46,17 @@ benchmarks/             # Workloads, datasets, implementations
   nbody/
   shortest-path/
   aggregation/
+  barrier-wave/         # Checker-ready; language impls WIP
 languages/              # Language manifests (rust, go, typescript, python, lua)
 schemas/                # JSON Schema definitions
 results/                # Canonical result snapshots
 web/                    # SvelteKit dashboard
 scripts/                # Build and utility scripts
-docs/                   # Project documentation
+docs/                   # Canonical project documentation
+refs/                   # Informal draft copies of some guides (not authoritative)
 ```
+
+Canonical docs live under `docs/`. If a file also exists under `refs/`, prefer `docs/guides/`.
 
 ## Adding a Benchmark
 
