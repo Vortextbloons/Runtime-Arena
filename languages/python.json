@@ -1,0 +1,28 @@
+{
+  "$schema": "../schemas/language.schema.json",
+  "id": "python",
+  "name": "Python",
+  "enabled": true,
+  "detect": {
+    "command": "python",
+    "arguments": ["--version"]
+  },
+  "build": {
+    "workingDirectory": "{implementationDir}",
+    "command": "python",
+    "arguments": ["-m", "py_compile", "main.py"],
+    "artifact": "main.py"
+  },
+  "run": {
+    "command": "python",
+    "arguments": [
+      "{artifact}",
+      "--input",
+      "{inputFile}",
+      "--output",
+      "{outputFile}"
+    ]
+  },
+  "environment": {},
+  "sourceExtensions": [".py"]
+}

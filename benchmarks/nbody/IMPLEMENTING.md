@@ -169,9 +169,13 @@ Source: `main.go` (no external dependencies needed)
 ```
 Source: `index.ts`
 
+**Python** — No build configuration needed (uses standard library only).
+Source: `main.py`
+
 ## Reference Implementations
 
 - Go: `implementations/go/main.go`
+- Python: `implementations/python/main.py`
 - Rust: `implementations/rust/src/main.rs`
 - TypeScript: `implementations/typescript/index.ts`
 
