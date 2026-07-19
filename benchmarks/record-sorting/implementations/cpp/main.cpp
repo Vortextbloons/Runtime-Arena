@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <chrono>
+#include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -22,6 +23,15 @@ struct Sample {
     int iteration;
     int64_t kernelTimeNanoseconds;
 };
+
+static void hashRecord(SHA256& hasher, const Record& r) {
+    char buf[64];
+    int len = snprintf(buf, sizeof(buf), "%lld,%lld,%lld\n",
+        static_cast<long long>(r.id),
+        static_cast<long long>(r.score),
+        static_cast<long long>(r.timestamp));
+    hasher.update(reinterpret_cast<const uint8_t*>(buf), static_cast<size_t>(len));
+}
 
 std::string readFile(const std::string& path) {
     std::ifstream f(path);
@@ -87,8 +97,7 @@ int main(int argc, char* argv[]) {
 
         SHA256 hasher;
         for (auto& r : recs) {
-            std::string line = std::to_string(r.id) + "," + std::to_string(r.score) + "," + std::to_string(r.timestamp) + "\n";
-            hasher.update(line);
+            hashRecord(hasher, r);
         }
 
         auto end = std::chrono::high_resolution_clock::now();

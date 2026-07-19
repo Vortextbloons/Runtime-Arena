@@ -39,6 +39,48 @@ fn argument(name: &str) -> String {
         .clone()
 }
 
+fn append_i64(buf: &mut [u8], mut n: i64) -> usize {
+    if n == 0 {
+        buf[0] = b'0';
+        return 1;
+    }
+    let neg = n < 0;
+    if neg {
+        n = -n;
+    }
+    let mut tmp = [0u8; 20];
+    let mut len = 0usize;
+    while n > 0 {
+        tmp[len] = b'0' + (n % 10) as u8;
+        len += 1;
+        n /= 10;
+    }
+    let mut pos = 0usize;
+    if neg {
+        buf[pos] = b'-';
+        pos += 1;
+    }
+    for i in (0..len).rev() {
+        buf[pos] = tmp[i];
+        pos += 1;
+    }
+    pos
+}
+
+fn hash_record(hasher: &mut Sha256, r: &Record) {
+    let mut buf = [0u8; 64];
+    let mut pos = append_i64(&mut buf, r.id);
+    buf[pos] = b',';
+    pos += 1;
+    pos += append_i64(&mut buf[pos..], r.score);
+    buf[pos] = b',';
+    pos += 1;
+    pos += append_i64(&mut buf[pos..], r.timestamp);
+    buf[pos] = b'\n';
+    pos += 1;
+    hasher.update(&buf[..pos]);
+}
+
 fn kernel(mut records: Vec<Record>) -> Output {
     records.sort_by(|a, b| {
         b.score
@@ -54,7 +96,7 @@ fn kernel(mut records: Vec<Record>) -> Output {
 
     let mut hasher = Sha256::new();
     for r in &records {
-        hasher.update(format!("{},{},{}\n", r.id, r.score, r.timestamp));
+        hash_record(&mut hasher, r);
     }
 
     Output {

@@ -9,11 +9,13 @@ function rl64(lo,hi,n){const s=32-n;return[((lo<<n)|(hi>>>s))|0,((hi<<n)|(lo>>>s
 function add64(aLo,aHi,bLo,bHi){const lo=(aLo+bLo)|0;return[lo,(aHi+bHi+((lo>>>0)<(bLo>>>0)?1:0))|0]}
 function toHex8(n){return(n>>>0).toString(16).padStart(8,"0")}
 function toHex16(lo,hi){return toHex8(hi)+toHex8(lo)}
-const ws=Array.from({length:wc},(_,i)=>{const w=new Worker(new URL("./worker.mjs",import.meta.url));w.postMessage({cmd:"init",workerId:i,itemsPerWorker:ipw,roundsPerItem:rpi});return w});
+const pending=new Map();
+const ws=Array.from({length:wc},(_,i)=>{const w=new Worker(new URL("./worker.mjs",import.meta.url));w.on("message",(msg)=>{const resolve=pending.get(i);if(resolve){pending.delete(i);resolve(msg)}});w.postMessage({cmd:"init",workerId:i,itemsPerWorker:ipw,roundsPerItem:rpi});return w});
+function dispatchPhase(phaseSeed){return Promise.all(ws.map((w,i)=>new Promise((resolve)=>{pending.set(i,resolve);w.postMessage({cmd:"work",phaseSeed})})))}
 async function kernel(ps0){
   let dgLo=0xf3bcc909,dgHi=0x6a09e667;let p=ps0;
   for(let ph=0;ph<pc;ph++){
-    const rs=await Promise.all(ws.map(w=>new Promise(r=>{w.once("message",r);w.postMessage({cmd:"work",phaseSeed:p})})));rs.sort((a,b)=>a.workerId-b.workerId);
+    const rs=await dispatchPhase(p);rs.sort((a,b)=>a.workerId-b.workerId);
     let ns=(p^ph)>>>0;let sumLo=0,sumHi=0;
     for(const r of rs){ns=m32((ns^r.localXor^r.localSumLo^r.localSumHi^r.workerId)>>>0);[sumLo,sumHi]=add64(sumLo,sumHi,r.localSumLo,r.localSumHi)}
     p=ns;[dgLo,dgHi]=rl64(dgLo,dgHi,7);dgLo^=ns;[dgLo,dgHi]=add64(dgLo,dgHi,sumLo,sumHi)
