@@ -1,6 +1,7 @@
 <script lang="ts">
-	import FilteredResults from '$lib/FilteredResults.svelte';
+	import ResultsExplorer from '$lib/ResultsExplorer.svelte';
 	let { data } = $props();
+	const language = $derived(data.run.results.find((result) => result.language.id === data.id)?.language);
 </script>
-<svelte:head><title>{data.id} · Runtime Arena</title></svelte:head>
-<FilteredResults title={data.id} subtitle="Language profile" run={data.run} results={data.results} />
+
+<ResultsExplorer title={language?.name ?? data.id} subtitle="Language profile" run={data.run} fixedLanguage={data.id} />
