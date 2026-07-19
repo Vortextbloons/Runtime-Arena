@@ -2,6 +2,11 @@ local script_dir = arg[0]:match("(.*[/\\])") or "./"
 package.path = script_dir .. "?.lua;" .. package.path
 
 local json = require("json")
+local ffi = require("ffi")
+ffi.cdef[[typedef long long LARGE_INTEGER; int QueryPerformanceCounter(LARGE_INTEGER*); int QueryPerformanceFrequency(LARGE_INTEGER*);]]
+local counter, frequency = ffi.new("LARGE_INTEGER[1]"), ffi.new("LARGE_INTEGER[1]")
+ffi.C.QueryPerformanceFrequency(frequency)
+local function now_ns() ffi.C.QueryPerformanceCounter(counter); return tonumber(counter[0]) * 1000000000 / tonumber(frequency[0]) end
 
 local Heap = {}
 Heap.__index = Heap
@@ -51,6 +56,9 @@ end
 
 local input_file = nil
 local output_file = nil
+local timing_output_file = nil
+local warmups = 0
+local iterations = 1
 
 local i = 1
 while i <= #arg do
@@ -60,12 +68,21 @@ while i <= #arg do
     elseif arg[i] == "--output" then
         output_file = arg[i + 1]
         i = i + 2
+    elseif arg[i] == "--timing-output" then
+        timing_output_file = arg[i + 1]
+        i = i + 2
+    elseif arg[i] == "--warmup" then
+        warmups = tonumber(arg[i + 1])
+        i = i + 2
+    elseif arg[i] == "--iterations" then
+        iterations = tonumber(arg[i + 1])
+        i = i + 2
     else
         i = i + 1
     end
 end
 
-if not input_file or not output_file then
+if not input_file or not output_file or not timing_output_file then
     io.stderr:write("Usage: luajit main.lua --input <input-file> --output <output-file>\n")
     os.exit(1)
 end
@@ -78,6 +95,7 @@ local vertex_count = data.vertexCount
 local edges = data.edges
 local queries = data.queries
 
+local function kernel()
 local adjacency = {}
 for i = 0, vertex_count - 1 do
     adjacency[i] = {}
@@ -143,12 +161,22 @@ for _, query in ipairs(queries) do
     end
 end
 
-local output = {
-    benchmark = "shortest-path",
-    version = 1,
-    results = results
-}
+return results
+end
+
+local samples = {}
+local results
+for iteration = -warmups, iterations - 1 do
+    local started = now_ns()
+    results = kernel()
+    local elapsed = math.max(1, math.floor(now_ns() - started + 0.5))
+    if iteration >= 0 then table.insert(samples, {iteration=iteration + 1, kernelTimeNanoseconds=elapsed}) end
+end
+local output = {benchmark="shortest-path",version=1,results=results}
 
 local out = io.open(output_file, "w")
 out:write(json.encode(output))
 out:close()
+local timing = io.open(timing_output_file, "w")
+timing:write(json.encode({samples=samples}))
+timing:close()

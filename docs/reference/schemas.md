@@ -40,14 +40,14 @@ Validates language manifests (`languages/*.json`).
 - `workingDirectory` — Optional working directory override
 - `artifact` — Path to built binary (build command only)
 
-**Template variables:** `{projectRoot}`, `{benchmarkId}`, `{benchmarkDir}`, `{implementationDir}`, `{artifact}`, `{inputFile}`, `{outputFile}`, `{runId}`, `{size}`
+**Template variables:** `{projectRoot}`, `{benchmarkId}`, `{benchmarkDir}`, `{implementationDir}`, `{artifact}`, `{inputFile}`, `{outputFile}`, `{timingOutputFile}`, `{warmupIterations}`, `{measuredIterations}`, `{runId}`, `{size}`
 
 ## result.schema.json
 
 Validates result snapshots (`results/current.json`).
 
 **Structure:**
-- `schemaVersion` — Currently "2.0.0"
+- `schemaVersion` — Currently "3.0.0"
 - `snapshotId` — Unique run identifier
 - `updatedAt` — ISO 8601 timestamp
 - `arenaVersion` — CLI version
@@ -59,9 +59,9 @@ Each result contains:
 - `dataset` — id, sha256, seed, generatorVersion
 - `language` — id, name, version, compilerVersion, compilerFlags
 - `build` — status, durationNanoseconds, artifactSizeBytes, command
-- `execution` — mode, warmupIterations, measuredIterations, samples, summary, metrics
+- `execution` — persistent-worker mode, measurement contract, diagnostic process duration, warmup/measured counts, kernel-time samples, summary, metrics
 - `checker` — language, version, status, diagnostics
-- `provenance` — fingerprint, measuredAt, machine
+- `provenance` — fingerprint, measurement contract version, measuredAt, machine
 
 ## implementation-output.schema.json
 

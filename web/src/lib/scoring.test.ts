@@ -18,10 +18,10 @@ function result(
 			samples: [],
 			summary: {
 				validSamples: options.valid ?? measured,
-				medianWallTimeNanoseconds: median,
-				meanWallTimeNanoseconds: median,
-				standardDeviationWallTimeNanoseconds: options.deviation ?? 0,
-				p95WallTimeNanoseconds: median
+				medianKernelTimeNanoseconds: median,
+				meanKernelTimeNanoseconds: median,
+				standardDeviationKernelTimeNanoseconds: options.deviation ?? 0,
+				p95KernelTimeNanoseconds: median
 			}
 		},
 		checker: { status: options.status ?? 'accepted', diagnostics: [] }

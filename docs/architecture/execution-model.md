@@ -1,74 +1,29 @@
 # Execution Model
 
-Runtime Arena uses a **cold-process execution model** to ensure fair, reproducible benchmarks.
+Runtime Arena measures **steady-state workload kernel execution**. One process is launched for each benchmark, size, and language cell. That process loads and parses its dataset once, performs warmups, and then records every measured kernel run with a monotonic high-resolution clock.
 
-## Cold-Process Mode
+## Persistent Worker Contract
 
-Each benchmark iteration spawns a fresh process. This prevents JIT warmup persistence, process-level caching, or memory state from skewing results.
+The CLI supplies `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations`. Implementations:
 
-```
-Warmup iteration 1  →  process spawned  →  result discarded
-Warmup iteration 2  →  process spawned  →  result discarded
-Warmup iteration 3  →  process spawned  →  result discarded
-Measured iteration 1 →  process spawned  →  result recorded
-Measured iteration 2 →  process spawned  →  result recorded
-...
-```
+1. Read and parse input before timing.
+2. Prepare fresh mutable state before each iteration.
+3. Run warmups and measurements in the same process.
+4. Time the complete workload kernel.
+5. Write the final deterministic result and a separate timing sidecar.
 
-## Isolation
-
-Each iteration runs in its own temporary directory under `.arena/runs/<snapshotId>/`:
-
-```
-.arena/runs/<snapshotId>/
-  nbody/
-    rust/
-      -1/          # Warmup iteration
-        input.json
-        output.json
-      0/           # First measured iteration
-        input.json
-        output.json
-      1/
-        ...
+```json
+{"samples":[{"iteration":1,"kernelTimeNanoseconds":12345}]}
 ```
 
-Input files are copied per iteration and set to read-only (`chmod 0o444`) to prevent implementations from modifying shared state.
+Runtime startup, input parsing, state cloning, output encoding, file I/O, process shutdown, build time, and checker time are excluded from ranking. Total process duration is retained only as a diagnostic.
 
-## Timing
+## Isolation and Correctness
 
-Wall time is measured using `process.hrtime.bigint()` around the child process execution. This captures:
-- Process startup
-- Actual computation
-- I/O (reading input, writing output)
-- Process teardown
+Each cell runs in an isolated directory under `.arena/runs/<snapshotId>/<benchmark>/<language>/`. Its copied input is read-only. The independent checker validates the final output once; a rejected output invalidates every timing sample. Missing, malformed, oversized, or incorrectly numbered timing samples also reject the cell.
 
-Build time is measured separately and stored in the result's `build.durationNanoseconds`.
+## Limits and Summary
 
-## Limits
+The per-iteration benchmark timeout is multiplied by the requested warmup and measured iteration count to bound the persistent process. Output and captured-stream limits remain enforced.
 
-| Limit | Default | Configurable |
-|-------|---------|--------------|
-| Timeout | 120,000 ms | Per benchmark (`benchmark.json`) |
-| Max output | 10 MiB | Per benchmark (`benchmark.json`) |
-| Max captured stdout/stderr | 10 MiB | Hardcoded |
-
-When a limit is exceeded, the process is killed (`SIGKILL`) and the sample is marked invalid.
-
-## Statistical Summary
-
-After all measured iterations, the CLI computes:
-
-| Statistic | Description |
-|-----------|-------------|
-| `minimumWallTimeNanoseconds` | Fastest iteration |
-| `maximumWallTimeNanoseconds` | Slowest iteration |
-| `medianWallTimeNanoseconds` | Median (p50) |
-| `meanWallTimeNanoseconds` | Arithmetic mean |
-| `standardDeviationWallTimeNanoseconds` | Standard deviation |
-| `p95WallTimeNanoseconds` | 95th percentile |
-| `interquartileRangeWallTimeNanoseconds` | IQR (p75 - p25) |
-| `validSamples` | Count of accepted samples |
-| `rejectedSamples` | Count of rejected samples |
-
-The **median** is the primary metric for comparisons, as it's robust against outliers.
+The CLI preserves raw kernel samples and calculates minimum, maximum, median, mean, standard deviation, p95, and interquartile range in nanoseconds. Median kernel time is the primary ranking metric.

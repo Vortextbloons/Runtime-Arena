@@ -15,7 +15,7 @@ Root runner configuration at the repository root.
     "sizes": ["small", "medium", "large"],
     "warmupIterations": 3,
     "measuredIterations": 10,
-    "metrics": ["wallTime", "cpuTime", "peakMemory"]
+    "metrics": ["kernelTime"]
   },
   "execution": {
     "parallelism": 1,
@@ -86,7 +86,7 @@ Each benchmark has a manifest defining sizes, metrics, and limits.
     "medium": { "dataset": "medium.json", "warmupIterations": 3, "measuredIterations": 10 },
     "large": { "dataset": "large.json", "warmupIterations": 3, "measuredIterations": 10 }
   },
-  "metrics": ["wallTime"],
+  "metrics": ["kernelTime"],
   "limits": {
     "timeoutMilliseconds": 120000,
     "maxOutputBytes": 10485760

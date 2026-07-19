@@ -10,7 +10,7 @@ cli/
   tsconfig.json         # ES2024, NodeNext, strict
   src/
     index.ts            # Main CLI logic (monolithic, 565 lines)
-    metrics.ts          # Metric registry (wallTime, cpuTime, peakMemory)
+    metrics.ts          # Metric registry (kernelTime)
     commands/           # Placeholder for future modularization
     discovery/          # Placeholder
     execution/          # Placeholder
@@ -44,6 +44,6 @@ cli/
 
 | Metric | Status | Notes |
 |--------|--------|-------|
-| `wallTime` | Available | Measured via `process.hrtime.bigint()` |
+| `kernelTime` | Available | Measured inside the persistent benchmark process |
 | `cpuTime` | Unavailable | Node's child-process API doesn't expose per-child CPU time |
 | `peakMemory` | Unavailable | Node's child-process API doesn't expose per-child peak RSS |

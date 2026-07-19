@@ -1,0 +1,8 @@
+{
+  "benchmark": "aggregation",
+  "version": 1,
+  "size": "small",
+  "seed": 729418,
+  "generatorVersion": "2.0.0",
+  "sha256": "c73a304f7237bf34503738949c532a9e3d5b4aa1e4843f4e1f8db0060cbf034f"
+}

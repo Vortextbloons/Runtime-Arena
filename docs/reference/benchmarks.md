@@ -40,11 +40,11 @@ Runtime Arena includes three benchmark workloads, each designed to stress differ
 
 ## Dataset Sizes
 
-| Size | Warmup | Measured | Scaling Factor |
-|------|--------|----------|----------------|
-| small | 1 | 5 | 1x |
-| medium | 3 | 10 | 5x |
-| large | 3 | 10 | 20x |
+| Size | Warmup | Measured | N-body | Shortest path | Aggregation |
+|------|--------|----------|--------|---------------|-------------|
+| small | 1 | 5 | 4 bodies × 5,000 steps | 100 vertices × 30 queries | 10,000 records |
+| medium | 3 | 10 | 6 bodies × 20,000 steps | 300 vertices × 90 queries | 50,000 records |
+| large | 3 | 10 | 8 bodies × 50,000 steps | 600 vertices × 180 queries | 200,000 records |
 
 Datasets are deterministic — generated from a seed and committed as fixtures with SHA-256 hashes.
 

@@ -28,26 +28,27 @@ test("discovers all initial benchmarks", () => {
 test("prints metric availability", () => {
   const result = arena("list", "metrics");
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /wallTime/);
-  assert.match(result.stdout, /peakMemory/);
+  assert.match(result.stdout, /kernelTime/);
 });
 
 test("runs a filtered benchmark and emits clean JSON", () => {
   const result = arena("run", "--language", "typescript", "--benchmark", "aggregation", "--size", "small", "--warmup", "0", "--iterations", "1", "--format", "json", "--quiet", "--no-save");
   assert.equal(result.status, 0, result.stderr);
-  const record = JSON.parse(result.stdout) as { snapshotId: string; results: Array<{ checker: { status: string }; execution: { samples: unknown[] } }> };
+  const record = JSON.parse(result.stdout) as { snapshotId: string; results: Array<{ checker: { status: string }; execution: { mode: string; samples: Array<{ kernelTimeNanoseconds: number }> } }> };
   assert.match(record.snapshotId, /Z$/);
   const measured = record.results.find((entry: any) =>
     entry.benchmark.id === "aggregation" && entry.benchmark.size === "small" && entry.language.id === "typescript"
   );
   assert.equal(measured?.checker.status, "accepted");
   assert.equal(measured?.execution.samples.length, 1);
+  assert.equal(measured?.execution.mode, "persistent-worker");
+  assert.ok(Number.isSafeInteger(measured?.execution.samples[0]?.kernelTimeNanoseconds));
 });
 
 test("reports canonical cell freshness without running benchmarks", () => {
   const result = arena("results", "status", "--benchmark", "aggregation", "--language", "typescript", "--size", "small");
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /aggregation\/small\/typescript\s+current/);
+  assert.match(result.stdout, /aggregation\/small\/typescript\s+stale/);
 });
 
 test("doctor validates the complete repository", () => {

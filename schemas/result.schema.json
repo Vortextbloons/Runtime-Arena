@@ -126,6 +126,8 @@
           "type": "object",
           "required": [
             "mode",
+            "measurementContractVersion",
+            "totalProcessDurationNanoseconds",
             "warmupIterations",
             "measuredIterations",
             "samples",
@@ -134,7 +136,15 @@
           "properties": {
             "mode": {
               "type": "string",
-              "enum": ["cold-process", "warmed-process", "persistent-worker"]
+              "const": "persistent-worker"
+            },
+            "measurementContractVersion": {
+              "type": "string",
+              "const": "1.0.0"
+            },
+            "totalProcessDurationNanoseconds": {
+              "type": "integer",
+              "minimum": 0
             },
             "warmupIterations": {
               "type": "integer",
@@ -158,16 +168,16 @@
                   "type": "integer",
                   "minimum": 0
                 },
-                "medianWallTimeNanoseconds": {
+                "medianKernelTimeNanoseconds": {
                   "type": "integer"
                 },
-                "minimumWallTimeNanoseconds": {
+                "minimumKernelTimeNanoseconds": {
                   "type": "integer"
                 },
-                "maximumWallTimeNanoseconds": {
+                "maximumKernelTimeNanoseconds": {
                   "type": "integer"
                 },
-                "p95WallTimeNanoseconds": {
+                "p95KernelTimeNanoseconds": {
                   "type": "integer"
                 }
               }
@@ -205,9 +215,10 @@
         "provenance": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["fingerprint", "measuredAt", "machine"],
+          "required": ["fingerprint", "measurementContractVersion", "measuredAt", "machine"],
           "properties": {
             "fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "measurementContractVersion": { "type": "string", "const": "1.0.0" },
             "measuredAt": { "type": "string", "format": "date-time" },
             "machine": {
               "type": "object",
@@ -239,7 +250,8 @@
     },
     "sample": {
       "type": "object",
-      "required": ["iteration", "valid", "exitCode"],
+      "additionalProperties": false,
+      "required": ["iteration", "valid", "kernelTimeNanoseconds", "exitCode"],
       "properties": {
         "iteration": {
           "type": "integer",
@@ -248,7 +260,7 @@
         "valid": {
           "type": "boolean"
         },
-        "wallTimeNanoseconds": {
+        "kernelTimeNanoseconds": {
           "type": "integer",
           "minimum": 0
         },
@@ -266,7 +278,9 @@
         "outputSizeBytes": {
           "type": "integer",
           "minimum": 0
-        }
+        },
+        "timedOut": { "type": "boolean" },
+        "outputLimitExceeded": { "type": "boolean" }
       }
     }
   }

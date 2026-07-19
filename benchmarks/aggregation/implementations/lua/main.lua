@@ -3,9 +3,17 @@ package.path = script_dir .. "?.lua;" .. package.path
 
 local json = require("json")
 local sha256 = require("sha256")
+local ffi = require("ffi")
+ffi.cdef[[typedef long long LARGE_INTEGER; int QueryPerformanceCounter(LARGE_INTEGER*); int QueryPerformanceFrequency(LARGE_INTEGER*);]]
+local counter, frequency = ffi.new("LARGE_INTEGER[1]"), ffi.new("LARGE_INTEGER[1]")
+ffi.C.QueryPerformanceFrequency(frequency)
+local function now_ns() ffi.C.QueryPerformanceCounter(counter); return tonumber(counter[0]) * 1000000000 / tonumber(frequency[0]) end
 
 local input_file = nil
 local output_file = nil
+local timing_output_file = nil
+local warmups = 0
+local iterations = 1
 
 local i = 1
 while i <= #arg do
@@ -15,12 +23,21 @@ while i <= #arg do
     elseif arg[i] == "--output" then
         output_file = arg[i + 1]
         i = i + 2
+    elseif arg[i] == "--timing-output" then
+        timing_output_file = arg[i + 1]
+        i = i + 2
+    elseif arg[i] == "--warmup" then
+        warmups = tonumber(arg[i + 1])
+        i = i + 2
+    elseif arg[i] == "--iterations" then
+        iterations = tonumber(arg[i + 1])
+        i = i + 2
     else
         i = i + 1
     end
 end
 
-if not input_file or not output_file then
+if not input_file or not output_file or not timing_output_file then
     io.stderr:write("Usage: luajit main.lua --input <input-file> --output <output-file>\n")
     os.exit(1)
 end
@@ -29,6 +46,17 @@ local f = io.open(input_file, "r")
 local content = f:read("*a")
 f:close()
 
+local rows = {}
+local first_line = true
+for line in content:gmatch("[^\r\n]+") do
+    if first_line then first_line = false else
+        local fields = {}
+        for field in line:gmatch("[^,]+") do table.insert(fields, field) end
+        if #fields >= 5 then table.insert(rows, {fields[2],fields[3],tonumber(fields[4]),tonumber(fields[5])}) end
+    end
+end
+
+local function kernel()
 local record_count = 0
 local total_quantity = 0
 local total_value_minor_units = 0
@@ -38,21 +66,11 @@ local maximum_transaction = 0
 local categories = {}
 local accounts = {}
 
-local first_line = true
-for line in content:gmatch("[^\r\n]+") do
-    if first_line then
-        first_line = false
-    else
-        local fields = {}
-        for field in line:gmatch("[^,]+") do
-            table.insert(fields, field)
-        end
-
-        if #fields >= 5 then
-            local account_id = fields[2]
-            local category = fields[3]
-            local quantity = tonumber(fields[4])
-            local unit_price = tonumber(fields[5])
+for _, fields in ipairs(rows) do
+            local account_id = fields[1]
+            local category = fields[2]
+            local quantity = fields[3]
+            local unit_price = fields[4]
             local value = quantity * unit_price
 
             record_count = record_count + 1
@@ -71,8 +89,6 @@ for line in content:gmatch("[^\r\n]+") do
                 accounts[account_id] = 0
             end
             accounts[account_id] = accounts[account_id] + value
-        end
-    end
 end
 
 local sorted_categories = {}
@@ -126,7 +142,7 @@ local checksum_input = '{"Categories":[' .. table.concat(cats_json, ",") ..
 
 local checksum = sha256(checksum_input)
 
-local output = {
+return {
     benchmark = "aggregation",
     version = 1,
     recordCount = record_count,
@@ -138,7 +154,20 @@ local output = {
     maximumTransactionMinorUnits = maximum_transaction,
     checksum = checksum
 }
+end
+
+local samples = {}
+local output
+for iteration = -warmups, iterations - 1 do
+    local started = now_ns()
+    output = kernel()
+    local elapsed = math.max(1, math.floor(now_ns() - started + 0.5))
+    if iteration >= 0 then table.insert(samples, {iteration=iteration + 1,kernelTimeNanoseconds=elapsed}) end
+end
 
 local out = io.open(output_file, "w")
 out:write(json.encode(output))
 out:close()
+local timing = io.open(timing_output_file, "w")
+timing:write(json.encode({samples=samples}))
+timing:close()

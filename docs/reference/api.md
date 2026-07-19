@@ -113,12 +113,12 @@ The `results/current.json` snapshot contains:
       "language": { "id": "rust", "name": "Rust", "version": "...", "compilerVersion": "...", "compilerFlags": [...] },
       "build": { "status": "success", "durationNanoseconds": 0, "artifactSizeBytes": 0, "command": [...] },
       "execution": {
-        "mode": "cold-process",
+        "mode": "persistent-worker",
         "warmupIterations": 1,
         "measuredIterations": 5,
         "samples": [...],
-        "summary": { "medianWallTimeNanoseconds": 0, "meanWallTimeNanoseconds": 0, "standardDeviationWallTimeNanoseconds": 0, ... },
-        "metrics": { "wallTime": { "available": true }, ... }
+        "summary": { "medianKernelTimeNanoseconds": 0, "meanKernelTimeNanoseconds": 0, "standardDeviationKernelTimeNanoseconds": 0, ... },
+        "metrics": { "kernelTime": { "status": "available", "unit": "nanoseconds" } }
       },
       "checker": { "language": "go", "version": "1.0.0", "status": "accepted", "diagnostics": [] },
       "provenance": { "fingerprint": "...", "measuredAt": "...", "machine": { "operatingSystem": {...}, "cpu": {...}, "memoryBytes": 0 } }

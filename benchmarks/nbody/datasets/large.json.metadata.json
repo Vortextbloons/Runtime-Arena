@@ -1,0 +1,8 @@
+{
+  "benchmark": "nbody",
+  "version": 1,
+  "size": "large",
+  "seed": 729418,
+  "generatorVersion": "2.0.0",
+  "sha256": "eca8e55a4b14e34336f5dacfd3ea0bad9e65c40c6853789ad85353425781ac3c"
+}

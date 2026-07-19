@@ -24,20 +24,6 @@ export function metricAvailability(ids: string[]) {
 }
 
 registerMetric({
-  id: "wallTime",
+  id: "kernelTime",
   availability: () => ({ status: "available", unit: "nanoseconds" })
-});
-registerMetric({
-  id: "cpuTime",
-  availability: () => ({
-    status: "unavailable",
-    reason: "The portable Node child-process API does not expose per-child CPU time"
-  })
-});
-registerMetric({
-  id: "peakMemory",
-  availability: () => ({
-    status: "unavailable",
-    reason: "The portable Node child-process API does not expose per-child peak RSS"
-  })
 });

@@ -1,7 +1,7 @@
 export type Sample = {
 	iteration: number;
 	valid: boolean;
-	wallTimeNanoseconds: number;
+	kernelTimeNanoseconds: number;
 	exitCode: number;
 	outputSizeBytes: number;
 	peakMemoryBytes?: number;
@@ -19,19 +19,21 @@ export type ArenaResult = {
 		command: string[];
 	};
 	execution: {
-		mode?: 'cold-process' | 'warmed-process' | 'persistent-worker';
+		mode: 'persistent-worker';
+		measurementContractVersion?: string;
+		totalProcessDurationNanoseconds?: number;
 		warmupIterations?: number;
 		measuredIterations: number;
 		samples: Sample[];
 		summary: {
 			validSamples: number;
 			rejectedSamples?: number;
-			medianWallTimeNanoseconds: number;
-			minimumWallTimeNanoseconds?: number;
-			maximumWallTimeNanoseconds?: number;
-			meanWallTimeNanoseconds?: number;
-			standardDeviationWallTimeNanoseconds?: number;
-			p95WallTimeNanoseconds: number;
+			medianKernelTimeNanoseconds: number;
+			minimumKernelTimeNanoseconds?: number;
+			maximumKernelTimeNanoseconds?: number;
+			meanKernelTimeNanoseconds?: number;
+			standardDeviationKernelTimeNanoseconds?: number;
+			p95KernelTimeNanoseconds: number;
 		};
 		metrics?: Record<string, { status: string; reason?: string }>;
 	};

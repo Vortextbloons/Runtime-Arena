@@ -9,6 +9,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { metricAvailability } from "./metrics.js";
+import { readTimingSamples } from "./timing.js";
 
 type Command = { command: string; arguments: string[]; workingDirectory?: string; artifact?: string };
 type Language = { id: string; name: string; enabled: boolean; detect: Command; build: Command & { artifact: string }; run: Command; environment: Record<string, string>; sourceExtensions?: string[] };
@@ -16,7 +17,7 @@ type Size = { dataset: string; warmupIterations: number; measuredIterations: num
 type Benchmark = { id: string; name: string; version: number; sizes: Record<string, Size>; metrics: string[]; limits: { timeoutMilliseconds: number; maxOutputBytes: number } };
 type Proc = { code: number | null; stdout: string; stderr: string; durationNs: number; timedOut: boolean; limitExceeded: boolean };
 type Machine = { operatingSystem: { platform: string; release: string }; cpu: { model: string; architecture: string; logicalCores: number }; memoryBytes: number };
-type Provenance = { fingerprint: string; measuredAt: string; machine: Machine };
+type Provenance = { fingerprint: string; measurementContractVersion?: string; measuredAt: string; machine: Machine };
 type BenchmarkResult = Record<string, any> & { benchmark: Record<string, any> & { id: string; version: number; size: string }; language: Record<string, any> & { id: string; name: string; version: string }; checker: Record<string, any> & { status: string }; provenance?: Provenance };
 type Snapshot = { schemaVersion: string; snapshotId: string; updatedAt: string; arenaVersion: string; gitCommit?: string | null; gitDirty?: boolean | null; results: BenchmarkResult[] };
 
@@ -164,7 +165,7 @@ async function fingerprintCell(language: Language, benchmark: Benchmark, sizeNam
   await hashTree(path.join(root, config.benchmarkDirectory, benchmark.id, "implementations", language.id), hash);
   await hashTree(path.join(root, "checker"), hash);
   hash.update(JSON.stringify({
-    benchmarkVersion: benchmark.version, size: sizeName, warmups, iterations,
+    benchmarkVersion: benchmark.version, measurementContractVersion: "1.0.0", size: sizeName, warmups, iterations,
     metrics: benchmark.metrics ?? config.defaults.metrics, toolchainVersion, compilerVersion
   }));
   return hash.digest("hex");
@@ -249,14 +250,14 @@ async function buildOne(language: Language, benchmark: Benchmark) {
 function percentile(sorted: number[], p: number) {
   return sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * p) - 1)] ?? 0;
 }
-function summary(samples: Array<{ valid: boolean; wallTimeNanoseconds: number }>) {
-  const a = samples.filter(x => x.valid).map(x => x.wallTimeNanoseconds).sort((x, y) => x - y);
+function summary(samples: Array<{ valid: boolean; kernelTimeNanoseconds: number }>) {
+  const a = samples.filter(x => x.valid).map(x => x.kernelTimeNanoseconds).sort((x, y) => x - y);
   const mean = a.reduce((x, y) => x + y, 0) / (a.length || 1);
   return {
-    validSamples: a.length, rejectedSamples: samples.length - a.length, minimumWallTimeNanoseconds: a[0] ?? 0,
-    maximumWallTimeNanoseconds: a.at(-1) ?? 0, medianWallTimeNanoseconds: percentile(a, .5), meanWallTimeNanoseconds: mean,
-    standardDeviationWallTimeNanoseconds: Math.sqrt(a.reduce((s, x) => s + (x - mean) ** 2, 0) / (a.length || 1)),
-    p95WallTimeNanoseconds: percentile(a, .95), interquartileRangeWallTimeNanoseconds: percentile(a, .75) - percentile(a, .25)
+    validSamples: a.length, rejectedSamples: samples.length - a.length, minimumKernelTimeNanoseconds: a[0] ?? 0,
+    maximumKernelTimeNanoseconds: a.at(-1) ?? 0, medianKernelTimeNanoseconds: percentile(a, .5), meanKernelTimeNanoseconds: mean,
+    standardDeviationKernelTimeNanoseconds: Math.sqrt(a.reduce((s, x) => s + (x - mean) ** 2, 0) / (a.length || 1)),
+    p95KernelTimeNanoseconds: percentile(a, .95), interquartileRangeKernelTimeNanoseconds: percentile(a, .75) - percentile(a, .25)
   };
 }
 
@@ -280,7 +281,7 @@ async function runCommand(args: string[]) {
   const tempRoot = path.join(root, ".arena", "runs", snapshotId);
   await mkdir(tempRoot, { recursive: true });
   const current = await readSnapshot();
-  const canonical = new Map((current?.results ?? []).map(result => [resultKey(result), result]));
+  const canonical = new Map((current?.results ?? []).filter(result => result.execution?.mode === "persistent-worker" && result.provenance?.measurementContractVersion === "1.0.0").map(result => [resultKey(result), result]));
   const results: BenchmarkResult[] = [];
   let currentCells = 0;
   let plannedCells = 0;
@@ -308,23 +309,33 @@ async function runCommand(args: string[]) {
       plannedCells++;
       const build = await buildOne(language, benchmark);
       if (build.status === "missing") continue;
-      const samples: Array<Record<string, unknown> & { valid: boolean; wallTimeNanoseconds: number }> = [];
+      let samples: Array<Record<string, unknown> & { valid: boolean; kernelTimeNanoseconds: number }> = [];
+      let totalProcessDurationNanoseconds = 0;
       let lastChecker = { status: "checker-error", checkerVersion: "unknown", diagnostics: [] as string[] };
-      for (let iteration = -warmups; iteration < iterations; iteration++) {
-        const iterationDir = path.join(tempRoot, benchmark.id, language.id, String(iteration));
+      {
+        const iterationDir = path.join(tempRoot, benchmark.id, language.id);
         await mkdir(iterationDir, { recursive: true });
         const isolatedInput = path.join(iterationDir, `input${path.extname(input)}`);
         await writeFile(isolatedInput, await readFile(input));
         await chmod(isolatedInput, 0o444);
         const output = path.join(iterationDir, "output.json");
-        const vars = { projectRoot: root, benchmarkId: benchmark.id, benchmarkDir: path.join(root, "benchmarks", benchmark.id), implementationDir: build.implementationDir, inputFile: isolatedInput, outputFile: output, artifact: build.artifact, runId: snapshotId, size: sizeName };
-        const p = await runProcess(expand(language.run.command, vars), language.run.arguments.map(x => expand(x, vars)), iterationDir, benchmark.limits.timeoutMilliseconds, language.environment, benchmark.limits.maxOutputBytes, output);
+        const timingOutput = path.join(iterationDir, "timing.json");
+        const vars = { projectRoot: root, benchmarkId: benchmark.id, benchmarkDir: path.join(root, "benchmarks", benchmark.id), implementationDir: build.implementationDir, inputFile: isolatedInput, outputFile: output, timingOutputFile: timingOutput, warmupIterations: String(warmups), measuredIterations: String(iterations), artifact: build.artifact, runId: snapshotId, size: sizeName };
+        const batchTimeout = benchmark.limits.timeoutMilliseconds * Math.max(1, warmups + iterations);
+        const p = await runProcess(expand(language.run.command, vars), language.run.arguments.map(x => expand(x, vars)), iterationDir, batchTimeout, language.environment, benchmark.limits.maxOutputBytes, output);
+        totalProcessDurationNanoseconds = p.durationNs;
         const outputSize = await exists(output) ? (await stat(output)).size : 0;
         lastChecker = p.code === 0 && outputSize <= benchmark.limits.maxOutputBytes
           ? await checkOutput(benchmark, isolatedInput, output)
           : { status: "checker-error", checkerVersion: "unknown", diagnostics: [p.timedOut ? "implementation timed out" : p.limitExceeded ? "implementation exceeded an output limit" : p.stderr || "implementation failed"] };
+        try {
+          if (await exists(timingOutput) && (await stat(timingOutput)).size > benchmark.limits.maxOutputBytes) throw new Error("timing sidecar exceeded the output limit");
+          const timings = p.code === 0 ? await readTimingSamples(timingOutput, iterations) : [];
+          samples = timings.map(timing => ({ ...timing, valid: lastChecker.status === "accepted", exitCode: p.code ?? -1, outputSizeBytes: outputSize, timedOut: p.timedOut, outputLimitExceeded: p.limitExceeded }));
+        } catch (error) {
+          lastChecker = { status: "checker-error", checkerVersion: lastChecker.checkerVersion, diagnostics: [`Invalid timing output: ${(error as Error).message}`] };
+        }
         await chmod(isolatedInput, 0o666);
-        if (iteration >= 0) samples.push({ iteration: iteration + 1, valid: p.code === 0 && lastChecker.status === "accepted", wallTimeNanoseconds: p.durationNs, exitCode: p.code ?? -1, outputSizeBytes: outputSize, timedOut: p.timedOut, outputLimitExceeded: p.limitExceeded });
       }
       const result: BenchmarkResult = {
         benchmark: { id: benchmark.id, version: benchmark.version, size: sizeName },
@@ -332,22 +343,23 @@ async function runCommand(args: string[]) {
         language: { id: language.id, name: language.name, version, compilerVersion, compilerFlags: language.build.arguments },
         build: { status: build.status, durationNanoseconds: build.durationNs, artifactSizeBytes: build.artifactSizeBytes, command: build.command },
         execution: {
-          mode: "cold-process", warmupIterations: warmups, measuredIterations: iterations, samples, summary: summary(samples),
+          mode: "persistent-worker", measurementContractVersion: "1.0.0", totalProcessDurationNanoseconds,
+          warmupIterations: warmups, measuredIterations: iterations, samples, summary: summary(samples),
           metrics: metricAvailability(benchmark.metrics ?? config.defaults.metrics)
         },
         checker: { language: "go", version: lastChecker.checkerVersion, status: lastChecker.status, diagnostics: lastChecker.diagnostics },
-        provenance: { fingerprint, measuredAt: createdAt, machine: currentMachine() }
+        provenance: { fingerprint, measurementContractVersion: "1.0.0", measuredAt: createdAt, machine: currentMachine() }
       };
       results.push(result);
       if (lastChecker.status === "accepted") canonical.set(key, result);
-      if (!flags.has("--quiet") && flags.get("--format") !== "json") console.log(`${benchmark.id}/${sizeName} ${language.name}: ${lastChecker.status} (${(summary(samples).medianWallTimeNanoseconds / 1e6).toFixed(2)} ms median)`);
+      if (!flags.has("--quiet") && flags.get("--format") !== "json") console.log(`${benchmark.id}/${sizeName} ${language.name}: ${lastChecker.status} (${(summary(samples).medianKernelTimeNanoseconds / 1e6).toFixed(2)} ms median kernel)`);
     }
     }
   }
   const git = await runProcess("git", ["rev-parse", "HEAD"]).then(p => p.code === 0 ? p.stdout.trim() : "unknown");
   const gitDirty = await runProcess("git", ["status", "--porcelain"]).then(p => p.code === 0 ? p.stdout.trim().length > 0 : null);
   const snapshot: Snapshot = plannedCells === 0 && current ? current : {
-    schemaVersion: "2.0.0", snapshotId, updatedAt: createdAt, arenaVersion: "0.1.0",
+    schemaVersion: "3.0.0", snapshotId, updatedAt: createdAt, arenaVersion: "0.2.0",
     gitCommit: git, gitDirty, results: [...canonical.values()].sort((a, b) => resultKey(a).localeCompare(resultKey(b)))
   };
   await validateResult(snapshot);
@@ -366,13 +378,13 @@ function printSummary(results: any[]) {
   for (const result of results) {
     if (result.checker.status !== "accepted") continue;
     const key = `${result.benchmark.id}/${result.benchmark.size}`;
-    const median = result.execution.summary.medianWallTimeNanoseconds as number;
+    const median = result.execution.summary.medianKernelTimeNanoseconds as number;
     fastest.set(key, Math.min(fastest.get(key) ?? Number.POSITIVE_INFINITY, median));
   }
   for (const result of results) {
     const key = `${result.benchmark.id}/${result.benchmark.size}`;
     const accepted = result.checker.status === "accepted";
-    const median = result.execution.summary.medianWallTimeNanoseconds as number;
+    const median = result.execution.summary.medianKernelTimeNanoseconds as number;
     const relative = accepted ? `${(median / fastest.get(key)!).toFixed(2)}x` : "unranked";
     console.log(`${key.padEnd(16)}  ${result.language.name.padEnd(12)}  ${(accepted ? "Yes" : "No").padEnd(7)}  ${(accepted ? `${(median / 1e6).toFixed(2)} ms` : "INVALID").padEnd(11)}  ${relative}`);
   }
@@ -466,7 +478,7 @@ async function resultsCommand(args: string[]) {
 async function listCommand(kind: string) {
   if (kind === "languages") for (const d of await detections()) console.log(`${d.language.id.padEnd(14)} ${d.available ? "available" : "unavailable"}  ${d.version}`);
   else if (kind === "benchmarks") for (const b of await discoverBenchmarks()) console.log(`${b.id.padEnd(16)} ${b.name}`);
-  else if (kind === "metrics") console.log("wallTime\ncpuTime (platform dependent)\npeakMemory (platform dependent)\nexitCode\noutputSize\nbuildTime\nartifactSize\ncorrectness");
+  else if (kind === "metrics") console.log("kernelTime\nprocessDuration (diagnostic)\nexitCode\noutputSize\nbuildTime\nartifactSize\ncorrectness");
   else throw new Error("Usage: arena list languages|benchmarks|metrics");
 }
 async function buildCommand(args: string[]) {
@@ -498,34 +510,54 @@ async function datasetCommand(args: string[]) {
   if (!benchmark || !size) throw new Error(`Unknown benchmark/size: ${benchmarkId}/${sizeName}`);
   const random = seeded(seed);
   let content: string;
-  const scale = sizeName === "small" ? 1 : sizeName === "medium" ? 5 : 20;
   if (benchmarkId === "nbody") {
-    const bodies = Array.from({ length: 3 + scale }, () => ({
-      mass: Number((0.1 + random() * 1.9).toFixed(9)),
-      position: [Number((random() * 4 - 2).toFixed(9)), Number((random() * 4 - 2).toFixed(9)), Number((random() * .2 - .1).toFixed(9))],
-      velocity: [Number((random() * .5 - .25).toFixed(9)), Number((random() * .5 - .25).toFixed(9)), 0]
-    }));
-    content = `${JSON.stringify({ steps: 1000 * scale, deltaTime: 0.01 / Math.sqrt(scale), bodies })}\n`;
+    const profile = {
+      small: { bodies: 4, steps: 5_000 },
+      medium: { bodies: 6, steps: 20_000 },
+      large: { bodies: 8, steps: 50_000 }
+    }[sizeName];
+    if (!profile) throw new Error(`No nbody generation profile for size '${sizeName}'`);
+    const bodies = Array.from({ length: profile.bodies }, (_, index) => {
+      const angle = 2 * Math.PI * index / profile.bodies;
+      return {
+        mass: Number((0.1 + random() * 0.1).toFixed(9)),
+        position: [Number((5 * Math.cos(angle)).toFixed(9)), Number((5 * Math.sin(angle)).toFixed(9)), 0],
+        velocity: [Number((-0.01 * Math.sin(angle)).toFixed(9)), Number((0.01 * Math.cos(angle)).toFixed(9)), 0]
+      };
+    });
+    content = `${JSON.stringify({ steps: profile.steps, deltaTime: 0.0001, bodies })}\n`;
   } else if (benchmarkId === "shortest-path") {
-    const vertexCount = 10 * scale;
+    const vertexCount = { small: 100, medium: 300, large: 600 }[sizeName];
+    const queryCount = { small: 30, medium: 90, large: 180 }[sizeName];
+    if (!vertexCount || !queryCount) throw new Error(`No shortest-path generation profile for size '${sizeName}'`);
     const edges: Array<{ from: number; to: number; weight: number }> = [];
-    for (let i = 0; i < vertexCount - 1; i++) edges.push({ from: i, to: i + 1, weight: 1 + Math.floor(random() * 20) });
-    for (let i = 0; i < vertexCount * 3; i++) {
-      const from = Math.floor(random() * vertexCount), to = Math.floor(random() * vertexCount);
-      if (from !== to) edges.push({ from, to, weight: 1 + Math.floor(random() * 100) });
+    const edgeKeys = new Set<string>();
+    for (let i = 0; i < vertexCount - 1; i++) {
+      edges.push({ from: i, to: i + 1, weight: 1 + Math.floor(random() * 20) });
+      edgeKeys.add(`${i}:${i + 1}`);
     }
-    const queries = Array.from({ length: 3 * scale }, (_, i) => ({ id: i + 1, source: Math.floor(random() * vertexCount), destination: Math.floor(random() * vertexCount) }));
+    while (edges.length < vertexCount * 4 - 1) {
+      const from = Math.floor(random() * vertexCount), to = Math.floor(random() * vertexCount);
+      const key = `${from}:${to}`;
+      if (from !== to && !edgeKeys.has(key)) {
+        edges.push({ from, to, weight: 1 + Math.floor(random() * 100) });
+        edgeKeys.add(key);
+      }
+    }
+    const queries = Array.from({ length: queryCount }, (_, i) => ({ id: i + 1, source: Math.floor(random() * vertexCount), destination: Math.floor(random() * vertexCount) }));
     content = `${JSON.stringify({ vertexCount, edges, queries })}\n`;
   } else if (benchmarkId === "aggregation") {
+    const recordCount = { small: 10_000, medium: 50_000, large: 200_000 }[sizeName];
+    if (!recordCount) throw new Error(`No aggregation generation profile for size '${sizeName}'`);
     const categories = ["books", "games", "garden", "tools"];
     const rows = ["timestamp,account_id,category,quantity,unit_price"];
-    for (let i = 0; i < 1000 * scale; i++) rows.push(`2026-01-01T00:00:${String(i % 60).padStart(2, "0")}Z,A${1 + Math.floor(random() * 100)},${categories[Math.floor(random() * categories.length)]},${1 + Math.floor(random() * 10)},${99 + Math.floor(random() * 9901)}`);
+    for (let i = 0; i < recordCount; i++) rows.push(`2026-01-01T00:00:${String(i % 60).padStart(2, "0")}Z,A${1 + Math.floor(random() * 100)},${categories[Math.floor(random() * categories.length)]},${1 + Math.floor(random() * 10)},${99 + Math.floor(random() * 9901)}`);
     content = `${rows.join("\n")}\n`;
   } else throw new Error(`No generator registered for ${benchmarkId}`);
   const destination = path.join(root, config.benchmarkDirectory, benchmarkId, "datasets", size.dataset);
   await writeFile(destination, content);
   const sha256 = createHash("sha256").update(content).digest("hex");
-  await atomicJson(`${destination}.metadata.json`, { benchmark: benchmarkId, version: benchmark.version, size: sizeName, seed, generatorVersion: "1.0.0", sha256 });
+  await atomicJson(`${destination}.metadata.json`, { benchmark: benchmarkId, version: benchmark.version, size: sizeName, seed, generatorVersion: "2.0.0", sha256 });
   console.log(`Generated ${path.relative(root, destination)}\nSHA-256 ${sha256}`);
 }
 

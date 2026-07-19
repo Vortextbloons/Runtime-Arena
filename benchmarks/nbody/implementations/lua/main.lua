@@ -3,9 +3,17 @@ package.path = script_dir .. "?.lua;" .. package.path
 
 local json = require("json")
 local sha256 = require("sha256")
+local ffi = require("ffi")
+ffi.cdef[[typedef long long LARGE_INTEGER; int QueryPerformanceCounter(LARGE_INTEGER*); int QueryPerformanceFrequency(LARGE_INTEGER*);]]
+local counter, frequency = ffi.new("LARGE_INTEGER[1]"), ffi.new("LARGE_INTEGER[1]")
+ffi.C.QueryPerformanceFrequency(frequency)
+local function now_ns() ffi.C.QueryPerformanceCounter(counter); return tonumber(counter[0]) * 1000000000 / tonumber(frequency[0]) end
 
 local input_file = nil
 local output_file = nil
+local timing_output_file = nil
+local warmups = 0
+local iterations = 1
 
 local i = 1
 while i <= #arg do
@@ -15,12 +23,21 @@ while i <= #arg do
     elseif arg[i] == "--output" then
         output_file = arg[i + 1]
         i = i + 2
+    elseif arg[i] == "--timing-output" then
+        timing_output_file = arg[i + 1]
+        i = i + 2
+    elseif arg[i] == "--warmup" then
+        warmups = tonumber(arg[i + 1])
+        i = i + 2
+    elseif arg[i] == "--iterations" then
+        iterations = tonumber(arg[i + 1])
+        i = i + 2
     else
         i = i + 1
     end
 end
 
-if not input_file or not output_file then
+if not input_file or not output_file or not timing_output_file then
     io.stderr:write("Usage: luajit main.lua --input <input-file> --output <output-file>\n")
     os.exit(1)
 end
@@ -33,15 +50,7 @@ local steps = data.steps
 local delta_time = data.deltaTime
 local bodies = data.bodies
 
-local b = {}
-for idx = 1, #bodies do
-    b[idx] = {
-        mass = bodies[idx].mass,
-        position = {bodies[idx].position[1], bodies[idx].position[2], bodies[idx].position[3]},
-        velocity = {bodies[idx].velocity[1], bodies[idx].velocity[2], bodies[idx].velocity[3]}
-    }
-end
-
+local function kernel(b)
 local body_count = #b
 
 for step = 1, steps do
@@ -93,7 +102,7 @@ end
 local position_checksum = sha256(position_data)
 local velocity_checksum = sha256(velocity_data)
 
-local output = {
+return {
     benchmark = "nbody",
     version = 1,
     bodyCount = body_count,
@@ -101,7 +110,25 @@ local output = {
     positionChecksum = position_checksum,
     velocityChecksum = velocity_checksum
 }
+end
+
+local samples = {}
+local output
+for iteration = -warmups, iterations - 1 do
+    local b = {}
+    for idx = 1, #bodies do
+        b[idx] = {mass=bodies[idx].mass,position={bodies[idx].position[1],bodies[idx].position[2],bodies[idx].position[3]},
+            velocity={bodies[idx].velocity[1],bodies[idx].velocity[2],bodies[idx].velocity[3]}}
+    end
+    local started = now_ns()
+    output = kernel(b)
+    local elapsed = math.max(1, math.floor(now_ns() - started + 0.5))
+    if iteration >= 0 then table.insert(samples, {iteration=iteration + 1, kernelTimeNanoseconds=elapsed}) end
+end
 
 local out = io.open(output_file, "w")
 out:write(json.encode(output))
 out:close()
+local timing = io.open(timing_output_file, "w")
+timing:write(json.encode({samples=samples}))
+timing:close()

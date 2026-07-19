@@ -41,7 +41,7 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 	for (const size of expectedSizes) {
 		const medians = cohort
 			.filter((result) => result.benchmark.size === size && completeResult(result))
-			.map((result) => result.execution.summary.medianWallTimeNanoseconds)
+			.map((result) => result.execution.summary.medianKernelTimeNanoseconds)
 			.filter((median) => Number.isFinite(median) && median > 0);
 		if (medians.length) fastestBySize.set(size, Math.min(...medians));
 	}
@@ -90,16 +90,16 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 			const sizes = expectedSizes.map((size): SizeScore => {
 				const result = languageResults.get(size)!;
 				const summary = result.execution.summary;
-				const mean = summary.meanWallTimeNanoseconds ?? summary.medianWallTimeNanoseconds;
-				const deviation = summary.standardDeviationWallTimeNanoseconds ?? 0;
+				const mean = summary.meanKernelTimeNanoseconds ?? summary.medianKernelTimeNanoseconds;
+				const deviation = summary.standardDeviationKernelTimeNanoseconds ?? 0;
 				const variation = mean > 0 ? deviation / mean : 0;
 				return {
 					size,
 					result,
-					medianNanoseconds: summary.medianWallTimeNanoseconds,
-					p95Nanoseconds: summary.p95WallTimeNanoseconds,
+					medianNanoseconds: summary.medianKernelTimeNanoseconds,
+					p95Nanoseconds: summary.p95KernelTimeNanoseconds,
 					variation,
-					performance: clampScore((fastestBySize.get(size)! / summary.medianWallTimeNanoseconds) * 100),
+					performance: clampScore((fastestBySize.get(size)! / summary.medianKernelTimeNanoseconds) * 100),
 					consistency: clampScore(100 - variation * 400)
 				};
 			});

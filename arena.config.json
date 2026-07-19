@@ -8,7 +8,7 @@
     "sizes": ["small", "medium", "large"],
     "warmupIterations": 3,
     "measuredIterations": 10,
-    "metrics": ["wallTime", "cpuTime", "peakMemory"]
+    "metrics": ["kernelTime"]
   },
   "execution": {
     "parallelism": 1,

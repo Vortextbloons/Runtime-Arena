@@ -27,7 +27,7 @@
       "measuredIterations": 10
     }
   },
-  "metrics": ["wallTime", "cpuTime", "peakMemory"],
+  "metrics": ["kernelTime"],
   "limits": {
     "timeoutMilliseconds": 120000,
     "maxOutputBytes": 10485760
