@@ -28,6 +28,8 @@ const UNRANKED: ScoreTier = {
 const LANGUAGE_MONOGRAMS: Record<string, string> = {
 	rust: 'RS',
 	go: 'GO',
+	java: 'JV',
+	javascript: 'JS',
 	typescript: 'TS',
 	python: 'PY',
 	lua: 'LJ',

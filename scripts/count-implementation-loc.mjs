@@ -17,6 +17,7 @@ const SOURCE_EXTENSIONS = new Set([
 	".ts",
 	".js",
 	".mjs",
+	".java",
 	".cpp",
 	".c",
 	".h",

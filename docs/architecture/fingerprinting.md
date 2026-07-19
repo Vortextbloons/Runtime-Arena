@@ -79,6 +79,8 @@ Changes that **do not** invalidate the build cache (but do invalidate the execut
 
 `arena run` only re-executes stale or missing cells. This makes iterative development fast — changing one implementation only re-runs that cell.
 
+Accepted **and** failed/invalid results are retained with their fingerprint. A wrong-answer or build-failed cell stays current until its fingerprint changes or you pass `--force`. One failed build does not cancel other cells in the same run.
+
 ```bash
 # Run only stale/missing cells
 npm run arena -- run
@@ -90,6 +92,7 @@ npm run arena -- run --force
 npm run arena -- run --force --all
 ```
 
+Java toolchains are discovered via `JAVA_HOME`, `PATH`, or common install locations (Adoptium, Oracle/OpenJDK, Microsoft JDK) so JDK installs that are not on `PATH` still run.
 ## Fingerprint Invalidation
 
 A cell's fingerprint changes when:

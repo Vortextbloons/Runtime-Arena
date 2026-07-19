@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { formatDuration } from './scoring';
 	import type { ArenaResult } from './types';
 
@@ -61,7 +62,11 @@
 						<div class="language">
 							<i style:background={languageColors[result.language.id] ?? '#8c9aa5'}></i>
 							<div>
-								<strong>{result.language.name}</strong>
+								{#if languageId}
+									<strong>{result.language.name}</strong>
+								{:else}
+									<a class="lang-link" href={resolve(`/languages/${result.language.id}`)}>{result.language.name}</a>
+								{/if}
 								<span>{acceptedResult ? `${(median / fastest).toFixed(2)}× fastest` : result.checker.status}</span>
 							</div>
 						</div>
@@ -106,6 +111,15 @@
 	.language > i { width: .28rem; height: 2.25rem; border-radius: 1rem; }
 	.language div, .reading { display: grid; gap: .18rem; }
 	.language span, .reading span { color: var(--muted); font-size: .68rem; }
+	.lang-link {
+		color: inherit;
+		font-weight: 650;
+		text-decoration: none;
+		border-bottom: 1px solid transparent;
+	}
+	.lang-link:hover, .lang-link:focus-visible {
+		border-bottom-color: color-mix(in srgb, var(--accent) 55%, transparent);
+	}
 	.track { position: relative; height: .75rem; background: #0d1419; border-radius: 1rem; }
 	.median-bar { width: var(--bar-width); height: 100%; border-radius: inherit; background: linear-gradient(90deg, color-mix(in srgb, var(--bar-color) 55%, #0d1419), var(--bar-color)); transition: width .25s ease; }
 	.sample { position: absolute; left: var(--sample-position); top: 50%; width: .38rem; height: .38rem; border: 1px solid var(--panel); border-radius: 50%; background: var(--sample-color); opacity: .8; transform: translate(-50%, -50%); }

@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
+
 	let { children } = $props();
+
+	const path = $derived(page.url.pathname.replace(/\/$/, '') || '/');
+	const resultsActive = $derived(path === '/' || path.startsWith('/languages') || path.startsWith('/benchmarks'));
+	const methodologyActive = $derived(path.startsWith('/methodology'));
 </script>
 
 <svelte:head>
@@ -14,8 +20,8 @@
 		<span>Runtime Arena</span>
 	</a>
 	<nav aria-label="Primary">
-		<a href={resolve('/')}>Results</a>
-		<a href={resolve('/methodology')}>Methodology</a>
+		<a href={resolve('/')} aria-current={resultsActive ? 'page' : undefined} class:active={resultsActive}>Results</a>
+		<a href={resolve('/methodology')} aria-current={methodologyActive ? 'page' : undefined} class:active={methodologyActive}>Methodology</a>
 	</nav>
 </header>
 
@@ -23,7 +29,7 @@
 
 <footer>
 	<span>Correctness before ranking.</span>
-	<code>schema 2.0.0</code>
+	<span class="footer-meta">Verified measurements</span>
 </footer>
 
 <style>
@@ -41,7 +47,7 @@
 		--body: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
 		--mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
 	}
-	:global(html) { color-scheme: dark; background: var(--background); }
+	:global(html) { color-scheme: dark; background: var(--background); scroll-behavior: smooth; }
 	:global(body) {
 		margin: 0;
 		background: var(--background);
@@ -63,11 +69,19 @@
 		display: block; width: 2rem; height: 2rem; border-radius: 4px;
 	}
 	nav { display: flex; gap: clamp(.8rem, 2.5vw, 2rem); color: var(--muted); font-size: .84rem; }
-	nav a { text-decoration: none; }
+	nav a {
+		text-decoration: none;
+		border-bottom: 1px solid transparent;
+		padding-bottom: 0.1rem;
+	}
 	nav a:hover, nav a:focus-visible { color: #fff; }
+	nav a.active {
+		color: var(--text);
+		border-bottom-color: var(--accent);
+	}
 	main { min-height: calc(100vh - 9rem); }
 	footer { border-top: 1px solid var(--rule); color: var(--muted); font-size: .75rem; }
-	footer code { font-family: var(--mono); }
+	.footer-meta { font-family: var(--mono); font-size: 0.68rem; }
 	:global(:focus-visible) { outline: 2px solid var(--accent); outline-offset: 3px; }
 	@media (max-width: 620px) {
 		header { align-items: flex-start; gap: 1rem; }

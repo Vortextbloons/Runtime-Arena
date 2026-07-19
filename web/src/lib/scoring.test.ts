@@ -49,6 +49,21 @@ test('benchmark scores aggregate mutation variants within each size tier', () =>
 	assert.equal(slow?.performance, 63.728031366);
 });
 
+test('legacy mutation-less rows do not make mutation-only languages ineligible', () => {
+	const rows = [
+		result('legacy', 'small', 1_000_000),
+		{ ...result('legacy', 'small', 1_000_000), benchmark: { id: 'work', version: 1, size: 'small', mutation: 'a' } },
+		{ ...result('legacy', 'small', 1_000_000), benchmark: { id: 'work', version: 1, size: 'small', mutation: 'b' } },
+		{ ...result('modern', 'small', 2_000_000), benchmark: { id: 'work', version: 1, size: 'small', mutation: 'a' } },
+		{ ...result('modern', 'small', 2_000_000), benchmark: { id: 'work', version: 1, size: 'small', mutation: 'b' } }
+	];
+	const scores = scoreBenchmark(rows, 'work');
+	const modern = scores.find((score) => score.language.id === 'modern');
+	assert.equal(modern?.eligible, true);
+	assert.equal(modern?.diagnostics.length, 0);
+	assert.equal(modern?.sizes[0]?.mutations.length, 2);
+});
+
 test('consistency scores zero variation at 100 and caps at zero', () => {
 	const scores = scoreBenchmark(
 		[result('steady', 'small', 1_000_000), result('noisy', 'small', 1_000_000, { deviation: 250_000 })],

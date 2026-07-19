@@ -19,6 +19,7 @@ import {
 } from "./mutations.js";
 import { readTimingSamples } from "./timing.js";
 import { RunnerCache, stageIsolatedDatasets } from "./runner-cache.js";
+import { jdkPathEnvironment, resolveJdkTool } from "./jdk.js";
 
 type Command = { command: string; arguments: string[]; workingDirectory?: string; artifact?: string };
 type Language = { id: string; name: string; enabled: boolean; detect: Command; build: Command & { artifact: string }; run: Command; environment: Record<string, string>; sourceExtensions?: string[] };
@@ -64,7 +65,9 @@ function runProcess(command: string, args: string[], cwd = root, timeout = 30_00
     let stdout = "", stderr = "", timedOut = false, limitExceeded = false;
     const platformCommand = process.platform === "win32" && ["npm", "npx"].includes(command) ? `${command}.cmd` : command;
     const resolvedEnv: Record<string, string> = { ...process.env } as Record<string, string>;
-    for (const [k, v] of Object.entries(env)) resolvedEnv[k] = v.replaceAll("{PATH}", process.env[k] ?? "");
+    for (const [k, v] of Object.entries(env)) {
+      resolvedEnv[k] = v.replaceAll("{PATH}", process.env[k] ?? process.env.PATH ?? process.env.Path ?? "");
+    }
     const child = spawn(platformCommand, args, { cwd, env: resolvedEnv, windowsHide: true, shell: false });
     const timer = setTimeout(() => { timedOut = true; child.kill("SIGKILL"); }, timeout);
     let capturedBytes = 0;
@@ -124,15 +127,32 @@ function atLeast(text: string, minimum: number[]) {
     && !got.some((v, i) => v < (minimum[i] ?? 0) && got.slice(0, i).every((x, j) => x === minimum[j]));
 }
 
+/** Keep a single version-bearing line so copyright banners do not churn fingerprints. */
+function normalizeVersion(text: string): string {
+  const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+  return lines.find(line => /\d+(?:\.\d+){1,2}/.test(line)) ?? lines[0] ?? "";
+}
+
+function withLanguageEnvironment(language: Language): Language {
+  if (language.id !== "java") return language;
+  return {
+    ...language,
+    environment: { ...language.environment, ...jdkPathEnvironment() }
+  };
+}
+
 async function detections() {
   const minima: Record<string, number[]> = { rust: [1, 97], go: [1, 26], typescript: [26, 4], python: [3, 8] };
-  return Promise.all((await discoverLanguages()).map(async language => {
-    const p = await runProcess(language.detect.command, language.detect.arguments);
-    const version = (p.stdout || p.stderr).trim();
+  return Promise.all((await discoverLanguages()).map(async raw => {
+    const language = withLanguageEnvironment(raw);
+    const detectCommand = language.id === "java" ? resolveJdkTool("javac") : language.detect.command;
+    const p = await runProcess(detectCommand, language.detect.arguments, root, 30_000, language.environment);
+    const version = normalizeVersion(p.stdout || p.stderr);
     const compiler = language.id === "typescript"
       ? await runProcess(process.execPath, [path.join(root, "node_modules", "typescript", "bin", "tsc"), "--version"])
       : p;
-    return { language, available: p.code === 0 && atLeast(version, minima[language.id] ?? [0]), version, compilerVersion: (compiler.stdout || compiler.stderr).trim() };
+    const compilerVersion = normalizeVersion(compiler.stdout || compiler.stderr);
+    return { language, available: p.code === 0 && atLeast(version, minima[language.id] ?? [0]), version, compilerVersion };
   }));
 }
 
@@ -280,7 +300,10 @@ function expand(value: string, vars: Record<string, string>) {
 
 async function buildOne(language: Language, benchmark: Benchmark, cache?: RunnerCache) {
   const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
-  if (!await exists(implementationDir)) return { status: "missing" as const, implementationDir, durationNs: 0, artifact: "" };
+  const command = [language.build.command, ...language.build.arguments];
+  if (!await exists(implementationDir)) {
+    return { status: "missing" as const, implementationDir, durationNs: 0, artifact: "", command, artifactSizeBytes: 0, diagnostics: [] as string[] };
+  }
   const rawArtifact = expand(language.build.artifact, { benchmarkId: benchmark.id });
   const artifact = path.resolve(implementationDir, process.platform === "win32" && !path.extname(rawArtifact) ? `${rawArtifact}.exe` : rawArtifact);
   await mkdir(path.dirname(artifact), { recursive: true });
@@ -292,7 +315,7 @@ async function buildOne(language: Language, benchmark: Benchmark, cache?: Runner
     await mkdir(path.dirname(artifact), { recursive: true });
     const { copyFile } = await import("node:fs/promises");
     await copyFile(cachedArtifact, artifact);
-    return { status: "cached", implementationDir, durationNs: 0, artifact, command: [language.build.command, ...language.build.arguments], artifactSizeBytes: (await stat(artifact)).size };
+    return { status: "cached" as const, implementationDir, durationNs: 0, artifact, command, artifactSizeBytes: (await stat(artifact)).size, diagnostics: [] as string[] };
   }
 
   const vars = { projectRoot: root, benchmarkId: benchmark.id, benchmarkDir: path.join(root, "benchmarks", benchmark.id), implementationDir, artifact };
@@ -300,16 +323,35 @@ async function buildOne(language: Language, benchmark: Benchmark, cache?: Runner
   const buildEnv: Record<string, string> = language.id === "go" ? { GOCACHE: path.join(root, ".arena", "go-build-cache") } : {};
   if (language.id === "go") await mkdir(buildEnv.GOCACHE!, { recursive: true });
   const proc = await runProcess(expand(language.build.command, vars), language.build.arguments.map(x => expand(x, vars)), cwd, 180_000, { ...language.environment, ...buildEnv });
-  if (proc.code !== 0) throw new Error(`Build failed for ${benchmark.id}/${language.id}:\n${proc.stderr || proc.stdout}`);
-
-  if (await exists(artifact)) {
-    const cacheArtifact = path.join(cacheDir, path.relative(implementationDir, artifact));
-    await mkdir(path.dirname(cacheArtifact), { recursive: true });
-    const { copyFile } = await import("node:fs/promises");
-    await copyFile(artifact, cacheArtifact);
+  if (proc.code !== 0) {
+    return {
+      status: "failed" as const,
+      implementationDir,
+      durationNs: proc.durationNs,
+      artifact: "",
+      command,
+      artifactSizeBytes: 0,
+      diagnostics: [proc.stderr || proc.stdout || `build exited with ${proc.code}`]
+    };
+  }
+  if (!await exists(artifact)) {
+    return {
+      status: "failed" as const,
+      implementationDir,
+      durationNs: proc.durationNs,
+      artifact: "",
+      command,
+      artifactSizeBytes: 0,
+      diagnostics: ["build succeeded but artifact was not produced"]
+    };
   }
 
-  return { status: "success", implementationDir, durationNs: proc.durationNs, artifact, command: [language.build.command, ...language.build.arguments], artifactSizeBytes: (await stat(artifact)).size };
+  const cacheArtifact = path.join(cacheDir, path.relative(implementationDir, artifact));
+  await mkdir(path.dirname(cacheArtifact), { recursive: true });
+  const { copyFile } = await import("node:fs/promises");
+  await copyFile(artifact, cacheArtifact);
+
+  return { status: "success" as const, implementationDir, durationNs: proc.durationNs, artifact, command, artifactSizeBytes: (await stat(artifact)).size, diagnostics: [] as string[] };
 }
 
 function percentile(sorted: number[], p: number) {
@@ -367,7 +409,9 @@ async function runCommand(args: string[]) {
   const ds = await detections();
   const requestedLanguages = flags.all("--language");
   const requestedBenchmarks = flags.all("--benchmark");
-  const languages = ds.filter(d => d.language.enabled && d.available && (!requestedLanguages.length || requestedLanguages.includes(d.language.id)));
+  const selectedDetections = ds.filter(d => d.language.enabled && (!requestedLanguages.length || requestedLanguages.includes(d.language.id)));
+  const languages = selectedDetections.filter(d => d.available);
+  const unavailableToolchains = selectedDetections.filter(d => !d.available).map(d => d.language.id);
   const benchmarks = (await discoverBenchmarks()).filter(b => !requestedBenchmarks.length || requestedBenchmarks.includes(b.id));
   if (!languages.length || !benchmarks.length) throw new Error("No available language/benchmark combinations selected");
   const createdAt = new Date().toISOString();
@@ -394,8 +438,10 @@ async function runCommand(args: string[]) {
   };
   const staleCells: Cell[] = [];
   let currentCells = 0;
+  let missingImplementations = 0;
   const mutationFilter = flags.get("--mutation");
   const runnerCache = new RunnerCache(root);
+  const verbose = !flags.has("--quiet") && flags.get("--format") !== "json";
 
   for (const benchmark of benchmarks) {
     const sizeNames = flags.get("--size") ? [flags.get("--size")!] : config.defaults.sizes.filter(name => benchmark.sizes[name]);
@@ -408,7 +454,10 @@ async function runCommand(args: string[]) {
         const datasetHash = await runnerCache.sha256(input);
         for (const { language, version, compilerVersion } of languages) {
           const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
-          if (!await exists(implementationDir)) continue;
+          if (!await exists(implementationDir)) {
+            missingImplementations++;
+            continue;
+          }
           const warmups = Number(flags.get("--warmup") ?? cell.warmupIterations);
           const iterations = Number(flags.get("--iterations") ?? cell.measuredIterations);
           const fingerprint = await fingerprintCell(
@@ -418,7 +467,6 @@ async function runCommand(args: string[]) {
           const previous = canonical.get(key);
           if (!flags.has("--force") && previous?.provenance?.fingerprint === fingerprint) {
             currentCells++;
-            if (!flags.has("--quiet") && flags.get("--format") !== "json") console.log(`${key}: current`);
             continue;
           }
           staleCells.push({
@@ -430,9 +478,20 @@ async function runCommand(args: string[]) {
     }
   }
 
+  const plannedCells = staleCells.length;
+  if (verbose) {
+    const unavailableParts = [
+      unavailableToolchains.length ? `toolchain: ${unavailableToolchains.join(", ")}` : "",
+      missingImplementations ? `missing implementations: ${missingImplementations}` : ""
+    ].filter(Boolean);
+    console.log(
+      `Plan: ${currentCells} current (skip) · ${plannedCells} stale/missing (run)`
+      + (unavailableParts.length ? ` · unavailable (${unavailableParts.join("; ")})` : "")
+    );
+  }
+
   const parallelism = flags.has("--parallel") ? Math.max(1, os.cpus().length) : (config.execution?.parallelism ?? 1);
   const results: BenchmarkResult[] = [];
-  const plannedCells = staleCells.length;
 
   type BuildResult = Awaited<ReturnType<typeof buildOne>>;
   const builds = new Map<string, BuildResult>();
@@ -440,7 +499,11 @@ async function runCommand(args: string[]) {
     staleCells.map(cell => [`${cell.benchmark.id}/${cell.language.id}`, { language: cell.language, benchmark: cell.benchmark }])
   ).values()];
   await pool(buildTargets, Math.min(parallelism, buildTargets.length || 1), async ({ language, benchmark }) => {
-    builds.set(`${benchmark.id}/${language.id}`, await buildOne(language, benchmark, runnerCache));
+    const built = await buildOne(language, benchmark, runnerCache);
+    builds.set(`${benchmark.id}/${language.id}`, built);
+    if (built.status === "failed" && verbose) {
+      console.log(`Build failed for ${benchmark.id}/${language.id}:\n${built.diagnostics.join("\n")}`);
+    }
   });
 
   const isolatedInputs = plannedCells ? await stageIsolatedDatasets(staleCells, tempRoot) : new Map<string, string>();
@@ -449,10 +512,21 @@ async function runCommand(args: string[]) {
     const { benchmark, sizeName, mutation, language, version, compilerVersion, fingerprint, key, input, datasetHash, datasetSeed, warmups, iterations } = cell;
     const build = builds.get(`${benchmark.id}/${language.id}`);
     if (!build || build.status === "missing") return;
+
+    const datasetId = mutation
+      ? `${benchmark.id}-${sizeName}-${mutation}-${benchmark.version}`
+      : `${benchmark.id}-${sizeName}-${benchmark.version}`;
     let samples: Array<Record<string, unknown> & { valid: boolean; kernelTimeNanoseconds: number }> = [];
     let totalProcessDurationNanoseconds = 0;
     let lastChecker = { status: "checker-error", checkerVersion: "unknown", diagnostics: [] as string[] };
-    {
+
+    if (build.status === "failed") {
+      lastChecker = {
+        status: "checker-error",
+        checkerVersion: "unknown",
+        diagnostics: build.diagnostics.length ? build.diagnostics : ["build failed"]
+      };
+    } else {
       const iterationDir = path.join(tempRoot, benchmark.id, language.id, sizeName, mutation ?? "default");
       await mkdir(iterationDir, { recursive: true });
       const isolatedInput = isolatedInputs.get(input)!;
@@ -474,9 +548,7 @@ async function runCommand(args: string[]) {
         lastChecker = { status: "checker-error", checkerVersion: lastChecker.checkerVersion, diagnostics: [`Invalid timing output: ${(error as Error).message}`] };
       }
     }
-    const datasetId = mutation
-      ? `${benchmark.id}-${sizeName}-${mutation}-${benchmark.version}`
-      : `${benchmark.id}-${sizeName}-${benchmark.version}`;
+
     const result: BenchmarkResult = {
       benchmark: { id: benchmark.id, version: benchmark.version, size: sizeName, ...(mutation ? { mutation } : {}) },
       dataset: {
@@ -497,10 +569,11 @@ async function runCommand(args: string[]) {
       provenance: { fingerprint, measurementContractVersion: "1.0.0", measuredAt: createdAt, machine: currentMachine() }
     };
     results.push(result);
-    if (lastChecker.status === "accepted") canonical.set(key, result);
-    if (!flags.has("--quiet") && flags.get("--format") !== "json") {
+    canonical.set(key, result);
+    if (verbose) {
       const label = groupKey(benchmark.id, sizeName, mutation);
-      console.log(`${label} ${language.name}: ${lastChecker.status} (${(summary(samples).medianKernelTimeNanoseconds / 1e6).toFixed(2)} ms median kernel)`);
+      if (build.status === "failed") console.log(`${label} ${language.name}: build-failed`);
+      else console.log(`${label} ${language.name}: ${lastChecker.status} (${(summary(samples).medianKernelTimeNanoseconds / 1e6).toFixed(2)} ms median kernel)`);
     }
   });
 
@@ -511,9 +584,9 @@ async function runCommand(args: string[]) {
     gitCommit: git, gitDirty, results: [...canonical.values()].sort((a, b) => resultKey(a).localeCompare(resultKey(b)))
   };
   await validateResult(snapshot);
-  if (results.length && !flags.has("--quiet") && flags.get("--format") !== "json") printSummary(results);
+  if (results.length && verbose) printSummary(results);
   if (!flags.has("--no-save") && plannedCells > 0) await saveResult(snapshot, flags.get("--output"), flags.get("--format") === "json" || flags.has("--quiet"));
-  if (!flags.has("--quiet") && flags.get("--format") !== "json" && plannedCells === 0) console.log(`All ${currentCells} selected cells are current.`);
+  if (verbose && plannedCells === 0) console.log(`All ${currentCells} selected cells are current.`);
   if (flags.get("--format") === "json") console.log(JSON.stringify(snapshot, null, flags.has("--quiet") ? 0 : 2));
   if (!flags.has("--preserve-temp")) await rm(tempRoot, { recursive: true, force: true });
   return 0;
@@ -722,12 +795,20 @@ async function listCommand(kind: string) {
   else throw new Error("Usage: arena list languages|benchmarks|metrics");
 }
 async function buildCommand(args: string[]) {
-  const f = parseFlags(args), ls = await discoverLanguages(), bs = await discoverBenchmarks();
+  const f = parseFlags(args);
+  const ls = (await discoverLanguages()).map(withLanguageEnvironment);
+  const bs = await discoverBenchmarks();
+  let failed = false;
   for (const b of bs.filter(x => !f.all("--benchmark").length || f.all("--benchmark").includes(x.id)))
     for (const l of ls.filter(x => !f.all("--language").length || f.all("--language").includes(x.id))) {
       const built = await buildOne(l, b);
       console.log(`${b.id}/${l.id}: ${built.status}`);
+      if (built.status === "failed") {
+        failed = true;
+        if (built.diagnostics.length) console.log(built.diagnostics.join("\n"));
+      }
     }
+  if (failed) throw new Error("One or more builds failed");
 }
 
 function seeded(seed: number) {

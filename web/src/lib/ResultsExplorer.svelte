@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import BenchmarkChart from './BenchmarkChart.svelte';
 	import BenchmarkScorecard from './BenchmarkScorecard.svelte';
 	import { applyBadgeBonusesToScores, buildAllCardData, type EarnedBadge, type LanguageCardData } from './cards';
@@ -22,10 +25,56 @@
 		fixedLanguage?: string;
 	} = $props();
 
-	let view = $state<'chart' | 'scorecard'>('chart');
+	const benchmarks = $derived([...new Set(run.results.map((result) => result.benchmark.id))].toSorted());
+
+	function parseView(value: string | null): 'chart' | 'scorecard' {
+		return value === 'scorecard' ? 'scorecard' : 'chart';
+	}
+
+	function parseBenchmark(value: string | null, allowed: string[]): string {
+		if (!value || value === 'overall') return 'overall';
+		return allowed.includes(value) ? value : 'overall';
+	}
+
+	function formatSnapshotId(id: string): string {
+		const match = /^(?<date>\d{4}-\d{2}-\d{2})T.*?(?<tail>[a-f0-9]{6,})z?$/i.exec(id);
+		if (match?.groups) return `${match.groups.date} · ${match.groups.tail}`;
+		return id.length > 22 ? `${id.slice(0, 10)}…${id.slice(-8)}` : id;
+	}
+
+	function initialBenchmark(): string {
+		if (fixedBenchmark) return fixedBenchmark;
+		return parseBenchmark(
+			page.url.searchParams.get('benchmark'),
+			[...new Set(run.results.map((result) => result.benchmark.id))]
+		);
+	}
+
+	function initialView(): 'chart' | 'scorecard' {
+		return parseView(page.url.searchParams.get('view'));
+	}
+
+	let view = $state<'chart' | 'scorecard'>(initialView());
+	let selectedBenchmark = $state(initialBenchmark());
 	let expandedCard = $state<{ score: BenchmarkScore; card?: LanguageCardData } | null>(null);
 	let selectedBadgeId = $state<string | null>(null);
 	let overlayEl: HTMLDivElement | undefined = $state();
+	let lastUrlSearch = $state(page.url.search);
+
+	$effect(() => {
+		if (fixedBenchmark) selectedBenchmark = fixedBenchmark;
+	});
+
+	$effect(() => {
+		if (!browser) return;
+		const search = page.url.search;
+		if (search === lastUrlSearch) return;
+		lastUrlSearch = search;
+		view = parseView(page.url.searchParams.get('view'));
+		if (!fixedBenchmark) {
+			selectedBenchmark = parseBenchmark(page.url.searchParams.get('benchmark'), benchmarks);
+		}
+	});
 
 	$effect(() => {
 		if (!browser || !expandedCard) return;
@@ -36,6 +85,25 @@
 			document.body.style.overflow = previous;
 		};
 	});
+
+	function syncUrl(nextView: 'chart' | 'scorecard', nextBenchmark: string) {
+		if (!browser) return;
+		const params = new URLSearchParams(page.url.searchParams);
+		if (nextView === 'chart') params.delete('view');
+		else params.set('view', nextView);
+		if (!fixedBenchmark) {
+			if (nextBenchmark === 'overall') params.delete('benchmark');
+			else params.set('benchmark', nextBenchmark);
+		}
+		const query = params.toString();
+		const nextSearch = query ? `?${query}` : '';
+		lastUrlSearch = nextSearch;
+		const next = `${page.url.pathname}${nextSearch}${page.url.hash}`;
+		const current = `${page.url.pathname}${page.url.search}${page.url.hash}`;
+		if (next !== current) {
+			void goto(next, { replaceState: true, keepFocus: true, noScroll: true });
+		}
+	}
 
 	const expandedBadges = $derived(expandedCard?.card?.badges ?? []);
 	const selectedBadge = $derived.by(() => {
@@ -70,9 +138,19 @@
 	function selectBadge(badge: EarnedBadge) {
 		selectedBadgeId = badge.badgeId;
 	}
-	const benchmarks = $derived([...new Set(run.results.map((result) => result.benchmark.id))].toSorted());
-	let selectedBenchmark = $derived(fixedBenchmark ?? 'overall');
-	const activeBenchmark = $derived(selectedBenchmark);
+
+	function setView(next: 'chart' | 'scorecard') {
+		view = next;
+		syncUrl(next, selectedBenchmark);
+	}
+
+	function setBenchmark(next: string) {
+		if (fixedBenchmark) return;
+		selectedBenchmark = next;
+		syncUrl(view, next);
+	}
+
+	const activeBenchmark = $derived(fixedBenchmark ?? selectedBenchmark);
 	const benchmarkResults = $derived(run.results.filter((result) => result.benchmark.id === activeBenchmark));
 	const baseOverallScores = $derived(scoreOverall(run.results));
 	const languageCards = $derived(
@@ -143,7 +221,7 @@
 		</div>
 		<div class="run-tag">
 			<span>Snapshot</span>
-			<strong>{run.snapshotId}</strong>
+			<strong title={run.snapshotId}>{formatSnapshotId(run.snapshotId)}</strong>
 			<time datetime={run.updatedAt}>{new Date(run.updatedAt).toLocaleString()}</time>
 		</div>
 	</header>
@@ -154,7 +232,7 @@
 	{#if fixedLanguage}
 		<nav class="profile-strip" aria-label="Benchmark scores">
 			{#each profileDisplayScores as score, index (profileBenchmarks[index])}
-				<button class:active={activeBenchmark === profileBenchmarks[index]} onclick={() => selectedBenchmark = profileBenchmarks[index]}>
+				<button class:active={activeBenchmark === profileBenchmarks[index]} onclick={() => setBenchmark(profileBenchmarks[index])}>
 					<span>{profileBenchmarks[index]}</span>
 					<strong>{score?.overall === null || score?.overall === undefined ? '—' : Math.round(score.overall)}</strong>
 				</button>
@@ -163,10 +241,12 @@
 	{/if}
 
 	<div class="toolbar">
-		{#if !fixedBenchmark}
+		{#if fixedBenchmark}
+			<div class="fixed-context"><span>Benchmark</span><strong>{fixedBenchmark}</strong></div>
+		{:else if !fixedLanguage}
 			<label>
 				<span>Benchmark</span>
-				<select bind:value={selectedBenchmark}>
+				<select value={selectedBenchmark} onchange={(e) => setBenchmark(e.currentTarget.value)}>
 					<option value="overall">Overall score</option>
 					{#each benchmarks as benchmark (benchmark)}
 						<option value={benchmark}>{benchmark}</option>
@@ -174,22 +254,40 @@
 				</select>
 			</label>
 		{:else}
-			<div class="fixed-context"><span>Benchmark</span><strong>{fixedBenchmark}</strong></div>
+			<div class="fixed-context">
+				<span>Benchmark</span>
+				{#if activeBenchmark === 'overall'}
+					<strong>Overall score</strong>
+				{:else}
+					<a href={resolve(`/benchmarks/${activeBenchmark}`)}>{activeBenchmark}</a>
+				{/if}
+			</div>
 		{/if}
 
 		<div class="view-toggle" role="group" aria-label="Results view">
-			<button class:active={view === 'chart'} aria-pressed={view === 'chart'} onclick={() => view = 'chart'}>Chart</button>
-			<button class:active={view === 'scorecard'} aria-pressed={view === 'scorecard'} onclick={() => view = 'scorecard'}>Scorecard</button>
+			<button class:active={view === 'chart'} aria-pressed={view === 'chart'} onclick={() => setView('chart')}>Chart</button>
+			<button class:active={view === 'scorecard'} aria-pressed={view === 'scorecard'} onclick={() => setView('scorecard')}>Scorecard</button>
 		</div>
 	</div>
 
 	<div class="view-intro">
 		<div>
-			<p>{view === 'chart' ? 'Measured comparison' : 'Weighted overall score'}</p>
-			<h2>{activeBenchmark === 'overall' ? 'Overall' : activeBenchmark.replace(/[-_]+/g, ' ')}</h2>
-			<p class="qualification">Snapshot rankings · 75% geometric-mean speed · 25% flexibility · badge bonuses · skipped workloads noted</p>
+			<h2>
+				{#if activeBenchmark === 'overall'}
+					Overall
+				{:else if fixedBenchmark}
+					{activeBenchmark.replace(/[-_]+/g, ' ')}
+				{:else}
+					<a href={resolve(`/benchmarks/${activeBenchmark}`)}>{activeBenchmark.replace(/[-_]+/g, ' ')}</a>
+				{/if}
+			</h2>
+			<p class="qualification">
+				<a href="{resolve('/methodology')}#ranking">75% geometric-mean speed · 25% flexibility</a>
+				{#if view === 'scorecard'} · badge bonuses{/if}
+				 · skipped workloads noted
+			</p>
 		</div>
-		<p>
+		<p class="hint">
 			{view === 'chart' && activeBenchmark === 'overall'
 				? 'Each bar is the geometric mean of normalized speed across the benchmarks that language completed in this snapshot.'
 				: view === 'chart'
@@ -322,7 +420,7 @@
 
 <style>
 	.explorer { max-width: 1260px; margin: auto; padding: clamp(2.5rem, 6vw, 5.5rem) clamp(1rem, 4vw, 3.5rem) 5rem; }
-	.page-head { display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: end; padding-bottom: 2.5rem; }
+	.page-head { display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: end; padding-bottom: 1.75rem; }
 	.eyebrow { margin: 0 0 .7rem; color: var(--accent); font: 650 .68rem var(--mono); letter-spacing: .1em; text-transform: uppercase; }
 	h1 { max-width: 780px; margin: 0; font: 640 clamp(2.6rem, 6vw, 5.7rem)/.92 var(--display); letter-spacing: -.055em; text-transform: capitalize; }
 	.lede { max-width: 38rem; margin: 1rem 0 0; color: var(--muted); line-height: 1.55; }
@@ -340,22 +438,45 @@
 	label > span, .fixed-context span { color: var(--muted); font: 600 .62rem var(--mono); text-transform: uppercase; letter-spacing: .08em; }
 	select { min-width: 12rem; border: 0; background: transparent; color: var(--text); padding: .25rem 1.2rem .25rem 0; font: 650 .9rem var(--body); text-transform: capitalize; }
 	select option { background: var(--panel); }
-	.fixed-context strong { text-transform: capitalize; }
+	.fixed-context strong, .fixed-context a { text-transform: capitalize; }
+	.fixed-context a {
+		color: inherit;
+		font-weight: 650;
+		text-decoration: none;
+		border-bottom: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+	}
+	.fixed-context a:hover, .fixed-context a:focus-visible { color: #fff; }
 	.view-toggle { display: inline-flex; padding: .22rem; background: var(--panel); border: 1px solid var(--rule); border-radius: .45rem; }
 	.view-toggle button { min-width: 6.5rem; border: 0; border-radius: .28rem; background: transparent; color: var(--muted); padding: .55rem .8rem; cursor: pointer; font: 650 .72rem var(--mono); }
 	.view-toggle button.active { background: var(--accent); color: #071217; }
-	.view-intro { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding: 2rem 0 1rem; }
-	.view-intro p { max-width: 34rem; margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
-	.view-intro div p { color: var(--accent); font: 650 .62rem var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+	.view-intro { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding: 1.25rem 0 0.85rem; }
+	.view-intro .hint { max-width: 34rem; margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
 	.view-intro .qualification {
-		margin-top: 0.55rem;
-		max-width: 28rem;
+		margin: 0.4rem 0 0;
+		max-width: 32rem;
 		color: var(--muted);
 		font: 600 0.68rem / 1.4 var(--mono);
 		letter-spacing: 0.02em;
-		text-transform: none;
 	}
-	.view-intro h2 { margin: .2rem 0 0; font-size: 1.65rem; text-transform: capitalize; }
+	.view-intro .qualification a {
+		color: inherit;
+		text-decoration: none;
+		border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+	}
+	.view-intro .qualification a:hover,
+	.view-intro .qualification a:focus-visible {
+		color: var(--text);
+	}
+	.view-intro h2 { margin: 0; font-size: 1.45rem; text-transform: capitalize; }
+	.view-intro h2 a {
+		color: inherit;
+		text-decoration: none;
+		border-bottom: 1px solid transparent;
+	}
+	.view-intro h2 a:hover,
+	.view-intro h2 a:focus-visible {
+		border-bottom-color: color-mix(in srgb, var(--accent) 50%, transparent);
+	}
 	.run-details { margin-top: 1rem; border: 1px solid var(--rule); border-radius: .7rem; background: var(--panel); }
 	.run-details summary { padding: 1rem 1.2rem; color: var(--muted); cursor: pointer; font: 650 .68rem var(--mono); text-transform: uppercase; letter-spacing: .06em; }
 	dl { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0; border-top: 1px solid var(--rule); }

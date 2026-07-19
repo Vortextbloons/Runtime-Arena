@@ -97,6 +97,7 @@
 	}
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_tabindex a11y_no_static_element_interactions -->
 <div
 	bind:this={cardEl}
 	class="card-2k tier-{tierInfo.class} {isHighTier ? 'high-tier' : ''} {isApexTier ? 'apex-tier' : ''}"

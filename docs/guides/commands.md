@@ -76,6 +76,10 @@ npm run arena -- run --force --language go --benchmark barrier-wave --size small
 npm run arena -- run --force --all
 ```
 
+`run` prints a plan summary (`current` skipped, `stale/missing` to execute, unavailable toolchains/implementations). Failed builds and invalid checker results are saved and skipped on later runs until the fingerprint changes or you pass `--force`. A single build failure does not abort the rest of the run.
+
+Java is detected from `JAVA_HOME`, `PATH`, or common JDK install paths when `javac` is not already on `PATH`.
+
 Useful extras:
 
 | Flag | Effect |

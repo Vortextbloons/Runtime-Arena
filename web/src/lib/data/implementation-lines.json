@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-19T21:25:37.459Z",
+  "generatedAt": "2026-07-19T21:43:33.333Z",
   "cells": {
     "aggregation:cpp": {
       "logicalLines": 202,
@@ -19,6 +19,14 @@
         "timer_windows.go"
       ],
       "sha256": "348a26a2d32cc3df7c589d1046b7a2cff324442fd652158151da773a4f4a2237"
+    },
+    "aggregation:java": {
+      "logicalLines": 48,
+      "fileCount": 1,
+      "files": [
+        "Main.java"
+      ],
+      "sha256": "e6aaaed1a46ccf07069b7d7b9dfd0024309fc43426d506bfd73136b314f3e613"
     },
     "aggregation:javascript": {
       "logicalLines": 6,
@@ -80,6 +88,14 @@
       ],
       "sha256": "83d005eaa6f063633750d977da3b4cec8aabc3c1713d58be978b025b631ccb67"
     },
+    "barrier-wave:java": {
+      "logicalLines": 26,
+      "fileCount": 1,
+      "files": [
+        "Main.java"
+      ],
+      "sha256": "4ccefcd8f0a2e140eb9b27460d7da0920eb53112e142b677ba5841b0475c68c1"
+    },
     "barrier-wave:javascript": {
       "logicalLines": 38,
       "fileCount": 2,
@@ -131,6 +147,14 @@
         "timer_windows.go"
       ],
       "sha256": "13a368a9154f15c69514ebac0ec528a863753e84881e985ebf6021545c969114"
+    },
+    "matrix-multiplication:java": {
+      "logicalLines": 189,
+      "fileCount": 1,
+      "files": [
+        "Main.java"
+      ],
+      "sha256": "beb83d849bbb020e2c0d045796373020e94ca16a9d8117d752ad97f75143f6f3"
     },
     "matrix-multiplication:javascript": {
       "logicalLines": 35,
@@ -192,6 +216,14 @@
       ],
       "sha256": "55d5aadc96dd7a4d27bfaf934bd2222e12fa591acf1f9f8e250059709e7d8f5a"
     },
+    "nbody:java": {
+      "logicalLines": 53,
+      "fileCount": 1,
+      "files": [
+        "Main.java"
+      ],
+      "sha256": "e4655a5f48b5cd52d72398714520c3a96029485f8e930f8973e8dcc6a8460622"
+    },
     "nbody:javascript": {
       "logicalLines": 40,
       "fileCount": 1,
@@ -251,6 +283,14 @@
         "timer_windows.go"
       ],
       "sha256": "6fa4c7cfcaee764bf8b75eec1f34731df110bb3f2c901745dfc23655ac858c52"
+    },
+    "record-sorting:java": {
+      "logicalLines": 38,
+      "fileCount": 1,
+      "files": [
+        "Main.java"
+      ],
+      "sha256": "ef1bc32c2f440fd1909cdbf4110e7acdf8aa158d243b2705355a3cb7c4f72be6"
     },
     "record-sorting:javascript": {
       "logicalLines": 22,
@@ -312,6 +352,14 @@
       ],
       "sha256": "ee16dbe6f2e4b2805312a3996670077a96ee7e8379c83ea32260b99943be856e"
     },
+    "shortest-path:java": {
+      "logicalLines": 19,
+      "fileCount": 1,
+      "files": [
+        "Main.java"
+      ],
+      "sha256": "15cff8b3b66b73a6e313b9274f32db18267404dd7e8b13d7086571052be050cc"
+    },
     "shortest-path:javascript": {
       "logicalLines": 95,
       "fileCount": 1,
@@ -371,6 +419,14 @@
         "timer_windows.go"
       ],
       "sha256": "58693e0d366a9e1c31a9bb88c978935f7205fa1738d8333bf7fd69bec05c71fd"
+    },
+    "word-frequency:java": {
+      "logicalLines": 121,
+      "fileCount": 1,
+      "files": [
+        "Main.java"
+      ],
+      "sha256": "f3e47d9a94caac9f330924f253e7f0e0e02aaab3c8fc2a0815a2be8a1139fe46"
     },
     "word-frequency:javascript": {
       "logicalLines": 24,

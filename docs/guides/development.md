@@ -9,6 +9,7 @@
 - Python >= 3.8 (for Python implementations)
 - LuaJIT (for Lua implementations)
 - g++ (with C++23 support, for C++ implementations)
+- JDK 17+ with `javac`/`jar`/`java` (for Java implementations; discovered via `JAVA_HOME`, `PATH`, or common install paths)
 - Node.js (for JavaScript implementations, see workspace Node requirement)
 
 ## Setup
@@ -60,7 +61,7 @@ benchmarks/             # Workloads, datasets, implementations
   shortest-path/
   aggregation/
   barrier-wave/         # Rust/Go/TS/Python/JS/C++/Java; LuaJIT unavailable
-languages/              # Language manifests (rust, go, typescript, python, lua, cpp, javascript)
+languages/              # Language manifests (rust, go, typescript, python, lua, cpp, javascript, java)
 schemas/                # JSON Schema definitions
 results/                # Canonical result snapshots
 web/                    # SvelteKit dashboard

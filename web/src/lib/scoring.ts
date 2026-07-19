@@ -70,6 +70,11 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 		if (!list.includes(mutation)) list.push(mutation);
 		mutationsBySize.set(size, list.toSorted());
 	}
+	// Prefer mutation variants when a size has both legacy (no mutation) and mutated results.
+	for (const [size, list] of mutationsBySize) {
+		const mutated = list.filter((mutation) => mutation !== '');
+		if (mutated.length) mutationsBySize.set(size, mutated);
+	}
 	const languages = new Map(cohort.map((result) => [result.language.id, result.language]));
 	const fastestByVariant = new Map<string, number>();
 

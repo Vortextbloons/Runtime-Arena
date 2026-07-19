@@ -19,6 +19,12 @@ const CATALOG: Record<string, LanguageClassification> = {
 		roles: ['Concurrent', 'Systems', 'Application'],
 		memoryModels: ['Garbage Collected']
 	},
+	java: {
+		languageId: 'java',
+		executionModels: ['Bytecode', 'Managed'],
+		roles: ['Application', 'Systems'],
+		memoryModels: ['Garbage Collected']
+	},
 	typescript: {
 		languageId: 'typescript',
 		executionModels: ['Transpiled', 'Managed'],
