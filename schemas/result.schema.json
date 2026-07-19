@@ -152,7 +152,7 @@
             },
             "measurementContractVersion": {
               "type": "string",
-              "const": "1.0.0"
+              "enum": ["1.0.0", "1.1.0"]
             },
             "totalProcessDurationNanoseconds": {
               "type": "integer",
@@ -165,6 +165,34 @@
             "measuredIterations": {
               "type": "integer",
               "minimum": 0
+            },
+            "measurement": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "minMeasuredIterations",
+                "maxMeasuredIterations",
+                "targetRelativeConfidenceInterval"
+              ],
+              "properties": {
+                "mode": {
+                  "type": "string",
+                  "enum": ["adaptive-confidence-interval", "fixed"]
+                },
+                "minMeasuredIterations": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "maxMeasuredIterations": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "targetRelativeConfidenceInterval": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
             },
             "samples": {
               "type": "array",
@@ -265,7 +293,7 @@
           "required": ["fingerprint", "measurementContractVersion", "measuredAt", "machine"],
           "properties": {
             "fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-            "measurementContractVersion": { "type": "string", "const": "1.0.0" },
+            "measurementContractVersion": { "type": "string", "enum": ["1.0.0", "1.1.0"] },
             "measuredAt": { "type": "string", "format": "date-time" },
             "machine": {
               "type": "object",

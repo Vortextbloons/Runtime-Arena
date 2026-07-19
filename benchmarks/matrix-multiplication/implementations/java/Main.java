@@ -247,25 +247,50 @@ public final class Main {
                 + result.checksum + "\"}";
     }
 
-    public static void main(String[] args) throws Exception {
+    private static final double[] T_CRITICAL = {0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045};
+
+  private static double ciWidth(long[] samples) {
+    int n = samples.length;
+    if (n < 2) return Double.POSITIVE_INFINITY;
+    double mean = 0;
+    for (long value : samples) mean += value;
+    mean /= n;
+    if (mean <= 0) return Double.POSITIVE_INFINITY;
+    double variance = 0;
+    for (long value : samples) {
+      double delta = value - mean;
+      variance += delta * delta;
+    }
+    variance /= (n - 1);
+    double t = n < T_CRITICAL.length ? T_CRITICAL[n] : 2.0;
+    return (2 * t * Math.sqrt(variance / n)) / mean;
+  }
+
+  public static void main(String[] args) throws Exception {
         String inputPath = argument(args, "--input");
         String outputPath = argument(args, "--output");
         String timingPath = argument(args, "--timing-output");
         int warmup = Integer.parseInt(argument(args, "--warmup"));
-        int iterations = Integer.parseInt(argument(args, "--iterations"));
+        int minIterations = Integer.parseInt(argument(args, "--min-iterations"));
+        int maxIterations = Integer.parseInt(argument(args, "--max-iterations"));
+        double targetCi = Double.parseDouble(argument(args, "--target-relative-ci"));
         Input input = new JsonInput(Files.readString(Path.of(inputPath), StandardCharsets.UTF_8)).parse();
 
         Result result = null;
         StringBuilder samples = new StringBuilder("{\"samples\":[");
+        long[] kernelTimes = new long[maxIterations];
+        int kernelCount = 0;
         int measured = 0;
-        for (int iteration = -warmup; iteration < iterations; iteration++) {
+        for (int iteration = -warmup; ; iteration++) {
             long start = System.nanoTime();
             result = kernel(input);
             long elapsed = Math.max(1L, System.nanoTime() - start);
             if (iteration >= 0) {
+                kernelTimes[kernelCount++] = elapsed;
                 if (measured++ > 0) samples.append(',');
-                samples.append("{\"iteration\":").append(iteration + 1)
+                samples.append("{\"iteration\":").append(measured)
                         .append(",\"kernelTimeNanoseconds\":").append(elapsed).append('}');
+                if (kernelCount >= maxIterations || (kernelCount >= minIterations && ciWidth(java.util.Arrays.copyOf(kernelTimes, kernelCount)) <= targetCi)) break;
             }
         }
         Files.writeString(Path.of(outputPath), outputJson(result), StandardCharsets.UTF_8);

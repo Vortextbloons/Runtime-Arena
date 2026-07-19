@@ -1,4 +1,18 @@
 local script_dir = arg[0]:match("(.*[/\\])") or "./"
+local T={0,12.706,4.303,3.182,2.776,2.571,2.447,2.365,2.306,2.262,2.228,2.201,2.179,2.16,2.145,2.131,2.12,2.11,2.101,2.093,2.086,2.08,2.074,2.069,2.064,2.06,2.056,2.052,2.048,2.045}
+local function ci_width(samples)
+    local n = #samples
+    if n < 2 then return math.huge end
+    local sum = 0
+    for i = 1, n do sum = sum + samples[i] end
+    local mean = sum / n
+    if mean <= 0 then return math.huge end
+    local var = 0
+    for i = 1, n do local d = samples[i] - mean; var = var + d * d end
+    var = var / (n - 1)
+    local t = T[n + 1] or 2
+    return 2 * t * math.sqrt(var / n) / mean
+end
 package.path = script_dir .. "?.lua;" .. package.path
 
 local json = require("json")
@@ -13,7 +27,9 @@ local input_file = nil
 local output_file = nil
 local timing_output_file = nil
 local warmups = 0
-local iterations = 1
+local min_iterations = 1
+local max_iterations = 1
+local target_ci = 0.05
 
 local i = 1
 while i <= #arg do
@@ -29,8 +45,14 @@ while i <= #arg do
     elseif arg[i] == "--warmup" then
         warmups = tonumber(arg[i + 1])
         i = i + 2
-    elseif arg[i] == "--iterations" then
-        iterations = tonumber(arg[i + 1])
+    elseif arg[i] == "--min-iterations" then
+        min_iterations = tonumber(arg[i + 1])
+        i = i + 2
+    elseif arg[i] == "--max-iterations" then
+        max_iterations = tonumber(arg[i + 1])
+        i = i + 2
+    elseif arg[i] == "--target-relative-ci" then
+        target_ci = tonumber(arg[i + 1])
         i = i + 2
     else
         i = i + 1
@@ -173,11 +195,17 @@ end
 
 local samples = {}; local sn = 0
 local output
-for iteration = -warmups, iterations - 1 do
+local kernel_times = {}
+for iteration = -warmups, math.huge do
     local started = now_ns()
     output = kernel()
     local elapsed = math.max(1, math.floor(now_ns() - started + 0.5))
-    if iteration >= 0 then sn = sn + 1; samples[sn] = {iteration=iteration + 1,kernelTimeNanoseconds=elapsed} end
+    if iteration >= 0 then
+        kernel_times[#kernel_times + 1] = elapsed
+        sn = sn + 1
+        samples[sn] = {iteration=sn, kernelTimeNanoseconds=elapsed}
+        if #kernel_times >= max_iterations or (#kernel_times >= min_iterations and ci_width(kernel_times) <= target_ci) then break end
+    end
 end
 
 local out = io.open(output_file, "w")

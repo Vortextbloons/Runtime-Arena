@@ -18,7 +18,6 @@
     },
     "medium": {
       "warmupIterations": 2,
-      "measuredIterations": 3,
       "mutations": {
         "random": { "dataset": "medium-random.json", "seed": 729418 },
         "mostly-sorted": { "dataset": "medium-mostly-sorted.json", "seed": 729418 }
@@ -26,7 +25,6 @@
     },
     "large": {
       "warmupIterations": 2,
-      "measuredIterations": 3,
       "mutations": {
         "random": { "dataset": "large-random.json", "seed": 729418 },
         "mostly-sorted": { "dataset": "large-mostly-sorted.json", "seed": 729418 }

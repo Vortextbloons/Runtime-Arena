@@ -10,7 +10,7 @@ export const GENERATOR_VERSION = "2.1.0";
 export type MutationEntry = { dataset: string; seed: number };
 export type SizeConfig = {
   warmupIterations: number;
-  measuredIterations: number;
+  measuredIterations?: number;
   dataset?: string;
   mutations?: Record<string, MutationEntry>;
 };
@@ -20,7 +20,7 @@ export type SizeCell = {
   dataset: string;
   seed?: number;
   warmupIterations: number;
-  measuredIterations: number;
+  measuredIterations?: number;
 };
 
 export function expandSizeCells(sizes: Record<string, SizeConfig>, sizeName: string, mutationFilter?: string): SizeCell[] {

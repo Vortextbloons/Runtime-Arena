@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <limits>
 
 #include "json.hpp"
 #include "sha256.hpp"
@@ -136,9 +137,25 @@ std::string readFile(const std::string& path) {
     return ss.str();
 }
 
+static const double T_CRITICAL[30] = {0,12.706,4.303,3.182,2.776,2.571,2.447,2.365,2.306,2.262,2.228,2.201,2.179,2.16,2.145,2.131,2.12,2.11,2.101,2.093,2.086,2.08,2.074,2.069,2.064,2.06,2.056,2.052,2.048,2.045};
+double ciWidth(const std::vector<long long>& samples) {
+    const size_t n = samples.size();
+    if (n < 2) return std::numeric_limits<double>::infinity();
+    double mean = 0;
+    for (long long value : samples) mean += static_cast<double>(value);
+    mean /= static_cast<double>(n);
+    if (mean <= 0) return std::numeric_limits<double>::infinity();
+    double variance = 0;
+    for (long long value : samples) { const double delta = static_cast<double>(value) - mean; variance += delta * delta; }
+    variance /= static_cast<double>(n - 1);
+    const double t = n < 30 ? T_CRITICAL[n] : 2.0;
+    return (2.0 * t * std::sqrt(variance / static_cast<double>(n))) / mean;
+}
+
 int main(int argc, char* argv[]) {
     std::string inputPath, outputPath, timingPath;
-    int warmup = 0, iterations = 1;
+    int warmup = 0, minIterations = 1, maxIterations = 1;
+    double targetCi = 0.05;
 
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
@@ -146,7 +163,9 @@ int main(int argc, char* argv[]) {
         else if (arg == "--output" && i + 1 < argc) outputPath = argv[++i];
         else if (arg == "--timing-output" && i + 1 < argc) timingPath = argv[++i];
         else if (arg == "--warmup" && i + 1 < argc) warmup = std::stoi(argv[++i]);
-        else if (arg == "--iterations" && i + 1 < argc) iterations = std::stoi(argv[++i]);
+        else if (arg == "--min-iterations" && i + 1 < argc) minIterations = std::stoi(argv[++i]);
+        else if (arg == "--max-iterations" && i + 1 < argc) maxIterations = std::stoi(argv[++i]);
+        else if (arg == "--target-relative-ci" && i + 1 < argc) targetCi = std::stod(argv[++i]);
     }
 
     if (inputPath.empty() || outputPath.empty() || timingPath.empty()) {
@@ -160,7 +179,8 @@ int main(int argc, char* argv[]) {
     std::vector<Sample> samples;
     Output out;
 
-    for (int i = -warmup; i < iterations; i++) {
+    std::vector<long long> kernelTimes;
+    for (int i = -warmup; ; i++) {
         std::vector<Body> bodiesCopy = in.bodies;
 
         auto start = std::chrono::high_resolution_clock::now();
@@ -171,7 +191,9 @@ int main(int argc, char* argv[]) {
         if (elapsed < 1) elapsed = 1;
 
         if (i >= 0) {
-            samples.push_back({i + 1, elapsed});
+            kernelTimes.push_back(elapsed);
+            samples.push_back({static_cast<int>(samples.size()) + 1, elapsed});
+            if (static_cast<int>(kernelTimes.size()) >= maxIterations || (static_cast<int>(kernelTimes.size()) >= minIterations && ciWidth(kernelTimes) <= targetCi)) break;
         }
     }
 

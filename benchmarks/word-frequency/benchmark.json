@@ -18,7 +18,6 @@
     },
     "medium": {
       "warmupIterations": 2,
-      "measuredIterations": 3,
       "mutations": {
         "repeated-vocabulary": { "dataset": "medium-repeated-vocabulary.json", "seed": 729418 },
         "mostly-unique": { "dataset": "medium-mostly-unique.json", "seed": 729418 }
@@ -26,7 +25,6 @@
     },
     "large": {
       "warmupIterations": 2,
-      "measuredIterations": 3,
       "mutations": {
         "repeated-vocabulary": { "dataset": "large-repeated-vocabulary.json", "seed": 729418 },
         "mostly-unique": { "dataset": "large-mostly-unique.json", "seed": 729418 }

@@ -20,7 +20,9 @@
       "--output", "{outputFile}",
       "--timing-output", "{timingOutputFile}",
       "--warmup", "{warmupIterations}",
-      "--iterations", "{measuredIterations}"
+      "--min-iterations", "{minMeasuredIterations}",
+      "--max-iterations", "{maxMeasuredIterations}",
+      "--target-relative-ci", "{targetRelativeConfidenceInterval}"
     ]
   },
   "environment": {

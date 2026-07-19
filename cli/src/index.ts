@@ -17,7 +17,7 @@ import {
   groupKey,
   type SizeConfig
 } from "./mutations.js";
-import { readTimingSamples } from "./timing.js";
+import { readTimingSamples, type MeasurementPolicy } from "./timing.js";
 import { RunnerCache, stageIsolatedDatasets } from "./runner-cache.js";
 import { jdkPathEnvironment, resolveJdkTool } from "./jdk.js";
 
@@ -36,8 +36,26 @@ const require = createRequire(import.meta.url);
 const config = JSON.parse(await readFile(path.join(root, "arena.config.json"), "utf8")) as {
   benchmarkDirectory: string; languageDirectory: string; resultDirectory: string; checkerExecutable: string;
   defaults: { sizes: string[]; warmupIterations: number; measuredIterations: number; metrics: string[] };
+  measurement?: { minMeasuredIterations?: number; maxMeasuredIterations?: number; targetRelativeConfidenceInterval?: number };
   execution: { parallelism: number; preserveTemporaryFiles: boolean };
 };
+
+const MEASUREMENT_CONTRACT_VERSION = "1.1.0";
+
+function resolveMeasurementPolicy(flags: ReturnType<typeof parseFlags>, minOverride?: number): MeasurementPolicy {
+  const minDefault = minOverride ?? config.measurement?.minMeasuredIterations ?? config.defaults.measuredIterations;
+  const fixed = flags.get("--iterations");
+  if (fixed) {
+    const iterations = Number(fixed);
+    return { minMeasuredIterations: iterations, maxMeasuredIterations: iterations, targetRelativeConfidenceInterval: 0, mode: "fixed" };
+  }
+  return {
+    minMeasuredIterations: Number(flags.get("--min-iterations") ?? minDefault),
+    maxMeasuredIterations: Number(flags.get("--max-iterations") ?? config.measurement?.maxMeasuredIterations ?? 30),
+    targetRelativeConfidenceInterval: Number(flags.get("--target-ci") ?? config.measurement?.targetRelativeConfidenceInterval ?? 0.05),
+    mode: "adaptive-confidence-interval"
+  };
+}
 
 const json = async <T>(file: string): Promise<T> => JSON.parse(await readFile(file, "utf8")) as T;
 const exists = async (file: string) => access(file).then(() => true, () => false);
@@ -198,7 +216,7 @@ async function fingerprintCell(
   toolchainVersion: string,
   compilerVersion: string,
   warmups: number,
-  iterations: number,
+  measurement: MeasurementPolicy,
   cache?: RunnerCache
 ) {
   const hash = createHash("sha256");
@@ -206,7 +224,8 @@ async function fingerprintCell(
     path.join(root, config.languageDirectory, `${language.id}.json`),
     path.join(root, config.benchmarkDirectory, benchmark.id, "benchmark.json"),
     path.join(root, config.benchmarkDirectory, benchmark.id, "datasets", datasetFile),
-    path.join(root, "cli", "src", "metrics.ts")
+    path.join(root, "cli", "src", "metrics.ts"),
+    path.join(root, "cli", "src", "timing.ts")
   ]) {
     hash.update(path.relative(root, file).replaceAll("\\", "/"));
     hash.update(cache ? await cache.readFile(file) : await readFile(file));
@@ -215,11 +234,11 @@ async function fingerprintCell(
   await hashTree(path.join(root, "checker"), hash, cache);
   hash.update(JSON.stringify({
     benchmarkVersion: benchmark.version,
-    measurementContractVersion: "1.0.0",
+    measurementContractVersion: MEASUREMENT_CONTRACT_VERSION,
     size: sizeName,
     mutation: mutation ?? null,
     warmups,
-    iterations,
+    measurement,
     metrics: benchmark.metrics ?? config.defaults.metrics,
     toolchainVersion,
     compilerVersion
@@ -419,7 +438,7 @@ async function runCommand(args: string[]) {
   const tempRoot = path.join(root, ".arena", "runs", snapshotId);
   await mkdir(tempRoot, { recursive: true });
   const current = await readSnapshot();
-  const canonical = new Map((current?.results ?? []).filter(result => result.execution?.mode === "persistent-worker" && result.provenance?.measurementContractVersion === "1.0.0").map(result => [resultKey(result), result]));
+  const canonical = new Map((current?.results ?? []).filter(result => result.execution?.mode === "persistent-worker").map(result => [resultKey(result), result]));
 
   type Cell = {
     benchmark: Benchmark;
@@ -434,11 +453,11 @@ async function runCommand(args: string[]) {
     datasetHash: string;
     datasetSeed?: number;
     warmups: number;
-    iterations: number;
+    measurement: MeasurementPolicy;
   };
   const staleCells: Cell[] = [];
   let currentCells = 0;
-  let missingImplementations = 0;
+  const missingImplementationCells = new Map<string, number>();
   const mutationFilter = flags.get("--mutation");
   const runnerCache = new RunnerCache(root);
   const verbose = !flags.has("--quiet") && flags.get("--format") !== "json";
@@ -455,13 +474,14 @@ async function runCommand(args: string[]) {
         for (const { language, version, compilerVersion } of languages) {
           const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
           if (!await exists(implementationDir)) {
-            missingImplementations++;
+            const missingKey = `${benchmark.id}/${language.id}`;
+            missingImplementationCells.set(missingKey, (missingImplementationCells.get(missingKey) ?? 0) + 1);
             continue;
           }
           const warmups = Number(flags.get("--warmup") ?? cell.warmupIterations);
-          const iterations = Number(flags.get("--iterations") ?? cell.measuredIterations);
+          const measurement = resolveMeasurementPolicy(flags, cell.measuredIterations);
           const fingerprint = await fingerprintCell(
-            language, benchmark, sizeName, cell.mutation, cell.dataset, version, compilerVersion, warmups, iterations, runnerCache
+            language, benchmark, sizeName, cell.mutation, cell.dataset, version, compilerVersion, warmups, measurement, runnerCache
           );
           const key = cellKey(benchmark.id, sizeName, language.id, cell.mutation);
           const previous = canonical.get(key);
@@ -471,7 +491,7 @@ async function runCommand(args: string[]) {
           }
           staleCells.push({
             benchmark, sizeName, mutation: cell.mutation, language, version, compilerVersion, fingerprint, key,
-            input, datasetHash, datasetSeed: cell.seed, warmups, iterations
+            input, datasetHash, datasetSeed: cell.seed, warmups, measurement
           });
         }
       }
@@ -480,9 +500,13 @@ async function runCommand(args: string[]) {
 
   const plannedCells = staleCells.length;
   if (verbose) {
+    const missingImplementationSummary = [...missingImplementationCells.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, count]) => `${key} (${count} cell${count === 1 ? "" : "s"})`)
+      .join(", ");
     const unavailableParts = [
       unavailableToolchains.length ? `toolchain: ${unavailableToolchains.join(", ")}` : "",
-      missingImplementations ? `missing implementations: ${missingImplementations}` : ""
+      missingImplementationCells.size ? `missing: ${missingImplementationSummary}` : ""
     ].filter(Boolean);
     console.log(
       `Plan: ${currentCells} current (skip) · ${plannedCells} stale/missing (run)`
@@ -509,7 +533,7 @@ async function runCommand(args: string[]) {
   const isolatedInputs = plannedCells ? await stageIsolatedDatasets(staleCells, tempRoot) : new Map<string, string>();
 
   await pool(staleCells, parallelism, async (cell) => {
-    const { benchmark, sizeName, mutation, language, version, compilerVersion, fingerprint, key, input, datasetHash, datasetSeed, warmups, iterations } = cell;
+    const { benchmark, sizeName, mutation, language, version, compilerVersion, fingerprint, key, input, datasetHash, datasetSeed, warmups, measurement } = cell;
     const build = builds.get(`${benchmark.id}/${language.id}`);
     if (!build || build.status === "missing") return;
 
@@ -532,8 +556,16 @@ async function runCommand(args: string[]) {
       const isolatedInput = isolatedInputs.get(input)!;
       const output = path.join(iterationDir, "output.json");
       const timingOutput = path.join(iterationDir, "timing.json");
-      const vars = { projectRoot: root, benchmarkId: benchmark.id, benchmarkDir: path.join(root, "benchmarks", benchmark.id), implementationDir: build.implementationDir, inputFile: isolatedInput, outputFile: output, timingOutputFile: timingOutput, warmupIterations: String(warmups), measuredIterations: String(iterations), artifact: build.artifact, runId: snapshotId, size: sizeName };
-      const batchTimeout = benchmark.limits.timeoutMilliseconds * Math.max(1, warmups + iterations);
+      const vars = {
+        projectRoot: root, benchmarkId: benchmark.id, benchmarkDir: path.join(root, "benchmarks", benchmark.id),
+        implementationDir: build.implementationDir, inputFile: isolatedInput, outputFile: output, timingOutputFile: timingOutput,
+        warmupIterations: String(warmups),
+        minMeasuredIterations: String(measurement.minMeasuredIterations),
+        maxMeasuredIterations: String(measurement.maxMeasuredIterations),
+        targetRelativeConfidenceInterval: String(measurement.targetRelativeConfidenceInterval),
+        artifact: build.artifact, runId: snapshotId, size: sizeName
+      };
+      const batchTimeout = benchmark.limits.timeoutMilliseconds * Math.max(1, warmups + measurement.maxMeasuredIterations);
       const p = await runProcess(expand(language.run.command, vars), language.run.arguments.map(x => expand(x, vars)), iterationDir, batchTimeout, language.environment, benchmark.limits.maxOutputBytes, output);
       totalProcessDurationNanoseconds = p.durationNs;
       const outputSize = await exists(output) ? (await stat(output)).size : 0;
@@ -542,7 +574,7 @@ async function runCommand(args: string[]) {
         : { status: "checker-error", checkerVersion: "unknown", diagnostics: [p.timedOut ? "implementation timed out" : p.limitExceeded ? "implementation exceeded an output limit" : p.stderr || "implementation failed"] };
       try {
         if (await exists(timingOutput) && (await stat(timingOutput)).size > benchmark.limits.maxOutputBytes) throw new Error("timing sidecar exceeded the output limit");
-        const timings = p.code === 0 ? await readTimingSamples(timingOutput, iterations) : [];
+        const timings = p.code === 0 ? await readTimingSamples(timingOutput, measurement) : [];
         samples = timings.map(timing => ({ ...timing, valid: lastChecker.status === "accepted", exitCode: p.code ?? -1, outputSizeBytes: outputSize, timedOut: p.timedOut, outputLimitExceeded: p.limitExceeded }));
       } catch (error) {
         lastChecker = { status: "checker-error", checkerVersion: lastChecker.checkerVersion, diagnostics: [`Invalid timing output: ${(error as Error).message}`] };
@@ -561,12 +593,14 @@ async function runCommand(args: string[]) {
       language: { id: language.id, name: language.name, version, compilerVersion, compilerFlags: language.build.arguments },
       build: { status: build.status, durationNanoseconds: build.durationNs, artifactSizeBytes: build.artifactSizeBytes, command: build.command },
       execution: {
-        mode: "persistent-worker", measurementContractVersion: "1.0.0", totalProcessDurationNanoseconds,
-        warmupIterations: warmups, measuredIterations: iterations, samples, summary: summary(samples),
+        mode: "persistent-worker", measurementContractVersion: MEASUREMENT_CONTRACT_VERSION, totalProcessDurationNanoseconds,
+        warmupIterations: warmups, measuredIterations: samples.length,
+        measurement: { ...measurement },
+        samples, summary: summary(samples),
         metrics: metricAvailability(benchmark.metrics ?? config.defaults.metrics)
       },
       checker: { language: "go", version: lastChecker.checkerVersion, status: lastChecker.status, diagnostics: lastChecker.diagnostics },
-      provenance: { fingerprint, measurementContractVersion: "1.0.0", measuredAt: createdAt, machine: currentMachine() }
+      provenance: { fingerprint, measurementContractVersion: MEASUREMENT_CONTRACT_VERSION, measuredAt: createdAt, machine: currentMachine() }
     };
     results.push(result);
     canonical.set(key, result);
@@ -742,9 +776,9 @@ async function resultsStatus(args: string[]) {
           continue;
         }
         const warmups = Number(flags.get("--warmup") ?? cell.warmupIterations);
-        const iterations = Number(flags.get("--iterations") ?? cell.measuredIterations);
+        const measurement = resolveMeasurementPolicy(flags, cell.measuredIterations);
         const fingerprint = await fingerprintCell(
-          language, benchmark, sizeName, cell.mutation, cell.dataset, version, compilerVersion, warmups, iterations, runnerCache
+          language, benchmark, sizeName, cell.mutation, cell.dataset, version, compilerVersion, warmups, measurement, runnerCache
         );
         const saved = canonical.get(key);
         const status = !saved ? "missing" : saved.provenance?.fingerprint === fingerprint ? "current" : "stale";

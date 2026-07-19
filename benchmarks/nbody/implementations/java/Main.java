@@ -46,9 +46,28 @@ public final class Main {
         return new Result(energy,hash(ps.toString()),hash(vs.toString()),b.length);
     }
     static final class Result { double energy; String pos,vel; int count; Result(double e,String p,String v,int c){energy=e;pos=p;vel=v;count=c;} }
-    public static void main(String[] a) throws Exception {
-        Input in=readInput(arg(a,"--input")); String outFile=arg(a,"--output"), timingFile=arg(a,"--timing-output"); int warm=i(Long.valueOf(arg(a,"--warmup"))), it=i(Long.valueOf(arg(a,"--iterations"))); Result out=null; StringBuilder samples=new StringBuilder("{\"samples\":[");
-        for(int run=-warm;run<it;run++){Body[] b=new Body[in.bodies.length];for(int j=0;j<b.length;j++)b[j]=in.bodies[j].copy();long start=System.nanoTime();out=kernel(in,b);long elapsed=Math.max(1,System.nanoTime()-start);if(run>=0){if(run>0)samples.append(',');samples.append("{\"iteration\":").append(run+1).append(",\"kernelTimeNanoseconds\":").append(elapsed).append('}');}}
+    private static final double[] T_CRITICAL = {0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045};
+
+  private static double ciWidth(long[] samples) {
+    int n = samples.length;
+    if (n < 2) return Double.POSITIVE_INFINITY;
+    double mean = 0;
+    for (long value : samples) mean += value;
+    mean /= n;
+    if (mean <= 0) return Double.POSITIVE_INFINITY;
+    double variance = 0;
+    for (long value : samples) {
+      double delta = value - mean;
+      variance += delta * delta;
+    }
+    variance /= (n - 1);
+    double t = n < T_CRITICAL.length ? T_CRITICAL[n] : 2.0;
+    return (2 * t * Math.sqrt(variance / n)) / mean;
+  }
+
+  public static void main(String[] a) throws Exception {
+        Input in=readInput(arg(a,"--input")); String outFile=arg(a,"--output"), timingFile=arg(a,"--timing-output"); int warm=i(Long.valueOf(arg(a,"--warmup"))), minIt=i(Long.valueOf(arg(a,"--min-iterations"))), maxIt=i(Long.valueOf(arg(a,"--max-iterations"))); double targetCi=Double.parseDouble(arg(a,"--target-relative-ci")); Result out=null; StringBuilder samples=new StringBuilder("{\"samples\":["); long[] kernelTimes=new long[maxIt]; int kernelCount=0, measured=0;
+        for(int run=-warm;;run++){Body[] b=new Body[in.bodies.length];for(int j=0;j<b.length;j++)b[j]=in.bodies[j].copy();long start=System.nanoTime();out=kernel(in,b);long elapsed=Math.max(1,System.nanoTime()-start);if(run>=0){kernelTimes[kernelCount++]=elapsed;if(measured++>0)samples.append(',');samples.append("{\"iteration\":").append(measured).append(",\"kernelTimeNanoseconds\":").append(elapsed).append('}');if(kernelCount>=maxIt||(kernelCount>=minIt&&ciWidth(java.util.Arrays.copyOf(kernelTimes,kernelCount))<=targetCi))break;}}
         samples.append("]}"); String result="{\"benchmark\":\"nbody\",\"version\":1,\"bodyCount\":"+out.count+",\"finalEnergy\":"+Double.toString(out.energy)+",\"positionChecksum\":\""+out.pos+"\",\"velocityChecksum\":\""+out.vel+"\"}"; Files.writeString(Path.of(outFile),result); Files.writeString(Path.of(timingFile),samples.toString());
     }
 }

@@ -21,7 +21,6 @@
     },
     "medium": {
       "warmupIterations": 2,
-      "measuredIterations": 3,
       "mutations": {
         "sparse": { "dataset": "medium-sparse.json", "seed": 729418 },
         "dense": { "dataset": "medium-dense.json", "seed": 729418 }
@@ -29,7 +28,6 @@
     },
     "large": {
       "warmupIterations": 2,
-      "measuredIterations": 3,
       "mutations": {
         "sparse": { "dataset": "large-sparse.json", "seed": 729418 },
         "dense": { "dataset": "large-dense.json", "seed": 729418 }

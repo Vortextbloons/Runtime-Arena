@@ -10,6 +10,11 @@
     "measuredIterations": 10,
     "metrics": ["kernelTime"]
   },
+  "measurement": {
+    "minMeasuredIterations": 10,
+    "maxMeasuredIterations": 30,
+    "targetRelativeConfidenceInterval": 0.05
+  },
   "execution": {
     "parallelism": 2,
     "preserveTemporaryFiles": false

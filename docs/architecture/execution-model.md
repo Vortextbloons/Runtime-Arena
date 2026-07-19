@@ -4,7 +4,7 @@ Runtime Arena measures **steady-state workload kernel execution**. One process i
 
 ## Persistent Worker Contract
 
-The CLI supplies `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations`. Implementations:
+The CLI supplies `--input`, `--output`, `--timing-output`, `--warmup`, `--min-iterations`, `--max-iterations`, and `--target-relative-ci`. Implementations:
 
 1. Read and parse input before timing.
 2. Prepare fresh mutable state before each iteration.
@@ -19,7 +19,8 @@ The CLI supplies `--input`, `--output`, `--timing-output`, `--warmup`, and `--it
 The CLI validates timing sidecars via `readTimingSamples()`:
 - Iterations must be **1-indexed and sequential** (sample N must have `iteration: N`)
 - All `kernelTimeNanoseconds` values must be **non-negative safe integers**
-- Exactly `measuredIterations` samples are required
+- Between `minMeasuredIterations` and `maxMeasuredIterations` samples are required
+- After each measured iteration, implementations stop early when the 95% relative confidence interval of the mean kernel time is at or below `--target-relative-ci`
 - Extra or missing fields on the top-level object or on individual samples are **rejected**
 - Timing sidecars exceeding `maxOutputBytes` are also rejected
 
@@ -31,7 +32,7 @@ Each cell runs in an isolated directory under `.arena/runs/<snapshotId>/<benchma
 
 ## Limits and Summary
 
-The per-iteration benchmark timeout is multiplied by the requested warmup and measured iteration count to bound the persistent process. Output and captured-stream limits remain enforced.
+The per-iteration benchmark timeout is multiplied by the requested warmup and maximum measured iteration count to bound the persistent process. Output and captured-stream limits remain enforced.
 
 **Build caching**: A separate `buildFingerprint()` (distinct from the execution `fingerprintCell`) hashes the language manifest, implementation source tree, benchmark ID, and build config. Compiled artifacts are stored in `.arena/build-cache/<buildFingerprint>/` and restored via `copyFile` on cache hits, skipping recompilation.
 

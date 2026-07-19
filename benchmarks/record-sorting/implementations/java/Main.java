@@ -240,12 +240,33 @@ public final class Main {
   }
 
   @SuppressWarnings("unchecked")
+  private static final double[] T_CRITICAL = {0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045};
+
+  private static double ciWidth(long[] samples) {
+    int n = samples.length;
+    if (n < 2) return Double.POSITIVE_INFINITY;
+    double mean = 0;
+    for (long value : samples) mean += value;
+    mean /= n;
+    if (mean <= 0) return Double.POSITIVE_INFINITY;
+    double variance = 0;
+    for (long value : samples) {
+      double delta = value - mean;
+      variance += delta * delta;
+    }
+    variance /= (n - 1);
+    double t = n < T_CRITICAL.length ? T_CRITICAL[n] : 2.0;
+    return (2 * t * Math.sqrt(variance / n)) / mean;
+  }
+
   public static void main(String[] args) throws Exception {
     String inputFile = argument(args, "--input", null);
     String outputFile = argument(args, "--output", null);
     String timingFile = argument(args, "--timing-output", null);
     int warmup = Integer.parseInt(argument(args, "--warmup", "0"));
-    int iterations = Integer.parseInt(argument(args, "--iterations", "1"));
+    int minIterations = Integer.parseInt(argument(args, "--min-iterations", "1"));
+    int maxIterations = Integer.parseInt(argument(args, "--max-iterations", "1"));
+    double targetCi = Double.parseDouble(argument(args, "--target-relative-ci", "0.05"));
     if (inputFile == null || outputFile == null || timingFile == null) throw new IllegalArgumentException("missing required arguments");
 
     Map<String, Object> root = (Map<String, Object>) new Json(Files.readString(Path.of(inputFile), StandardCharsets.UTF_8)).value();
@@ -263,14 +284,18 @@ public final class Main {
 
     String result = null;
     StringBuilder samples = new StringBuilder("{\"samples\":[");
-    for (int run = -warmup; run < iterations; run++) {
+    long[] kernelTimes = new long[maxIterations];
+    int kernelCount = 0;
+    for (int run = -warmup; ; run++) {
       long start = System.nanoTime();
       result = kernel(input);
       long elapsed = Math.max(1L, System.nanoTime() - start);
       if (run >= 0) {
+        kernelTimes[kernelCount++] = elapsed;
         if (run > 0) samples.append(',');
-        samples.append("{\"iteration\":").append(run + 1)
+        samples.append("{\"iteration\":").append(kernelCount)
             .append(",\"kernelTimeNanoseconds\":").append(elapsed).append('}');
+        if (kernelCount >= maxIterations || (kernelCount >= minIterations && ciWidth(java.util.Arrays.copyOf(kernelTimes, kernelCount)) <= targetCi)) break;
       }
     }
     Files.writeString(Path.of(outputFile), result, StandardCharsets.UTF_8);
