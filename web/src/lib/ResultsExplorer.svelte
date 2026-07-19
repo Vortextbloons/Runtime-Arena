@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import BenchmarkChart from './BenchmarkChart.svelte';
 	import BenchmarkScorecard from './BenchmarkScorecard.svelte';
+	import { buildAllCardData, type LanguageCardData } from './cards';
 	import OverallCard from './OverallCard.svelte';
 	import OverallChart from './OverallChart.svelte';
 	import { scoreBenchmark, scoreOverall } from './scoring';
@@ -21,12 +23,42 @@
 	} = $props();
 
 	let view = $state<'chart' | 'scorecard'>('chart');
-	let expandedCard = $state<BenchmarkScore | null>(null);
+	let expandedCard = $state<{ score: BenchmarkScore; card?: LanguageCardData } | null>(null);
+	let overlayEl: HTMLDivElement | undefined = $state();
+
+	$effect(() => {
+		if (!browser || !expandedCard) return;
+		const previous = document.body.style.overflow;
+		document.body.style.overflow = 'hidden';
+		queueMicrotask(() => overlayEl?.focus({ preventScroll: true }));
+		return () => {
+			document.body.style.overflow = previous;
+		};
+	});
+
+	function closeExpanded() {
+		expandedCard = null;
+	}
+
+	function openExpanded(score: BenchmarkScore, card?: LanguageCardData) {
+		expandedCard = { score, card };
+	}
 	const benchmarks = $derived([...new Set(run.results.map((result) => result.benchmark.id))].toSorted());
 	let selectedBenchmark = $derived(fixedBenchmark ?? 'overall');
 	const activeBenchmark = $derived(selectedBenchmark);
 	const benchmarkResults = $derived(run.results.filter((result) => result.benchmark.id === activeBenchmark));
 	const allScores = $derived(activeBenchmark === 'overall' ? scoreOverall(run.results) : scoreBenchmark(run.results, activeBenchmark));
+	const languageCards = $derived(
+		activeBenchmark === 'overall'
+			? buildAllCardData({
+					snapshotId: run.snapshotId,
+					measuredAt: run.updatedAt,
+					results: run.results,
+					overallScores: allScores
+				})
+			: []
+	);
+	const cardsByLanguage = $derived(new Map(languageCards.map((card) => [card.languageId, card])));
 	const visibleScores = $derived(fixedLanguage ? allScores.filter((score) => score.language.id === fixedLanguage) : allScores);
 	const profileScores = $derived(
 		fixedLanguage
@@ -120,7 +152,8 @@
 		{#if activeBenchmark === 'overall'}
 			<div class="card-grid">
 				{#each allScores as score (score.language.id)}
-					<OverallCard {score} onexpand={() => expandedCard = score} />
+					{@const card = cardsByLanguage.get(score.language.id)}
+					<OverallCard {score} {card} onexpand={() => openExpanded(score, card)} />
 				{/each}
 			</div>
 		{:else}
@@ -129,22 +162,30 @@
 	{/if}
 
 	{#if expandedCard}
-		<div class="card-overlay" onclick={(e) => { if (e.target === e.currentTarget) expandedCard = null; }} onkeydown={(e) => { if (e.key === 'Escape') expandedCard = null; }} role="dialog" aria-modal="true" tabindex="-1">
+		<div
+			bind:this={overlayEl}
+			class="card-overlay"
+			onclick={(e) => { if (e.target === e.currentTarget) closeExpanded(); }}
+			onkeydown={(e) => { if (e.key === 'Escape') closeExpanded(); }}
+			role="dialog"
+			aria-modal="true"
+			tabindex="-1"
+		>
 			<div class="card-overlay-inner" role="group">
-				<OverallCard score={expandedCard} expanded />
-				{#if (!expandedCard.eligible && expandedCard.diagnostics.length) || (expandedCard.benchmarks && expandedCard.benchmarks.length)}
+				<OverallCard score={expandedCard.score} card={expandedCard.card} expanded />
+				{#if (!expandedCard.score.eligible && expandedCard.score.diagnostics.length) || (expandedCard.score.benchmarks && expandedCard.score.benchmarks.length)}
 					<div class="expanded-details">
-						{#if !expandedCard.eligible && expandedCard.diagnostics.length}
+						{#if !expandedCard.score.eligible && expandedCard.score.diagnostics.length}
 							<section class="expanded-diagnostics">
-								<h3>{expandedCard.diagnostics.length === 1 ? 'UNVERIFIED · 1 issue' : `UNVERIFIED · ${expandedCard.diagnostics.length} issues`}</h3>
+								<h3>{expandedCard.score.diagnostics.length === 1 ? 'UNVERIFIED · 1 issue' : `UNVERIFIED · ${expandedCard.score.diagnostics.length} issues`}</h3>
 								<ul>
-									{#each expandedCard.diagnostics as diagnostic, diagnosticIndex (`${diagnosticIndex}-${diagnostic}`)}
+									{#each expandedCard.score.diagnostics as diagnostic, diagnosticIndex (`${diagnosticIndex}-${diagnostic}`)}
 										<li>{diagnostic}</li>
 									{/each}
 								</ul>
 							</section>
 						{/if}
-						{#if expandedCard.benchmarks && expandedCard.benchmarks.length}
+						{#if expandedCard.score.benchmarks && expandedCard.score.benchmarks.length}
 							<h3>Benchmark breakdown</h3>
 							<div class="expanded-table">
 								<div class="expanded-table-head">
@@ -154,7 +195,7 @@
 									<span>Stability</span>
 									<span>Flex</span>
 								</div>
-								{#each expandedCard.benchmarks as bench (bench.benchmarkId)}
+								{#each expandedCard.score.benchmarks as bench (bench.benchmarkId)}
 									<div class="expanded-table-row">
 										<strong>{bench.benchmarkId.replace(/[-_]+/g, ' ')}</strong>
 										<code>{Math.round(bench.overall)}</code>
@@ -167,7 +208,7 @@
 						{/if}
 					</div>
 				{/if}
-				<button class="expanded-close" onclick={() => expandedCard = null} type="button">✕</button>
+				<button class="expanded-close" onclick={closeExpanded} type="button">✕</button>
 			</div>
 		</div>
 	{/if}
@@ -244,37 +285,40 @@
 		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 		gap: 1.2rem;
 		padding: 0.5rem 0 2rem;
+		align-items: start;
 	}
 
 	.card-overlay {
 		position: fixed;
 		inset: 0;
 		z-index: 100;
-		display: grid;
-		place-items: center;
+		display: block;
+		overflow-y: auto;
+		overscroll-behavior: contain;
 		background: rgba(0, 0, 0, 0.7);
 		backdrop-filter: blur(8px);
 		padding: 2rem;
+		-webkit-overflow-scrolling: touch;
 	}
 
 	.card-overlay-inner {
 		position: relative;
 		display: grid;
-		grid-template-columns: 1fr 1.4fr;
+		grid-template-columns: minmax(260px, 340px) minmax(0, 1.4fr);
 		gap: 2rem;
 		align-items: start;
-		max-width: 880px;
+		max-width: 920px;
 		width: 100%;
-		max-height: 85vh;
-		overflow-y: auto;
+		margin: 0 auto;
+		padding-bottom: 2rem;
 	}
 
-	.card-overlay-inner :global(.card) {
+	.card-overlay-inner :global(.card-2k) {
 		cursor: default;
 		transform: none;
 	}
 
-	.card-overlay-inner :global(.card:hover) {
+	.card-overlay-inner :global(.card-2k:hover) {
 		transform: none;
 	}
 
@@ -369,7 +413,6 @@
 		.card-overlay { padding: 1rem; }
 		.card-overlay-inner {
 			grid-template-columns: 1fr;
-			max-height: 90vh;
 		}
 		.expanded-table-head,
 		.expanded-table-row {

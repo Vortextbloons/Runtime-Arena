@@ -1,13 +1,16 @@
 <script lang="ts">
+	import { cardTierLabel, type LanguageCardData } from './cards';
 	import { formatBenchmarkLabel, getScoreTier, languageMonogram } from './tiers';
 	import type { BenchmarkScore } from './types';
 
 	let {
 		score,
+		card = undefined,
 		expanded = false,
 		onexpand
 	}: {
 		score: BenchmarkScore;
+		card?: LanguageCardData;
 		expanded?: boolean;
 		onexpand?: () => void;
 	} = $props();
@@ -25,7 +28,17 @@
 
 	const tierInfo = $derived(getScoreTier(score.overall));
 	const versionTag = $derived(score.language.version.split(' ')[0] ?? score.language.id);
-	const teamLabel = $derived(formatBenchmarkLabel(score.benchmarkId));
+	const teamLabel = $derived(card?.buildName ?? formatBenchmarkLabel(score.benchmarkId));
+	const cardLetter = $derived(card ? cardTierLabel(card.cardTier) : null);
+	const faceAttributes = $derived(card?.attributes.slice(0, 6) ?? []);
+	const featuredBadges = $derived.by(() => {
+		const current = card;
+		if (!current) return [];
+		return current.featuredBadgeIds
+			.map((id) => current.badges.find((badge) => badge.badgeId === id))
+			.filter((badge): badge is NonNullable<typeof badge> => Boolean(badge));
+	});
+	const expandedBadges = $derived(card && expanded ? card.badges : featuredBadges);
 	const nameParts = $derived(score.language.name.split(/\s+/).filter(Boolean));
 	const firstName = $derived(nameParts[0] ?? score.language.name);
 	const restName = $derived(nameParts.length > 1 ? nameParts.slice(1).join(' ') : '');
@@ -61,14 +74,20 @@
 		tiltX = 0;
 		tiltY = 0;
 	}
+
+	function badgeTierLabel(tier: string): string {
+		return tier.replace(/-/g, ' ').toUpperCase();
+	}
 </script>
 
 <div
 	bind:this={cardEl}
 	class="card-2k tier-{tierInfo.class} {isHighTier ? 'high-tier' : ''}"
 	class:expanded
+	class:card-v1={Boolean(card)}
 	onclick={expanded ? undefined : onexpand}
-	onkeydown={expanded ? undefined : (e) => { if (e.key === 'Enter' || e.key === ' ') onexpand?.(); }}
+	onmousedown={expanded ? undefined : (e) => e.preventDefault()}
+	onkeydown={expanded ? undefined : (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onexpand?.(); } }}
 	onmousemove={onMove}
 	onmouseleave={onLeave}
 	role={expanded ? 'group' : 'button'}
@@ -105,8 +124,13 @@
 						<polygon points="2,9 12,12 6,22" fill="rgba(0,0,0,0.35)" />
 					</svg>
 				</div>
-				<div class="tier-name">{tierInfo.sub.toUpperCase()}</div>
-				<div class="tier-rank">{tierInfo.tag}</div>
+				{#if cardLetter}
+					<div class="tier-name" title={`Card tier ${cardLetter}`}>{cardLetter}</div>
+					<div class="tier-rank">{tierInfo.tag}</div>
+				{:else}
+					<div class="tier-name">{tierInfo.sub.toUpperCase()}</div>
+					<div class="tier-rank">{tierInfo.tag}</div>
+				{/if}
 			</div>
 		</header>
 
@@ -139,6 +163,13 @@
 				<span class="archetype-text">{teamLabel}</span>
 				<span class="archetype-marker" aria-hidden="true"></span>
 			</div>
+			{#if card?.displayClassifications?.length}
+				<div class="class-chips" aria-label="Classifications">
+					{#each card.displayClassifications as chip (chip)}
+						<span class="class-chip">{chip}</span>
+					{/each}
+				</div>
+			{/if}
 		</div>
 
 		<div class="tier-band">
@@ -150,34 +181,94 @@
 		</div>
 
 		<!-- Benchmark layer: attributes, runtime, expandable details -->
-		<div class="attribute-grid">
-			{#each categories as cat (cat.key)}
-				{@const value = score[cat.key]}
-				{@const segs = filled(value)}
-				<div class="attribute" data-stat={cat.key}>
-					<div class="attribute-head">
-						<span class="attribute-icon" aria-hidden="true">
-							{#if cat.icon === 'speed'}
-								<svg viewBox="0 0 16 16"><path d="M9 1 L3 9 L7 9 L6 15 L13 6 L9 6 Z" fill="currentColor" /></svg>
-							{:else if cat.icon === 'stable'}
-								<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.4" /><circle cx="8" cy="8" r="2" fill="currentColor" /></svg>
-							{:else if cat.icon === 'flex'}
-								<svg viewBox="0 0 16 16"><path d="M3 12 L5 7 L8 9 L13 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /><circle cx="3" cy="12" r="1.4" fill="currentColor" /><circle cx="13" cy="3" r="1.4" fill="currentColor" /></svg>
-							{:else}
-								<svg viewBox="0 0 16 16"><path d="M2 13 L6 7 L9 10 L14 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /><path d="M10 2 L14 2 L14 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+		{#if card}
+			<div class="attribute-grid attribute-grid-v1">
+				{#each faceAttributes as attribute (attribute.id)}
+					{@const value = attribute.rating}
+					{@const segs = filled(value)}
+					<div class="attribute" data-stat={attribute.abbreviation.toLowerCase()} class:unavailable={!attribute.available}>
+						<div class="attribute-head">
+							<span class="attribute-label">{attribute.abbreviation}</span>
+							<span class="attribute-value">{value === null ? '—' : Math.round(value)}</span>
+						</div>
+						<div
+							class="attribute-bar"
+							role="meter"
+							aria-valuemin="0"
+							aria-valuemax="100"
+							aria-valuenow={value ?? 0}
+							aria-label={`${attribute.label} ${value === null ? 'unavailable' : Math.round(value)}`}
+						>
+							{#each Array(10) as _, i (i)}
+								<span class="seg" class:on={i < segs}></span>
+							{/each}
+						</div>
+					</div>
+				{/each}
+			</div>
+
+			<div class="takeover-block">
+				<span class="takeover-label">Primary takeover</span>
+				<strong class="takeover-value">{card.takeover.primary}</strong>
+			</div>
+
+			{#if expandedBadges.length}
+				<ul class="badge-list" aria-label={expanded ? 'All badges' : 'Featured badges'}>
+					{#each expandedBadges as badge (badge.badgeId)}
+						<li class="badge-row tier-{badge.tier}">
+							<span class="badge-name">{badge.name}</span>
+							<span class="badge-tier">{badgeTierLabel(badge.tier)}</span>
+							{#if expanded}
+								<p class="badge-reason">{badge.reason}</p>
+								{#if badge.nextTier}
+									<p class="badge-next">
+										Next {badgeTierLabel(badge.nextTier.tier)}:
+										{badge.nextTier.requirements.join('; ')}
+									</p>
+								{/if}
 							{/if}
-						</span>
-						<span class="attribute-label">{cat.label}</span>
-						<span class="attribute-value">{value === null ? '—' : Math.round(value)}</span>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+
+			{#if card.featuredDivisionRank}
+				<p class="division-rank">
+					#{card.featuredDivisionRank.rank}
+					{card.featuredDivisionRank.divisionName.toUpperCase()} DIVISION
+					<span class="division-field">of {card.featuredDivisionRank.fieldSize}</span>
+				</p>
+			{/if}
+		{:else}
+			<div class="attribute-grid">
+				{#each categories as cat (cat.key)}
+					{@const value = score[cat.key]}
+					{@const segs = filled(value)}
+					<div class="attribute" data-stat={cat.key}>
+						<div class="attribute-head">
+							<span class="attribute-icon" aria-hidden="true">
+								{#if cat.icon === 'speed'}
+									<svg viewBox="0 0 16 16"><path d="M9 1 L3 9 L7 9 L6 15 L13 6 L9 6 Z" fill="currentColor" /></svg>
+								{:else if cat.icon === 'stable'}
+									<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.4" /><circle cx="8" cy="8" r="2" fill="currentColor" /></svg>
+								{:else if cat.icon === 'flex'}
+									<svg viewBox="0 0 16 16"><path d="M3 12 L5 7 L8 9 L13 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /><circle cx="3" cy="12" r="1.4" fill="currentColor" /><circle cx="13" cy="3" r="1.4" fill="currentColor" /></svg>
+								{:else}
+									<svg viewBox="0 0 16 16"><path d="M2 13 L6 7 L9 10 L14 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /><path d="M10 2 L14 2 L14 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+								{/if}
+							</span>
+							<span class="attribute-label">{cat.label}</span>
+							<span class="attribute-value">{value === null ? '—' : Math.round(value)}</span>
+						</div>
+						<div class="attribute-bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow={value ?? 0} aria-label={`${cat.label} ${value === null ? 'unavailable' : Math.round(value)}`}>
+							{#each Array(10) as _, i (i)}
+								<span class="seg" class:on={i < segs}></span>
+							{/each}
+						</div>
 					</div>
-					<div class="attribute-bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow={value ?? 0} aria-label={`${cat.label} ${value === null ? 'unavailable' : Math.round(value)}`}>
-						{#each Array(10) as _, i (i)}
-							<span class="seg" class:on={i < segs}></span>
-						{/each}
-					</div>
-				</div>
-			{/each}
-		</div>
+				{/each}
+			</div>
+		{/if}
 
 		{#if score.benchmarks && score.benchmarks.length}
 			<div class="benchmarks-strip">
@@ -248,7 +339,6 @@
 		display: block;
 		width: 100%;
 		max-width: 320px;
-		aspect-ratio: 5 / 8.2;
 		margin: 0 auto;
 		color: #fff;
 		font-family: var(--body);
@@ -261,12 +351,23 @@
 		isolation: isolate;
 	}
 
+	/* Legacy three-meter cards keep the collectible silhouette. */
+	.card-2k:not(.card-v1) {
+		aspect-ratio: 5 / 8.2;
+	}
+
 	.card-2k:hover {
 		filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 18px var(--tier-glow));
 	}
 
 	.card-2k.expanded {
 		cursor: default;
+		max-width: 340px;
+		transform: none;
+	}
+
+	.card-2k.expanded:hover {
+		transform: none;
 	}
 
 	/* --- Aggressive silhouette: large top-right, smaller bottom-left, plus tier-driven extensions --- */
@@ -321,6 +422,22 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.4rem;
+	}
+
+	/* V1 cards grow with content; absolute frame would collapse without aspect-ratio. */
+	.card-2k.card-v1 .card-frame {
+		position: relative;
+		inset: auto;
+	}
+
+	.card-2k.card-v1 .art-stage {
+		flex: 0 0 auto;
+		min-height: 4.5rem;
+		padding: 0.35rem 0.1rem 0.2rem;
+	}
+
+	.card-2k.card-v1 .monogram {
+		font-size: clamp(2.6rem, 10vw, 4.2rem);
 	}
 
 	/* Shards: small angular extensions on top-left and bottom-right corners */
@@ -705,6 +822,118 @@
 		gap: 0.32rem;
 		padding: 0.4rem 0.2rem 0.35rem;
 		border-top: 1px solid color-mix(in srgb, var(--tier-glow) 30%, transparent);
+	}
+
+	.attribute-grid-v1 {
+		grid-template-columns: 1fr 1fr;
+		gap: 0.28rem;
+	}
+
+	.attribute.unavailable {
+		opacity: 0.55;
+	}
+
+	.class-chips {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.35rem;
+		margin-top: 0.15rem;
+	}
+
+	.class-chip {
+		font: 700 0.52rem var(--mono);
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: color-mix(in srgb, var(--tier-glow) 75%, #fff);
+		border: 1px solid color-mix(in srgb, var(--tier-glow) 45%, transparent);
+		padding: 0.18rem 0.4rem;
+		background: rgba(0, 0, 0, 0.35);
+	}
+
+	.takeover-block {
+		display: grid;
+		gap: 0.12rem;
+		padding: 0.35rem 0.45rem;
+		margin: 0 0.15rem 0.25rem;
+		border: 1px solid color-mix(in srgb, var(--tier-glow) 35%, transparent);
+		background: linear-gradient(90deg, color-mix(in srgb, var(--tier-glow) 12%, rgba(0, 0, 0, 0.45)), rgba(0, 0, 0, 0.3));
+	}
+
+	.takeover-label {
+		font: 700 0.5rem var(--mono);
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: color-mix(in srgb, var(--tier-glow) 70%, #fff);
+	}
+
+	.takeover-value {
+		font: 800 0.72rem / 1.1 var(--display);
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: #fff;
+	}
+
+	.badge-list {
+		list-style: none;
+		margin: 0 0.15rem 0.3rem;
+		padding: 0;
+		display: grid;
+		gap: 0.22rem;
+	}
+
+	.badge-row {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		gap: 0.1rem 0.5rem;
+		padding: 0.28rem 0.4rem;
+		border: 1px solid color-mix(in srgb, var(--tier-glow) 30%, transparent);
+		background: rgba(0, 0, 0, 0.35);
+		font: 700 0.55rem var(--mono);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #fff;
+	}
+
+	.badge-tier {
+		color: color-mix(in srgb, var(--tier-glow) 85%, #fff);
+	}
+
+	.badge-row.tier-legend .badge-tier { color: #f6e27a; }
+	.badge-row.tier-hall-of-fame .badge-tier { color: #d7b4ff; }
+	.badge-row.tier-gold .badge-tier { color: #f0c14b; }
+	.badge-row.tier-silver .badge-tier { color: #d0d7de; }
+	.badge-row.tier-bronze .badge-tier { color: #c48a5a; }
+
+	.badge-reason,
+	.badge-next {
+		grid-column: 1 / -1;
+		margin: 0;
+		font: 500 0.58rem / 1.35 var(--mono);
+		letter-spacing: 0.02em;
+		text-transform: none;
+		color: rgba(255, 255, 255, 0.72);
+	}
+
+	.badge-next {
+		color: color-mix(in srgb, var(--tier-glow) 70%, #fff);
+	}
+
+	.division-rank {
+		margin: 0 0.2rem 0.35rem;
+		text-align: center;
+		font: 800 0.58rem var(--mono);
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: color-mix(in srgb, var(--tier-glow) 80%, #fff);
+	}
+
+	.division-field {
+		display: block;
+		margin-top: 0.1rem;
+		font-weight: 600;
+		letter-spacing: 0.1em;
+		opacity: 0.75;
 	}
 
 	.attribute {

@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "test": "node --experimental-strip-types --test src/lib/scoring.test.ts src/lib/tiers.test.ts"
+    "test": "node --experimental-strip-types --test src/lib/scoring.test.ts src/lib/tiers.test.ts src/lib/cards.test.ts"
   },
   "engines": {
     "node": ">=26.4.0"
