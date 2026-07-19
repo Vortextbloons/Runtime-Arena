@@ -54,6 +54,15 @@ npm run arena -- run --language <language-id> --benchmark <benchmark-id> --size 
 npm run arena -- run --language rust --language go --benchmark barrier-wave --size small
 ```
 
-Compare multiple measured iterations, not a single run. Test before and after
-under the same machine conditions, confirm checker acceptance, and keep an
-optimization only when the improvement is repeatable.
+Arena uses **adaptive measurement** by default (contract `1.1.0`): each cell collects
+between 10 and 30 kernel samples and stops when the 95% relative CI of the mean
+kernel time is ≤ 5%, unless timing noise prevents early stopping. Slow
+implementations on large workloads may run all 30 iterations — that is expected,
+not a hang. Confirm the process is advancing by checking sample counts in
+`.arena/runs/<snapshotId>/.../timing.json` or watching CPU stay bounded while
+iteration counts increase.
+
+Compare multiple measured iterations under the same machine conditions and
+measurement contract, confirm checker acceptance, and keep an optimization only
+when the improvement is repeatable. Use `--iterations <n>` for a fixed sample
+count when debugging timing logic.

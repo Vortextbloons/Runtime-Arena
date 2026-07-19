@@ -27,11 +27,16 @@
    --output <output-file>
    --timing-output <timing-file>
    --warmup <n>
-   --iterations <n>
+   --min-iterations <n>
+   --max-iterations <n>
+   --target-relative-ci <ratio>
    ```
 
    Language manifests must pass these through the `run.arguments` template
-   (see `docs/architecture/execution-model.md`).
+   (see `languages/rust.json` and `docs/architecture/execution-model.md`).
+   Implementations collect kernel timing samples adaptively: run at least
+   `--min-iterations` measured iterations, stop early when the 95% relative
+   confidence interval is narrow enough, and never exceed `--max-iterations`.
 
 7. Use optimized release builds. Produce output that passes the checker —
    the internal approach can differ from other language implementations.

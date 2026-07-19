@@ -76,7 +76,15 @@ npm run arena -- run --force --language go --benchmark barrier-wave --size small
 npm run arena -- run --force --all
 ```
 
-`run` prints a plan summary (`current` skipped, `stale/missing` to execute, unavailable toolchains/implementations). Failed builds and invalid checker results are saved and skipped on later runs until the fingerprint changes or you pass `--force`. A single build failure does not abort the rest of the run.
+`run` prints a plan summary (`current` skipped, `stale/missing` to execute, unavailable toolchains/implementations). When implementations are missing, the plan names the benchmark/language pair and how many cells were skipped (for example `missing: barrier-wave/lua (3 cells)`). Failed builds and invalid checker results are saved and skipped on later runs until the fingerprint changes or you pass `--force`. A single build failure does not abort the rest of the run.
+
+### Adaptive measurement
+
+By default, each cell runs between `measurement.minMeasuredIterations` and `measurement.maxMeasuredIterations` kernel samples (configured in `arena.config.json`, currently 10–30) and stops early once the 95% relative confidence interval of the mean kernel time is at or below `measurement.targetRelativeConfidenceInterval` (currently 5%). Implementations receive `--min-iterations`, `--max-iterations`, and `--target-relative-ci` instead of a fixed `--iterations` count.
+
+Pass `--iterations <n>` to force a fixed sample count (disables early stopping). The CLI uses this mode in tests.
+
+Results are tagged with measurement contract **`1.1.0`**. Older `1.0.0` rows remain in `results/current.json` until the same cell is re-measured; they are not deleted by partial runs.
 
 Java is detected from `JAVA_HOME`, `PATH`, or common JDK install paths when `javac` is not already on `PATH`.
 
@@ -88,7 +96,9 @@ Useful extras:
 | `--no-save` | Do not write `results/current.json` |
 | `--format json` | Print the snapshot JSON |
 | `--output <file>` | Write results to a specific path |
-| `--warmup <n>` / `--iterations <n>` | Override dataset defaults |
+| `--warmup <n>` | Override warmup iterations (default from `benchmark.json` or `arena.config.json`) |
+| `--iterations <n>` | Fixed measurement count (disables adaptive stopping; used in tests) |
+| `--min-iterations <n>` / `--max-iterations <n>` / `--target-ci <ratio>` | Override adaptive measurement bounds (defaults from `arena.config.json` `measurement` block) |
 | `--preserve-temp` | Keep the temp run directory |
 | `--parallel` | Use all CPU cores (overrides `execution.parallelism` in config) |
 | `--mutation <name>` | Run only a specific mutation variant (for mutation benchmarks) |
@@ -117,10 +127,21 @@ npm run arena -- results current
 
 ### 5. Preview the web UI
 
+During development, copy canonical results into the static path the dev server reads:
+
+```bash
+npm run prepare-results   # copies results/current.json → web/static/results/
+npm run dev
+```
+
+For a production-style preview:
+
 ```bash
 npm run build:web
 npm run arena -- web
 ```
+
+See [web-deployment.md](web-deployment.md) for deployment details.
 
 ## Other commands
 
@@ -164,6 +185,7 @@ intentionally refreshing datasets (and update metadata / hashes accordingly).
 | Cell freshness | `npm run arena -- results status` |
 | Raw JSON | `npm run arena -- results current` |
 | Checker on a file | `npm run arena -- check --benchmark <id> --input ... --output ...` |
+| Refresh web dev data | `npm run prepare-results` |
 | Web preview | `npm run build:web` then `npm run arena -- web` |
 
 ## Related docs

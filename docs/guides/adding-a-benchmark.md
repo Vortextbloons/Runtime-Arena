@@ -36,7 +36,12 @@
    algorithmic choices. The checker validates the output; the internal
    implementation can differ freely across languages. Implementations must
    honor the persistent-worker flags (`--input`, `--output`, `--timing-output`,
-   `--warmup`, `--iterations`).
+   `--warmup`, `--min-iterations`, `--max-iterations`, `--target-relative-ci`).
+   After each measured iteration, stop when the sample count reaches
+   `--max-iterations` or when the count is at least `--min-iterations` and the
+   95% relative confidence interval of the mean kernel time is at or below
+   `--target-relative-ci`. See an existing implementation and
+   [execution model](../architecture/execution-model.md) for the loop pattern.
 9. Confirm discovery and run a small test:
 
    ```bash

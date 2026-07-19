@@ -35,7 +35,7 @@ Integration tests in `cli/test/cli.test.ts` verify:
 - `dataset generate` creates deterministic datasets
 - `results` command reads snapshots
 
-Timing unit tests in `cli/src/timing.test.ts` cover reading/parsing timing sample files.
+Timing unit tests in `cli/src/timing.test.ts` cover reading/parsing timing sample files and adaptive measurement policy (min/max bounds, confidence-interval early stopping).
 
 ## Checker Tests
 

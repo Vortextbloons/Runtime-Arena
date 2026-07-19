@@ -15,10 +15,17 @@ This:
 ## Local Preview
 
 ```bash
+npm run prepare-results   # if you use npm run dev instead of build:web
+npm run dev               # Vite dev server at http://localhost:5173/
+```
+
+Or after a full static build:
+
+```bash
 npm run arena -- web
 ```
 
-Launches a Vite preview server.
+Launches a Vite preview server over `web/build/`.
 
 ## Deployment Options
 
@@ -46,9 +53,12 @@ When new benchmark results are available:
 
 ```bash
 npm run arena -- run          # Run benchmarks
-npm run build:web             # Rebuild web UI with new results
+npm run prepare-results       # Copy into web/static/results/ (required for npm run dev)
+# or
+npm run build:web             # prepare-results + production build
 ```
 
-The `prepare-results.ts` script copies the latest results into the static build,
-filtering to keep only `persistent-worker` mode entries with
-`measurementContractVersion "1.0.0"`.
+The `prepare-results.ts` script copies the canonical snapshot into `web/static/results/`,
+keeping `persistent-worker` entries with measurement contract `1.0.0` or `1.1.0`.
+When both exist for the same cell, `1.1.0` wins. Obsolete mutation-less rows are
+pruned when mutation variants exist for the same benchmark/size.

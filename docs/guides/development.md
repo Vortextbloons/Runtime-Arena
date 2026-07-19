@@ -30,6 +30,7 @@ npm run build:checker
 | `npm test` | Run all tests (CLI, web, checker) |
 | `npm run check --workspace=@runtime-arena/web` | Run TypeScript type checking on web |
 | `npm run dev` | Start web dev server |
+| `npm run prepare-results` | Copy `results/current.json` into `web/static/results/` for the dev UI |
 | `npm run arena -- doctor` | Check environment health |
 | `npm run arena -- run` | Run benchmarks |
 | `npm run arena -- results summary` | Table view of `results/current.json` |
@@ -44,6 +45,22 @@ npm run arena -- run --language go --language python --benchmark barrier-wave
 ```
 
 Omitting `--size` runs every default size the benchmark defines.
+
+## Measurement defaults
+
+Adaptive measurement is configured in `arena.config.json`:
+
+```json
+"measurement": {
+  "minMeasuredIterations": 10,
+  "maxMeasuredIterations": 30,
+  "targetRelativeConfidenceInterval": 0.05
+}
+```
+
+The CLI passes `--min-iterations`, `--max-iterations`, and `--target-relative-ci` to each implementation. Implementations run warmups, then collect kernel samples until the confidence interval is narrow enough or the maximum is reached. See [execution model](../architecture/execution-model.md) for the worker contract.
+
+After `arena run`, refresh the web UI with `npm run prepare-results` (or `npm run build:web`, which runs it automatically).
 
 ## Project Structure
 
@@ -87,4 +104,4 @@ See [guides/adding-a-language.md](adding-a-language.md).
 - Keep datasets deterministic (committed fixtures with SHA-256 hashes)
 - Do not manually edit generated result files (`results/current.json`)
 - The checker must be independent from the CLI (no shared code)
-- All implementations must accept `--input <file> --output <file> --timing-output <file> --warmup <n> --iterations <n>`
+- All implementations must accept the persistent-worker flags: `--input`, `--output`, `--timing-output`, `--warmup`, `--min-iterations`, `--max-iterations`, and `--target-relative-ci` (see [execution model](../architecture/execution-model.md))
