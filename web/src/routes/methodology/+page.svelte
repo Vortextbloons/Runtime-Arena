@@ -6,7 +6,7 @@
 		<article><span>Input</span><h2>One immutable dataset</h2><p>Every implementation receives the same hashed input and documented workload.</p></article>
 		<article><span>Timing</span><h2>Computation only</h2><p>Compilation, input generation, checker execution, and reporting stay outside the measured window.</p></article>
 		<article><span>Proof</span><h2>Independent validation</h2><p>A separate Go executable validates structure and correctness after each measured process exits.</p></article>
-		<article><span>Ranking</span><h2>Median valid time</h2><p>Incorrect or incomplete output is excluded. Raw samples are always preserved beside summaries.</p></article>
+		<article><span>Ranking</span><h2>Geometric-mean speed</h2><p>Each ranked tier contributes fastest median divided by language median. Tiers below the 1 ms timing floor are excluded for every language.</p></article>
 	</div>
 </section>
 <style>

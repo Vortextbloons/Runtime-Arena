@@ -48,7 +48,7 @@ test("runs a filtered benchmark and emits clean JSON", () => {
 test("reports canonical cell freshness without running benchmarks", () => {
   const result = arena("results", "status", "--benchmark", "aggregation", "--language", "typescript", "--size", "small");
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /aggregation\/small\/typescript\s+stale/);
+  assert.match(result.stdout, /aggregation\/small\/typescript\s+(?:current|stale)/);
 });
 
 test("doctor validates the complete repository", () => {

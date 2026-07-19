@@ -1,6 +1,6 @@
 # Runtime Arena — Complete Documentation
 > Auto-generated from docs/INDEX.md by scripts/combine-docs.mjs
-> Generated: 2026-07-19T05:00:03.863Z
+> Generated: 2026-07-19T05:06:15.671Z
 > Total files: 18
 
 ## Table of Contents
@@ -77,9 +77,10 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 ## Scoring Algorithm
 
-- **Performance** (60%): Ratio of fastest median to this language's median, averaged across sizes
-- **Consistency** (25%): 100 - (coefficient_of_variation * 400), clamped 0-100
-- **Scalability** (15%): Ratio of worst-size performance to best-size performance
+- **Overall speed**: Geometric mean of `fastest median / language median` across eligible sizes and benchmarks
+- **Timing floor**: A size tier is excluded for all languages when its fastest valid median is below 1 ms
+- **Consistency**: Reported separately from coefficient of variation; it does not affect rank
+- **Scalability**: Reported separately from relative performance retention; it does not affect rank
 
 ---
 
@@ -434,20 +435,13 @@ web/
 
 ## Scoring Algorithm
 
-The scoring system (`src/lib/scoring.ts`) computes a 0-100 score for each language:
+The scoring system (`src/lib/scoring.ts`) computes a 0-100 speed score:
 
-**Performance** (60% weight):
-- For each benchmark/size, compute `fastestMedian / thisMedian`
-- Average across all sizes
-
-**Consistency** (25% weight):
-- `100 - (coefficientOfVariation * 400)`, clamped 0-100
-- CV = stddev / mean across all measured samples
-
-**Scalability** (15% weight):
-- Ratio of worst-size performance to best-size performance
-
-**Overall** = weighted sum, sorted descending.
+- Each eligible benchmark/size contributes `fastestMedian / thisMedian`.
+- Ratios are combined with a geometric mean across sizes and benchmarks.
+- A size tier is excluded for every language when its fastest valid median is below 1 ms.
+- Correctness and complete sample counts remain strict eligibility gates.
+- Consistency and scalability are displayed as diagnostics but do not affect rank.
 
 ## Build & Deploy
 

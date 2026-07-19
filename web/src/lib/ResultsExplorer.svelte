@@ -79,7 +79,7 @@
 			<label>
 				<span>Benchmark</span>
 				<select bind:value={selectedBenchmark}>
-					<option value="overall">Overall average</option>
+					<option value="overall">Overall speed</option>
 					{#each benchmarks as benchmark (benchmark)}
 						<option value={benchmark}>{benchmark}</option>
 					{/each}
@@ -97,12 +97,12 @@
 
 	<div class="view-intro">
 		<div>
-			<p>{view === 'chart' ? 'Measured comparison' : 'Runtime quality'}</p>
+			<p>{view === 'chart' ? 'Measured comparison' : 'Execution speed'}</p>
 			<h2>{activeBenchmark}</h2>
 		</div>
 		<p>
 			{view === 'chart' && activeBenchmark === 'overall'
-				? 'Each bar shows relative speed across all benchmarks.'
+				? 'Each bar is the geometric mean of normalized speed across all ranked benchmarks.'
 				: view === 'chart'
 					? 'Shorter bars are faster. Muted dots show each measured sample.'
 				: 'Scores are relative to accepted languages in this benchmark and run.'}
@@ -137,10 +137,10 @@
 						<div class="expanded-table">
 							<div class="expanded-table-head">
 								<span>Benchmark</span>
-								<span>Overall</span>
+								<span>Speed</span>
 								<span>Performance</span>
-								<span>Consistency</span>
-								<span>Scalability</span>
+								<span>Stability diagnostic</span>
+								<span>Scaling diagnostic</span>
 							</div>
 							{#each expandedCard.benchmarks as bench (bench.benchmarkId)}
 								<div class="expanded-table-row">

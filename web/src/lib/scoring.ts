@@ -1,15 +1,15 @@
 import type { ArenaResult, BenchmarkScore, SizeScore } from './types';
 
 const SIZE_ORDER = ['small', 'medium', 'large'];
-
-export const SCORE_WEIGHTS = {
-	performance: 0.6,
-	consistency: 0.25,
-	scalability: 0.15
-} as const;
+export const MINIMUM_RANKED_MEDIAN_NANOSECONDS = 1_000_000;
 
 const average = (values: number[]) => values.reduce((total, value) => total + value, 0) / values.length;
+const geometricMean = (values: number[]) =>
+	values.length && values.every((value) => Number.isFinite(value) && value > 0)
+		? Math.exp(values.reduce((total, value) => total + Math.log(value), 0) / values.length)
+		: 0;
 const clampScore = (value: number) => Math.max(0, Math.min(100, value));
+const normalizeScore = (value: number) => Math.round(clampScore(value) * 1e9) / 1e9;
 
 export function formatDuration(nanoseconds: number): string {
 	if (nanoseconds < 1e6) return `${(nanoseconds / 1e3).toFixed(1)} µs`;
@@ -43,8 +43,10 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 			.filter((result) => result.benchmark.size === size && completeResult(result))
 			.map((result) => result.execution.summary.medianKernelTimeNanoseconds)
 			.filter((median) => Number.isFinite(median) && median > 0);
-		if (medians.length) fastestBySize.set(size, Math.min(...medians));
+		const fastest = medians.length ? Math.min(...medians) : 0;
+		if (fastest >= MINIMUM_RANKED_MEDIAN_NANOSECONDS) fastestBySize.set(size, fastest);
 	}
+	const rankedSizes = expectedSizes.filter((size) => fastestBySize.has(size));
 
 	return [...languages.values()]
 		.map((language): BenchmarkScore => {
@@ -70,8 +72,9 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 					);
 				}
 			}
+			if (!rankedSizes.length) diagnostics.push('No size tier has a fastest valid median of at least 1 ms.');
 
-			const eligible = diagnostics.length === 0 && expectedSizes.length > 0;
+			const eligible = diagnostics.length === 0;
 			if (!eligible) {
 				return {
 					benchmarkId,
@@ -82,12 +85,12 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 					consistency: null,
 					scalability: null,
 					sizes: [],
-					expectedSizes,
+					expectedSizes: rankedSizes,
 					diagnostics
 				};
 			}
 
-			const sizes = expectedSizes.map((size): SizeScore => {
+			const sizes = rankedSizes.map((size): SizeScore => {
 				const result = languageResults.get(size)!;
 				const summary = result.execution.summary;
 				const mean = summary.meanKernelTimeNanoseconds ?? summary.medianKernelTimeNanoseconds;
@@ -103,15 +106,12 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 					consistency: clampScore(100 - variation * 400)
 				};
 			});
-			const performance = average(sizes.map((size) => size.performance));
+			const performance = normalizeScore(geometricMean(sizes.map((size) => size.performance)));
 			const consistency = average(sizes.map((size) => size.consistency));
 			const sizePerformance = sizes.map((size) => size.performance);
 			const maximumPerformance = Math.max(...sizePerformance);
 			const scalability = maximumPerformance > 0 ? (Math.min(...sizePerformance) / maximumPerformance) * 100 : 0;
-			const overall =
-				performance * SCORE_WEIGHTS.performance +
-				consistency * SCORE_WEIGHTS.consistency +
-				scalability * SCORE_WEIGHTS.scalability;
+			const overall = performance;
 
 			return {
 				benchmarkId,
@@ -122,7 +122,7 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 				consistency,
 				scalability,
 				sizes,
-				expectedSizes,
+				expectedSizes: rankedSizes,
 				diagnostics
 			};
 		})
@@ -163,13 +163,10 @@ export function scoreOverall(results: ArenaResult[]): BenchmarkScore[] {
 				};
 			}
 
-			const performance = average(entries.map((score) => score.performance!));
+			const performance = normalizeScore(geometricMean(entries.map((score) => score.performance!)));
 			const consistency = average(entries.map((score) => score.consistency!));
 			const scalability = average(entries.map((score) => score.scalability!));
-			const overall =
-				performance * SCORE_WEIGHTS.performance +
-				consistency * SCORE_WEIGHTS.consistency +
-				scalability * SCORE_WEIGHTS.scalability;
+			const overall = performance;
 
 			return {
 				benchmarkId: 'overall',
@@ -198,8 +195,8 @@ export function scoreOverall(results: ArenaResult[]): BenchmarkScore[] {
 }
 
 export function scoreInterpretation(score: number): string {
-	if (score >= 90) return 'Leading balance of speed and repeatability.';
-	if (score >= 75) return 'Strong result with limited tradeoffs.';
-	if (score >= 60) return 'Competitive, with a visible area to improve.';
-	return 'Performance or repeatability trails this cohort.';
+	if (score >= 90) return 'Within 10% of the cohort leader on geometric-mean speed.';
+	if (score >= 75) return 'Strong execution speed across the ranked workloads.';
+	if (score >= 60) return 'Competitive execution speed with room to improve.';
+	return 'Execution speed trails this cohort across the ranked workloads.';
 }

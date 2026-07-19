@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { SCORE_WEIGHTS } from './scoring';
 	import type { BenchmarkScore } from './types';
 
 	let {
@@ -16,9 +15,9 @@
 	let tiltY = $state(0);
 
 	const categories = [
-		{ key: 'performance', label: 'SPEED', weight: SCORE_WEIGHTS.performance, icon: 'speed' },
-		{ key: 'consistency', label: 'STABLE', weight: SCORE_WEIGHTS.consistency, icon: 'stable' },
-		{ key: 'scalability', label: 'SCALE', weight: SCORE_WEIGHTS.scalability, icon: 'scale' }
+		{ key: 'performance', label: 'SPEED', icon: 'speed' },
+		{ key: 'consistency', label: 'STABLE', icon: 'stable' },
+		{ key: 'scalability', label: 'SCALE', icon: 'scale' }
 	] as const;
 
 	function tier(overall: number): {
@@ -103,7 +102,7 @@
 		<!-- Collectible layer: rating, language identity, art, tier -->
 		<header class="card-top">
 			<div class="ovr-block">
-				<span class="ovr-label">OVR</span>
+				<span class="ovr-label">SPEED</span>
 				<div class="ovr-number">
 					{#each overallDigits as digit, i (i)}
 						<span class="ovr-digit" class:dash={digit === '—'}>{digit}</span>
@@ -221,7 +220,7 @@
 				<span class="runtime-glyph" aria-hidden="true">⌬</span>
 				<span class="runtime-text">{score.language.id} · {versionTag}</span>
 			</span>
-			<span class="ovr-mini" aria-label="Overall score">{ovrCopy}</span>
+			<span class="ovr-mini" aria-label="Geometric-mean speed score">{ovrCopy}</span>
 		</footer>
 
 		{#if !score.eligible && score.diagnostics.length}

@@ -45,6 +45,7 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 ## Scoring Algorithm
 
-- **Performance** (60%): Ratio of fastest median to this language's median, averaged across sizes
-- **Consistency** (25%): 100 - (coefficient_of_variation * 400), clamped 0-100
-- **Scalability** (15%): Ratio of worst-size performance to best-size performance
+- **Overall speed**: Geometric mean of `fastest median / language median` across eligible sizes and benchmarks
+- **Timing floor**: A size tier is excluded for all languages when its fastest valid median is below 1 ms
+- **Consistency**: Reported separately from coefficient of variation; it does not affect rank
+- **Scalability**: Reported separately from relative performance retention; it does not affect rank

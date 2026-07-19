@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { formatDuration, formatVariation, SCORE_WEIGHTS, scoreInterpretation } from './scoring';
+	import { formatDuration, formatVariation, scoreInterpretation } from './scoring';
 	import type { BenchmarkScore } from './types';
 
 	let { scores }: { scores: BenchmarkScore[] } = $props();
 	const categories = [
-		{ key: 'performance', label: 'PERF', weight: SCORE_WEIGHTS.performance },
-		{ key: 'consistency', label: 'CONS', weight: SCORE_WEIGHTS.consistency },
-		{ key: 'scalability', label: 'SCAL', weight: SCORE_WEIGHTS.scalability }
+		{ key: 'performance', label: 'SPEED' },
+		{ key: 'consistency', label: 'STABILITY' },
+		{ key: 'scalability', label: 'SCALING' }
 	] as const;
 
 	function tier(overall: number): { name: string; sub: string; class: string; glow: string } {
@@ -45,11 +45,11 @@
 				</div>
 
 				<div class="overall">
-					<span class="overall-label">OVR</span>
+					<span class="overall-label">SPEED</span>
 					<strong>{score.overall === null ? '—' : Math.round(score.overall)}</strong>
 				</div>
 
-				<div class="score-rail" aria-label={score.overall === null ? 'Unranked' : `Overall score ${Math.round(score.overall)} out of 100`}>
+				<div class="score-rail" aria-label={score.overall === null ? 'Unranked' : `Geometric-mean speed score ${Math.round(score.overall)} out of 100`}>
 					<div class="ticks" aria-hidden="true"></div>
 					<div class="fill" style:--score={`${score.overall ?? 0}%`}></div>
 					{#if score.overall !== null}<i style:--score={`${score.overall}%`}></i>{/if}
@@ -63,7 +63,7 @@
 					{#each categories as category (category.key)}
 						{@const value = score[category.key]}
 						<div class="cat">
-							<span>{category.label} <small>{Math.round(category.weight * 100)}%</small></span>
+							<span>{category.label}{category.key === 'performance' ? ' · ranked' : ' · diagnostic'}</span>
 							<div class="category-track"><i style:--score={`${value ?? 0}%`}></i></div>
 							<strong>{value === null ? '—' : Math.round(value)}</strong>
 						</div>
@@ -75,12 +75,12 @@
 				<summary>{score.eligible ? 'Show calculation' : 'Show diagnostics'}</summary>
 				{#if score.eligible}
 					<div class="formula">
-						<p><strong>Formula</strong> Performance × 60% + Consistency × 25% + Scalability × 15%</p>
-						<p><strong>Cohort</strong> {score.benchmarkId} · {score.expectedSizes.join(', ')} · accepted results only</p>
+						<p><strong>Formula</strong> Geometric mean of fastest median ÷ this median. Stability and scaling do not affect rank.</p>
+						<p><strong>Cohort</strong> {score.benchmarkId} · {score.expectedSizes.join(', ')} · accepted tiers whose fastest median is at least 1 ms</p>
 					</div>
 					{#if score.benchmarks}
 						<div class="size-table">
-							<div class="table-head"><span>Benchmark</span><span>Overall</span><span>Performance</span><span>Consistency</span><span>Scalability</span></div>
+							<div class="table-head"><span>Benchmark</span><span>Speed</span><span>Performance</span><span>Stability</span><span>Scaling</span></div>
 							{#each score.benchmarks as benchmark (benchmark.benchmarkId)}
 								<div class="size-row">
 									<strong>{benchmark.benchmarkId.replace(/_/g, ' ')}</strong>
@@ -269,7 +269,6 @@
 	.categories { grid-column: 4; display: grid; gap: 0.55rem; }
 	.categories .cat { display: grid; grid-template-columns: 7.2rem 1fr 2rem; gap: 0.75rem; align-items: center; }
 	.categories span, .categories strong { font: 700 0.66rem var(--mono); }
-	.categories small { color: var(--muted); }
 	.categories strong { text-align: right; }
 	.category-track { height: 0.3rem; background: #0d1419; border-radius: 1rem; overflow: hidden; border: 1px solid color-mix(in srgb, var(--tier-glow) 20%, transparent); }
 	.category-track i { display: block; width: var(--score); height: 100%; background: linear-gradient(90deg, color-mix(in srgb, var(--tier-glow) 50%, #0d1419), var(--tier-glow)); box-shadow: 0 0 6px color-mix(in srgb, var(--tier-glow) 60%, transparent); }

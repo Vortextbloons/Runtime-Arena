@@ -36,20 +36,13 @@ web/
 
 ## Scoring Algorithm
 
-The scoring system (`src/lib/scoring.ts`) computes a 0-100 score for each language:
+The scoring system (`src/lib/scoring.ts`) computes a 0-100 speed score:
 
-**Performance** (60% weight):
-- For each benchmark/size, compute `fastestMedian / thisMedian`
-- Average across all sizes
-
-**Consistency** (25% weight):
-- `100 - (coefficientOfVariation * 400)`, clamped 0-100
-- CV = stddev / mean across all measured samples
-
-**Scalability** (15% weight):
-- Ratio of worst-size performance to best-size performance
-
-**Overall** = weighted sum, sorted descending.
+- Each eligible benchmark/size contributes `fastestMedian / thisMedian`.
+- Ratios are combined with a geometric mean across sizes and benchmarks.
+- A size tier is excluded for every language when its fastest valid median is below 1 ms.
+- Correctness and complete sample counts remain strict eligibility gates.
+- Consistency and scalability are displayed as diagnostics but do not affect rank.
 
 ## Build & Deploy
 
