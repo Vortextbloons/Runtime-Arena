@@ -11,7 +11,10 @@ checker/
     arena-checker/
       main.go           # All checker logic (464 lines)
       main_test.go      # Unit tests (5 test cases)
-  internal/             # Placeholder for future modularization
+  internal/
+    benchmarks/         # Benchmark-specific validation (in progress)
+    output/             # Output parsing and formatting (in progress)
+    validation/         # Common validation utilities (in progress)
 ```
 
 ## Design Principles

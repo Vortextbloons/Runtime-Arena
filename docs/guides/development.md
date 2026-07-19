@@ -7,6 +7,7 @@
 - Go >= 1.26 (for checker)
 - Rust >= 1.97 (for Rust implementations)
 - Python >= 3.8 (for Python implementations)
+- LuaJIT (for Lua implementations)
 
 ## Setup
 
@@ -24,8 +25,7 @@ npm run build:checker
 | `npm run build:checker` | Build the Go checker binary |
 | `npm run build:web` | Build the web UI (includes result prep) |
 | `npm test` | Run all tests (CLI, web, checker) |
-| `npm run check` | Run TypeScript type checking on web |
-| `npm run lint` | Lint the web workspace |
+| `npm run check --workspace=@runtime-arena/web` | Run TypeScript type checking on web |
 | `npm run dev` | Start web dev server |
 | `npm run arena -- doctor` | Check environment health |
 | `npm run arena -- run` | Run benchmarks |
@@ -44,7 +44,7 @@ benchmarks/             # Workloads, datasets, implementations
   nbody/
   shortest-path/
   aggregation/
-languages/              # Language manifests (rust, go, typescript, python)
+languages/              # Language manifests (rust, go, typescript, python, lua)
 schemas/                # JSON Schema definitions
 results/                # Canonical result snapshots
 web/                    # SvelteKit dashboard

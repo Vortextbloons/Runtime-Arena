@@ -6,7 +6,7 @@ Runtime Arena consists of six main components.
 
 TypeScript command-line tool (`arena`) — the primary entry point. Handles discovery, building, execution, validation, and result storage. Commands: `doctor`, `list`, `build`, `run`, `check`, `dataset`, `results`, `web`.
 
-Source: `cli/src/index.ts` (565 lines, monolithic)
+Source: `cli/src/index.ts` (597 lines) with modules for `metrics.ts` and `timing.ts`
 
 ## Checker (`checker/`)
 
@@ -16,7 +16,7 @@ Source: `checker/cmd/arena-checker/main.go`
 
 ## Benchmarks (`benchmarks/`)
 
-Three benchmark workloads, each with datasets and implementations in all four languages:
+Three benchmark workloads, each with datasets and implementations in all five languages:
 
 | Benchmark | Workload | Key Metrics |
 |---|---|---|
@@ -28,7 +28,7 @@ Each has `small`, `medium`, and `large` datasets with different warmup/iteration
 
 ## Languages (`languages/`)
 
-JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `typescript.json`, `python.json`. All accept `--input <file> --output <file>`.
+JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `typescript.json`, `python.json`, `lua.json`. All accept `--input <file> --output <file>`.
 
 ## Schemas (`schemas/`)
 

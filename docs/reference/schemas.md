@@ -7,10 +7,15 @@ All schemas use JSON Schema 2020-12 draft and are located in `schemas/`.
 Validates benchmark manifests (`benchmarks/*/benchmark.json`).
 
 **Required fields:**
-- `id` — Unique benchmark identifier (string)
+- `id` — Unique benchmark identifier (string, lowercase kebab-case)
 - `name` — Display name (string)
-- `version` — Schema version (integer)
+- `version` — Version number (integer, minimum 1)
+- `description` — Description of the workload (string)
+- `inputFormat` — Input format (`"json"`, `"csv"`, or `"binary"`)
+- `outputFormat` — Output format (`"json"`)
+- `checker` — Checker configuration with `task` (string) and `timeoutMilliseconds` (integer)
 - `sizes` — Map of size names to size configurations
+- `metrics` — Array of metric names to record
 - `limits` — Execution limits
 
 **Size configuration:**
@@ -27,18 +32,21 @@ Validates benchmark manifests (`benchmarks/*/benchmark.json`).
 Validates language manifests (`languages/*.json`).
 
 **Required fields:**
-- `id` — Unique language identifier (string)
+- `id` — Unique language identifier (string, lowercase kebab-case)
 - `name` — Display name (string)
 - `enabled` — Whether the language is active (boolean)
 - `detect` — Command to detect toolchain availability
 - `build` — Command to build implementations
 - `run` — Command to run implementations
+- `sourceExtensions` — Array of file extensions (e.g., `[".rs"]`)
 
 **Command structure:**
 - `command` — Executable name
 - `arguments` — Array of argument strings (supports template variables)
-- `workingDirectory` — Optional working directory override
-- `artifact` — Path to built binary (build command only)
+- `workingDirectory` — Working directory override (required on `build`, optional on `run`)
+- `artifact` — Path to built binary (build command only, required)
+
+**Build command** additionally requires `workingDirectory`.
 
 **Template variables:** `{projectRoot}`, `{benchmarkId}`, `{benchmarkDir}`, `{implementationDir}`, `{artifact}`, `{inputFile}`, `{outputFile}`, `{timingOutputFile}`, `{warmupIterations}`, `{measuredIterations}`, `{runId}`, `{size}`
 
@@ -47,21 +55,21 @@ Validates language manifests (`languages/*.json`).
 Validates result snapshots (`results/current.json`).
 
 **Structure:**
-- `schemaVersion` — Currently "3.0.0"
+- `schemaVersion` — Semver string; the schema validates against `^\d+\.\d+\.\d+$` (the CLI currently writes `"3.0.0"`)
 - `snapshotId` — Unique run identifier
 - `updatedAt` — ISO 8601 timestamp
 - `arenaVersion` — CLI version
-- `gitCommit` / `gitDirty` — Git state
+- `gitCommit` / `gitDirty` — Git state (both nullable)
 - `results[]` — Array of benchmark results
 
-Each result contains:
+Each result is required to contain:
 - `benchmark` — id, version, size
-- `dataset` — id, sha256, seed, generatorVersion
-- `language` — id, name, version, compilerVersion, compilerFlags
-- `build` — status, durationNanoseconds, artifactSizeBytes, command
-- `execution` — persistent-worker mode, measurement contract, diagnostic process duration, warmup/measured counts, kernel-time samples, summary, metrics
-- `checker` — language, version, status, diagnostics
-- `provenance` — fingerprint, measurement contract version, measuredAt, machine
+- `dataset` — id and sha256 are required; seed and generatorVersion are optional but present in practice
+- `language` — id, name, version; compilerVersion and compilerFlags are optional
+- `build` — status, durationNanoseconds, command; artifactSizeBytes is optional
+- `execution` — mode (always `"persistent-worker"`), measurementContractVersion (`"1.0.0"`), totalProcessDurationNanoseconds, warmupIterations, measuredIterations, samples, summary, metrics
+- `checker` — language, version, status (enum: accepted / wrong-answer / malformed-output / unsupported-version / checker-error), diagnostics (optional)
+- `provenance` — fingerprint (sha256 hex), measurementContractVersion (`"1.0.0"`), measuredAt, machine (os, cpu, memoryBytes)
 
 ## implementation-output.schema.json
 

@@ -100,10 +100,10 @@ The `results/current.json` snapshot contains:
 
 ```json
 {
-  "schemaVersion": "2.0.0",
+  "schemaVersion": "3.0.0",
   "snapshotId": "...",
   "updatedAt": "...",
-  "arenaVersion": "0.1.0",
+  "arenaVersion": "0.2.0",
   "gitCommit": "...",
   "gitDirty": false,
   "results": [

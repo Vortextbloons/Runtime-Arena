@@ -55,4 +55,4 @@ Runbook and troubleshooting.
 
 ## File Count
 
-**17 documentation files** (17 included in combined output).
+**18 documentation files** (18 included in combined output).

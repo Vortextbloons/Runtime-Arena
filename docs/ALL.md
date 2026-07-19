@@ -1,6 +1,6 @@
 # Runtime Arena — Complete Documentation
 > Auto-generated from docs/INDEX.md by scripts/combine-docs.mjs
-> Generated: 2026-07-19T04:51:04.905Z
+> Generated: 2026-07-19T05:00:03.863Z
 > Total files: 18
 
 ## Table of Contents
@@ -32,7 +32,7 @@
 
 # Architecture Overview
 
-Runtime Arena is a cross-language benchmarking system that runs equivalent workloads in Rust, Go, TypeScript, and Python, validates their output, records metrics, and stores immutable JSON results.
+Runtime Arena is a cross-language benchmarking system that runs equivalent workloads in Rust, Go, TypeScript, Python, and Lua (LuaJIT), validates their output, records metrics, and stores immutable JSON results.
 
 ## System Components
 
@@ -206,7 +206,7 @@ Runtime Arena consists of six main components.
 
 TypeScript command-line tool (`arena`) — the primary entry point. Handles discovery, building, execution, validation, and result storage. Commands: `doctor`, `list`, `build`, `run`, `check`, `dataset`, `results`, `web`.
 
-Source: `cli/src/index.ts` (565 lines, monolithic)
+Source: `cli/src/index.ts` (597 lines) with modules for `metrics.ts` and `timing.ts`
 
 ## Checker (`checker/`)
 
@@ -216,7 +216,7 @@ Source: `checker/cmd/arena-checker/main.go`
 
 ## Benchmarks (`benchmarks/`)
 
-Three benchmark workloads, each with datasets and implementations in all four languages:
+Three benchmark workloads, each with datasets and implementations in all five languages:
 
 | Benchmark | Workload | Key Metrics |
 |---|---|---|
@@ -228,7 +228,7 @@ Each has `small`, `medium`, and `large` datasets with different warmup/iteration
 
 ## Languages (`languages/`)
 
-JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `typescript.json`, `python.json`. All accept `--input <file> --output <file>`.
+JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `typescript.json`, `python.json`, `lua.json`. All accept `--input <file> --output <file>`.
 
 ## Schemas (`schemas/`)
 
@@ -262,16 +262,18 @@ cli/
   package.json          # @runtime-arena/cli, type: module, bin: arena
   tsconfig.json         # ES2024, NodeNext, strict
   src/
-    index.ts            # Main CLI logic (monolithic, 565 lines)
+    index.ts            # Main CLI logic (597 lines)
     metrics.ts          # Metric registry (kernelTime)
-    commands/           # Placeholder for future modularization
-    discovery/          # Placeholder
-    execution/          # Placeholder
-    metrics/            # Placeholder
-    reporting/          # Placeholder
-    results/            # Placeholder
+    timing.ts           # Timing sample reader
+    commands/           # Sub-command dispatch (in progress)
+    discovery/          # Language and benchmark discovery
+    execution/          # Build and run orchestration
+    metrics/            # Metric collection
+    reporting/          # Output formatting
+    results/            # Result storage
   test/
-    cli.test.ts         # Integration tests (7 test cases)
+    cli.test.ts         # Integration tests (8 test cases)
+    timing.test.ts      # Timing sample tests
   dist/                 # Compiled output
 ```
 
@@ -283,7 +285,7 @@ cli/
 
 ## Key Design Decisions
 
-**Monolithic structure**: The entire CLI is a single 565-line file. The empty subdirectories under `src/` are placeholders for future modularization if the code grows.
+**Modular structure**: Core logic lives in `index.ts` (597 lines) with supporting modules (`metrics.ts`, `timing.ts`). Subdirectories under `src/` provide structure for commands, discovery, execution, metrics, reporting, and results — ready for extraction as the codebase grows.
 
 **Discovery-based**: Languages and benchmarks are discovered by scanning directories for manifest files. No hardcoded lists.
 
@@ -298,8 +300,6 @@ cli/
 | Metric | Status | Notes |
 |--------|--------|-------|
 | `kernelTime` | Available | Measured inside the persistent benchmark process |
-| `cpuTime` | Unavailable | Node's child-process API doesn't expose per-child CPU time |
-| `peakMemory` | Unavailable | Node's child-process API doesn't expose per-child peak RSS |
 
 ---
 
@@ -320,7 +320,10 @@ checker/
     arena-checker/
       main.go           # All checker logic (464 lines)
       main_test.go      # Unit tests (5 test cases)
-  internal/             # Placeholder for future modularization
+  internal/
+    benchmarks/         # Benchmark-specific validation (in progress)
+    output/             # Output parsing and formatting (in progress)
+    validation/         # Common validation utilities (in progress)
 ```
 
 ## Design Principles
@@ -585,10 +588,10 @@ The `results/current.json` snapshot contains:
 
 ```json
 {
-  "schemaVersion": "2.0.0",
+  "schemaVersion": "3.0.0",
   "snapshotId": "...",
   "updatedAt": "...",
-  "arenaVersion": "0.1.0",
+  "arenaVersion": "0.2.0",
   "gitCommit": "...",
   "gitDirty": false,
   "results": [
@@ -678,13 +681,20 @@ Each language has a manifest defining detection, build, and run commands.
   "enabled": true,
   "detect": { "command": "rustc", "arguments": ["--version"] },
   "build": {
+    "workingDirectory": "{implementationDir}",
     "command": "cargo",
     "arguments": ["build", "--release"],
     "artifact": "target/release/{benchmarkId}"
   },
   "run": {
     "command": "{artifact}",
-    "arguments": ["--input", "{inputFile}", "--output", "{outputFile}"]
+    "arguments": [
+      "--input", "{inputFile}",
+      "--output", "{outputFile}",
+      "--timing-output", "{timingOutputFile}",
+      "--warmup", "{warmupIterations}",
+      "--iterations", "{measuredIterations}"
+    ]
   },
   "environment": {},
   "sourceExtensions": [".rs"]
@@ -699,6 +709,9 @@ Each language has a manifest defining detection, build, and run commands.
 - `{artifact}` — Built binary path
 - `{inputFile}` — Input dataset file
 - `{outputFile}` — Output file path
+- `{timingOutputFile}` — Timing output file path (used by persistent-worker contract)
+- `{warmupIterations}` — Number of warmup iterations (integer)
+- `{measuredIterations}` — Number of measured iterations (integer)
 - `{runId}` — Run snapshot ID
 - `{size}` — Dataset size name
 
@@ -711,6 +724,13 @@ Each benchmark has a manifest defining sizes, metrics, and limits.
   "id": "nbody",
   "name": "N-Body Simulation",
   "version": 1,
+  "description": "Deterministic gravitational simulation exercising numeric computation, tight loops, and floating-point arithmetic.",
+  "inputFormat": "json",
+  "outputFormat": "json",
+  "checker": {
+    "task": "nbody",
+    "timeoutMilliseconds": 30000
+  },
   "sizes": {
     "small": { "dataset": "small.json", "warmupIterations": 1, "measuredIterations": 5 },
     "medium": { "dataset": "medium.json", "warmupIterations": 3, "measuredIterations": 10 },
@@ -726,7 +746,7 @@ Each benchmark has a manifest defining sizes, metrics, and limits.
 
 ## Environment Variables
 
-The CLI respects standard environment variables for each language toolchain (e.g., `RUSTC`, `GOPATH`, `NODE`). No custom environment variables are required.
+The CLI detects toolchains by running the commands defined in each language manifest's `detect` block (e.g., `rustc --version`, `go version`). It does not read toolchain-specific environment variables like `RUSTC` or `GOPATH`. No custom Runtime Arena environment variables are defined.
 
 ---
 
@@ -743,10 +763,15 @@ All schemas use JSON Schema 2020-12 draft and are located in `schemas/`.
 Validates benchmark manifests (`benchmarks/*/benchmark.json`).
 
 **Required fields:**
-- `id` — Unique benchmark identifier (string)
+- `id` — Unique benchmark identifier (string, lowercase kebab-case)
 - `name` — Display name (string)
-- `version` — Schema version (integer)
+- `version` — Version number (integer, minimum 1)
+- `description` — Description of the workload (string)
+- `inputFormat` — Input format (`"json"`, `"csv"`, or `"binary"`)
+- `outputFormat` — Output format (`"json"`)
+- `checker` — Checker configuration with `task` (string) and `timeoutMilliseconds` (integer)
 - `sizes` — Map of size names to size configurations
+- `metrics` — Array of metric names to record
 - `limits` — Execution limits
 
 **Size configuration:**
@@ -763,18 +788,21 @@ Validates benchmark manifests (`benchmarks/*/benchmark.json`).
 Validates language manifests (`languages/*.json`).
 
 **Required fields:**
-- `id` — Unique language identifier (string)
+- `id` — Unique language identifier (string, lowercase kebab-case)
 - `name` — Display name (string)
 - `enabled` — Whether the language is active (boolean)
 - `detect` — Command to detect toolchain availability
 - `build` — Command to build implementations
 - `run` — Command to run implementations
+- `sourceExtensions` — Array of file extensions (e.g., `[".rs"]`)
 
 **Command structure:**
 - `command` — Executable name
 - `arguments` — Array of argument strings (supports template variables)
-- `workingDirectory` — Optional working directory override
-- `artifact` — Path to built binary (build command only)
+- `workingDirectory` — Working directory override (required on `build`, optional on `run`)
+- `artifact` — Path to built binary (build command only, required)
+
+**Build command** additionally requires `workingDirectory`.
 
 **Template variables:** `{projectRoot}`, `{benchmarkId}`, `{benchmarkDir}`, `{implementationDir}`, `{artifact}`, `{inputFile}`, `{outputFile}`, `{timingOutputFile}`, `{warmupIterations}`, `{measuredIterations}`, `{runId}`, `{size}`
 
@@ -783,21 +811,21 @@ Validates language manifests (`languages/*.json`).
 Validates result snapshots (`results/current.json`).
 
 **Structure:**
-- `schemaVersion` — Currently "3.0.0"
+- `schemaVersion` — Semver string; the schema validates against `^\d+\.\d+\.\d+$` (the CLI currently writes `"3.0.0"`)
 - `snapshotId` — Unique run identifier
 - `updatedAt` — ISO 8601 timestamp
 - `arenaVersion` — CLI version
-- `gitCommit` / `gitDirty` — Git state
+- `gitCommit` / `gitDirty` — Git state (both nullable)
 - `results[]` — Array of benchmark results
 
-Each result contains:
+Each result is required to contain:
 - `benchmark` — id, version, size
-- `dataset` — id, sha256, seed, generatorVersion
-- `language` — id, name, version, compilerVersion, compilerFlags
-- `build` — status, durationNanoseconds, artifactSizeBytes, command
-- `execution` — persistent-worker mode, measurement contract, diagnostic process duration, warmup/measured counts, kernel-time samples, summary, metrics
-- `checker` — language, version, status, diagnostics
-- `provenance` — fingerprint, measurement contract version, measuredAt, machine
+- `dataset` — id and sha256 are required; seed and generatorVersion are optional but present in practice
+- `language` — id, name, version; compilerVersion and compilerFlags are optional
+- `build` — status, durationNanoseconds, command; artifactSizeBytes is optional
+- `execution` — mode (always `"persistent-worker"`), measurementContractVersion (`"1.0.0"`), totalProcessDurationNanoseconds, warmupIterations, measuredIterations, samples, summary, metrics
+- `checker` — language, version, status (enum: accepted / wrong-answer / malformed-output / unsupported-version / checker-error), diagnostics (optional)
+- `provenance` — fingerprint (sha256 hex), measurementContractVersion (`"1.0.0"`), measuredAt, machine (os, cpu, memoryBytes)
 
 ## implementation-output.schema.json
 
@@ -878,6 +906,7 @@ See [guides/adding-a-benchmark.md](../guides/adding-a-benchmark.md).
 - Go >= 1.26 (for checker)
 - Rust >= 1.97 (for Rust implementations)
 - Python >= 3.8 (for Python implementations)
+- LuaJIT (for Lua implementations)
 
 ## Setup
 
@@ -895,8 +924,7 @@ npm run build:checker
 | `npm run build:checker` | Build the Go checker binary |
 | `npm run build:web` | Build the web UI (includes result prep) |
 | `npm test` | Run all tests (CLI, web, checker) |
-| `npm run check` | Run TypeScript type checking on web |
-| `npm run lint` | Lint the web workspace |
+| `npm run check --workspace=@runtime-arena/web` | Run TypeScript type checking on web |
 | `npm run dev` | Start web dev server |
 | `npm run arena -- doctor` | Check environment health |
 | `npm run arena -- run` | Run benchmarks |
@@ -915,7 +943,7 @@ benchmarks/             # Workloads, datasets, implementations
   nbody/
   shortest-path/
   aggregation/
-languages/              # Language manifests (rust, go, typescript, python)
+languages/              # Language manifests (rust, go, typescript, python, lua)
 schemas/                # JSON Schema definitions
 results/                # Canonical result snapshots
 web/                    # SvelteKit dashboard
@@ -974,7 +1002,7 @@ This command:
 | Component | Test File | Framework |
 |-----------|-----------|-----------|
 | CLI | `cli/test/cli.test.ts` | Node test runner |
-| Web scoring | `web/src/lib/scoring.test.ts` | Vitest |
+| Web scoring | `web/src/lib/scoring.test.ts` | Node test runner |
 | Checker | `checker/cmd/arena-checker/main_test.go` | Go testing |
 
 ## CLI Tests
@@ -1013,7 +1041,7 @@ npm run test --workspace=@runtime-arena/web
 ## Type Checking
 
 ```bash
-npm run check
+npm run check --workspace=@runtime-arena/web
 ```
 
 Runs TypeScript type checking on the web workspace.

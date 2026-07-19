@@ -16,7 +16,7 @@ This command:
 | Component | Test File | Framework |
 |-----------|-----------|-----------|
 | CLI | `cli/test/cli.test.ts` | Node test runner |
-| Web scoring | `web/src/lib/scoring.test.ts` | Vitest |
+| Web scoring | `web/src/lib/scoring.test.ts` | Node test runner |
 | Checker | `checker/cmd/arena-checker/main_test.go` | Go testing |
 
 ## CLI Tests
@@ -55,7 +55,7 @@ npm run test --workspace=@runtime-arena/web
 ## Type Checking
 
 ```bash
-npm run check
+npm run check --workspace=@runtime-arena/web
 ```
 
 Runs TypeScript type checking on the web workspace.

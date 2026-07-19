@@ -48,13 +48,20 @@ Each language has a manifest defining detection, build, and run commands.
   "enabled": true,
   "detect": { "command": "rustc", "arguments": ["--version"] },
   "build": {
+    "workingDirectory": "{implementationDir}",
     "command": "cargo",
     "arguments": ["build", "--release"],
     "artifact": "target/release/{benchmarkId}"
   },
   "run": {
     "command": "{artifact}",
-    "arguments": ["--input", "{inputFile}", "--output", "{outputFile}"]
+    "arguments": [
+      "--input", "{inputFile}",
+      "--output", "{outputFile}",
+      "--timing-output", "{timingOutputFile}",
+      "--warmup", "{warmupIterations}",
+      "--iterations", "{measuredIterations}"
+    ]
   },
   "environment": {},
   "sourceExtensions": [".rs"]
@@ -69,6 +76,9 @@ Each language has a manifest defining detection, build, and run commands.
 - `{artifact}` — Built binary path
 - `{inputFile}` — Input dataset file
 - `{outputFile}` — Output file path
+- `{timingOutputFile}` — Timing output file path (used by persistent-worker contract)
+- `{warmupIterations}` — Number of warmup iterations (integer)
+- `{measuredIterations}` — Number of measured iterations (integer)
 - `{runId}` — Run snapshot ID
 - `{size}` — Dataset size name
 
@@ -81,6 +91,13 @@ Each benchmark has a manifest defining sizes, metrics, and limits.
   "id": "nbody",
   "name": "N-Body Simulation",
   "version": 1,
+  "description": "Deterministic gravitational simulation exercising numeric computation, tight loops, and floating-point arithmetic.",
+  "inputFormat": "json",
+  "outputFormat": "json",
+  "checker": {
+    "task": "nbody",
+    "timeoutMilliseconds": 30000
+  },
   "sizes": {
     "small": { "dataset": "small.json", "warmupIterations": 1, "measuredIterations": 5 },
     "medium": { "dataset": "medium.json", "warmupIterations": 3, "measuredIterations": 10 },
@@ -96,4 +113,4 @@ Each benchmark has a manifest defining sizes, metrics, and limits.
 
 ## Environment Variables
 
-The CLI respects standard environment variables for each language toolchain (e.g., `RUSTC`, `GOPATH`, `NODE`). No custom environment variables are required.
+The CLI detects toolchains by running the commands defined in each language manifest's `detect` block (e.g., `rustc --version`, `go version`). It does not read toolchain-specific environment variables like `RUSTC` or `GOPATH`. No custom Runtime Arena environment variables are defined.

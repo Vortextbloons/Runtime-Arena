@@ -2,11 +2,11 @@
 
 Extensible cross-language benchmarking system for comparing programming language implementations under identical workloads.
 
-**Version:** 0.1.0
+**Version:** 0.2.0
 
 ## Status
 
-The command-line benchmark workflow is implemented for Rust, Go, TypeScript, and Python across all three initial benchmarks. It includes deterministic datasets, independent Go validation, result-schema validation, terminal rankings, and one incrementally maintained canonical result snapshot.
+The command-line benchmark workflow is implemented for Rust, Go, TypeScript, Python, and Lua across all three initial benchmarks. It includes deterministic datasets, independent Go validation, result-schema validation, terminal rankings, and one incrementally maintained canonical result snapshot.
 
 The SvelteKit web interface remains optional scaffolding and is not required for benchmark execution.
 
@@ -22,7 +22,7 @@ runtime-arena/
 │   ├── nbody/
 │   ├── shortest-path/
 │   └── aggregation/
-├── languages/                 Language manifests (rust, go, typescript)
+├── languages/                 Language manifests (rust, go, typescript, python, lua)
 ├── schemas/                   JSON Schema for manifests and results
 ├── results/                   Canonical benchmark result snapshot
 ├── web/                       Optional SvelteKit results UI
@@ -40,6 +40,8 @@ Aligned to the local toolchain used for development:
 | Go | ≥ 1.26 | Checker binary |
 | Rust (rustc + cargo) | ≥ 1.97 | Rust benchmarks |
 | TypeScript | 7.x | CLI and web typing |
+| Python | ≥ 3.8 | Python benchmarks |
+| LuaJIT | — | Lua benchmarks |
 
 ## Setup
 
@@ -115,4 +117,4 @@ cd checker && go test ./...
 
 **Metric:** register a collector; do not change benchmark programs.
 
-See [Spec.md](./Spec.md) for the full specification.
+

@@ -9,16 +9,18 @@ cli/
   package.json          # @runtime-arena/cli, type: module, bin: arena
   tsconfig.json         # ES2024, NodeNext, strict
   src/
-    index.ts            # Main CLI logic (monolithic, 565 lines)
+    index.ts            # Main CLI logic (597 lines)
     metrics.ts          # Metric registry (kernelTime)
-    commands/           # Placeholder for future modularization
-    discovery/          # Placeholder
-    execution/          # Placeholder
-    metrics/            # Placeholder
-    reporting/          # Placeholder
-    results/            # Placeholder
+    timing.ts           # Timing sample reader
+    commands/           # Sub-command dispatch (in progress)
+    discovery/          # Language and benchmark discovery
+    execution/          # Build and run orchestration
+    metrics/            # Metric collection
+    reporting/          # Output formatting
+    results/            # Result storage
   test/
-    cli.test.ts         # Integration tests (7 test cases)
+    cli.test.ts         # Integration tests (8 test cases)
+    timing.test.ts      # Timing sample tests
   dist/                 # Compiled output
 ```
 
@@ -30,7 +32,7 @@ cli/
 
 ## Key Design Decisions
 
-**Monolithic structure**: The entire CLI is a single 565-line file. The empty subdirectories under `src/` are placeholders for future modularization if the code grows.
+**Modular structure**: Core logic lives in `index.ts` (597 lines) with supporting modules (`metrics.ts`, `timing.ts`). Subdirectories under `src/` provide structure for commands, discovery, execution, metrics, reporting, and results — ready for extraction as the codebase grows.
 
 **Discovery-based**: Languages and benchmarks are discovered by scanning directories for manifest files. No hardcoded lists.
 
@@ -45,5 +47,3 @@ cli/
 | Metric | Status | Notes |
 |--------|--------|-------|
 | `kernelTime` | Available | Measured inside the persistent benchmark process |
-| `cpuTime` | Unavailable | Node's child-process API doesn't expose per-child CPU time |
-| `peakMemory` | Unavailable | Node's child-process API doesn't expose per-child peak RSS |
