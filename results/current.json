@@ -1,9 +1,9 @@
 {
   "schemaVersion": "2.0.0",
-  "snapshotId": "2026-07-19T00-32-11-991-b5b7ef92Z",
-  "updatedAt": "2026-07-19T00:32:11.991Z",
+  "snapshotId": "2026-07-19T01-12-02-445-6935d6d2Z",
+  "updatedAt": "2026-07-19T01:12:02.445Z",
   "arenaVersion": "0.1.0",
-  "gitCommit": "42ed7f37a80ddb1758e58be8bfd0279c88047407",
+  "gitCommit": "32753addbfdcb5f179cef49bfee30dfaabdc1b1e",
   "gitDirty": true,
   "results": [
     {
@@ -173,6 +173,185 @@
       "provenance": {
         "fingerprint": "f6337920c266c96293ebab7c446121ea2bae4024ace8f935b231607ad56a7d24",
         "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "aggregation-large-1",
+        "sha256": "c6c05bd35c4bc6a9e98ccf04222ed01b20056014131674d7d59937004f915194",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "lua",
+        "name": "Lua",
+        "version": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerVersion": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerFlags": [
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 14877200,
+        "artifactSizeBytes": 4231,
+        "command": [
+          "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 16458800,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 15810700,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 16327800,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 16495200,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 16115600,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 16422600,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 16447200,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 15738800,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 15604000,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 16352800,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 15604000,
+          "maximumWallTimeNanoseconds": 16495200,
+          "medianWallTimeNanoseconds": 16327800,
+          "meanWallTimeNanoseconds": 16177350,
+          "standardDeviationWallTimeNanoseconds": 320301.23711905954,
+          "p95WallTimeNanoseconds": 16495200,
+          "interquartileRangeWallTimeNanoseconds": 636500
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "aec5d1f58f86f73f36dd84f6d06ddadfa40c8a3ee8e23df4e3530c146a9683b8",
+        "measuredAt": "2026-07-19T01:12:02.445Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -916,6 +1095,185 @@
         "generatorVersion": "committed-fixture-1.0.0"
       },
       "language": {
+        "id": "lua",
+        "name": "Lua",
+        "version": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerVersion": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerFlags": [
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 16212900,
+        "artifactSizeBytes": 4231,
+        "command": [
+          "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 16881500,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 17301100,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 16777600,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 17285500,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 17654400,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 17931700,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 17086600,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 18316100,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 17948600,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 17995200,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 16777600,
+          "maximumWallTimeNanoseconds": 18316100,
+          "medianWallTimeNanoseconds": 17301100,
+          "meanWallTimeNanoseconds": 17517830,
+          "standardDeviationWallTimeNanoseconds": 498034.5772132694,
+          "p95WallTimeNanoseconds": 18316100,
+          "interquartileRangeWallTimeNanoseconds": 862000
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "07234d82554227cef7acdba5a4c850577526cea3d65964035ef3d7f46c16b90d",
+        "measuredAt": "2026-07-19T01:12:02.445Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "aggregation-medium-1",
+        "sha256": "b1a8e21775e39db1543dd8a45f206f00485b7c9814dcc6fb4c1e790b16e3f403",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
         "id": "python",
         "name": "Python",
         "version": "Python 3.14.6",
@@ -1587,6 +1945,140 @@
         "generatorVersion": "committed-fixture-1.0.0"
       },
       "language": {
+        "id": "lua",
+        "name": "Lua",
+        "version": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerVersion": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerFlags": [
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 20423300,
+        "artifactSizeBytes": 4231,
+        "command": [
+          "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 17890900,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 17973400,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 17844200,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 18574400,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 17678200,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 17678200,
+          "maximumWallTimeNanoseconds": 18574400,
+          "medianWallTimeNanoseconds": 17890900,
+          "meanWallTimeNanoseconds": 17992220,
+          "standardDeviationWallTimeNanoseconds": 306617.6668099867,
+          "p95WallTimeNanoseconds": 18574400,
+          "interquartileRangeWallTimeNanoseconds": 129200
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "bcec1cb51405857680336b47e612ae9c7f55dcdf8c6170a6e67bb265d11fbeed",
+        "measuredAt": "2026-07-19T01:11:28.075Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "aggregation-small-1",
+        "sha256": "c37cbf8a2fd4fe5503310d4df24309eb3d298e6799caac83336e825a062da10a",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
         "id": "python",
         "name": "Python",
         "version": "Python 3.14.6",
@@ -2141,6 +2633,185 @@
       "provenance": {
         "fingerprint": "ac6adffda74886f25d59c557c7a260e6d04de452281d919198f0aba9c7040176",
         "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "nbody-large-1",
+        "sha256": "f24d3f51acbbdb9c269ab3a8e5bedb7058ed092709bbc114f7388e3f443c419b",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "lua",
+        "name": "Lua",
+        "version": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerVersion": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerFlags": [
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 15946500,
+        "artifactSizeBytes": 3352,
+        "command": [
+          "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 18985700,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 19233400,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 19888400,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 17495500,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 17751900,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 17902200,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 18280300,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 18883800,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 18504000,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 17608900,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 17495500,
+          "maximumWallTimeNanoseconds": 19888400,
+          "medianWallTimeNanoseconds": 18280300,
+          "meanWallTimeNanoseconds": 18453410,
+          "standardDeviationWallTimeNanoseconds": 748024.9172988825,
+          "p95WallTimeNanoseconds": 19888400,
+          "interquartileRangeWallTimeNanoseconds": 1233800
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "6e0c54afdce9f3e5ca64289b5b5b6025254211b7d191793732c81685fb264605",
+        "measuredAt": "2026-07-19T01:12:02.445Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -2884,6 +3555,185 @@
         "generatorVersion": "committed-fixture-1.0.0"
       },
       "language": {
+        "id": "lua",
+        "name": "Lua",
+        "version": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerVersion": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerFlags": [
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 14812900,
+        "artifactSizeBytes": 3352,
+        "command": [
+          "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 22712200,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 22715700,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 23365100,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 19155500,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 19082100,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 17577200,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 17997300,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 17586500,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 20208800,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 20694000,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 17577200,
+          "maximumWallTimeNanoseconds": 23365100,
+          "medianWallTimeNanoseconds": 19155500,
+          "meanWallTimeNanoseconds": 20109440,
+          "standardDeviationWallTimeNanoseconds": 2090977.897635458,
+          "p95WallTimeNanoseconds": 23365100,
+          "interquartileRangeWallTimeNanoseconds": 4714900
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "df749b6bf599ffdff9eb109d541fbb93c396917de7222b06ecfb855eea6c775d",
+        "measuredAt": "2026-07-19T01:12:02.445Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "nbody-medium-1",
+        "sha256": "b67c88171ac27f2205b6039774ec15ecfd930dca123524395ab4f925f5ffdddc",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
         "id": "python",
         "name": "Python",
         "version": "Python 3.14.6",
@@ -3555,6 +4405,140 @@
         "generatorVersion": "committed-fixture-1.0.0"
       },
       "language": {
+        "id": "lua",
+        "name": "Lua",
+        "version": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerVersion": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerFlags": [
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 13957100,
+        "artifactSizeBytes": 3352,
+        "command": [
+          "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 17896100,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 18741700,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 18525300,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 17512800,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 18888900,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 17512800,
+          "maximumWallTimeNanoseconds": 18888900,
+          "medianWallTimeNanoseconds": 18525300,
+          "meanWallTimeNanoseconds": 18312960,
+          "standardDeviationWallTimeNanoseconds": 524336.0433920217,
+          "p95WallTimeNanoseconds": 18888900,
+          "interquartileRangeWallTimeNanoseconds": 845600
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "ae077275df947af847742c7ea88afaafc6806af23d863ec42595c9e1ee9d111c",
+        "measuredAt": "2026-07-19T01:11:28.075Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "nbody-small-1",
+        "sha256": "a8e202e24b5ad5d691cd2017ee6776330e33b6ed45793c8fd16658430c1a001c",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
         "id": "python",
         "name": "Python",
         "version": "Python 3.14.6",
@@ -4109,6 +5093,185 @@
       "provenance": {
         "fingerprint": "651ef8ba45b2a7380fdb7d675b1bc3b2c70ac98989da4f19b8f59e7952ef3e25",
         "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "shortest-path-large-1",
+        "sha256": "9b3438291b677ed546f166e6617bffbea8fcecb6be9d32b0aa78f3af72669210",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "lua",
+        "name": "Lua",
+        "version": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerVersion": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerFlags": [
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 15087300,
+        "artifactSizeBytes": 3719,
+        "command": [
+          "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 14915800,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 14639500,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 15907100,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 15424900,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 16023100,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 15760000,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 14650300,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 14860200,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 15046100,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 14770200,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 14639500,
+          "maximumWallTimeNanoseconds": 16023100,
+          "medianWallTimeNanoseconds": 14915800,
+          "meanWallTimeNanoseconds": 15199720,
+          "standardDeviationWallTimeNanoseconds": 506225.29727385216,
+          "p95WallTimeNanoseconds": 16023100,
+          "interquartileRangeWallTimeNanoseconds": 989800
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "83da43e2ba50de63d6f0115a5a6026fb3b33803af5618cd787005939f1a269c7",
+        "measuredAt": "2026-07-19T01:12:02.445Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -4852,6 +6015,185 @@
         "generatorVersion": "committed-fixture-1.0.0"
       },
       "language": {
+        "id": "lua",
+        "name": "Lua",
+        "version": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerVersion": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerFlags": [
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 15323700,
+        "artifactSizeBytes": 3719,
+        "command": [
+          "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 16781200,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 15928900,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 16544000,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 16630800,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 16425700,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 15994300,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 16515200,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 15986400,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 16098400,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 16178900,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 15928900,
+          "maximumWallTimeNanoseconds": 16781200,
+          "medianWallTimeNanoseconds": 16178900,
+          "meanWallTimeNanoseconds": 16308380,
+          "standardDeviationWallTimeNanoseconds": 290989.311831208,
+          "p95WallTimeNanoseconds": 16781200,
+          "interquartileRangeWallTimeNanoseconds": 549700
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "48c97642c08120686e899d801955313fa2b431adccf8ec82af06c494c2228e4a",
+        "measuredAt": "2026-07-19T01:12:02.445Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "shortest-path-medium-1",
+        "sha256": "14d90a48ad4abb32936eef96ce8dd40980a421322335b36bdf4327913c278654",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
         "id": "python",
         "name": "Python",
         "version": "Python 3.14.6",
@@ -5496,6 +6838,140 @@
       "provenance": {
         "fingerprint": "d51789a715fe3e16d58c05509ad8d73efa77f8d5b3d6e0cd934ae36a068e382f",
         "measuredAt": "2026-07-19T00:11:27.466Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "shortest-path-small-1",
+        "sha256": "764c46a335c2fb84f61985cb22e877386bd54ddd2fa8f757f41076f006e9358e",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "lua",
+        "name": "Lua",
+        "version": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerVersion": "LuaJIT 2.1.1720049189 -- Copyright (C) 2005-2023 Mike Pall. https://luajit.org/",
+        "compilerFlags": [
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 15518000,
+        "artifactSizeBytes": 3719,
+        "command": [
+          "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
+          "-b",
+          "main.lua",
+          "NUL"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 18242500,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 16967200,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 16863900,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 16352700,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 16806300,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 16352700,
+          "maximumWallTimeNanoseconds": 18242500,
+          "medianWallTimeNanoseconds": 16863900,
+          "meanWallTimeNanoseconds": 17046520,
+          "standardDeviationWallTimeNanoseconds": 633893.0080068718,
+          "p95WallTimeNanoseconds": 18242500,
+          "interquartileRangeWallTimeNanoseconds": 160900
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "8296b5b0e7c221e502abb1b9f726d7a45ca089abbbf75afca16dc7f0e41ed20e",
+        "measuredAt": "2026-07-19T01:11:28.075Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",

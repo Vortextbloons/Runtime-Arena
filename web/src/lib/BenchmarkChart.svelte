@@ -14,7 +14,9 @@
 	const languageColors: Record<string, string> = {
 		rust: '#d97852',
 		go: '#58b7d6',
-		typescript: '#7797df'
+		typescript: '#7797df',
+		lua: '#c678dd',
+		python: '#f0c040'
 	};
 
 	const rowsFor = (size: string) => {

@@ -235,7 +235,7 @@ async function buildOne(language: Language, benchmark: Benchmark) {
   const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
   if (!await exists(implementationDir)) return { status: "missing", implementationDir, durationNs: 0, artifact: "" };
   const rawArtifact = expand(language.build.artifact, { benchmarkId: benchmark.id });
-  const artifact = path.resolve(implementationDir, process.platform === "win32" && !["typescript", "python"].includes(language.id) ? `${rawArtifact}.exe` : rawArtifact);
+  const artifact = path.resolve(implementationDir, process.platform === "win32" && !["typescript", "python", "lua"].includes(language.id) ? `${rawArtifact}.exe` : rawArtifact);
   await mkdir(path.dirname(artifact), { recursive: true });
   const vars = { projectRoot: root, benchmarkId: benchmark.id, benchmarkDir: path.join(root, "benchmarks", benchmark.id), implementationDir, artifact };
   const cwd = path.resolve(root, expand(language.build.workingDirectory ?? "{implementationDir}", vars));

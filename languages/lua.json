@@ -1,0 +1,28 @@
+{
+  "$schema": "../schemas/language.schema.json",
+  "id": "lua",
+  "name": "Lua",
+  "enabled": true,
+  "detect": {
+    "command": "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
+    "arguments": ["-v"]
+  },
+  "build": {
+    "workingDirectory": "{implementationDir}",
+    "command": "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
+    "arguments": ["-b", "main.lua", "NUL"],
+    "artifact": "main.lua"
+  },
+  "run": {
+    "command": "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
+    "arguments": [
+      "{artifact}",
+      "--input",
+      "{inputFile}",
+      "--output",
+      "{outputFile}"
+    ]
+  },
+  "environment": {},
+  "sourceExtensions": [".lua"]
+}

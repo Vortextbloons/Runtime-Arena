@@ -3,7 +3,7 @@
 
 	let { scores, languageId }: { scores: BenchmarkScore[]; languageId?: string } = $props();
 	const visible = $derived(languageId ? scores.filter((score) => score.language.id === languageId) : scores);
-	const colors: Record<string, string> = { rust: '#d97852', go: '#58b7d6', typescript: '#7797df' };
+	const colors: Record<string, string> = { rust: '#d97852', go: '#58b7d6', typescript: '#7797df', lua: '#c678dd', python: '#f0c040' };
 </script>
 
 <section class="chart-field" aria-labelledby="chart-field-title">
