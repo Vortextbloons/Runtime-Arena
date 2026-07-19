@@ -4,36 +4,276 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 public final class Main {
+  private static final char[] HEX = "0123456789abcdef".toCharArray();
+
   private static final class Json {
-    final String text; int position;
+    final String text;
+    int position;
+
     Json(String text) { this.text = text; }
+
     void whitespace() { while (position < text.length() && Character.isWhitespace(text.charAt(position))) position++; }
-    Object value() { whitespace(); char c=text.charAt(position); if(c=='{')return object(); if(c=='[')return array(); if(c=='"')return string(); int s=position; while(position<text.length() && ",]} \t\r\n".indexOf(text.charAt(position))<0)position++; return Long.valueOf(text.substring(s,position)); }
-    Map<String,Object> object() { Map<String,Object> m=new HashMap<>(); position++; whitespace(); if(text.charAt(position)=='}'){position++;return m;} while(true){whitespace();String k=string();whitespace();if(text.charAt(position++)!=':')throw new IllegalArgumentException("invalid JSON object");m.put(k,value());whitespace();char d=text.charAt(position++);if(d=='}')return m;if(d!=',')throw new IllegalArgumentException("invalid JSON object");} }
-    List<Object> array() { List<Object> a=new ArrayList<>();position++;whitespace();if(text.charAt(position)==']'){position++;return a;}while(true){a.add(value());whitespace();char d=text.charAt(position++);if(d==']')return a;if(d!=',')throw new IllegalArgumentException("invalid JSON array");} }
-    String string() { if(text.charAt(position++)!='"')throw new IllegalArgumentException("invalid JSON string");StringBuilder b=new StringBuilder();while(true){char c=text.charAt(position++);if(c=='"')return b.toString();if(c!='\\'){b.append(c);continue;}char e=text.charAt(position++);if(e=='u'){b.append((char)Integer.parseInt(text.substring(position,position+4),16));position+=4;}else if(e=='n')b.append('\n');else if(e=='r')b.append('\r');else if(e=='t')b.append('\t');else b.append(e);}}
+
+    Object value() {
+      whitespace();
+      char c = text.charAt(position);
+      if (c == '{') return object();
+      if (c == '[') return array();
+      if (c == '"') return string();
+      int start = position;
+      while (position < text.length() && ",]} \t\r\n".indexOf(text.charAt(position)) < 0) position++;
+      return Long.valueOf(text.substring(start, position));
+    }
+
+    Map<String, Object> object() {
+      Map<String, Object> result = new HashMap<>();
+      position++;
+      whitespace();
+      if (text.charAt(position) == '}') { position++; return result; }
+      while (true) {
+        whitespace();
+        String key = string();
+        whitespace();
+        if (text.charAt(position++) != ':') throw new IllegalArgumentException("invalid JSON object");
+        result.put(key, value());
+        whitespace();
+        char delimiter = text.charAt(position++);
+        if (delimiter == '}') return result;
+        if (delimiter != ',') throw new IllegalArgumentException("invalid JSON object");
+      }
+    }
+
+    List<Object> array() {
+      List<Object> result = new ArrayList<>();
+      position++;
+      whitespace();
+      if (text.charAt(position) == ']') { position++; return result; }
+      while (true) {
+        result.add(value());
+        whitespace();
+        char delimiter = text.charAt(position++);
+        if (delimiter == ']') return result;
+        if (delimiter != ',') throw new IllegalArgumentException("invalid JSON array");
+      }
+    }
+
+    String string() {
+      if (text.charAt(position++) != '"') throw new IllegalArgumentException("invalid JSON string");
+      StringBuilder result = new StringBuilder();
+      while (true) {
+        char c = text.charAt(position++);
+        if (c == '"') return result.toString();
+        if (c != '\\') { result.append(c); continue; }
+        char escaped = text.charAt(position++);
+        if (escaped == 'u') {
+          result.append((char) Integer.parseInt(text.substring(position, position + 4), 16));
+          position += 4;
+        } else if (escaped == 'n') result.append('\n');
+        else if (escaped == 'r') result.append('\r');
+        else if (escaped == 't') result.append('\t');
+        else result.append(escaped);
+      }
+    }
   }
-  private static final class Record { long id, score, timestamp; Record(long id,long score,long timestamp){this.id=id;this.score=score;this.timestamp=timestamp;} }
-  private static String argument(String[] a,String n,String d){for(int i=0;i+1<a.length;i++)if(a[i].equals(n))return a[i+1];return d;}
-  private static String checksum(List<Record> records)throws Exception{StringBuilder b=new StringBuilder();for(Record r:records)b.append(r.id).append(',').append(r.score).append(',').append(r.timestamp).append('\n');byte[] d=MessageDigest.getInstance("SHA-256").digest(b.toString().getBytes(StandardCharsets.UTF_8));StringBuilder h=new StringBuilder(64);for(byte x:d)h.append(String.format("%02x",x&255));return h.toString();}
-  private static String recordJson(Record r){return "{\"id\":"+r.id+",\"score\":"+r.score+",\"timestamp\":"+r.timestamp+"}";}
-  private static String kernel(List<Record> source)throws Exception{
-    ArrayList<Record> records=new ArrayList<>(source.size());for(Record r:source)records.add(new Record(r.id,r.score,r.timestamp));
-    records.sort(Comparator.<Record>comparingLong(r->r.score).reversed().thenComparingLong(r->r.timestamp).thenComparingLong(r->r.id));
-    int take=Math.min(10,records.size());StringBuilder out=new StringBuilder("{\"benchmark\":\"record-sorting\",\"version\":1,\"recordCount\":").append(records.size()).append(",\"firstRecords\":[");
-    for(int i=0;i<take;i++){if(i>0)out.append(',');out.append(recordJson(records.get(i)));}out.append("],\"lastRecords\":[");
-    for(int i=records.size()-take;i<records.size();i++){if(i>records.size()-take)out.append(',');out.append(recordJson(records.get(i)));}
-    return out.append("],\"checksum\":\"").append(checksum(records)).append("\"}").toString();
+
+  private static final class Input {
+    final long[] ids;
+    final long[] scores;
+    final long[] timestamps;
+
+    Input(long[] ids, long[] scores, long[] timestamps) {
+      this.ids = ids;
+      this.scores = scores;
+      this.timestamps = timestamps;
+    }
   }
-  @SuppressWarnings("unchecked") public static void main(String[] a)throws Exception{
-    String inFile=argument(a,"--input",null),outFile=argument(a,"--output",null),timingFile=argument(a,"--timing-output",null);int warm=Integer.parseInt(argument(a,"--warmup","0")),iterations=Integer.parseInt(argument(a,"--iterations","1"));if(inFile==null||outFile==null||timingFile==null)throw new IllegalArgumentException("missing required arguments");
-    Map<String,Object> root=(Map<String,Object>)new Json(Files.readString(Path.of(inFile),StandardCharsets.UTF_8)).value();List<Object> raw=(List<Object>)root.get("records");ArrayList<Record> records=new ArrayList<>(raw.size());for(Object item:raw){Map<String,Object> m=(Map<String,Object>)item;records.add(new Record(((Number)m.get("id")).longValue(),((Number)m.get("score")).longValue(),((Number)m.get("timestamp")).longValue()));}
-    String result=null;StringBuilder samples=new StringBuilder("{\"samples\":[");for(int run=-warm;run<iterations;run++){long start=System.nanoTime();result=kernel(records);long elapsed=Math.max(1L,System.nanoTime()-start);if(run>=0){if(run>0)samples.append(',');samples.append("{\"iteration\":").append(run+1).append(",\"kernelTimeNanoseconds\":").append(elapsed).append('}');}}Files.writeString(Path.of(outFile),result,StandardCharsets.UTF_8);Files.writeString(Path.of(timingFile),samples.append("]}").toString(),StandardCharsets.UTF_8);
+
+  private static final class DigestWriter {
+    private final MessageDigest digest;
+    private final byte[] buffer = new byte[8192];
+    private final byte[] digits = new byte[20];
+    private int position;
+
+    DigestWriter(MessageDigest digest) { this.digest = digest; }
+
+    void writeByte(byte value) {
+      if (position == buffer.length) flush();
+      buffer[position++] = value;
+    }
+
+    void writeLong(long value) {
+      if (value == Long.MIN_VALUE) {
+        writeAscii("-9223372036854775808");
+        return;
+      }
+      boolean negative = value < 0;
+      if (negative) value = -value;
+      int start = digits.length;
+      do {
+        digits[--start] = (byte) ('0' + value % 10);
+        value /= 10;
+      } while (value != 0);
+      if (negative) digits[--start] = '-';
+      while (start < digits.length) writeByte(digits[start++]);
+    }
+
+    byte[] finish() {
+      if (position != 0) digest.update(buffer, 0, position);
+      return digest.digest();
+    }
+
+    private void writeAscii(String value) {
+      for (int i = 0; i < value.length(); i++) writeByte((byte) value.charAt(i));
+    }
+
+    private void flush() {
+      digest.update(buffer, 0, position);
+      position = 0;
+    }
+  }
+
+  private static String hex(byte[] digest) {
+    char[] result = new char[digest.length * 2];
+    for (int i = 0; i < digest.length; i++) {
+      int value = digest[i] & 0xff;
+      result[i * 2] = HEX[value >>> 4];
+      result[i * 2 + 1] = HEX[value & 15];
+    }
+    return new String(result);
+  }
+
+  private static String argument(String[] args, String name, String fallback) {
+    for (int i = 0; i + 1 < args.length; i++) if (args[i].equals(name)) return args[i + 1];
+    return fallback;
+  }
+
+  private static int compare(long scoreA, long timestampA, long idA,
+                             long scoreB, long timestampB, long idB) {
+    int score = Long.compare(scoreB, scoreA);
+    if (score != 0) return score;
+    int timestamp = Long.compare(timestampA, timestampB);
+    return timestamp != 0 ? timestamp : Long.compare(idA, idB);
+  }
+
+  private static void recordJson(StringBuilder out, long id, long score, long timestamp) {
+    out.append("{\"id\":").append(id)
+        .append(",\"score\":").append(score)
+        .append(",\"timestamp\":").append(timestamp).append('}');
+  }
+
+  private static String kernel(Input source) throws Exception {
+    int count = source.ids.length;
+    long[] ids = source.ids.clone();
+    long[] scores = source.scores.clone();
+    long[] timestamps = source.timestamps.clone();
+    long[] tempIds = new long[count];
+    long[] tempScores = new long[count];
+    long[] tempTimestamps = new long[count];
+
+    long[] currentIds = ids;
+    long[] currentScores = scores;
+    long[] currentTimestamps = timestamps;
+    long[] nextIds = tempIds;
+    long[] nextScores = tempScores;
+    long[] nextTimestamps = tempTimestamps;
+    for (int width = 1; width < count; width <<= 1) {
+      for (int left = 0; left < count; left += width << 1) {
+        int middle = Math.min(left + width, count);
+        int right = Math.min(left + (width << 1), count);
+        int a = left;
+        int b = middle;
+        int destination = left;
+        while (a < middle && b < right) {
+          if (compare(currentScores[a], currentTimestamps[a], currentIds[a],
+                      currentScores[b], currentTimestamps[b], currentIds[b]) <= 0) {
+            nextIds[destination] = currentIds[a];
+            nextScores[destination] = currentScores[a];
+            nextTimestamps[destination++] = currentTimestamps[a++];
+          } else {
+            nextIds[destination] = currentIds[b];
+            nextScores[destination] = currentScores[b];
+            nextTimestamps[destination++] = currentTimestamps[b++];
+          }
+        }
+        while (a < middle) {
+          nextIds[destination] = currentIds[a];
+          nextScores[destination] = currentScores[a];
+          nextTimestamps[destination++] = currentTimestamps[a++];
+        }
+        while (b < right) {
+          nextIds[destination] = currentIds[b];
+          nextScores[destination] = currentScores[b];
+          nextTimestamps[destination++] = currentTimestamps[b++];
+        }
+      }
+      long[] swap = currentIds; currentIds = nextIds; nextIds = swap;
+      swap = currentScores; currentScores = nextScores; nextScores = swap;
+      swap = currentTimestamps; currentTimestamps = nextTimestamps; nextTimestamps = swap;
+    }
+
+    DigestWriter writer = new DigestWriter(MessageDigest.getInstance("SHA-256"));
+    for (int i = 0; i < count; i++) {
+      writer.writeLong(currentIds[i]); writer.writeByte((byte) ',');
+      writer.writeLong(currentScores[i]); writer.writeByte((byte) ',');
+      writer.writeLong(currentTimestamps[i]); writer.writeByte((byte) '\n');
+    }
+    String checksum = hex(writer.finish());
+    int take = Math.min(10, count);
+    StringBuilder output = new StringBuilder(512)
+        .append("{\"benchmark\":\"record-sorting\",\"version\":1,\"recordCount\":")
+        .append(count).append(",\"firstRecords\":[");
+    for (int i = 0; i < take; i++) {
+      if (i != 0) output.append(',');
+      recordJson(output, currentIds[i], currentScores[i], currentTimestamps[i]);
+    }
+    output.append("],\"lastRecords\":[");
+    for (int i = count - take; i < count; i++) {
+      if (i != count - take) output.append(',');
+      recordJson(output, currentIds[i], currentScores[i], currentTimestamps[i]);
+    }
+    return output.append("],\"checksum\":\"").append(checksum).append("\"}").toString();
+  }
+
+  @SuppressWarnings("unchecked")
+  public static void main(String[] args) throws Exception {
+    String inputFile = argument(args, "--input", null);
+    String outputFile = argument(args, "--output", null);
+    String timingFile = argument(args, "--timing-output", null);
+    int warmup = Integer.parseInt(argument(args, "--warmup", "0"));
+    int iterations = Integer.parseInt(argument(args, "--iterations", "1"));
+    if (inputFile == null || outputFile == null || timingFile == null) throw new IllegalArgumentException("missing required arguments");
+
+    Map<String, Object> root = (Map<String, Object>) new Json(Files.readString(Path.of(inputFile), StandardCharsets.UTF_8)).value();
+    List<Object> raw = (List<Object>) root.get("records");
+    long[] ids = new long[raw.size()];
+    long[] scores = new long[raw.size()];
+    long[] timestamps = new long[raw.size()];
+    for (int i = 0; i < raw.size(); i++) {
+      Map<String, Object> record = (Map<String, Object>) raw.get(i);
+      ids[i] = ((Number) record.get("id")).longValue();
+      scores[i] = ((Number) record.get("score")).longValue();
+      timestamps[i] = ((Number) record.get("timestamp")).longValue();
+    }
+    Input input = new Input(ids, scores, timestamps);
+
+    String result = null;
+    StringBuilder samples = new StringBuilder("{\"samples\":[");
+    for (int run = -warmup; run < iterations; run++) {
+      long start = System.nanoTime();
+      result = kernel(input);
+      long elapsed = Math.max(1L, System.nanoTime() - start);
+      if (run >= 0) {
+        if (run > 0) samples.append(',');
+        samples.append("{\"iteration\":").append(run + 1)
+            .append(",\"kernelTimeNanoseconds\":").append(elapsed).append('}');
+      }
+    }
+    Files.writeString(Path.of(outputFile), result, StandardCharsets.UTF_8);
+    Files.writeString(Path.of(timingFile), samples.append("]}").toString(), StandardCharsets.UTF_8);
   }
 }

@@ -11,6 +11,7 @@ import {
 	calculateBadgeBonus
 } from './cards/badges/calculateBadgeBonus.ts';
 import { applyBadgeBonusesToScores, buildAllCardData } from './cards/buildCardData.ts';
+import { buildBadgeDetail } from './cards/badges/badgeDetail.ts';
 import { getLanguageClassification } from './cards/classifications.ts';
 import {
 	calculateDivisionRanks,
@@ -556,4 +557,35 @@ test('tight code and code economy attributes are available from implementation l
 	assert.ok((jsLoc!.rating ?? 0) > 50);
 	assert.ok(javascript!.badges.some((badge) => badge.badgeId === 'tight-code'));
 	assert.ok(pyEco?.available);
+});
+
+test('badge detail explains measured workload and benchmark breakdown', () => {
+	const rows = [
+		...sizes('rust', 'nbody', 1_100_000, 1_000_000, 1_050_000),
+		...sizes('go', 'nbody', 1_200_000, 1_300_000, 1_400_000),
+		...sizes('python', 'nbody', 2_000_000, 2_100_000, 2_200_000)
+	];
+	const cards = buildAllCardData({ snapshotId: 'badge-detail', results: rows });
+	const rust = cards.find((card) => card.languageId === 'rust');
+	assert.ok(rust);
+	const badge = rust!.badges.find((entry) => entry.badgeId === 'compute-finisher');
+	assert.ok(badge);
+	const benchmarkScore = scoreBenchmark(rows.filter((row) => row.benchmark.id === 'nbody'), 'nbody').find(
+		(score) => score.language.id === 'rust'
+	);
+	const detail = buildBadgeDetail({
+		badge: badge!,
+		card: rust!,
+		benchmarkScore,
+		allBenchmarkScores: scoreBenchmark(rows.filter((row) => row.benchmark.id === 'nbody'), 'nbody'),
+		overallScores: scoreOverall(rows),
+		cohortAttributes: new Map(cards.map((card) => [card.languageId, card.attributes])),
+		isFeatured: true
+	});
+	assert.match(detail.summary, /N-body/i);
+	assert.equal(detail.measuredBy, 'Compute (CMP)');
+	assert.ok(detail.measurements.some((entry) => entry.label === 'Benchmark speed'));
+	assert.ok(detail.sizeBreakdown?.length === 3);
+	assert.ok(detail.sizeBreakdown?.every((entry) => entry.wonSize));
+	assert.match(detail.ovrImpact ?? '', /Featured badge/);
 });

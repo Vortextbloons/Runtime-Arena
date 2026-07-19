@@ -1,50 +1,251 @@
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.PriorityQueue;
 
 public final class Main {
-  static final class Category { String name; long quantity, value; Category(String n) { name=n; } }
-  static final class Account { String id; long value; Account(String i, long v) { id=i; value=v; } }
-  static final class Result {
-    long count, quantity, value, min=Long.MAX_VALUE, max;
-    ArrayList<Category> categories; ArrayList<Account> accounts; String checksum;
+  private static final char[] HEX = "0123456789abcdef".toCharArray();
+
+  private static final class Row {
+    final String account;
+    final String category;
+    final long quantity;
+    final long unitPrice;
+
+    Row(String account, String category, long quantity, long unitPrice) {
+      this.account = account;
+      this.category = category;
+      this.quantity = quantity;
+      this.unitPrice = unitPrice;
+    }
   }
 
-  static ArrayList<String> csv(String line) {
-    ArrayList<String> out=new ArrayList<>(); StringBuilder b=new StringBuilder(); boolean quoted=false;
-    for (int i=0;i<line.length();i++) { char c=line.charAt(i);
-      if (c=='"') { if (quoted && i+1<line.length() && line.charAt(i+1)=='"') { b.append('"'); i++; } else quoted=!quoted; }
-      else if (c==',' && !quoted) { out.add(b.toString()); b.setLength(0); } else b.append(c);
+  private static final class Category {
+    final String name;
+    long quantity;
+    long value;
+
+    Category(String name) { this.name = name; }
+  }
+
+  private static final class Account {
+    final String id;
+    long value;
+
+    Account(String id) { this.id = id; }
+  }
+
+  private static final class Result {
+    long count;
+    long quantity;
+    long value;
+    long min = Long.MAX_VALUE;
+    long max;
+    ArrayList<Category> categories;
+    ArrayList<Account> accounts;
+    String checksum;
+  }
+
+  private static final Comparator<Category> CATEGORY_ORDER =
+      Comparator.comparing(c -> c.name);
+  private static final Comparator<Account> ACCOUNT_ORDER = (a, b) -> {
+    int value = Long.compare(b.value, a.value);
+    return value != 0 ? value : a.id.compareTo(b.id);
+  };
+  // PriorityQueue root is the worst account currently retained.
+  private static final Comparator<Account> WORST_FIRST = (a, b) -> {
+    int value = Long.compare(a.value, b.value);
+    return value != 0 ? value : b.id.compareTo(a.id);
+  };
+
+  private static String[] csv(String line) {
+    String[] fields = new String[5];
+    int field = 0;
+    int start = 0;
+    boolean quoted = false;
+    StringBuilder quotedField = null;
+    for (int i = 0; i < line.length(); i++) {
+      char c = line.charAt(i);
+      if (c == '"') {
+        if (quoted) {
+          if (i + 1 < line.length() && line.charAt(i + 1) == '"') {
+            if (quotedField == null) quotedField = new StringBuilder(i - start).append(line, start, i);
+            quotedField.append('"');
+            i++;
+          } else {
+            quoted = false;
+          }
+        } else {
+          quoted = true;
+          quotedField = new StringBuilder();
+          if (start < i) quotedField.append(line, start, i);
+        }
+      } else if (c == ',' && !quoted) {
+        fields[field++] = quotedField == null ? line.substring(start, i) : quotedField.toString();
+        quotedField = null;
+        start = i + 1;
+      } else if (quotedField != null) {
+        quotedField.append(c);
+      }
     }
-    out.add(b.toString()); return out;
+    fields[field] = quotedField == null ? line.substring(start) : quotedField.toString();
+    return fields;
   }
-  static ArrayList<String[]> readRows(String path) throws IOException {
-    ArrayList<String[]> rows=new ArrayList<>();
-    try (BufferedReader r=Files.newBufferedReader(Path.of(path), StandardCharsets.UTF_8)) {
-      r.readLine(); String line; while ((line=r.readLine())!=null) { ArrayList<String> f=csv(line); if (f.size()>=5) rows.add(f.toArray(new String[0])); }
+
+  private static Row[] readRows(String path) throws IOException {
+    ArrayList<Row> rows = new ArrayList<>();
+    try (BufferedReader reader = Files.newBufferedReader(Path.of(path), StandardCharsets.UTF_8)) {
+      reader.readLine();
+      String line;
+      while ((line = reader.readLine()) != null) {
+        String[] fields = csv(line);
+        rows.add(new Row(fields[1], fields[2], Long.parseLong(fields[3]), Long.parseLong(fields[4])));
+      }
     }
-    return rows;
+    return rows.toArray(new Row[0]);
   }
-  static String esc(String s) { StringBuilder b=new StringBuilder("\""); for (int i=0;i<s.length();i++) { char c=s.charAt(i); if(c=='"')b.append("\\\""); else if(c=='\\')b.append("\\\\"); else if(c=='\n')b.append("\\n"); else if(c=='\r')b.append("\\r"); else if(c=='\t')b.append("\\t"); else b.append(c); } return b.append('"').toString(); }
-  static String categoriesJson(List<Category> cs) { StringBuilder b=new StringBuilder("["); for(int i=0;i<cs.size();i++){if(i>0)b.append(','); Category c=cs.get(i); b.append("{\"category\":").append(esc(c.name)).append(",\"quantity\":").append(c.quantity).append(",\"valueMinorUnits\":").append(c.value).append('}');} return b.append(']').toString(); }
-  static String accountsJson(List<Account> as) { StringBuilder b=new StringBuilder("["); for(int i=0;i<as.size();i++){if(i>0)b.append(','); Account a=as.get(i); b.append("{\"accountId\":").append(esc(a.id)).append(",\"valueMinorUnits\":").append(a.value).append('}');} return b.append(']').toString(); }
-  static Result kernel(ArrayList<String[]> rows) throws Exception {
-    HashMap<String,Category> cm=new HashMap<>(); HashMap<String,Long> am=new HashMap<>(); Result r=new Result();
-    for(String[] x:rows){ long q=Long.parseLong(x[3]), p=Long.parseLong(x[4]), v=q*p; r.count++; r.quantity+=q; r.value+=v; r.min=Math.min(r.min,v); r.max=Math.max(r.max,v); Category c=cm.computeIfAbsent(x[2],Category::new); c.quantity+=q;c.value+=v; am.put(x[1],am.getOrDefault(x[1],0L)+v); }
-    r.categories=new ArrayList<>(cm.values()); r.categories.sort(Comparator.comparing((Category c)->c.name));
-    r.accounts=new ArrayList<>(); for(Map.Entry<String,Long> e:am.entrySet())r.accounts.add(new Account(e.getKey(),e.getValue()));
-    r.accounts.sort((a,b)->a.value!=b.value?Long.compare(b.value,a.value):a.id.compareTo(b.id)); if(r.accounts.size()>10)r.accounts.subList(10,r.accounts.size()).clear();
-    String check="{\"Categories\":"+categoriesJson(r.categories)+",\"TopAccounts\":"+accountsJson(r.accounts)+"}\n";
-    byte[] digest=MessageDigest.getInstance("SHA-256").digest(check.getBytes(StandardCharsets.UTF_8)); StringBuilder h=new StringBuilder(); for(byte z:digest)h.append(String.format("%02x",z&255)); r.checksum=h.toString(); return r;
+
+  private static String escaped(String value) {
+    StringBuilder out = new StringBuilder(value.length() + 2).append('"');
+    for (int i = 0; i < value.length(); i++) {
+      char c = value.charAt(i);
+      if (c == '"') out.append("\\\"");
+      else if (c == '\\') out.append("\\\\");
+      else if (c == '\n') out.append("\\n");
+      else if (c == '\r') out.append("\\r");
+      else if (c == '\t') out.append("\\t");
+      else out.append(c);
+    }
+    return out.append('"').toString();
   }
-  static String output(Result r) { return "{\"benchmark\":\"aggregation\",\"version\":1,\"recordCount\":"+r.count+",\"totalQuantity\":"+r.quantity+",\"totalValueMinorUnits\":"+r.value+",\"categories\":"+categoriesJson(r.categories)+",\"topAccounts\":"+accountsJson(r.accounts)+",\"minimumTransactionMinorUnits\":"+r.min+",\"maximumTransactionMinorUnits\":"+r.max+",\"checksum\":\""+r.checksum+"\"}"; }
-  static String arg(String[] a,String n,String d){for(int i=0;i+1<a.length;i++)if(a[i].equals(n))return a[i+1];return d;}
+
+  private static String categoriesJson(List<Category> categories) {
+    StringBuilder out = new StringBuilder("[");
+    for (int i = 0; i < categories.size(); i++) {
+      if (i != 0) out.append(',');
+      Category c = categories.get(i);
+      out.append("{\"category\":").append(escaped(c.name))
+          .append(",\"quantity\":").append(c.quantity)
+          .append(",\"valueMinorUnits\":").append(c.value).append('}');
+    }
+    return out.append(']').toString();
+  }
+
+  private static String accountsJson(List<Account> accounts) {
+    StringBuilder out = new StringBuilder("[");
+    for (int i = 0; i < accounts.size(); i++) {
+      if (i != 0) out.append(',');
+      Account a = accounts.get(i);
+      out.append("{\"accountId\":").append(escaped(a.id))
+          .append(",\"valueMinorUnits\":").append(a.value).append('}');
+    }
+    return out.append(']').toString();
+  }
+
+  private static String hex(byte[] digest) {
+    char[] result = new char[digest.length * 2];
+    for (int i = 0; i < digest.length; i++) {
+      int value = digest[i] & 0xff;
+      result[i * 2] = HEX[value >>> 4];
+      result[i * 2 + 1] = HEX[value & 15];
+    }
+    return new String(result);
+  }
+
+  private static Result kernel(Row[] rows) throws Exception {
+    HashMap<String, Category> categoriesByName = new HashMap<>();
+    HashMap<String, Account> accountsById = new HashMap<>();
+    Result result = new Result();
+    for (Row row : rows) {
+      long value = row.quantity * row.unitPrice;
+      result.count++;
+      result.quantity += row.quantity;
+      result.value += value;
+      if (value < result.min) result.min = value;
+      if (value > result.max) result.max = value;
+
+      Category category = categoriesByName.get(row.category);
+      if (category == null) {
+        category = new Category(row.category);
+        categoriesByName.put(row.category, category);
+      }
+      category.quantity += row.quantity;
+      category.value += value;
+
+      Account account = accountsById.get(row.account);
+      if (account == null) {
+        account = new Account(row.account);
+        accountsById.put(row.account, account);
+      }
+      account.value += value;
+    }
+
+    result.categories = new ArrayList<>(categoriesByName.values());
+    result.categories.sort(CATEGORY_ORDER);
+
+    PriorityQueue<Account> top = new PriorityQueue<>(10, WORST_FIRST);
+    for (Account account : accountsById.values()) {
+      if (top.size() < 10) top.add(account);
+      else if (ACCOUNT_ORDER.compare(account, top.peek()) < 0) {
+        top.poll();
+        top.add(account);
+      }
+    }
+    result.accounts = new ArrayList<>(top);
+    result.accounts.sort(ACCOUNT_ORDER);
+
+    String checksumInput = "{\"Categories\":" + categoriesJson(result.categories)
+        + ",\"TopAccounts\":" + accountsJson(result.accounts) + "}\n";
+    result.checksum = hex(MessageDigest.getInstance("SHA-256")
+        .digest(checksumInput.getBytes(StandardCharsets.UTF_8)));
+    return result;
+  }
+
+  private static String output(Result result) {
+    return "{\"benchmark\":\"aggregation\",\"version\":1,\"recordCount\":" + result.count
+        + ",\"totalQuantity\":" + result.quantity + ",\"totalValueMinorUnits\":" + result.value
+        + ",\"categories\":" + categoriesJson(result.categories)
+        + ",\"topAccounts\":" + accountsJson(result.accounts)
+        + ",\"minimumTransactionMinorUnits\":" + result.min
+        + ",\"maximumTransactionMinorUnits\":" + result.max
+        + ",\"checksum\":\"" + result.checksum + "\"}";
+  }
+
+  private static String argument(String[] args, String name, String fallback) {
+    for (int i = 0; i + 1 < args.length; i++) if (args[i].equals(name)) return args[i + 1];
+    return fallback;
+  }
+
   public static void main(String[] args) throws Exception {
-    String input=arg(args,"--input",null), output=arg(args,"--output",null), timing=arg(args,"--timing-output",null); int warm=Integer.parseInt(arg(args,"--warmup","0")), it=Integer.parseInt(arg(args,"--iterations","1"));
-    if(input==null||output==null||timing==null)throw new IllegalArgumentException("missing required arguments"); ArrayList<String[]> rows=readRows(input); Result last=null; StringBuilder samples=new StringBuilder("{\"samples\":[");
-    int measured=0; for(int i=-warm;i<it;i++){long start=System.nanoTime(); last=kernel(rows); long elapsed=Math.max(1,System.nanoTime()-start); if(i>=0){if(measured++>0)samples.append(','); samples.append("{\"iteration\":").append(i+1).append(",\"kernelTimeNanoseconds\":").append(elapsed).append('}');}}
-    samples.append("]}"); Files.writeString(Path.of(output),output(last),StandardCharsets.UTF_8); Files.writeString(Path.of(timing),samples.toString(),StandardCharsets.UTF_8);
+    String input = argument(args, "--input", null);
+    String output = argument(args, "--output", null);
+    String timing = argument(args, "--timing-output", null);
+    int warmup = Integer.parseInt(argument(args, "--warmup", "0"));
+    int iterations = Integer.parseInt(argument(args, "--iterations", "1"));
+    if (input == null || output == null || timing == null) throw new IllegalArgumentException("missing required arguments");
+
+    Row[] rows = readRows(input);
+    Result last = null;
+    StringBuilder samples = new StringBuilder("{\"samples\":[");
+    int measured = 0;
+    for (int run = -warmup; run < iterations; run++) {
+      long start = System.nanoTime();
+      last = kernel(rows);
+      long elapsed = Math.max(1L, System.nanoTime() - start);
+      if (run >= 0) {
+        if (measured++ != 0) samples.append(',');
+        samples.append("{\"iteration\":").append(run + 1)
+            .append(",\"kernelTimeNanoseconds\":").append(elapsed).append('}');
+      }
+    }
+    Files.writeString(Path.of(output), output(last), StandardCharsets.UTF_8);
+    Files.writeString(Path.of(timing), samples.append("]}").toString(), StandardCharsets.UTF_8);
   }
 }

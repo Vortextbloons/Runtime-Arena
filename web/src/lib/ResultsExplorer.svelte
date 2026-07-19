@@ -6,6 +6,7 @@
 	import BenchmarkChart from './BenchmarkChart.svelte';
 	import BenchmarkScorecard from './BenchmarkScorecard.svelte';
 	import { applyBadgeBonusesToScores, buildAllCardData, type EarnedBadge, type LanguageCardData } from './cards';
+	import { buildBadgeDetail } from './cards/badges/badgeDetail';
 	import OverallCard from './OverallCard.svelte';
 	import OverallChart from './OverallChart.svelte';
 	import { scoreBenchmark, scoreOverall } from './scoring';
@@ -58,6 +59,7 @@
 	let selectedBenchmark = $state(initialBenchmark());
 	let expandedCard = $state<{ score: BenchmarkScore; card?: LanguageCardData } | null>(null);
 	let selectedBadgeId = $state<string | null>(null);
+	let expandedPanelTab = $state<'badges' | 'benchmarks'>('badges');
 	let overlayEl: HTMLDivElement | undefined = $state();
 	let lastUrlSearch = $state(page.url.search);
 
@@ -111,6 +113,35 @@
 		if (!badges.length) return null;
 		return badges.find((badge) => badge.badgeId === selectedBadgeId) ?? badges[0] ?? null;
 	});
+	const selectedBadgeDetail = $derived.by(() => {
+		const badge = selectedBadge;
+		const current = expandedCard;
+		if (!badge || !current?.card) return null;
+		const benchmarkScore = badge.benchmarkId
+			? scoreBenchmark(
+					run.results.filter((result) => result.benchmark.id === badge.benchmarkId),
+					badge.benchmarkId
+				).find((score) => score.language.id === current.score.language.id)
+			: undefined;
+		const allBenchmarkScores = badge.benchmarkId
+			? scoreBenchmark(
+					run.results.filter((result) => result.benchmark.id === badge.benchmarkId),
+					badge.benchmarkId
+				)
+			: undefined;
+		const cohortAttributes = new Map(
+			languageCards.map((entry) => [entry.languageId, entry.attributes])
+		);
+		return buildBadgeDetail({
+			badge,
+			card: current.card,
+			benchmarkScore,
+			allBenchmarkScores,
+			overallScores: baseOverallScores,
+			cohortAttributes,
+			isFeatured: current.card.featuredBadgeIds.includes(badge.badgeId)
+		});
+	});
 	const showExpandedDetails = $derived.by(() => {
 		const current = expandedCard;
 		if (!current) return false;
@@ -123,11 +154,13 @@
 	function closeExpanded() {
 		expandedCard = null;
 		selectedBadgeId = null;
+		expandedPanelTab = 'badges';
 	}
 
 	function openExpanded(score: BenchmarkScore, card?: LanguageCardData) {
 		expandedCard = { score, card };
 		selectedBadgeId = card?.featuredBadgeIds[0] ?? card?.badges[0]?.badgeId ?? null;
+		expandedPanelTab = card?.badges.length ? 'badges' : 'benchmarks';
 	}
 
 	function badgeTierLabel(tier: string): string {
@@ -137,6 +170,11 @@
 
 	function selectBadge(badge: EarnedBadge) {
 		selectedBadgeId = badge.badgeId;
+		expandedPanelTab = 'badges';
+	}
+
+	function setExpandedPanelTab(tab: 'badges' | 'benchmarks') {
+		expandedPanelTab = tab;
 	}
 
 	function setView(next: 'chart' | 'scorecard') {
@@ -329,44 +367,6 @@
 				<OverallCard score={expandedCard.score} card={expandedCard.card} expanded />
 				{#if showExpandedDetails}
 					<div class="expanded-details">
-						{#if expandedBadges.length && selectedBadge}
-							<section class="badge-dossier" aria-label="Badge collection">
-								<h3>Badge collection</h3>
-								<ul class="badge-dossier-list">
-									{#each expandedBadges as badge (badge.badgeId)}
-										<li>
-											<button
-												type="button"
-												class="badge-dossier-chip tier-{badge.tier}"
-												class:active={selectedBadge.badgeId === badge.badgeId}
-												onclick={() => selectBadge(badge)}
-												aria-pressed={selectedBadge.badgeId === badge.badgeId}
-											>
-												<span class="badge-dossier-name">{badge.name}</span>
-												<span class="badge-dossier-tier">{badgeTierLabel(badge.tier)}</span>
-											</button>
-										</li>
-									{/each}
-								</ul>
-								<div class="badge-dossier-detail">
-									<p class="badge-dossier-heading">
-										<strong>{selectedBadge.name}</strong>
-										<span class="badge-dossier-tier-label tier-{selectedBadge.tier}">
-											{badgeTierLabel(selectedBadge.tier)}
-										</span>
-									</p>
-									<p class="badge-dossier-reason">{selectedBadge.reason}</p>
-									{#if selectedBadge.nextTier}
-										<p class="badge-dossier-next">
-											<span>Next {badgeTierLabel(selectedBadge.nextTier.tier)}</span>
-											{selectedBadge.nextTier.requirements.join(' · ')}
-										</p>
-									{:else}
-										<p class="badge-dossier-maxed">Max tier reached</p>
-									{/if}
-								</div>
-							</section>
-						{/if}
 						{#if !expandedCard.score.eligible && expandedCard.score.diagnostics.length}
 							<section class="expanded-diagnostics">
 								<h3>{expandedCard.score.diagnostics.length === 1 ? 'UNVERIFIED · 1 issue' : `UNVERIFIED · ${expandedCard.score.diagnostics.length} issues`}</h3>
@@ -377,26 +377,186 @@
 								</ul>
 							</section>
 						{/if}
-						{#if expandedCard.score.benchmarks && expandedCard.score.benchmarks.length}
-							<h3>Benchmark breakdown</h3>
-							<div class="expanded-table">
-								<div class="expanded-table-head">
-									<span>Benchmark</span>
-									<span>Overall</span>
-									<span>Performance</span>
-									<span>Stability</span>
-									<span>Flex</span>
-								</div>
-								{#each expandedCard.score.benchmarks as bench (bench.benchmarkId)}
-									<div class="expanded-table-row">
-										<strong>{bench.benchmarkId.replace(/[-_]+/g, ' ')}</strong>
-										<code>{Math.round(bench.overall)}</code>
-										<code>{Math.round(bench.performance)}</code>
-										<code>{Math.round(bench.consistency)}</code>
-										<code>{Math.round(bench.performance)}</code>
-									</div>
-								{/each}
+
+						{#if expandedBadges.length || expandedCard.score.benchmarks?.length}
+							<div class="expanded-panel-tabs" role="tablist" aria-label="Card details">
+								{#if expandedBadges.length}
+									<button
+										type="button"
+										role="tab"
+										class:active={expandedPanelTab === 'badges'}
+										aria-selected={expandedPanelTab === 'badges'}
+										onclick={() => setExpandedPanelTab('badges')}
+									>
+										Badges
+										<span class="expanded-panel-count">{expandedBadges.length}</span>
+									</button>
+								{/if}
+								{#if expandedCard.score.benchmarks?.length}
+									<button
+										type="button"
+										role="tab"
+										class:active={expandedPanelTab === 'benchmarks'}
+										aria-selected={expandedPanelTab === 'benchmarks'}
+										onclick={() => setExpandedPanelTab('benchmarks')}
+									>
+										Benchmarks
+										<span class="expanded-panel-count">{expandedCard.score.benchmarks.length}</span>
+									</button>
+								{/if}
 							</div>
+						{/if}
+
+						{#if expandedPanelTab === 'badges' && expandedBadges.length && selectedBadge}
+							<section class="badge-dossier" aria-label="Badge collection">
+								<ul class="badge-dossier-rail">
+									{#each expandedBadges as badge (badge.badgeId)}
+										<li>
+											<button
+												type="button"
+												class="badge-rail-item tier-{badge.tier}"
+												class:active={selectedBadge.badgeId === badge.badgeId}
+												onclick={() => selectBadge(badge)}
+												aria-pressed={selectedBadge.badgeId === badge.badgeId}
+											>
+												<span class="badge-rail-dot" aria-hidden="true"></span>
+												<span class="badge-rail-copy">
+													<span class="badge-rail-name">{badge.name}</span>
+													<span class="badge-rail-tier">{badgeTierLabel(badge.tier)}</span>
+												</span>
+											</button>
+										</li>
+									{/each}
+								</ul>
+
+								<article class="badge-dossier-panel" aria-live="polite">
+									<header class="badge-panel-header">
+										<div class="badge-panel-title">
+											<h3>{selectedBadge.name}</h3>
+											<span class="badge-dossier-tier-label tier-{selectedBadge.tier}">
+												{badgeTierLabel(selectedBadge.tier)}
+											</span>
+										</div>
+										{#if selectedBadgeDetail}
+											<p class="badge-panel-lede">{selectedBadgeDetail.summary}</p>
+											<div class="badge-panel-stats">
+												{#each selectedBadgeDetail.scores as score (score.label)}
+													<span class="badge-stat-chip">
+														<strong>{score.value}</strong>
+														{score.label}
+													</span>
+												{/each}
+												<span class="badge-stat-chip muted">
+													<strong>{selectedBadgeDetail.measuredBy}</strong>
+													Source
+												</span>
+											</div>
+											{#if selectedBadgeDetail.legendChecks?.length}
+												<ul class="badge-legend-pills">
+													{#each selectedBadgeDetail.legendChecks as check (check.label)}
+														<li class:met={check.met} class:unmet={!check.met}>
+															<span aria-hidden="true">{check.met ? '✓' : '○'}</span>
+															{check.label}
+														</li>
+													{/each}
+												</ul>
+											{/if}
+										{:else}
+											<p class="badge-dossier-reason">{selectedBadge.reason}</p>
+										{/if}
+									</header>
+
+									{#if selectedBadgeDetail}
+										<div class="badge-panel-body">
+											{#if selectedBadgeDetail.measurements.length}
+												<section class="badge-panel-section">
+													<h4>Measurements</h4>
+													<dl class="badge-measurement-grid">
+														{#each selectedBadgeDetail.measurements as measurement (measurement.label)}
+															<div>
+																<dt>{measurement.label}</dt>
+																<dd>{measurement.value}</dd>
+															</div>
+														{/each}
+													</dl>
+												</section>
+											{/if}
+
+											{#if selectedBadgeDetail.sizeBreakdown?.length}
+												<section class="badge-panel-section">
+													<h4>By dataset size</h4>
+													<ul class="badge-size-cards">
+														{#each selectedBadgeDetail.sizeBreakdown as row (row.size)}
+															<li class:won={row.wonSize}>
+																<span class="badge-size-label">{row.size}</span>
+																<strong class="badge-size-median">{row.median}</strong>
+																<span class="badge-size-meta">
+																	{row.performance} speed
+																	{#if row.wonSize}<em>fastest</em>{/if}
+																</span>
+															</li>
+														{/each}
+													</ul>
+												</section>
+											{/if}
+										</div>
+
+										<footer class="badge-panel-footer">
+											{#if selectedBadgeDetail.ovrImpact}
+												<p class="badge-dossier-ovr">{selectedBadgeDetail.ovrImpact}</p>
+											{/if}
+											{#if selectedBadge.benchmarkId && expandedCard.score.benchmarks?.length}
+												<button
+													type="button"
+													class="badge-linked-benchmark"
+													onclick={() => setExpandedPanelTab('benchmarks')}
+												>
+													View {selectedBadge.benchmarkId.replace(/[-_]+/g, ' ')} in benchmark breakdown →
+												</button>
+											{/if}
+											{#if selectedBadge.nextTier}
+												<details class="badge-progress-details">
+													<summary>Next {badgeTierLabel(selectedBadge.nextTier.tier)}</summary>
+													<ul>
+														{#each selectedBadge.nextTier.requirements as requirement, requirementIndex (`${requirementIndex}-${requirement}`)}
+															<li>{requirement}</li>
+														{/each}
+													</ul>
+												</details>
+											{:else}
+												<p class="badge-dossier-maxed">Max tier reached</p>
+											{/if}
+										</footer>
+									{/if}
+								</article>
+							</section>
+						{:else if expandedPanelTab === 'benchmarks' && expandedCard.score.benchmarks?.length}
+							<section class="benchmark-panel" aria-label="Benchmark breakdown">
+								<p class="benchmark-panel-lede">
+									Per-workload scores for this language. Rows linked to the selected badge are highlighted.
+								</p>
+								<div class="expanded-table">
+									<div class="expanded-table-head">
+										<span>Benchmark</span>
+										<span>Overall</span>
+										<span>Performance</span>
+										<span>Stability</span>
+										<span>Flex</span>
+									</div>
+									{#each expandedCard.score.benchmarks as bench (bench.benchmarkId)}
+										<div
+											class="expanded-table-row"
+											class:linked={selectedBadge?.benchmarkId === bench.benchmarkId}
+										>
+											<strong>{bench.benchmarkId.replace(/[-_]+/g, ' ')}</strong>
+											<code>{Math.round(bench.overall)}</code>
+											<code>{Math.round(bench.performance)}</code>
+											<code>{Math.round(bench.consistency)}</code>
+											<code>{Math.round(bench.versatility)}</code>
+										</div>
+									{/each}
+								</div>
+							</section>
 						{/if}
 					</div>
 				{/if}
@@ -519,10 +679,10 @@
 	.card-overlay-inner {
 		position: relative;
 		display: grid;
-		grid-template-columns: minmax(260px, 340px) minmax(0, 1.4fr);
+		grid-template-columns: minmax(260px, 340px) minmax(0, 1.6fr);
 		gap: 2rem;
 		align-items: start;
-		max-width: 920px;
+		max-width: 1080px;
 		width: 100%;
 		margin: 0 auto;
 		padding-bottom: 2rem;
@@ -541,123 +701,401 @@
 		background: var(--panel);
 		border: 1px solid var(--rule);
 		border-radius: 1rem;
-		padding: 1.5rem;
+		padding: 1rem;
 		display: grid;
-		gap: 1.2rem;
+		gap: 0.85rem;
+		min-height: 0;
 	}
 
-	.expanded-details h3 {
-		margin: 0 0 0.75rem;
-		font: 650 0.72rem var(--mono);
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
+	.expanded-panel-tabs {
+		display: inline-flex;
+		gap: 0.25rem;
+		padding: 0.2rem;
+		border: 1px solid var(--rule);
+		border-radius: 0.55rem;
+		background: color-mix(in srgb, var(--bg, #0b0d10) 30%, transparent);
+		width: fit-content;
+	}
+
+	.expanded-panel-tabs button {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		border: 0;
+		border-radius: 0.38rem;
+		background: transparent;
 		color: var(--muted);
+		padding: 0.45rem 0.7rem;
+		cursor: pointer;
+		font: 650 0.68rem var(--mono);
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
 	}
 
-	.badge-dossier-list {
+	.expanded-panel-tabs button.active {
+		background: var(--accent);
+		color: #071217;
+	}
+
+	.expanded-panel-count {
+		display: inline-grid;
+		place-items: center;
+		min-width: 1.1rem;
+		height: 1.1rem;
+		padding: 0 0.2rem;
+		border-radius: 999px;
+		background: color-mix(in srgb, currentColor 14%, transparent);
+		font-size: 0.58rem;
+	}
+
+	.expanded-panel-tabs button.active .expanded-panel-count {
+		background: color-mix(in srgb, #071217 18%, transparent);
+	}
+
+	.badge-dossier {
+		display: grid;
+		grid-template-columns: minmax(9.5rem, 11.5rem) minmax(0, 1fr);
+		gap: 0.75rem;
+		min-height: 0;
+	}
+
+	.badge-dossier-rail {
 		list-style: none;
-		margin: 0 0 1rem;
+		margin: 0;
 		padding: 0;
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-		gap: 0.4rem;
+		gap: 0.3rem;
+		align-content: start;
+		max-height: min(34rem, 70vh);
+		overflow-y: auto;
 	}
 
-	.badge-dossier-chip {
+	.badge-rail-item {
 		display: grid;
-		grid-template-columns: 1fr auto;
-		align-items: baseline;
-		gap: 0.35rem;
+		grid-template-columns: auto 1fr;
+		align-items: start;
+		gap: 0.45rem;
 		width: 100%;
-		padding: 0.45rem 0.55rem;
+		padding: 0.5rem 0.55rem;
 		border: 1px solid var(--rule);
-		border-radius: 0.35rem;
+		border-radius: 0.45rem;
 		background: color-mix(in srgb, var(--panel) 80%, #000);
 		color: var(--text);
 		cursor: pointer;
 		text-align: left;
+	}
+
+	.badge-rail-item:hover {
+		border-color: color-mix(in srgb, var(--accent) 40%, var(--rule));
+	}
+
+	.badge-rail-item.active {
+		border-color: var(--accent);
+		background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+	}
+
+	.badge-rail-dot {
+		width: 0.45rem;
+		height: 0.45rem;
+		margin-top: 0.2rem;
+		border-radius: 999px;
+		background: var(--muted);
+	}
+
+	.badge-rail-item.tier-legend .badge-rail-dot { background: #c9a227; }
+	.badge-rail-item.tier-hall-of-fame .badge-rail-dot { background: #9b7bb8; }
+	.badge-rail-item.tier-gold .badge-rail-dot { background: #b8860b; }
+	.badge-rail-item.tier-silver .badge-rail-dot { background: #8a939c; }
+	.badge-rail-item.tier-bronze .badge-rail-dot { background: #a0673a; }
+
+	.badge-rail-copy {
+		display: grid;
+		gap: 0.1rem;
+		min-width: 0;
+	}
+
+	.badge-rail-name {
 		font: 650 0.62rem var(--mono);
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
+		line-height: 1.25;
 	}
 
-	.badge-dossier-chip:hover {
-		border-color: color-mix(in srgb, var(--accent) 45%, var(--rule));
-	}
-
-	.badge-dossier-chip.active {
-		border-color: var(--accent);
-		background: color-mix(in srgb, var(--accent) 12%, var(--panel));
-	}
-
-	.badge-dossier-name {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.badge-dossier-tier,
-	.badge-dossier-tier-label {
+	.badge-rail-tier {
 		color: var(--muted);
-		white-space: nowrap;
+		font: 600 0.56rem var(--mono);
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
 	}
 
-	.badge-dossier-chip.tier-legend .badge-dossier-tier,
-	.badge-dossier-tier-label.tier-legend { color: #c9a227; }
-	.badge-dossier-chip.tier-hall-of-fame .badge-dossier-tier,
-	.badge-dossier-tier-label.tier-hall-of-fame { color: #9b7bb8; }
-	.badge-dossier-chip.tier-gold .badge-dossier-tier,
-	.badge-dossier-tier-label.tier-gold { color: #b8860b; }
-	.badge-dossier-chip.tier-silver .badge-dossier-tier,
-	.badge-dossier-tier-label.tier-silver { color: #8a939c; }
-	.badge-dossier-chip.tier-bronze .badge-dossier-tier,
-	.badge-dossier-tier-label.tier-bronze { color: #a0673a; }
-
-	.badge-dossier-detail {
+	.badge-dossier-panel {
 		display: grid;
-		gap: 0.45rem;
+		grid-template-rows: auto 1fr auto;
+		gap: 0.75rem;
+		min-width: 0;
+		min-height: 0;
+		max-height: min(34rem, 70vh);
 		padding: 0.85rem 0.95rem;
 		border: 1px solid var(--rule);
-		border-radius: 0.5rem;
+		border-radius: 0.65rem;
 		background: color-mix(in srgb, var(--bg, #0b0d10) 35%, transparent);
+		overflow: hidden;
 	}
 
-	.badge-dossier-heading {
+	.badge-panel-header {
+		display: grid;
+		gap: 0.55rem;
+	}
+
+	.badge-panel-title {
 		display: flex;
 		align-items: baseline;
 		justify-content: space-between;
 		gap: 0.75rem;
-		margin: 0;
-		font: 650 0.78rem var(--body);
 	}
 
-	.badge-dossier-heading strong {
+	.badge-panel-title h3 {
+		margin: 0;
+		font: 650 0.82rem var(--body);
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	.badge-panel-lede {
+		margin: 0;
+		color: var(--muted);
+		font-size: 0.78rem;
+		line-height: 1.45;
+	}
+
+	.badge-panel-stats {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+	}
+
+	.badge-stat-chip {
+		display: grid;
+		gap: 0.05rem;
+		padding: 0.35rem 0.5rem;
+		border: 1px solid var(--rule);
+		border-radius: 0.35rem;
+		background: color-mix(in srgb, var(--panel) 65%, transparent);
+		color: var(--muted);
+		font-size: 0.58rem;
+		line-height: 1.2;
 		text-transform: uppercase;
 		letter-spacing: 0.04em;
+	}
+
+	.badge-stat-chip strong {
+		color: var(--text);
+		font: 650 0.78rem var(--mono);
+		text-transform: none;
+		letter-spacing: 0;
+	}
+
+	.badge-stat-chip.muted strong {
+		font-size: 0.68rem;
+	}
+
+	.badge-legend-pills {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.3rem;
+	}
+
+	.badge-legend-pills li {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		padding: 0.2rem 0.45rem;
+		border-radius: 999px;
+		border: 1px solid var(--rule);
+		color: var(--muted);
+		font-size: 0.68rem;
+		line-height: 1.3;
+	}
+
+	.badge-legend-pills li.met {
+		border-color: color-mix(in srgb, var(--accent) 35%, var(--rule));
+		color: var(--text);
+	}
+
+	.badge-panel-body {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+		gap: 0.75rem;
+		overflow-y: auto;
+		padding-right: 0.15rem;
+	}
+
+	.badge-panel-section h4 {
+		margin: 0 0 0.4rem;
+		color: var(--accent);
+		font: 650 0.58rem var(--mono);
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
+	.badge-measurement-grid {
+		display: grid;
+		gap: 0.35rem;
+		margin: 0;
+	}
+
+	.badge-measurement-grid div {
+		display: flex;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.35rem 0.45rem;
+		border-radius: 0.3rem;
+		background: color-mix(in srgb, var(--panel) 70%, transparent);
+	}
+
+	.badge-measurement-grid dt {
+		margin: 0;
+		color: var(--muted);
+		font-size: 0.72rem;
+	}
+
+	.badge-measurement-grid dd {
+		margin: 0;
+		color: var(--text);
+		font: 650 0.72rem var(--mono);
+		text-align: right;
+	}
+
+	.badge-size-cards {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 0.35rem;
+	}
+
+	.badge-size-cards li {
+		display: grid;
+		gap: 0.1rem;
+		padding: 0.45rem 0.55rem;
+		border: 1px solid var(--rule);
+		border-radius: 0.35rem;
+		background: color-mix(in srgb, var(--panel) 70%, transparent);
+	}
+
+	.badge-size-cards li.won {
+		border-color: color-mix(in srgb, var(--accent) 35%, var(--rule));
+	}
+
+	.badge-size-label {
+		font: 650 0.58rem var(--mono);
+		text-transform: uppercase;
+		color: var(--muted);
+	}
+
+	.badge-size-median {
+		font: 650 0.82rem var(--mono);
+	}
+
+	.badge-size-meta {
+		color: var(--muted);
+		font-size: 0.68rem;
+	}
+
+	.badge-size-meta em {
+		margin-left: 0.35rem;
+		color: var(--accent);
+		font: 650 0.58rem var(--mono);
+		font-style: normal;
+		text-transform: uppercase;
+	}
+
+	.badge-panel-footer {
+		display: grid;
+		gap: 0.45rem;
+		padding-top: 0.35rem;
+		border-top: 1px solid var(--rule);
+	}
+
+	.badge-linked-benchmark {
+		justify-self: start;
+		border: 0;
+		background: transparent;
+		color: var(--accent);
+		padding: 0;
+		cursor: pointer;
+		font: 600 0.68rem var(--mono);
+		text-align: left;
+	}
+
+	.badge-linked-benchmark:hover,
+	.badge-linked-benchmark:focus-visible {
+		text-decoration: underline;
+	}
+
+	.badge-progress-details {
+		color: var(--muted);
+		font-size: 0.76rem;
+		line-height: 1.4;
+	}
+
+	.badge-progress-details summary {
+		cursor: pointer;
+		color: var(--accent);
+		font: 650 0.62rem var(--mono);
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+	}
+
+	.badge-progress-details ul {
+		margin: 0.35rem 0 0;
+		padding-left: 1rem;
+		display: grid;
+		gap: 0.2rem;
+	}
+
+	.benchmark-panel-lede {
+		margin: 0;
+		color: var(--muted);
+		font-size: 0.76rem;
+		line-height: 1.45;
+	}
+
+	.benchmark-panel .expanded-table-row.linked {
+		background: color-mix(in srgb, var(--accent) 8%, transparent);
+		border-left: 2px solid var(--accent);
+		padding-left: calc(0.65rem - 2px);
 	}
 
 	.badge-dossier-tier-label {
 		font: 700 0.62rem var(--mono);
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	.badge-dossier-tier-label.tier-legend { color: #c9a227; }
+	.badge-dossier-tier-label.tier-hall-of-fame { color: #9b7bb8; }
+	.badge-dossier-tier-label.tier-gold { color: #b8860b; }
+	.badge-dossier-tier-label.tier-silver { color: #8a939c; }
+	.badge-dossier-tier-label.tier-bronze { color: #a0673a; }
+
+	.badge-dossier-ovr {
+		margin: 0;
+		color: var(--muted);
+		font: 600 0.68rem var(--mono);
+		letter-spacing: 0.02em;
 	}
 
 	.badge-dossier-reason,
-	.badge-dossier-next,
 	.badge-dossier-maxed {
 		margin: 0;
 		color: var(--muted);
 		font-size: 0.8rem;
 		line-height: 1.45;
-	}
-
-	.badge-dossier-next span {
-		display: block;
-		margin-bottom: 0.15rem;
-		color: var(--accent);
-		font: 650 0.62rem var(--mono);
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
 	}
 
 	.badge-dossier-maxed {
@@ -667,6 +1105,10 @@
 	}
 
 	.expanded-diagnostics h3 {
+		margin: 0 0 0.75rem;
+		font: 650 0.72rem var(--mono);
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
 		color: var(--warning);
 	}
 
@@ -740,6 +1182,17 @@
 		.card-overlay { padding: 1rem; }
 		.card-overlay-inner {
 			grid-template-columns: 1fr;
+		}
+		.badge-dossier {
+			grid-template-columns: 1fr;
+		}
+		.badge-dossier-rail {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			max-height: none;
+		}
+		.badge-dossier-panel {
+			max-height: none;
 		}
 		.expanded-table-head,
 		.expanded-table-row {

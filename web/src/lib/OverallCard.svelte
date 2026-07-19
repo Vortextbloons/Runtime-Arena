@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { cardTierLabel, type LanguageCardData } from './cards';
+	import { cardTierLabel, type EarnedBadge, type LanguageCardData } from './cards';
+	import { formatBadgeTooltip } from './cards/badges/badgeDetail';
 	import { formatBenchmarkLabel, getScoreTier, languageMonogram } from './tiers';
 	import type { BenchmarkScore } from './types';
 
@@ -81,19 +82,8 @@
 		return tier.replace(/-/g, ' ').toUpperCase();
 	}
 
-	function badgeTooltip(badge: {
-		name: string;
-		tier: string;
-		reason: string;
-		nextTier?: { tier: string; requirements: string[] };
-	}): string {
-		const lines = [`${badge.name} — ${badgeTierLabel(badge.tier)}`, badge.reason];
-		if (badge.nextTier) {
-			lines.push(
-				`Next ${badgeTierLabel(badge.nextTier.tier)}: ${badge.nextTier.requirements.join('; ')}`
-			);
-		}
-		return lines.join('\n');
+	function badgeTooltip(badge: EarnedBadge): string {
+		return formatBadgeTooltip(badge, card);
 	}
 </script>
 

@@ -1,9 +1,9 @@
 {
   "schemaVersion": "3.0.0",
-  "snapshotId": "2026-07-19T21-40-44-132-e92d232dZ",
-  "updatedAt": "2026-07-19T21:40:44.132Z",
+  "snapshotId": "2026-07-19T22-07-35-664-1daf2d25Z",
+  "updatedAt": "2026-07-19T22:07:35.664Z",
   "arenaVersion": "0.2.0",
-  "gitCommit": "e896791fdacabc80a25fa60bfe50bf7a75bee5fe",
+  "gitCommit": "4c5716295eacd61b8c2bba45c7b09eb5f286f6fd",
   "gitDirty": true,
   "results": [
     {
@@ -273,7 +273,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5710,
+        "artifactSizeBytes": 6442,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -287,13 +287,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 345893900,
+        "totalProcessDurationNanoseconds": 238590100,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 26168300,
+            "kernelTimeNanoseconds": 5212000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -302,7 +302,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 8342400,
+            "kernelTimeNanoseconds": 4721600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -311,7 +311,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 8111900,
+            "kernelTimeNanoseconds": 4525700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -322,13 +322,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 8111900,
-          "maximumKernelTimeNanoseconds": 26168300,
-          "medianKernelTimeNanoseconds": 8342400,
-          "meanKernelTimeNanoseconds": 14207533.333333334,
-          "standardDeviationKernelTimeNanoseconds": 8458062.701877357,
-          "p95KernelTimeNanoseconds": 26168300,
-          "interquartileRangeKernelTimeNanoseconds": 18056400
+          "minimumKernelTimeNanoseconds": 4525700,
+          "maximumKernelTimeNanoseconds": 5212000,
+          "medianKernelTimeNanoseconds": 4721600,
+          "meanKernelTimeNanoseconds": 4819766.666666667,
+          "standardDeviationKernelTimeNanoseconds": 288651.3968247666,
+          "p95KernelTimeNanoseconds": 5212000,
+          "interquartileRangeKernelTimeNanoseconds": 686300
         },
         "metrics": {
           "kernelTime": {
@@ -344,9 +344,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "fb2b49e6e8534008b56ed0f4f37cfb08b6724b7f434ba2fd9b0ad7edb182b6f3",
+        "fingerprint": "aade0300b19a94cc2370e61c8cf2e5248b22f603235ed17c5d0a7bd703308142",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -1179,7 +1179,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5710,
+        "artifactSizeBytes": 6442,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -1193,13 +1193,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 278343200,
+        "totalProcessDurationNanoseconds": 201553100,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 33845800,
+            "kernelTimeNanoseconds": 3560700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1035,
@@ -1208,7 +1208,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 5912800,
+            "kernelTimeNanoseconds": 3612700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1035,
@@ -1217,7 +1217,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 6223900,
+            "kernelTimeNanoseconds": 2992500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1035,
@@ -1228,13 +1228,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 5912800,
-          "maximumKernelTimeNanoseconds": 33845800,
-          "medianKernelTimeNanoseconds": 6223900,
-          "meanKernelTimeNanoseconds": 15327500,
-          "standardDeviationKernelTimeNanoseconds": 13095031.42340636,
-          "p95KernelTimeNanoseconds": 33845800,
-          "interquartileRangeKernelTimeNanoseconds": 27933000
+          "minimumKernelTimeNanoseconds": 2992500,
+          "maximumKernelTimeNanoseconds": 3612700,
+          "medianKernelTimeNanoseconds": 3560700,
+          "meanKernelTimeNanoseconds": 3388633.3333333335,
+          "standardDeviationKernelTimeNanoseconds": 280911.8643908718,
+          "p95KernelTimeNanoseconds": 3612700,
+          "interquartileRangeKernelTimeNanoseconds": 620200
         },
         "metrics": {
           "kernelTime": {
@@ -1250,9 +1250,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "2c4657681c6138a57ae02a389b515695fbfa058ff5c120bd3278b6d8a74f475e",
+        "fingerprint": "6d677be8ff3110fa337155b68b9d0851c3d1c9ffdd66221f3398a9ca29965185",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -2121,7 +2121,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5710,
+        "artifactSizeBytes": 6442,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -2135,13 +2135,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 266367900,
+        "totalProcessDurationNanoseconds": 200925600,
         "warmupIterations": 2,
         "measuredIterations": 5,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 10116200,
+            "kernelTimeNanoseconds": 2653300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1035,
@@ -2150,7 +2150,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 7710900,
+            "kernelTimeNanoseconds": 3349300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1035,
@@ -2159,7 +2159,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 6914700,
+            "kernelTimeNanoseconds": 3498900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1035,
@@ -2168,7 +2168,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 6779000,
+            "kernelTimeNanoseconds": 2681800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1035,
@@ -2177,7 +2177,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 7077000,
+            "kernelTimeNanoseconds": 3386300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1035,
@@ -2188,13 +2188,13 @@
         "summary": {
           "validSamples": 5,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 6779000,
-          "maximumKernelTimeNanoseconds": 10116200,
-          "medianKernelTimeNanoseconds": 7077000,
-          "meanKernelTimeNanoseconds": 7719560,
-          "standardDeviationKernelTimeNanoseconds": 1240104.3804454526,
-          "p95KernelTimeNanoseconds": 10116200,
-          "interquartileRangeKernelTimeNanoseconds": 796200
+          "minimumKernelTimeNanoseconds": 2653300,
+          "maximumKernelTimeNanoseconds": 3498900,
+          "medianKernelTimeNanoseconds": 3349300,
+          "meanKernelTimeNanoseconds": 3113920,
+          "standardDeviationKernelTimeNanoseconds": 367886.5825223856,
+          "p95KernelTimeNanoseconds": 3498900,
+          "interquartileRangeKernelTimeNanoseconds": 704500
         },
         "metrics": {
           "kernelTime": {
@@ -2210,9 +2210,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "9bc6e54ce47015759b493e83cfdfc3944e8341d96a3c461ad1a665fbc2e5e6ea",
+        "fingerprint": "982fd3a81f41286d5c7e5419866bc8fa0967318a6c99a9f1f39d6bf6e7358525",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -3135,7 +3135,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5272,
+        "artifactSizeBytes": 5106,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -3149,13 +3149,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 334434000,
+        "totalProcessDurationNanoseconds": 277766800,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 44659700,
+            "kernelTimeNanoseconds": 36544100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -3164,7 +3164,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 46542100,
+            "kernelTimeNanoseconds": 35650000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -3173,7 +3173,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 43903100,
+            "kernelTimeNanoseconds": 35584500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -3184,13 +3184,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 43903100,
-          "maximumKernelTimeNanoseconds": 46542100,
-          "medianKernelTimeNanoseconds": 44659700,
-          "meanKernelTimeNanoseconds": 45034966.666666664,
-          "standardDeviationKernelTimeNanoseconds": 1109564.194727922,
-          "p95KernelTimeNanoseconds": 46542100,
-          "interquartileRangeKernelTimeNanoseconds": 2639000
+          "minimumKernelTimeNanoseconds": 35584500,
+          "maximumKernelTimeNanoseconds": 36544100,
+          "medianKernelTimeNanoseconds": 35650000,
+          "meanKernelTimeNanoseconds": 35926200,
+          "standardDeviationKernelTimeNanoseconds": 437738.78816786007,
+          "p95KernelTimeNanoseconds": 36544100,
+          "interquartileRangeKernelTimeNanoseconds": 959600
         },
         "metrics": {
           "kernelTime": {
@@ -3206,9 +3206,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "9389d1838f0eaeb882ef6e4de74ba6d121ad89a200d667cd6205cbd4b2bc9fbe",
+        "fingerprint": "c5884b31d6dbb09526472457941bee4fcbac0687c4146dfa6782cab77e0227f5",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -3930,7 +3930,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5272,
+        "artifactSizeBytes": 5106,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -3944,13 +3944,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 226369500,
+        "totalProcessDurationNanoseconds": 198018200,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 21161400,
+            "kernelTimeNanoseconds": 23802000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -3959,7 +3959,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 22446100,
+            "kernelTimeNanoseconds": 21456100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -3968,7 +3968,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 18004700,
+            "kernelTimeNanoseconds": 19648300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -3979,13 +3979,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 18004700,
-          "maximumKernelTimeNanoseconds": 22446100,
-          "medianKernelTimeNanoseconds": 21161400,
-          "meanKernelTimeNanoseconds": 20537400,
-          "standardDeviationKernelTimeNanoseconds": 1866108.3373337858,
-          "p95KernelTimeNanoseconds": 22446100,
-          "interquartileRangeKernelTimeNanoseconds": 4441400
+          "minimumKernelTimeNanoseconds": 19648300,
+          "maximumKernelTimeNanoseconds": 23802000,
+          "medianKernelTimeNanoseconds": 21456100,
+          "meanKernelTimeNanoseconds": 21635466.666666668,
+          "standardDeviationKernelTimeNanoseconds": 1700477.4277308777,
+          "p95KernelTimeNanoseconds": 23802000,
+          "interquartileRangeKernelTimeNanoseconds": 4153700
         },
         "metrics": {
           "kernelTime": {
@@ -4001,9 +4001,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "651964d86b560ff7cf609793be04c7f2ecbabe4f505e6b1d1446be8dde086228",
+        "fingerprint": "be469d2570964306af17fda2bec2e72de0ce46b1f3c2463114433de6fbd4eb73",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -4761,7 +4761,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5272,
+        "artifactSizeBytes": 5106,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -4775,13 +4775,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 291286100,
+        "totalProcessDurationNanoseconds": 307217300,
         "warmupIterations": 2,
         "measuredIterations": 5,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 27675900,
+            "kernelTimeNanoseconds": 37791900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -4790,7 +4790,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 28941800,
+            "kernelTimeNanoseconds": 27512900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -4799,7 +4799,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 30162100,
+            "kernelTimeNanoseconds": 27665000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -4808,7 +4808,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 27409600,
+            "kernelTimeNanoseconds": 27061800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -4817,7 +4817,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 25204800,
+            "kernelTimeNanoseconds": 27007600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 161,
@@ -4828,13 +4828,13 @@
         "summary": {
           "validSamples": 5,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 25204800,
-          "maximumKernelTimeNanoseconds": 30162100,
-          "medianKernelTimeNanoseconds": 27675900,
-          "meanKernelTimeNanoseconds": 27878840,
-          "standardDeviationKernelTimeNanoseconds": 1658615.141134314,
-          "p95KernelTimeNanoseconds": 30162100,
-          "interquartileRangeKernelTimeNanoseconds": 1532200
+          "minimumKernelTimeNanoseconds": 27007600,
+          "maximumKernelTimeNanoseconds": 37791900,
+          "medianKernelTimeNanoseconds": 27512900,
+          "meanKernelTimeNanoseconds": 29407840,
+          "standardDeviationKernelTimeNanoseconds": 4199662.0504988255,
+          "p95KernelTimeNanoseconds": 37791900,
+          "interquartileRangeKernelTimeNanoseconds": 603200
         },
         "metrics": {
           "kernelTime": {
@@ -4850,9 +4850,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "98af8a39fd0d810060de5c80ab768f8712a2817ae003a4fe3ad3f89f45b019f4",
+        "fingerprint": "450addc43ac1e3778b2ecc7b622f04249eed61d5cf025bd222e5cb3c4ed5bfb9",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -5652,7 +5652,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5343,
+        "artifactSizeBytes": 6221,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -5666,13 +5666,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 1066131600,
+        "totalProcessDurationNanoseconds": 1083774200,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 176586400,
+            "kernelTimeNanoseconds": 197543700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -5681,7 +5681,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 188465500,
+            "kernelTimeNanoseconds": 174922000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -5690,7 +5690,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 180457500,
+            "kernelTimeNanoseconds": 180728700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -5701,13 +5701,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 176586400,
-          "maximumKernelTimeNanoseconds": 188465500,
-          "medianKernelTimeNanoseconds": 180457500,
-          "meanKernelTimeNanoseconds": 181836466.66666666,
-          "standardDeviationKernelTimeNanoseconds": 4946676.7297741305,
-          "p95KernelTimeNanoseconds": 188465500,
-          "interquartileRangeKernelTimeNanoseconds": 11879100
+          "minimumKernelTimeNanoseconds": 174922000,
+          "maximumKernelTimeNanoseconds": 197543700,
+          "medianKernelTimeNanoseconds": 180728700,
+          "meanKernelTimeNanoseconds": 184398133.33333334,
+          "standardDeviationKernelTimeNanoseconds": 9592840.50610431,
+          "p95KernelTimeNanoseconds": 197543700,
+          "interquartileRangeKernelTimeNanoseconds": 22621700
         },
         "metrics": {
           "kernelTime": {
@@ -5723,9 +5723,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "67543edf35c050bf313c439f92c49cc4c53b1db046e82968a946576e0c11cd62",
+        "fingerprint": "f91fb074ae730fedc1c9ec194ae69f6cd711997cd4005b035ebe3cc3fe36ba38",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -6574,7 +6574,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5343,
+        "artifactSizeBytes": 6221,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -6588,13 +6588,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 1122953800,
+        "totalProcessDurationNanoseconds": 1047310800,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 193984600,
+            "kernelTimeNanoseconds": 176909300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -6603,7 +6603,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 180201400,
+            "kernelTimeNanoseconds": 179054600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -6612,7 +6612,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 189016600,
+            "kernelTimeNanoseconds": 173536300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 204,
@@ -6623,13 +6623,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 180201400,
-          "maximumKernelTimeNanoseconds": 193984600,
-          "medianKernelTimeNanoseconds": 189016600,
-          "meanKernelTimeNanoseconds": 187734200,
-          "standardDeviationKernelTimeNanoseconds": 5699565.064107962,
-          "p95KernelTimeNanoseconds": 193984600,
-          "interquartileRangeKernelTimeNanoseconds": 13783200
+          "minimumKernelTimeNanoseconds": 173536300,
+          "maximumKernelTimeNanoseconds": 179054600,
+          "medianKernelTimeNanoseconds": 176909300,
+          "meanKernelTimeNanoseconds": 176500066.66666666,
+          "standardDeviationKernelTimeNanoseconds": 2271345.073347998,
+          "p95KernelTimeNanoseconds": 179054600,
+          "interquartileRangeKernelTimeNanoseconds": 5518300
         },
         "metrics": {
           "kernelTime": {
@@ -6645,9 +6645,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "2b61fe49415e383dfc619dd602dcf2b64f99d303184f1c4e61c2d2c6b1892925",
+        "fingerprint": "4969bc094f188767917deb48fd651459fd64fe365dfec55035172c3d9ad8f0a2",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -7496,7 +7496,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5343,
+        "artifactSizeBytes": 6221,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -7510,13 +7510,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 415068200,
+        "totalProcessDurationNanoseconds": 280528100,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 54807500,
+            "kernelTimeNanoseconds": 29626500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -7525,7 +7525,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 32500600,
+            "kernelTimeNanoseconds": 29916600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -7534,7 +7534,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 21634600,
+            "kernelTimeNanoseconds": 16653100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -7545,13 +7545,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 21634600,
-          "maximumKernelTimeNanoseconds": 54807500,
-          "medianKernelTimeNanoseconds": 32500600,
-          "meanKernelTimeNanoseconds": 36314233.333333336,
-          "standardDeviationKernelTimeNanoseconds": 13808648.81160435,
-          "p95KernelTimeNanoseconds": 54807500,
-          "interquartileRangeKernelTimeNanoseconds": 33172900
+          "minimumKernelTimeNanoseconds": 16653100,
+          "maximumKernelTimeNanoseconds": 29916600,
+          "medianKernelTimeNanoseconds": 29626500,
+          "meanKernelTimeNanoseconds": 25398733.333333332,
+          "standardDeviationKernelTimeNanoseconds": 6185230.596797144,
+          "p95KernelTimeNanoseconds": 29916600,
+          "interquartileRangeKernelTimeNanoseconds": 13263500
         },
         "metrics": {
           "kernelTime": {
@@ -7567,9 +7567,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "62f38f8f1032bb8cf4e936494407fc13d5d113d7c47cb5e150cbb2ca55803d56",
+        "fingerprint": "1e7c0fd547bbda699744e82f598af9d9790327690ca444784aebca561a7c07a9",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -8418,7 +8418,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5343,
+        "artifactSizeBytes": 6221,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -8432,13 +8432,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 359264400,
+        "totalProcessDurationNanoseconds": 267538700,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 51510700,
+            "kernelTimeNanoseconds": 17044700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -8447,7 +8447,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 31083300,
+            "kernelTimeNanoseconds": 29767600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -8456,7 +8456,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 21035800,
+            "kernelTimeNanoseconds": 30087800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 202,
@@ -8467,13 +8467,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 21035800,
-          "maximumKernelTimeNanoseconds": 51510700,
-          "medianKernelTimeNanoseconds": 31083300,
-          "meanKernelTimeNanoseconds": 34543266.666666664,
-          "standardDeviationKernelTimeNanoseconds": 12679600.664146416,
-          "p95KernelTimeNanoseconds": 51510700,
-          "interquartileRangeKernelTimeNanoseconds": 30474900
+          "minimumKernelTimeNanoseconds": 17044700,
+          "maximumKernelTimeNanoseconds": 30087800,
+          "medianKernelTimeNanoseconds": 29767600,
+          "meanKernelTimeNanoseconds": 25633366.666666668,
+          "standardDeviationKernelTimeNanoseconds": 6074511.137714888,
+          "p95KernelTimeNanoseconds": 30087800,
+          "interquartileRangeKernelTimeNanoseconds": 13043100
         },
         "metrics": {
           "kernelTime": {
@@ -8489,9 +8489,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "74f1d4152aa431390eff68ca40709762121f326c4c53d7f7c936bc993fd48796",
+        "fingerprint": "a0b6fa0e7ca1a5e0ab030fbcc60c1030717559de4111d445fd331f812007b9f1",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -9376,7 +9376,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5343,
+        "artifactSizeBytes": 6221,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -9390,13 +9390,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 287523400,
+        "totalProcessDurationNanoseconds": 157889800,
         "warmupIterations": 2,
         "measuredIterations": 5,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 42624300,
+            "kernelTimeNanoseconds": 4157500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -9405,7 +9405,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 43080400,
+            "kernelTimeNanoseconds": 4296700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -9414,7 +9414,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 3588600,
+            "kernelTimeNanoseconds": 4308000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -9423,7 +9423,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 2857000,
+            "kernelTimeNanoseconds": 4671600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -9432,7 +9432,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 3259100,
+            "kernelTimeNanoseconds": 3259200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -9443,13 +9443,13 @@
         "summary": {
           "validSamples": 5,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 2857000,
-          "maximumKernelTimeNanoseconds": 43080400,
-          "medianKernelTimeNanoseconds": 3588600,
-          "meanKernelTimeNanoseconds": 19081880,
-          "standardDeviationKernelTimeNanoseconds": 19410426.70704588,
-          "p95KernelTimeNanoseconds": 43080400,
-          "interquartileRangeKernelTimeNanoseconds": 39365200
+          "minimumKernelTimeNanoseconds": 3259200,
+          "maximumKernelTimeNanoseconds": 4671600,
+          "medianKernelTimeNanoseconds": 4296700,
+          "meanKernelTimeNanoseconds": 4138600,
+          "standardDeviationKernelTimeNanoseconds": 471483.30617318786,
+          "p95KernelTimeNanoseconds": 4671600,
+          "interquartileRangeKernelTimeNanoseconds": 150500
         },
         "metrics": {
           "kernelTime": {
@@ -9465,9 +9465,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "48ce0cd8147ca388c82cadbf9180789d51b7adcc46ed5bcfc03cef22a3747558",
+        "fingerprint": "6a30b79efca9c2ad2afc030cd06ac257f6ab61411685b6e3b16af0ee5ebd13b0",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -10442,7 +10442,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5343,
+        "artifactSizeBytes": 6221,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -10456,13 +10456,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 322330800,
+        "totalProcessDurationNanoseconds": 191249300,
         "warmupIterations": 2,
         "measuredIterations": 5,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 44730100,
+            "kernelTimeNanoseconds": 30536500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -10471,7 +10471,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 56090600,
+            "kernelTimeNanoseconds": 2591500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -10480,7 +10480,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 4044500,
+            "kernelTimeNanoseconds": 2745700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -10489,7 +10489,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 3575000,
+            "kernelTimeNanoseconds": 2949000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -10498,7 +10498,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 2953400,
+            "kernelTimeNanoseconds": 1714500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -10509,13 +10509,13 @@
         "summary": {
           "validSamples": 5,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 2953400,
-          "maximumKernelTimeNanoseconds": 56090600,
-          "medianKernelTimeNanoseconds": 4044500,
-          "meanKernelTimeNanoseconds": 22278720,
-          "standardDeviationKernelTimeNanoseconds": 23251200.429173544,
-          "p95KernelTimeNanoseconds": 56090600,
-          "interquartileRangeKernelTimeNanoseconds": 41155100
+          "minimumKernelTimeNanoseconds": 1714500,
+          "maximumKernelTimeNanoseconds": 30536500,
+          "medianKernelTimeNanoseconds": 2745700,
+          "meanKernelTimeNanoseconds": 8107440,
+          "standardDeviationKernelTimeNanoseconds": 11222439.73004088,
+          "p95KernelTimeNanoseconds": 30536500,
+          "interquartileRangeKernelTimeNanoseconds": 357500
         },
         "metrics": {
           "kernelTime": {
@@ -10531,9 +10531,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "edb31a775c65609b145d792db725fe231f44f7542aec5204b4a7b06c75602f82",
+        "fingerprint": "c9a42dd5d84636f6a1a45362fa22c9dd86dcf353997a6ae434e445de8ee4cf2f",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -11480,13 +11480,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 165458200,
+        "totalProcessDurationNanoseconds": 133078000,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 8985500,
+            "kernelTimeNanoseconds": 8532400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -11495,7 +11495,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 9745400,
+            "kernelTimeNanoseconds": 6858400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -11504,7 +11504,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 8370300,
+            "kernelTimeNanoseconds": 8691400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -11515,13 +11515,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 8370300,
-          "maximumKernelTimeNanoseconds": 9745400,
-          "medianKernelTimeNanoseconds": 8985500,
-          "meanKernelTimeNanoseconds": 9033733.333333334,
-          "standardDeviationKernelTimeNanoseconds": 562417.3084897805,
-          "p95KernelTimeNanoseconds": 9745400,
-          "interquartileRangeKernelTimeNanoseconds": 1375100
+          "minimumKernelTimeNanoseconds": 6858400,
+          "maximumKernelTimeNanoseconds": 8691400,
+          "medianKernelTimeNanoseconds": 8532400,
+          "meanKernelTimeNanoseconds": 8027400,
+          "standardDeviationKernelTimeNanoseconds": 829152.5794448209,
+          "p95KernelTimeNanoseconds": 8691400,
+          "interquartileRangeKernelTimeNanoseconds": 1833000
         },
         "metrics": {
           "kernelTime": {
@@ -11539,7 +11539,7 @@
       "provenance": {
         "fingerprint": "b14b305a618af8cf7ab2c4ae67a17124a24fc5641e5773c385b28eec5a74f7ce",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -12386,13 +12386,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 139974200,
+        "totalProcessDurationNanoseconds": 132405900,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 4087100,
+            "kernelTimeNanoseconds": 3579200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -12401,7 +12401,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 3184100,
+            "kernelTimeNanoseconds": 3281600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -12410,7 +12410,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 3257600,
+            "kernelTimeNanoseconds": 3280500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -12421,13 +12421,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 3184100,
-          "maximumKernelTimeNanoseconds": 4087100,
-          "medianKernelTimeNanoseconds": 3257600,
-          "meanKernelTimeNanoseconds": 3509600,
-          "standardDeviationKernelTimeNanoseconds": 409455.1257463997,
-          "p95KernelTimeNanoseconds": 4087100,
-          "interquartileRangeKernelTimeNanoseconds": 903000
+          "minimumKernelTimeNanoseconds": 3280500,
+          "maximumKernelTimeNanoseconds": 3579200,
+          "medianKernelTimeNanoseconds": 3281600,
+          "meanKernelTimeNanoseconds": 3380433.3333333335,
+          "standardDeviationKernelTimeNanoseconds": 140549.97529546407,
+          "p95KernelTimeNanoseconds": 3579200,
+          "interquartileRangeKernelTimeNanoseconds": 298700
         },
         "metrics": {
           "kernelTime": {
@@ -12445,7 +12445,7 @@
       "provenance": {
         "fingerprint": "3d04906f4c0c064ba52228de752fbe02df8a73359764ec5659bc73b4bc5f8a30",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -13328,13 +13328,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 164715100,
+        "totalProcessDurationNanoseconds": 143602700,
         "warmupIterations": 2,
         "measuredIterations": 5,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 5616600,
+            "kernelTimeNanoseconds": 3784000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -13343,7 +13343,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 3806100,
+            "kernelTimeNanoseconds": 3574200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -13352,7 +13352,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 3986400,
+            "kernelTimeNanoseconds": 3400600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -13361,7 +13361,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 3542700,
+            "kernelTimeNanoseconds": 4522000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -13370,7 +13370,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 4606000,
+            "kernelTimeNanoseconds": 3482000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -13381,13 +13381,13 @@
         "summary": {
           "validSamples": 5,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 3542700,
-          "maximumKernelTimeNanoseconds": 5616600,
-          "medianKernelTimeNanoseconds": 3986400,
-          "meanKernelTimeNanoseconds": 4311560,
-          "standardDeviationKernelTimeNanoseconds": 740565.8447430587,
-          "p95KernelTimeNanoseconds": 5616600,
-          "interquartileRangeKernelTimeNanoseconds": 799900
+          "minimumKernelTimeNanoseconds": 3400600,
+          "maximumKernelTimeNanoseconds": 4522000,
+          "medianKernelTimeNanoseconds": 3574200,
+          "meanKernelTimeNanoseconds": 3752560,
+          "standardDeviationKernelTimeNanoseconds": 405442.28491858125,
+          "p95KernelTimeNanoseconds": 4522000,
+          "interquartileRangeKernelTimeNanoseconds": 302000
         },
         "metrics": {
           "kernelTime": {
@@ -13405,7 +13405,7 @@
       "provenance": {
         "fingerprint": "77f89db9308a5f5a1e68edb1586825e1505da0e218ef8565def93773f6633d54",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -14334,7 +14334,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 4894,
+        "artifactSizeBytes": 5673,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -14348,13 +14348,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 935867000,
+        "totalProcessDurationNanoseconds": 786489800,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 88284200,
+            "kernelTimeNanoseconds": 63236900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -14363,7 +14363,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 79331100,
+            "kernelTimeNanoseconds": 68450900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -14372,7 +14372,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 77045700,
+            "kernelTimeNanoseconds": 61691900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -14383,13 +14383,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 77045700,
-          "maximumKernelTimeNanoseconds": 88284200,
-          "medianKernelTimeNanoseconds": 79331100,
-          "meanKernelTimeNanoseconds": 81553666.66666667,
-          "standardDeviationKernelTimeNanoseconds": 4849798.793306332,
-          "p95KernelTimeNanoseconds": 88284200,
-          "interquartileRangeKernelTimeNanoseconds": 11238500
+          "minimumKernelTimeNanoseconds": 61691900,
+          "maximumKernelTimeNanoseconds": 68450900,
+          "medianKernelTimeNanoseconds": 63236900,
+          "meanKernelTimeNanoseconds": 64459900,
+          "standardDeviationKernelTimeNanoseconds": 2891691.200664414,
+          "p95KernelTimeNanoseconds": 68450900,
+          "interquartileRangeKernelTimeNanoseconds": 6759000
         },
         "metrics": {
           "kernelTime": {
@@ -14405,9 +14405,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "c1ea014251b08a703d3793ec4a6a28ab66fe9d6e09f83a808d6e57dd5a2e0149",
+        "fingerprint": "d06bede3115eb6eb3926de592d80a1f13bf1cd6594bf89d354f06f1bdd14c638",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -15256,7 +15256,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 4894,
+        "artifactSizeBytes": 5673,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -15270,13 +15270,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 1557167800,
+        "totalProcessDurationNanoseconds": 996134800,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 200562400,
+            "kernelTimeNanoseconds": 114884500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -15285,7 +15285,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 190787900,
+            "kernelTimeNanoseconds": 108885800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -15294,7 +15294,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 220570800,
+            "kernelTimeNanoseconds": 99352800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1189,
@@ -15305,13 +15305,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 190787900,
-          "maximumKernelTimeNanoseconds": 220570800,
-          "medianKernelTimeNanoseconds": 200562400,
-          "meanKernelTimeNanoseconds": 203973700,
-          "standardDeviationKernelTimeNanoseconds": 12395779.089942941,
-          "p95KernelTimeNanoseconds": 220570800,
-          "interquartileRangeKernelTimeNanoseconds": 29782900
+          "minimumKernelTimeNanoseconds": 99352800,
+          "maximumKernelTimeNanoseconds": 114884500,
+          "medianKernelTimeNanoseconds": 108885800,
+          "meanKernelTimeNanoseconds": 107707700,
+          "standardDeviationKernelTimeNanoseconds": 6395277.733348777,
+          "p95KernelTimeNanoseconds": 114884500,
+          "interquartileRangeKernelTimeNanoseconds": 15531700
         },
         "metrics": {
           "kernelTime": {
@@ -15327,9 +15327,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "801b050ed358fc5732f660f47c0448f1b5a8d01f66248743d64df4151106e0a0",
+        "fingerprint": "7abb7bb53a36d1f0082cbcb305278a047ac31f9bf6c18eea43912eaaf11ff992",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -16178,7 +16178,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 4894,
+        "artifactSizeBytes": 5673,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -16192,13 +16192,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 318328300,
+        "totalProcessDurationNanoseconds": 349672500,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 19710200,
+            "kernelTimeNanoseconds": 15040300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -16207,7 +16207,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 13832500,
+            "kernelTimeNanoseconds": 14927000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -16216,7 +16216,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 14049800,
+            "kernelTimeNanoseconds": 14502800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -16227,13 +16227,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 13832500,
-          "maximumKernelTimeNanoseconds": 19710200,
-          "medianKernelTimeNanoseconds": 14049800,
-          "meanKernelTimeNanoseconds": 15864166.666666666,
-          "standardDeviationKernelTimeNanoseconds": 2721002.771446994,
-          "p95KernelTimeNanoseconds": 19710200,
-          "interquartileRangeKernelTimeNanoseconds": 5877700
+          "minimumKernelTimeNanoseconds": 14502800,
+          "maximumKernelTimeNanoseconds": 15040300,
+          "medianKernelTimeNanoseconds": 14927000,
+          "meanKernelTimeNanoseconds": 14823366.666666666,
+          "standardDeviationKernelTimeNanoseconds": 231346.00829829666,
+          "p95KernelTimeNanoseconds": 15040300,
+          "interquartileRangeKernelTimeNanoseconds": 537500
         },
         "metrics": {
           "kernelTime": {
@@ -16249,9 +16249,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "2b9757bddce40822ade2faf99352f7ac89c8e8f8d17ebe6a531a709d9e8fe4e8",
+        "fingerprint": "3d7b1e199ae76843354a9c48902890c7c3183b1deabf7a3c17de8eb47361a87d",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -17100,7 +17100,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 4894,
+        "artifactSizeBytes": 5673,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -17114,13 +17114,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 431991000,
+        "totalProcessDurationNanoseconds": 389545300,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 34088200,
+            "kernelTimeNanoseconds": 24040000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -17129,7 +17129,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 34186700,
+            "kernelTimeNanoseconds": 18819400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -17138,7 +17138,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 33351900,
+            "kernelTimeNanoseconds": 20182900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1172,
@@ -17149,13 +17149,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 33351900,
-          "maximumKernelTimeNanoseconds": 34186700,
-          "medianKernelTimeNanoseconds": 34088200,
-          "meanKernelTimeNanoseconds": 33875600,
-          "standardDeviationKernelTimeNanoseconds": 372488.7738800549,
-          "p95KernelTimeNanoseconds": 34186700,
-          "interquartileRangeKernelTimeNanoseconds": 834800
+          "minimumKernelTimeNanoseconds": 18819400,
+          "maximumKernelTimeNanoseconds": 24040000,
+          "medianKernelTimeNanoseconds": 20182900,
+          "meanKernelTimeNanoseconds": 21014100,
+          "standardDeviationKernelTimeNanoseconds": 2210857.4761842974,
+          "p95KernelTimeNanoseconds": 24040000,
+          "interquartileRangeKernelTimeNanoseconds": 5220600
         },
         "metrics": {
           "kernelTime": {
@@ -17171,9 +17171,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "8c67334b99214c6c28740b151c793c263e43981cdc670d1aa4af04c958be37b1",
+        "fingerprint": "d0991740937c22ceaf5a02b87c00afe1cc41ec92284840f52744f825f41eede1",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -18058,7 +18058,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 4894,
+        "artifactSizeBytes": 5673,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -18072,13 +18072,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 205420900,
+        "totalProcessDurationNanoseconds": 176378800,
         "warmupIterations": 2,
         "measuredIterations": 5,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 6743100,
+            "kernelTimeNanoseconds": 3619100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1162,
@@ -18087,7 +18087,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 6110500,
+            "kernelTimeNanoseconds": 3716400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1162,
@@ -18096,7 +18096,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 3741100,
+            "kernelTimeNanoseconds": 4207900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1162,
@@ -18105,7 +18105,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 3056200,
+            "kernelTimeNanoseconds": 8217500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1162,
@@ -18114,7 +18114,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 4047600,
+            "kernelTimeNanoseconds": 4283300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1162,
@@ -18125,13 +18125,13 @@
         "summary": {
           "validSamples": 5,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 3056200,
-          "maximumKernelTimeNanoseconds": 6743100,
-          "medianKernelTimeNanoseconds": 4047600,
-          "meanKernelTimeNanoseconds": 4739700,
-          "standardDeviationKernelTimeNanoseconds": 1428501.3699678415,
-          "p95KernelTimeNanoseconds": 6743100,
-          "interquartileRangeKernelTimeNanoseconds": 2369400
+          "minimumKernelTimeNanoseconds": 3619100,
+          "maximumKernelTimeNanoseconds": 8217500,
+          "medianKernelTimeNanoseconds": 4207900,
+          "meanKernelTimeNanoseconds": 4808840,
+          "standardDeviationKernelTimeNanoseconds": 1724250.0162099462,
+          "p95KernelTimeNanoseconds": 8217500,
+          "interquartileRangeKernelTimeNanoseconds": 566900
         },
         "metrics": {
           "kernelTime": {
@@ -18147,9 +18147,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "1b4d35a1227fd7ef9d534200fa80f4212da3e699deeebe33b48ca05e282b466b",
+        "fingerprint": "a2c9fd259f43c4863bb6858c13024aad9bcbed535abd2158c04d9b47ed07531f",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -19124,7 +19124,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 4894,
+        "artifactSizeBytes": 5673,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -19138,13 +19138,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 242470700,
+        "totalProcessDurationNanoseconds": 174721800,
         "warmupIterations": 2,
         "measuredIterations": 5,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 12917900,
+            "kernelTimeNanoseconds": 4045200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1162,
@@ -19153,7 +19153,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 9118100,
+            "kernelTimeNanoseconds": 4476800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1162,
@@ -19162,7 +19162,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 7882100,
+            "kernelTimeNanoseconds": 4612200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1162,
@@ -19171,7 +19171,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 6956400,
+            "kernelTimeNanoseconds": 7596900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1162,
@@ -19180,7 +19180,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 7047300,
+            "kernelTimeNanoseconds": 3788800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1162,
@@ -19191,13 +19191,13 @@
         "summary": {
           "validSamples": 5,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 6956400,
-          "maximumKernelTimeNanoseconds": 12917900,
-          "medianKernelTimeNanoseconds": 7882100,
-          "meanKernelTimeNanoseconds": 8784360,
-          "standardDeviationKernelTimeNanoseconds": 2207732.9381970093,
-          "p95KernelTimeNanoseconds": 12917900,
-          "interquartileRangeKernelTimeNanoseconds": 2070800
+          "minimumKernelTimeNanoseconds": 3788800,
+          "maximumKernelTimeNanoseconds": 7596900,
+          "medianKernelTimeNanoseconds": 4476800,
+          "meanKernelTimeNanoseconds": 4903980,
+          "standardDeviationKernelTimeNanoseconds": 1378445.9342317348,
+          "p95KernelTimeNanoseconds": 7596900,
+          "interquartileRangeKernelTimeNanoseconds": 567000
         },
         "metrics": {
           "kernelTime": {
@@ -19213,9 +19213,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "7000f1a36b70a96f1cd04f4c01f24a67edc5ccc1e444bd1f3ecd11e1d132a665",
+        "fingerprint": "471b7ba085d4b1b67eb8175ecbc3089855dadfae9644be2a629f948ce2fb5dc4",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -20154,7 +20154,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 6169,
+        "artifactSizeBytes": 5564,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -20168,13 +20168,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 242809000,
+        "totalProcessDurationNanoseconds": 173808100,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 23132100,
+            "kernelTimeNanoseconds": 14497400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 11927,
@@ -20183,7 +20183,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 17853000,
+            "kernelTimeNanoseconds": 12816800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 11927,
@@ -20192,7 +20192,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 19102900,
+            "kernelTimeNanoseconds": 13380700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 11927,
@@ -20203,13 +20203,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 17853000,
-          "maximumKernelTimeNanoseconds": 23132100,
-          "medianKernelTimeNanoseconds": 19102900,
-          "meanKernelTimeNanoseconds": 20029333.333333332,
-          "standardDeviationKernelTimeNanoseconds": 2252544.2272140975,
-          "p95KernelTimeNanoseconds": 23132100,
-          "interquartileRangeKernelTimeNanoseconds": 5279100
+          "minimumKernelTimeNanoseconds": 12816800,
+          "maximumKernelTimeNanoseconds": 14497400,
+          "medianKernelTimeNanoseconds": 13380700,
+          "meanKernelTimeNanoseconds": 13564966.666666666,
+          "standardDeviationKernelTimeNanoseconds": 698364.6341433837,
+          "p95KernelTimeNanoseconds": 14497400,
+          "interquartileRangeKernelTimeNanoseconds": 1680600
         },
         "metrics": {
           "kernelTime": {
@@ -20225,9 +20225,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "57654fe13e9fabd93f1ae31c256908727ac18cf2d545f4c12672e393e303dc1f",
+        "fingerprint": "12d106d24f78c8541572ca465e7b55fe7edeadb15c3dafaff420d8400e9248fb",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -21076,7 +21076,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 6169,
+        "artifactSizeBytes": 5564,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -21090,13 +21090,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 169681900,
+        "totalProcessDurationNanoseconds": 125764000,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 13442700,
+            "kernelTimeNanoseconds": 6662100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 15737,
@@ -21105,7 +21105,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 13830300,
+            "kernelTimeNanoseconds": 6721500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 15737,
@@ -21114,7 +21114,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 14097800,
+            "kernelTimeNanoseconds": 6480400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 15737,
@@ -21125,13 +21125,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 13442700,
-          "maximumKernelTimeNanoseconds": 14097800,
-          "medianKernelTimeNanoseconds": 13830300,
-          "meanKernelTimeNanoseconds": 13790266.666666666,
-          "standardDeviationKernelTimeNanoseconds": 268937.4194037631,
-          "p95KernelTimeNanoseconds": 14097800,
-          "interquartileRangeKernelTimeNanoseconds": 655100
+          "minimumKernelTimeNanoseconds": 6480400,
+          "maximumKernelTimeNanoseconds": 6721500,
+          "medianKernelTimeNanoseconds": 6662100,
+          "meanKernelTimeNanoseconds": 6621333.333333333,
+          "standardDeviationKernelTimeNanoseconds": 102562.96710909948,
+          "p95KernelTimeNanoseconds": 6721500,
+          "interquartileRangeKernelTimeNanoseconds": 241100
         },
         "metrics": {
           "kernelTime": {
@@ -21147,9 +21147,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "304eeba7a90c0ec99df9c3969d0c91f149d71fff218ad58426d57a6855a98837",
+        "fingerprint": "81f90170045d00dd0d892201266ed6c9020cdf37357d75d1b6f191e33eb489ef",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -21998,7 +21998,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 6169,
+        "artifactSizeBytes": 5564,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -22012,13 +22012,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 141177000,
+        "totalProcessDurationNanoseconds": 119622100,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 6713100,
+            "kernelTimeNanoseconds": 4539200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5701,
@@ -22027,7 +22027,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 7171900,
+            "kernelTimeNanoseconds": 3526400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5701,
@@ -22036,7 +22036,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 6812500,
+            "kernelTimeNanoseconds": 3591500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5701,
@@ -22047,13 +22047,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 6713100,
-          "maximumKernelTimeNanoseconds": 7171900,
-          "medianKernelTimeNanoseconds": 6812500,
-          "meanKernelTimeNanoseconds": 6899166.666666667,
-          "standardDeviationKernelTimeNanoseconds": 197074.7630271878,
-          "p95KernelTimeNanoseconds": 7171900,
-          "interquartileRangeKernelTimeNanoseconds": 458800
+          "minimumKernelTimeNanoseconds": 3526400,
+          "maximumKernelTimeNanoseconds": 4539200,
+          "medianKernelTimeNanoseconds": 3591500,
+          "meanKernelTimeNanoseconds": 3885700,
+          "standardDeviationKernelTimeNanoseconds": 462857.9263661799,
+          "p95KernelTimeNanoseconds": 4539200,
+          "interquartileRangeKernelTimeNanoseconds": 1012800
         },
         "metrics": {
           "kernelTime": {
@@ -22069,9 +22069,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "f38ffe32ab40c46182b1c92a41576e15ca899aa6e3177db12dd144f164ad9721",
+        "fingerprint": "b2c43f5ae8ca14dea740c183fa45fd12ab81f997f2966a3329ebe0639054d73b",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -22920,7 +22920,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 6169,
+        "artifactSizeBytes": 5564,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -22934,13 +22934,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 116052200,
+        "totalProcessDurationNanoseconds": 97637500,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 3677400,
+            "kernelTimeNanoseconds": 2298600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 7195,
@@ -22949,7 +22949,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 3499700,
+            "kernelTimeNanoseconds": 1695700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 7195,
@@ -22958,7 +22958,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 2965800,
+            "kernelTimeNanoseconds": 1917100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 7195,
@@ -22969,13 +22969,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 2965800,
-          "maximumKernelTimeNanoseconds": 3677400,
-          "medianKernelTimeNanoseconds": 3499700,
-          "meanKernelTimeNanoseconds": 3380966.6666666665,
-          "standardDeviationKernelTimeNanoseconds": 302398.01954083994,
-          "p95KernelTimeNanoseconds": 3677400,
-          "interquartileRangeKernelTimeNanoseconds": 711600
+          "minimumKernelTimeNanoseconds": 1695700,
+          "maximumKernelTimeNanoseconds": 2298600,
+          "medianKernelTimeNanoseconds": 1917100,
+          "meanKernelTimeNanoseconds": 1970466.6666666667,
+          "standardDeviationKernelTimeNanoseconds": 249008.83964675275,
+          "p95KernelTimeNanoseconds": 2298600,
+          "interquartileRangeKernelTimeNanoseconds": 602900
         },
         "metrics": {
           "kernelTime": {
@@ -22991,9 +22991,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "22128c33aed2d40082101411fe0b4b52e86ed90a3e0be3111cdaff4d51d8b818",
+        "fingerprint": "2ca3d3473b201fc227fdf6bd9b7d9d054a44410d8771fea158d293ba93737109",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -23878,7 +23878,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 6169,
+        "artifactSizeBytes": 5564,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -23892,13 +23892,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 190058700,
+        "totalProcessDurationNanoseconds": 132670300,
         "warmupIterations": 2,
         "measuredIterations": 5,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 10779200,
+            "kernelTimeNanoseconds": 6620800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 7938,
@@ -23907,7 +23907,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 12944100,
+            "kernelTimeNanoseconds": 5770500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 7938,
@@ -23916,7 +23916,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 10875200,
+            "kernelTimeNanoseconds": 5824500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 7938,
@@ -23925,7 +23925,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 11633000,
+            "kernelTimeNanoseconds": 6065200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 7938,
@@ -23934,7 +23934,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 8902500,
+            "kernelTimeNanoseconds": 5704100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 7938,
@@ -23945,13 +23945,13 @@
         "summary": {
           "validSamples": 5,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 8902500,
-          "maximumKernelTimeNanoseconds": 12944100,
-          "medianKernelTimeNanoseconds": 10875200,
-          "meanKernelTimeNanoseconds": 11026800,
-          "standardDeviationKernelTimeNanoseconds": 1314568.8677281232,
-          "p95KernelTimeNanoseconds": 12944100,
-          "interquartileRangeKernelTimeNanoseconds": 853800
+          "minimumKernelTimeNanoseconds": 5704100,
+          "maximumKernelTimeNanoseconds": 6620800,
+          "medianKernelTimeNanoseconds": 5824500,
+          "meanKernelTimeNanoseconds": 5997020,
+          "standardDeviationKernelTimeNanoseconds": 334851.18724591675,
+          "p95KernelTimeNanoseconds": 6620800,
+          "interquartileRangeKernelTimeNanoseconds": 294700
         },
         "metrics": {
           "kernelTime": {
@@ -23967,9 +23967,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "ca8383771abd10dcf6419178a394e6428f7550d7ac3b14201f871be0280e0539",
+        "fingerprint": "1ef2df8acd30dbf20333a10ec95f21390122cde201e2e8bd9518ce0ace2c183f",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -24944,7 +24944,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 6169,
+        "artifactSizeBytes": 5564,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -24958,13 +24958,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 137285600,
+        "totalProcessDurationNanoseconds": 96851500,
         "warmupIterations": 2,
         "measuredIterations": 5,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 5409400,
+            "kernelTimeNanoseconds": 2838100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 10153,
@@ -24973,7 +24973,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 6054400,
+            "kernelTimeNanoseconds": 2650900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 10153,
@@ -24982,7 +24982,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 5937400,
+            "kernelTimeNanoseconds": 2516100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 10153,
@@ -24991,7 +24991,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 6353100,
+            "kernelTimeNanoseconds": 2542800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 10153,
@@ -25000,7 +25000,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 5420100,
+            "kernelTimeNanoseconds": 2532500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 10153,
@@ -25011,13 +25011,13 @@
         "summary": {
           "validSamples": 5,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 5409400,
-          "maximumKernelTimeNanoseconds": 6353100,
-          "medianKernelTimeNanoseconds": 5937400,
-          "meanKernelTimeNanoseconds": 5834880,
-          "standardDeviationKernelTimeNanoseconds": 368870.44554965367,
-          "p95KernelTimeNanoseconds": 6353100,
-          "interquartileRangeKernelTimeNanoseconds": 634300
+          "minimumKernelTimeNanoseconds": 2516100,
+          "maximumKernelTimeNanoseconds": 2838100,
+          "medianKernelTimeNanoseconds": 2542800,
+          "meanKernelTimeNanoseconds": 2616080,
+          "standardDeviationKernelTimeNanoseconds": 120711.96129630237,
+          "p95KernelTimeNanoseconds": 2838100,
+          "interquartileRangeKernelTimeNanoseconds": 118400
         },
         "metrics": {
           "kernelTime": {
@@ -25033,9 +25033,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "b0ccc8c8c7ab7841c4436aacf448626066c43a06315d974dc0232371078febce",
+        "fingerprint": "523fcb7d8ea7d343aff04cb7aaf91a2c24a56ea238ef7cb503817e156c725069",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -25974,7 +25974,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5115,
+        "artifactSizeBytes": 4907,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -25988,13 +25988,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 241646900,
+        "totalProcessDurationNanoseconds": 221735200,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 14956200,
+            "kernelTimeNanoseconds": 17087800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 502,
@@ -26003,7 +26003,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 16520000,
+            "kernelTimeNanoseconds": 17216800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 502,
@@ -26012,7 +26012,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 14961200,
+            "kernelTimeNanoseconds": 19443400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 502,
@@ -26023,13 +26023,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 14956200,
-          "maximumKernelTimeNanoseconds": 16520000,
-          "medianKernelTimeNanoseconds": 14961200,
-          "meanKernelTimeNanoseconds": 15479133.333333334,
-          "standardDeviationKernelTimeNanoseconds": 736006.708906621,
-          "p95KernelTimeNanoseconds": 16520000,
-          "interquartileRangeKernelTimeNanoseconds": 1563800
+          "minimumKernelTimeNanoseconds": 17087800,
+          "maximumKernelTimeNanoseconds": 19443400,
+          "medianKernelTimeNanoseconds": 17216800,
+          "meanKernelTimeNanoseconds": 17916000,
+          "standardDeviationKernelTimeNanoseconds": 1081318.1215535046,
+          "p95KernelTimeNanoseconds": 19443400,
+          "interquartileRangeKernelTimeNanoseconds": 2355600
         },
         "metrics": {
           "kernelTime": {
@@ -26045,9 +26045,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "f5a6f61d7d6be57ce8b000836dc8227c5064678a80966c83ac9f0c2b22993108",
+        "fingerprint": "a05ae10e2d6c89996a29385b2560d93b1b49ebfbddf1caa89e51e2d76aabfb1d",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -26896,7 +26896,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5115,
+        "artifactSizeBytes": 4907,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -26910,13 +26910,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 223087700,
+        "totalProcessDurationNanoseconds": 220166700,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 14792000,
+            "kernelTimeNanoseconds": 13286700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 513,
@@ -26925,7 +26925,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 10621700,
+            "kernelTimeNanoseconds": 14960800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 513,
@@ -26934,7 +26934,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 14448100,
+            "kernelTimeNanoseconds": 15373800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 513,
@@ -26945,13 +26945,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 10621700,
-          "maximumKernelTimeNanoseconds": 14792000,
-          "medianKernelTimeNanoseconds": 14448100,
-          "meanKernelTimeNanoseconds": 13287266.666666666,
-          "standardDeviationKernelTimeNanoseconds": 1890061.9113904415,
-          "p95KernelTimeNanoseconds": 14792000,
-          "interquartileRangeKernelTimeNanoseconds": 4170300
+          "minimumKernelTimeNanoseconds": 13286700,
+          "maximumKernelTimeNanoseconds": 15373800,
+          "medianKernelTimeNanoseconds": 14960800,
+          "meanKernelTimeNanoseconds": 14540433.333333334,
+          "standardDeviationKernelTimeNanoseconds": 902414.429307412,
+          "p95KernelTimeNanoseconds": 15373800,
+          "interquartileRangeKernelTimeNanoseconds": 2087100
         },
         "metrics": {
           "kernelTime": {
@@ -26967,9 +26967,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "07e59a92a726ed34416f7d1e5156d15a8a7350c6cee0a93816b046f2501d10f3",
+        "fingerprint": "7f110e195f075c43d50d10534aea7b26fa51a6f0725fb15b6d7c68f6b069bfc9",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -27818,7 +27818,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5115,
+        "artifactSizeBytes": 4907,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -27832,13 +27832,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 172892700,
+        "totalProcessDurationNanoseconds": 138907600,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 8194400,
+            "kernelTimeNanoseconds": 2913400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 501,
@@ -27847,7 +27847,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 5103500,
+            "kernelTimeNanoseconds": 2854200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 501,
@@ -27856,7 +27856,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 4977500,
+            "kernelTimeNanoseconds": 2741400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 501,
@@ -27867,13 +27867,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 4977500,
-          "maximumKernelTimeNanoseconds": 8194400,
-          "medianKernelTimeNanoseconds": 5103500,
-          "meanKernelTimeNanoseconds": 6091800,
-          "standardDeviationKernelTimeNanoseconds": 1487652.3048078136,
-          "p95KernelTimeNanoseconds": 8194400,
-          "interquartileRangeKernelTimeNanoseconds": 3216900
+          "minimumKernelTimeNanoseconds": 2741400,
+          "maximumKernelTimeNanoseconds": 2913400,
+          "medianKernelTimeNanoseconds": 2854200,
+          "meanKernelTimeNanoseconds": 2836333.3333333335,
+          "standardDeviationKernelTimeNanoseconds": 71346.16706982623,
+          "p95KernelTimeNanoseconds": 2913400,
+          "interquartileRangeKernelTimeNanoseconds": 172000
         },
         "metrics": {
           "kernelTime": {
@@ -27889,9 +27889,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "63e1f678be2eb1f6c1e87f9fb19811135ade708f171dd91b1b2a8f99eed377f8",
+        "fingerprint": "c7a4f7fd260924bb34ed250b90c3b6873466b5b645a836a99363c87eedca797b",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -28740,7 +28740,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5115,
+        "artifactSizeBytes": 4907,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -28754,13 +28754,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 166795400,
+        "totalProcessDurationNanoseconds": 142784500,
         "warmupIterations": 2,
         "measuredIterations": 3,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 5303100,
+            "kernelTimeNanoseconds": 4031400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 511,
@@ -28769,7 +28769,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 4404100,
+            "kernelTimeNanoseconds": 2487000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 511,
@@ -28778,7 +28778,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 4163600,
+            "kernelTimeNanoseconds": 2308100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 511,
@@ -28789,13 +28789,13 @@
         "summary": {
           "validSamples": 3,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 4163600,
-          "maximumKernelTimeNanoseconds": 5303100,
-          "medianKernelTimeNanoseconds": 4404100,
-          "meanKernelTimeNanoseconds": 4623600,
-          "standardDeviationKernelTimeNanoseconds": 490408.16333607933,
-          "p95KernelTimeNanoseconds": 5303100,
-          "interquartileRangeKernelTimeNanoseconds": 1139500
+          "minimumKernelTimeNanoseconds": 2308100,
+          "maximumKernelTimeNanoseconds": 4031400,
+          "medianKernelTimeNanoseconds": 2487000,
+          "meanKernelTimeNanoseconds": 2942166.6666666665,
+          "standardDeviationKernelTimeNanoseconds": 773659.3752349213,
+          "p95KernelTimeNanoseconds": 4031400,
+          "interquartileRangeKernelTimeNanoseconds": 1723300
         },
         "metrics": {
           "kernelTime": {
@@ -28811,9 +28811,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "fd4c247d70b2289d85b129f4a199790d8e341b5bccea0d495df298e99580f1c5",
+        "fingerprint": "8ae24015049f6a952e718513173da40921e2c6c15843b09b42e4f4ebe19d2013",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -29698,7 +29698,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5115,
+        "artifactSizeBytes": 4907,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -29712,13 +29712,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 171525600,
+        "totalProcessDurationNanoseconds": 140666700,
         "warmupIterations": 2,
         "measuredIterations": 5,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 4579300,
+            "kernelTimeNanoseconds": 4498700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 501,
@@ -29727,7 +29727,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 4666900,
+            "kernelTimeNanoseconds": 3106600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 501,
@@ -29736,7 +29736,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 4551400,
+            "kernelTimeNanoseconds": 2572900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 501,
@@ -29745,7 +29745,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 3596600,
+            "kernelTimeNanoseconds": 2842700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 501,
@@ -29754,7 +29754,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 4559500,
+            "kernelTimeNanoseconds": 3070900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 501,
@@ -29765,13 +29765,13 @@
         "summary": {
           "validSamples": 5,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 3596600,
-          "maximumKernelTimeNanoseconds": 4666900,
-          "medianKernelTimeNanoseconds": 4559500,
-          "meanKernelTimeNanoseconds": 4390740,
-          "standardDeviationKernelTimeNanoseconds": 399191.4658406414,
-          "p95KernelTimeNanoseconds": 4666900,
-          "interquartileRangeKernelTimeNanoseconds": 27900
+          "minimumKernelTimeNanoseconds": 2572900,
+          "maximumKernelTimeNanoseconds": 4498700,
+          "medianKernelTimeNanoseconds": 3070900,
+          "meanKernelTimeNanoseconds": 3218360,
+          "standardDeviationKernelTimeNanoseconds": 668018.6093216266,
+          "p95KernelTimeNanoseconds": 4498700,
+          "interquartileRangeKernelTimeNanoseconds": 263900
         },
         "metrics": {
           "kernelTime": {
@@ -29787,9 +29787,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "5e6bc74d4f09aab9e010ba3903b8634a39735091dd5504ba3ec47b5d1ee24efb",
+        "fingerprint": "e048858139d12c7fbea1e1f716ce49db2c58e05ec2e05f2193d91b6d8b66985f",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -30764,7 +30764,7 @@
       "build": {
         "status": "cached",
         "durationNanoseconds": 0,
-        "artifactSizeBytes": 5115,
+        "artifactSizeBytes": 4907,
         "command": [
           "node",
           "{projectRoot}/scripts/build-java.mjs",
@@ -30778,13 +30778,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 186967400,
+        "totalProcessDurationNanoseconds": 147685800,
         "warmupIterations": 2,
         "measuredIterations": 5,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 6762500,
+            "kernelTimeNanoseconds": 3619900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 511,
@@ -30793,7 +30793,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 5149000,
+            "kernelTimeNanoseconds": 3347800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 511,
@@ -30802,7 +30802,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 5348800,
+            "kernelTimeNanoseconds": 3008000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 511,
@@ -30811,7 +30811,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 5082200,
+            "kernelTimeNanoseconds": 2540700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 511,
@@ -30820,7 +30820,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 4938300,
+            "kernelTimeNanoseconds": 2102900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 511,
@@ -30831,13 +30831,13 @@
         "summary": {
           "validSamples": 5,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 4938300,
-          "maximumKernelTimeNanoseconds": 6762500,
-          "medianKernelTimeNanoseconds": 5149000,
-          "meanKernelTimeNanoseconds": 5456160,
-          "standardDeviationKernelTimeNanoseconds": 666396.6824647314,
-          "p95KernelTimeNanoseconds": 6762500,
-          "interquartileRangeKernelTimeNanoseconds": 266600
+          "minimumKernelTimeNanoseconds": 2102900,
+          "maximumKernelTimeNanoseconds": 3619900,
+          "medianKernelTimeNanoseconds": 3008000,
+          "meanKernelTimeNanoseconds": 2923860,
+          "standardDeviationKernelTimeNanoseconds": 546271.5903284738,
+          "p95KernelTimeNanoseconds": 3619900,
+          "interquartileRangeKernelTimeNanoseconds": 807100
         },
         "metrics": {
           "kernelTime": {
@@ -30853,9 +30853,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "4a51a9c3ab6d9c57dacee7536dff83a6e5920880317e0cd3eb35f50bb13b2bd5",
+        "fingerprint": "ab8bcc9a3bba83ada3bf2751e1c68e2bcee65fc8aea33f399406363d1f3681d1",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T21:40:44.132Z",
+        "measuredAt": "2026-07-19T22:07:35.664Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",

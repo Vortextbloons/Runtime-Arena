@@ -1,20 +1,220 @@
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
 
 public final class Main {
-    private static final class Json { final String s; int p; Json(String x){s=x;} void ws(){while(p<s.length()&&Character.isWhitespace(s.charAt(p)))p++;} Object v(){ws();char c=s.charAt(p);if(c=='{')return o();if(c=='[')return a();if(c=='"')return q();if(s.startsWith("null",p)){p+=4;return null;}int z=p;while(p<s.length()&&" ,]}\r\n\t".indexOf(s.charAt(p))<0)p++;String n=s.substring(z,p);return n.indexOf('.')>=0||n.indexOf('e')>=0||n.indexOf('E')>=0?Double.valueOf(n):Long.valueOf(n);} Map<String,Object> o(){java.util.LinkedHashMap<String,Object>m=new java.util.LinkedHashMap<>();p++;ws();if(s.charAt(p)=='}'){p++;return m;}for(;;){ws();String k=(String)q();ws();p++;m.put(k,v());ws();if(s.charAt(p++)=='}')return m;}} List<Object>a(){ArrayList<Object>x=new ArrayList<>();p++;ws();if(s.charAt(p)==']'){p++;return x;}for(;;){x.add(v());ws();if(s.charAt(p++)==']')return x;}} Object q(){p++;StringBuilder b=new StringBuilder();while(s.charAt(p)!='"'){char c=s.charAt(p++);if(c=='\\'){c=s.charAt(p++);if(c=='u'){b.append((char)Integer.parseInt(s.substring(p,p+4),16));p+=4;}else b.append(c=='n'?'\n':c=='r'?'\r':c=='t'?'\t':c);}else b.append(c);}p++;return b.toString();} }
-    static int i(Object x){return ((Number)x).intValue();} static long l(Object x){return ((Number)x).longValue();} static String arg(String[]a,String n){for(int j=0;j+1<a.length;j++)if(a[j].equals(n))return a[j+1];throw new IllegalArgumentException("missing "+n);}
-    static final class Edge { int to; long w; Edge(int t,long x){to=t;w=x;} } static final class Query {int id,s,d;Query(int i,int s,int d){id=i;this.s=s;this.d=d;}}
-    static final class Input {int n;List<Edge>[] adj;List<Query> qs;}
-    static Input read(String f)throws IOException{ @SuppressWarnings("unchecked") Map<String,Object>m=(Map<String,Object>)new Json(Files.readString(Path.of(f))).v();Input x=new Input();x.n=i(m.get("vertexCount"));x.adj=new List[x.n];for(int j=0;j<x.n;j++)x.adj[j]=new ArrayList<>();@SuppressWarnings("unchecked")List<Object>es=(List<Object>)m.get("edges");for(Object z:es){@SuppressWarnings("unchecked")Map<String,Object>e=(Map<String,Object>)z;x.adj[i(e.get("from"))].add(new Edge(i(e.get("to")),l(e.get("weight"))));}@SuppressWarnings("unchecked")List<Object>qs=(List<Object>)m.get("queries");x.qs=new ArrayList<>();for(Object z:qs){@SuppressWarnings("unchecked")Map<String,Object>q=(Map<String,Object>)z;x.qs.add(new Query(i(q.get("id")),i(q.get("source")),i(q.get("destination"))));}return x; }
-    static final class Item {int node;long d;Item(int n,long d){node=n;this.d=d;}}
-    static List<String> kernel(Input g){final long INF=Long.MAX_VALUE;List<String>r=new ArrayList<>();for(Query q:g.qs){long[]d=new long[g.n];Arrays.fill(d,INF);int[]pr=new int[g.n];Arrays.fill(pr,-1);d[q.s]=0;PriorityQueue<Item>h=new PriorityQueue<>(Comparator.comparingLong(x->x.d));h.add(new Item(q.s,0));while(!h.isEmpty()){Item x=h.poll();if(x.d!=d[x.node])continue;for(Edge e:g.adj[x.node]){long nd=x.d+e.w;if(nd<d[e.to]){d[e.to]=nd;pr[e.to]=x.node;h.add(new Item(e.to,nd));}}}if(d[q.d]==INF)r.add("{\"queryId\":"+q.id+",\"distance\":null,\"path\":[]}");else{List<Integer>p=new ArrayList<>();for(int z=q.d;z!=-1;z=pr[z])p.add(z);StringBuilder b=new StringBuilder("{\"queryId\":").append(q.id).append(",\"distance\":").append(d[q.d]).append(",\"path\":[");for(int j=p.size()-1;j>=0;j--){if(j<p.size()-1)b.append(',');b.append(p.get(j));}r.add(b.append("]}").toString());}}return r;}
-    public static void main(String[]a)throws Exception{Input g=read(arg(a,"--input"));String of=arg(a,"--output"),tf=arg(a,"--timing-output");int w=i(Long.valueOf(arg(a,"--warmup"))),n=i(Long.valueOf(arg(a,"--iterations")));List<String>res=null;StringBuilder t=new StringBuilder("{\"samples\":[");for(int z=-w;z<n;z++){long st=System.nanoTime();res=kernel(g);long e=Math.max(1,System.nanoTime()-st);if(z>=0){if(z>0)t.append(',');t.append("{\"iteration\":").append(z+1).append(",\"kernelTimeNanoseconds\":").append(e).append('}');}}t.append("]}");StringBuilder out=new StringBuilder("{\"benchmark\":\"shortest-path\",\"version\":1,\"results\":[");for(int j=0;j<res.size();j++){if(j>0)out.append(',');out.append(res.get(j));}Files.writeString(Path.of(of),out.append("]}").toString());Files.writeString(Path.of(tf),t.toString());}
+    private static final long INF = Long.MAX_VALUE;
+
+    private static final class Json {
+        final String text; int position;
+        Json(String text) { this.text = text; }
+        void whitespace() { while (position < text.length() && Character.isWhitespace(text.charAt(position))) position++; }
+        Object value() {
+            whitespace(); char c = text.charAt(position);
+            if (c == '{') return object(); if (c == '[') return array(); if (c == '"') return string();
+            if (text.startsWith("null", position)) { position += 4; return null; }
+            int start = position;
+            while (position < text.length() && " ,]}\r\n\t".indexOf(text.charAt(position)) < 0) position++;
+            String number = text.substring(start, position);
+            return number.indexOf('.') >= 0 || number.indexOf('e') >= 0 || number.indexOf('E') >= 0
+                    ? Double.valueOf(number) : Long.valueOf(number);
+        }
+        Map<String, Object> object() {
+            Map<String, Object> result = new HashMap<>(); position++; whitespace();
+            if (text.charAt(position) == '}') { position++; return result; }
+            while (true) {
+                whitespace(); String key = string(); whitespace(); position++;
+                result.put(key, value()); whitespace();
+                if (text.charAt(position++) == '}') return result;
+            }
+        }
+        List<Object> array() {
+            ArrayList<Object> result = new ArrayList<>(); position++; whitespace();
+            if (text.charAt(position) == ']') { position++; return result; }
+            while (true) {
+                result.add(value()); whitespace();
+                if (text.charAt(position++) == ']') return result;
+            }
+        }
+        String string() {
+            position++; StringBuilder result = new StringBuilder();
+            while (text.charAt(position) != '"') {
+                char c = text.charAt(position++);
+                if (c == '\\') {
+                    c = text.charAt(position++);
+                    if (c == 'u') { result.append((char) Integer.parseInt(text.substring(position, position + 4), 16)); position += 4; }
+                    else result.append(c == 'n' ? '\n' : c == 'r' ? '\r' : c == 't' ? '\t' : c);
+                } else result.append(c);
+            }
+            position++; return result.toString();
+        }
+    }
+
+    private static final class Query {
+        final int id, source, destination;
+        Query(int id, int source, int destination) { this.id = id; this.source = source; this.destination = destination; }
+    }
+
+    private static final class Graph {
+        final int vertexCount;
+        final int[] offsets;
+        final int[] destinations;
+        final long[] weights;
+        final Query[] queries;
+
+        Graph(int vertexCount, int[] offsets, int[] destinations, long[] weights, Query[] queries) {
+            this.vertexCount = vertexCount; this.offsets = offsets;
+            this.destinations = destinations; this.weights = weights; this.queries = queries;
+        }
+    }
+
+    private static int integer(Object value) { return ((Number) value).intValue(); }
+    private static long number(Object value) { return ((Number) value).longValue(); }
+    private static String argument(String[] args, String name) {
+        for (int i = 0; i + 1 < args.length; i++) if (args[i].equals(name)) return args[i + 1];
+        throw new IllegalArgumentException("missing " + name);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Graph read(String file) throws IOException {
+        Map<String, Object> root = (Map<String, Object>) new Json(Files.readString(Path.of(file), StandardCharsets.UTF_8)).value();
+        int vertexCount = integer(root.get("vertexCount"));
+        List<Object> rawEdges = (List<Object>) root.get("edges");
+        int[] degree = new int[vertexCount];
+        for (Object raw : rawEdges) {
+            Map<String, Object> edge = (Map<String, Object>) raw;
+            degree[integer(edge.get("from"))]++;
+        }
+        int[] offsets = new int[vertexCount + 1];
+        for (int vertex = 0; vertex < vertexCount; vertex++) offsets[vertex + 1] = offsets[vertex] + degree[vertex];
+        int[] destinations = new int[rawEdges.size()];
+        long[] weights = new long[rawEdges.size()];
+        int[] next = Arrays.copyOf(offsets, vertexCount);
+        for (Object raw : rawEdges) {
+            Map<String, Object> edge = (Map<String, Object>) raw;
+            int from = integer(edge.get("from"));
+            int slot = next[from]++;
+            destinations[slot] = integer(edge.get("to"));
+            weights[slot] = number(edge.get("weight"));
+        }
+        List<Object> rawQueries = (List<Object>) root.get("queries");
+        Query[] queries = new Query[rawQueries.size()];
+        for (int i = 0; i < queries.length; i++) {
+            Map<String, Object> query = (Map<String, Object>) rawQueries.get(i);
+            queries[i] = new Query(integer(query.get("id")), integer(query.get("source")), integer(query.get("destination")));
+        }
+        return new Graph(vertexCount, offsets, destinations, weights, queries);
+    }
+
+    private static void push(long[] heapDistances, int[] heapNodes, int[] size, long distance, int node) {
+        int index = size[0]++;
+        while (index > 0) {
+            int parent = (index - 1) >>> 1;
+            if (heapDistances[parent] <= distance) break;
+            heapDistances[index] = heapDistances[parent];
+            heapNodes[index] = heapNodes[parent];
+            index = parent;
+        }
+        heapDistances[index] = distance;
+        heapNodes[index] = node;
+    }
+
+    private static long popDistance(long[] heapDistances, int[] heapNodes, int[] size) {
+        long result = heapDistances[0];
+        int last = --size[0];
+        if (last == 0) return result;
+        long distance = heapDistances[last];
+        int node = heapNodes[last];
+        int index = 0;
+        int half = last >>> 1;
+        while (index < half) {
+            int child = (index << 1) + 1;
+            if (child + 1 < last && heapDistances[child + 1] < heapDistances[child]) child++;
+            if (heapDistances[child] >= distance) break;
+            heapDistances[index] = heapDistances[child];
+            heapNodes[index] = heapNodes[child];
+            index = child;
+        }
+        heapDistances[index] = distance;
+        heapNodes[index] = node;
+        return result;
+    }
+
+    private static String kernel(Graph graph) {
+        long[] distances = new long[graph.vertexCount];
+        int[] previous = new int[graph.vertexCount];
+        long[] heapDistances = new long[graph.weights.length + 1];
+        int[] heapNodes = new int[graph.weights.length + 1];
+        int[] heapSize = new int[1];
+        int[] path = new int[graph.vertexCount];
+        StringBuilder output = new StringBuilder(graph.queries.length * 64)
+                .append("{\"benchmark\":\"shortest-path\",\"version\":1,\"results\":[");
+
+        for (int queryIndex = 0; queryIndex < graph.queries.length; queryIndex++) {
+            Query query = graph.queries[queryIndex];
+            Arrays.fill(distances, INF);
+            Arrays.fill(previous, -1);
+            heapSize[0] = 0;
+            distances[query.source] = 0;
+            push(heapDistances, heapNodes, heapSize, 0, query.source);
+            while (heapSize[0] != 0) {
+                int node = heapNodes[0];
+                long distance = popDistance(heapDistances, heapNodes, heapSize);
+                if (distance != distances[node]) continue;
+                for (int edge = graph.offsets[node]; edge < graph.offsets[node + 1]; edge++) {
+                    int destination = graph.destinations[edge];
+                    long nextDistance = distance + graph.weights[edge];
+                    if (nextDistance < distances[destination]) {
+                        distances[destination] = nextDistance;
+                        previous[destination] = node;
+                        push(heapDistances, heapNodes, heapSize, nextDistance, destination);
+                    }
+                }
+            }
+
+            if (queryIndex != 0) output.append(',');
+            output.append("{\"queryId\":").append(query.id);
+            if (distances[query.destination] == INF) {
+                output.append(",\"distance\":null,\"path\":[]}");
+                continue;
+            }
+            output.append(",\"distance\":").append(distances[query.destination]).append(",\"path\":[");
+            int pathLength = 0;
+            for (int node = query.destination; node != -1; node = previous[node]) path[pathLength++] = node;
+            for (int i = pathLength - 1; i >= 0; i--) {
+                if (i != pathLength - 1) output.append(',');
+                output.append(path[i]);
+            }
+            output.append("]}");
+        }
+        return output.append("]}").toString();
+    }
+
+    public static void main(String[] args) throws Exception {
+        Graph graph = read(argument(args, "--input"));
+        String outputFile = argument(args, "--output");
+        String timingFile = argument(args, "--timing-output");
+        int warmup = Integer.parseInt(argument(args, "--warmup"));
+        int iterations = Integer.parseInt(argument(args, "--iterations"));
+        String result = null;
+        StringBuilder samples = new StringBuilder("{\"samples\":[");
+        for (int run = -warmup; run < iterations; run++) {
+            long start = System.nanoTime();
+            result = kernel(graph);
+            long elapsed = Math.max(1L, System.nanoTime() - start);
+            if (run >= 0) {
+                if (run > 0) samples.append(',');
+                samples.append("{\"iteration\":").append(run + 1)
+                        .append(",\"kernelTimeNanoseconds\":").append(elapsed).append('}');
+            }
+        }
+        Files.writeString(Path.of(outputFile), result, StandardCharsets.UTF_8);
+        Files.writeString(Path.of(timingFile), samples.append("]}").toString(), StandardCharsets.UTF_8);
+    }
 }

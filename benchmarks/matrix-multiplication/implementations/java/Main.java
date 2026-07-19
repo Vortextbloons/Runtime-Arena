@@ -3,9 +3,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 public final class Main {
+    private static final char[] HEX = "0123456789abcdef".toCharArray();
+
     private static final class Input {
         final int dimension;
         final long[] left;
@@ -36,9 +37,7 @@ public final class Main {
         private final String text;
         private int position;
 
-        JsonInput(String text) {
-            this.text = text;
-        }
+        JsonInput(String text) { this.text = text; }
 
         Input parse() {
             int dimension = 0;
@@ -67,20 +66,26 @@ public final class Main {
         }
 
         private long[] parseArray() {
-            java.util.ArrayList<Long> values = new java.util.ArrayList<>();
+            long[] values = new long[16];
+            int count = 0;
             skipWhitespace();
             expect('[');
             skipWhitespace();
             if (!consume(']')) {
                 while (true) {
-                    values.add(parseLong());
+                    if (count == values.length) {
+                        long[] expanded = new long[values.length * 2];
+                        System.arraycopy(values, 0, expanded, 0, values.length);
+                        values = expanded;
+                    }
+                    values[count++] = parseLong();
                     skipWhitespace();
                     if (consume(']')) break;
                     expect(',');
                 }
             }
-            long[] result = new long[values.size()];
-            for (int i = 0; i < result.length; i++) result[i] = values.get(i);
+            long[] result = new long[count];
+            System.arraycopy(values, 0, result, 0, count);
             return result;
         }
 
@@ -143,30 +148,90 @@ public final class Main {
         }
     }
 
-    private static Result kernel(Input input) throws NoSuchAlgorithmException {
+    private static final class DigestWriter {
+        private final MessageDigest digest;
+        private final byte[] buffer = new byte[8192];
+        private final byte[] digits = new byte[20];
+        private int position;
+
+        DigestWriter(MessageDigest digest) { this.digest = digest; }
+
+        void writeAscii(String value) {
+            for (int i = 0; i < value.length(); i++) writeByte((byte) value.charAt(i));
+        }
+
+        void writeByte(byte value) {
+            if (position == buffer.length) flush();
+            buffer[position++] = value;
+        }
+
+        void writeLong(long value) {
+            if (value == Long.MIN_VALUE) {
+                writeAscii("-9223372036854775808");
+                return;
+            }
+            boolean negative = value < 0;
+            if (negative) value = -value;
+            int start = digits.length;
+            do {
+                digits[--start] = (byte) ('0' + value % 10);
+                value /= 10;
+            } while (value != 0);
+            if (negative) digits[--start] = '-';
+            while (start < digits.length) writeByte(digits[start++]);
+        }
+
+        byte[] finish() {
+            if (position != 0) digest.update(buffer, 0, position);
+            return digest.digest();
+        }
+
+        private void flush() {
+            digest.update(buffer, 0, position);
+            position = 0;
+        }
+    }
+
+    private static String hex(byte[] digest) {
+        char[] result = new char[digest.length * 2];
+        for (int i = 0; i < digest.length; i++) {
+            int value = digest[i] & 0xff;
+            result[i * 2] = HEX[value >>> 4];
+            result[i * 2 + 1] = HEX[value & 15];
+        }
+        return new String(result);
+    }
+
+    private static Result kernel(Input input) throws Exception {
         int n = input.dimension;
-        long[] c = new long[n * n];
+        long[] product = new long[n * n];
         long valueSum = 0;
         long diagonalSum = 0;
         for (int i = 0; i < n; i++) {
+            int leftBase = i * n;
+            int outputBase = i * n;
             for (int j = 0; j < n; j++) {
                 long sum = 0;
-                for (int k = 0; k < n; k++) {
-                    sum += input.left[i * n + k] * input.right[k * n + j];
+                int rightIndex = j;
+                for (int k = 0; k < n; k++, rightIndex += n) {
+                    sum += input.left[leftBase + k] * input.right[rightIndex];
                 }
-                c[i * n + j] = sum;
+                product[outputBase + j] = sum;
                 valueSum += sum;
                 if (i == j) diagonalSum += sum;
             }
         }
 
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        digest.update(("dimension=" + n + "\n").getBytes(StandardCharsets.UTF_8));
-        for (long value : c) digest.update((Long.toString(value) + ",").getBytes(StandardCharsets.UTF_8));
-        digest.update((byte) '\n');
-        StringBuilder checksum = new StringBuilder(64);
-        for (byte value : digest.digest()) checksum.append(String.format("%02x", value & 0xff));
-        return new Result(n, valueSum, diagonalSum, checksum.toString());
+        DigestWriter writer = new DigestWriter(MessageDigest.getInstance("SHA-256"));
+        writer.writeAscii("dimension=");
+        writer.writeLong(n);
+        writer.writeByte((byte) '\n');
+        for (long value : product) {
+            writer.writeLong(value);
+            writer.writeByte((byte) ',');
+        }
+        writer.writeByte((byte) '\n');
+        return new Result(n, valueSum, diagonalSum, hex(writer.finish()));
     }
 
     private static String argument(String[] args, String name) {
@@ -203,8 +268,7 @@ public final class Main {
                         .append(",\"kernelTimeNanoseconds\":").append(elapsed).append('}');
             }
         }
-        samples.append("]}");
         Files.writeString(Path.of(outputPath), outputJson(result), StandardCharsets.UTF_8);
-        Files.writeString(Path.of(timingPath), samples.toString(), StandardCharsets.UTF_8);
+        Files.writeString(Path.of(timingPath), samples.append("]}").toString(), StandardCharsets.UTF_8);
     }
 }

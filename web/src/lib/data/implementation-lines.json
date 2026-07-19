@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-19T21:43:33.333Z",
+  "generatedAt": "2026-07-19T22:07:46.728Z",
   "cells": {
     "aggregation:cpp": {
       "logicalLines": 202,
@@ -21,12 +21,12 @@
       "sha256": "348a26a2d32cc3df7c589d1046b7a2cff324442fd652158151da773a4f4a2237"
     },
     "aggregation:java": {
-      "logicalLines": 48,
+      "logicalLines": 225,
       "fileCount": 1,
       "files": [
         "Main.java"
       ],
-      "sha256": "e6aaaed1a46ccf07069b7d7b9dfd0024309fc43426d506bfd73136b314f3e613"
+      "sha256": "1bd72c00c5d3118062d88b9ae4079a59e996c6c36e4e2154aaddad28a3c9d631"
     },
     "aggregation:javascript": {
       "logicalLines": 6,
@@ -89,12 +89,12 @@
       "sha256": "83d005eaa6f063633750d977da3b4cec8aabc3c1713d58be978b025b631ccb67"
     },
     "barrier-wave:java": {
-      "logicalLines": 26,
+      "logicalLines": 174,
       "fileCount": 1,
       "files": [
         "Main.java"
       ],
-      "sha256": "4ccefcd8f0a2e140eb9b27460d7da0920eb53112e142b677ba5841b0475c68c1"
+      "sha256": "0f5d2d883ccacd7ae262f19c106ca71c52279f525f447b28f39f06f9e1274381"
     },
     "barrier-wave:javascript": {
       "logicalLines": 38,
@@ -149,12 +149,12 @@
       "sha256": "13a368a9154f15c69514ebac0ec528a863753e84881e985ebf6021545c969114"
     },
     "matrix-multiplication:java": {
-      "logicalLines": 189,
+      "logicalLines": 244,
       "fileCount": 1,
       "files": [
         "Main.java"
       ],
-      "sha256": "beb83d849bbb020e2c0d045796373020e94ca16a9d8117d752ad97f75143f6f3"
+      "sha256": "a2335bb19a634e089d87beb105a123a714585ab6bdd697f9e96041e9c3ea93d1"
     },
     "matrix-multiplication:javascript": {
       "logicalLines": 35,
@@ -285,12 +285,12 @@
       "sha256": "6fa4c7cfcaee764bf8b75eec1f34731df110bb3f2c901745dfc23655ac858c52"
     },
     "record-sorting:java": {
-      "logicalLines": 38,
+      "logicalLines": 252,
       "fileCount": 1,
       "files": [
         "Main.java"
       ],
-      "sha256": "ef1bc32c2f440fd1909cdbf4110e7acdf8aa158d243b2705355a3cb7c4f72be6"
+      "sha256": "956fac4e6a9b91995320abff883b524b225a6a7e784819b8084b70e2e202a3c4"
     },
     "record-sorting:javascript": {
       "logicalLines": 22,
@@ -353,12 +353,12 @@
       "sha256": "ee16dbe6f2e4b2805312a3996670077a96ee7e8379c83ea32260b99943be856e"
     },
     "shortest-path:java": {
-      "logicalLines": 19,
+      "logicalLines": 207,
       "fileCount": 1,
       "files": [
         "Main.java"
       ],
-      "sha256": "15cff8b3b66b73a6e313b9274f32db18267404dd7e8b13d7086571052be050cc"
+      "sha256": "cc8f7c50247a46c2482fbe0f51c6c8565c359b59fdba1e103fecf573e30aa2b9"
     },
     "shortest-path:javascript": {
       "logicalLines": 95,
@@ -421,12 +421,12 @@
       "sha256": "58693e0d366a9e1c31a9bb88c978935f7205fa1738d8333bf7fd69bec05c71fd"
     },
     "word-frequency:java": {
-      "logicalLines": 121,
+      "logicalLines": 169,
       "fileCount": 1,
       "files": [
         "Main.java"
       ],
-      "sha256": "f3e47d9a94caac9f330924f253e7f0e0e02aaab3c8fc2a0815a2be8a1139fe46"
+      "sha256": "647b2716bdab8e627adeff1437965cc087eef38770e1882e9413c03c0c03ad47"
     },
     "word-frequency:javascript": {
       "logicalLines": 24,
