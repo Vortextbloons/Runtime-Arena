@@ -1,9 +1,10 @@
 <script lang="ts">
 	import BenchmarkChart from './BenchmarkChart.svelte';
 	import BenchmarkScorecard from './BenchmarkScorecard.svelte';
+	import OverallCard from './OverallCard.svelte';
 	import OverallChart from './OverallChart.svelte';
 	import { scoreBenchmark, scoreOverall } from './scoring';
-	import type { ArenaRun } from './types';
+	import type { ArenaRun, BenchmarkScore } from './types';
 
 	let {
 		title,
@@ -20,6 +21,7 @@
 	} = $props();
 
 	let view = $state<'chart' | 'scorecard'>('chart');
+	let expandedCard = $state<BenchmarkScore | null>(null);
 	const benchmarks = $derived([...new Set(run.results.map((result) => result.benchmark.id))].toSorted());
 	let selectedBenchmark = $derived(fixedBenchmark ?? 'overall');
 	const activeBenchmark = $derived(selectedBenchmark);
@@ -106,7 +108,47 @@
 			<BenchmarkChart results={benchmarkResults} languageId={fixedLanguage} />
 		{/if}
 	{:else}
-		<BenchmarkScorecard scores={visibleScores} />
+		{#if activeBenchmark === 'overall'}
+			<div class="card-grid">
+				{#each allScores as score (score.language.id)}
+					<OverallCard {score} onexpand={() => expandedCard = score} />
+				{/each}
+			</div>
+		{:else}
+			<BenchmarkScorecard scores={visibleScores} />
+		{/if}
+	{/if}
+
+	{#if expandedCard}
+		<div class="card-overlay" onclick={() => expandedCard = null} onkeydown={(e) => { if (e.key === 'Escape') expandedCard = null; }} role="dialog" aria-modal="true" tabindex="-1">
+			<div class="card-overlay-inner" role="group" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
+				<OverallCard score={expandedCard} />
+				{#if expandedCard.benchmarks && expandedCard.benchmarks.length}
+					<div class="expanded-details">
+						<h3>Benchmark breakdown</h3>
+						<div class="expanded-table">
+							<div class="expanded-table-head">
+								<span>Benchmark</span>
+								<span>Overall</span>
+								<span>Performance</span>
+								<span>Consistency</span>
+								<span>Scalability</span>
+							</div>
+							{#each expandedCard.benchmarks as bench (bench.benchmarkId)}
+								<div class="expanded-table-row">
+									<strong>{bench.benchmarkId}</strong>
+									<code>{Math.round(bench.overall)}</code>
+									<code>{Math.round(bench.performance)}</code>
+									<code>{Math.round(bench.consistency)}</code>
+									<code>{Math.round(bench.scalability)}</code>
+								</div>
+							{/each}
+						</div>
+					</div>
+				{/if}
+				<button class="expanded-close" onclick={() => expandedCard = null} type="button">✕</button>
+			</div>
+		</div>
 	{/if}
 
 	<details class="run-details">
@@ -166,4 +208,127 @@
 		dl { grid-template-columns: 1fr 1fr; }
 	}
 	@media (max-width: 430px) { dl { grid-template-columns: 1fr; } }
+
+	.card-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+		gap: 1.2rem;
+		padding: 0.5rem 0 2rem;
+	}
+
+	.card-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 100;
+		display: grid;
+		place-items: center;
+		background: rgba(0, 0, 0, 0.7);
+		backdrop-filter: blur(8px);
+		padding: 2rem;
+	}
+
+	.card-overlay-inner {
+		position: relative;
+		display: grid;
+		grid-template-columns: 1fr 1.4fr;
+		gap: 2rem;
+		align-items: start;
+		max-width: 880px;
+		width: 100%;
+		max-height: 85vh;
+		overflow-y: auto;
+	}
+
+	.card-overlay-inner :global(.card) {
+		cursor: default;
+		transform: none;
+	}
+
+	.card-overlay-inner :global(.card:hover) {
+		transform: none;
+	}
+
+	.expanded-details {
+		background: var(--panel);
+		border: 1px solid var(--rule);
+		border-radius: 1rem;
+		padding: 1.5rem;
+	}
+
+	.expanded-details h3 {
+		margin: 0 0 1rem;
+		font: 650 0.72rem var(--mono);
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--muted);
+	}
+
+	.expanded-table {
+		display: flex;
+		flex-direction: column;
+		border-top: 1px solid var(--rule);
+	}
+
+	.expanded-table-head,
+	.expanded-table-row {
+		display: grid;
+		grid-template-columns: 1.2fr repeat(4, 1fr);
+		gap: 0.6rem;
+		padding: 0.65rem 0;
+		border-bottom: 1px solid var(--rule);
+		align-items: center;
+	}
+
+	.expanded-table-head {
+		color: var(--muted);
+		font: 600 0.58rem var(--mono);
+		text-transform: uppercase;
+	}
+
+	.expanded-table-row {
+		font-size: 0.78rem;
+	}
+
+	.expanded-table-row strong {
+		text-transform: capitalize;
+	}
+
+	.expanded-table-row code {
+		font-family: var(--mono);
+		text-align: center;
+	}
+
+	.expanded-close {
+		position: absolute;
+		top: 0.5rem;
+		right: 0.5rem;
+		width: 2rem;
+		height: 2rem;
+		display: grid;
+		place-items: center;
+		border: 1px solid var(--rule);
+		border-radius: 0.4rem;
+		background: var(--panel);
+		color: var(--muted);
+		cursor: pointer;
+		font-size: 0.9rem;
+	}
+
+	.expanded-close:hover {
+		color: var(--text);
+		border-color: var(--muted);
+	}
+
+	@media (max-width: 700px) {
+		.card-overlay { padding: 1rem; }
+		.card-overlay-inner {
+			grid-template-columns: 1fr;
+			max-height: 90vh;
+		}
+		.expanded-table-head,
+		.expanded-table-row {
+			grid-template-columns: 1fr repeat(4, 0.8fr);
+			font-size: 0.68rem;
+		}
+	}
 </style>
