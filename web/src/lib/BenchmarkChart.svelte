@@ -15,7 +15,7 @@
 		rust: '#d97852',
 		go: '#58b7d6',
 		typescript: '#7797df',
-		lua: '#c678dd',
+		lua: '#2554C7',
 		python: '#f0c040'
 	};
 

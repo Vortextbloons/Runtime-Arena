@@ -19,7 +19,13 @@
       "--input",
       "{inputFile}",
       "--output",
-      "{outputFile}"
+      "{outputFile}",
+      "--timing-output",
+      "{timingOutputFile}",
+      "--warmup",
+      "{warmupIterations}",
+      "--iterations",
+      "{measuredIterations}"
     ]
   },
   "environment": {},

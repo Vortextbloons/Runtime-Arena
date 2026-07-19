@@ -102,7 +102,7 @@
 		</div>
 		<p>
 			{view === 'chart' && activeBenchmark === 'overall'
-				? 'Each bar is the language’s weighted average across every benchmark.'
+				? 'Each bar shows relative speed across all benchmarks.'
 				: view === 'chart'
 					? 'Shorter bars are faster. Muted dots show each measured sample.'
 				: 'Scores are relative to accepted languages in this benchmark and run.'}

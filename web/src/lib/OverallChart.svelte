@@ -2,15 +2,18 @@
 	import type { BenchmarkScore } from './types';
 
 	let { scores, languageId }: { scores: BenchmarkScore[]; languageId?: string } = $props();
-	const visible = $derived(languageId ? scores.filter((score) => score.language.id === languageId) : scores);
-	const colors: Record<string, string> = { rust: '#d97852', go: '#58b7d6', typescript: '#7797df', lua: '#c678dd', python: '#f0c040' };
+	const visible = $derived(
+		(languageId ? scores.filter((score) => score.language.id === languageId) : scores)
+			.toSorted((a, b) => (b.performance ?? -1) - (a.performance ?? -1) || a.language.name.localeCompare(b.language.name))
+	);
+	const colors: Record<string, string> = { rust: '#d97852', go: '#58b7d6', typescript: '#7797df', lua: '#2554C7', python: '#f0c040' };
 </script>
 
 <section class="chart-field" aria-labelledby="chart-field-title">
 	<header>
 		<div>
 			<p>All benchmarks</p>
-			<h2 id="chart-field-title">Overall performance</h2>
+			<h2 id="chart-field-title">Speed</h2>
 		</div>
 		<div class="legend" aria-label="Language colors">
 			{#each visible as score (score.language.id)}
@@ -24,14 +27,14 @@
 			<div class="bar-row">
 				<div
 					class="track"
-					aria-label={`${score.language.name} overall score ${Math.round(score.overall ?? 0)}`}
+					aria-label={`${score.language.name} speed score ${Math.round(score.performance ?? 0)}`}
 				>
 					<i
-						style:--score={`${score.overall ?? 0}%`}
+						style:--score={`${score.performance ?? 0}%`}
 						style:--color={colors[score.language.id] ?? '#8c9aa5'}
 					></i>
 				</div>
-				<code>{score.overall === null ? '—' : Math.round(score.overall)}</code>
+				<code>{score.performance === null ? '—' : Math.round(score.performance)}</code>
 			</div>
 		{/each}
 	</div>

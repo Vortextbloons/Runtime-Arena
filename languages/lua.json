@@ -1,7 +1,7 @@
 {
   "$schema": "../schemas/language.schema.json",
   "id": "lua",
-  "name": "Lua",
+  "name": "LuaJIT",
   "enabled": true,
   "detect": {
     "command": "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
