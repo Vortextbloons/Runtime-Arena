@@ -43,6 +43,7 @@ type pool struct {
 	workChs     []chan uint32
 	resultCh    chan workerResult
 	workerCount int
+	results     []workerResult
 }
 
 func newPool(workerCount, itemsPerWorker, roundsPerItem int) *pool {
@@ -50,6 +51,7 @@ func newPool(workerCount, itemsPerWorker, roundsPerItem int) *pool {
 		workChs:     make([]chan uint32, workerCount),
 		resultCh:    make(chan workerResult, workerCount),
 		workerCount: workerCount,
+		results:     make([]workerResult, workerCount),
 	}
 	for w := 0; w < workerCount; w++ {
 		ch := make(chan uint32, 1)
@@ -101,7 +103,7 @@ func kernel(in Input, p *pool) Output {
 	seedVal, _ := strconv.ParseUint(in.InitialSeed, 16, 32)
 	phaseSeed := uint32(seedVal)
 	digest := uint64(0x6a09e667f3bcc909)
-	results := make([]workerResult, p.workerCount)
+	results := p.results
 
 	for phase := 0; phase < in.PhaseCount; phase++ {
 		for w := 0; w < p.workerCount; w++ {

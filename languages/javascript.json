@@ -1,27 +1,22 @@
 {
   "$schema": "../schemas/language.schema.json",
-  "id": "go",
-  "name": "Go",
+  "id": "javascript",
+  "name": "JavaScript",
   "enabled": true,
   "detect": {
-    "command": "go",
-    "arguments": ["version"]
+    "command": "node",
+    "arguments": ["--version"]
   },
   "build": {
     "workingDirectory": "{implementationDir}",
-    "command": "go",
-    "arguments": [
-      "build",
-      "-ldflags=-s -w",
-      "-o",
-      "{artifact}",
-      "."
-    ],
-    "artifact": ".arena/{benchmarkId}"
+    "command": "node",
+    "arguments": ["-e", "0"],
+    "artifact": "index.mjs"
   },
   "run": {
-    "command": "{artifact}",
+    "command": "node",
     "arguments": [
+      "{artifact}",
       "--input",
       "{inputFile}",
       "--output",
@@ -34,6 +29,8 @@
       "{measuredIterations}"
     ]
   },
-  "environment": {},
-  "sourceExtensions": [".go"]
+  "environment": {
+    "NODE_ENV": "production"
+  },
+  "sourceExtensions": [".mjs"]
 }

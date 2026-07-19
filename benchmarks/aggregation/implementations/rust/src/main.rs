@@ -1,6 +1,7 @@
+use rustc_hash::{FxHashMap, FxBuildHasher};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
-use std::{collections::HashMap, env, fs, time::Instant};
+use std::{env, fs, time::Instant};
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -15,43 +16,111 @@ struct Output {
     total_value_minor_units: i64, categories: Vec<Category>, top_accounts: Vec<Account>,
     minimum_transaction_minor_units: i64, maximum_transaction_minor_units: i64, checksum: String,
 }
-#[derive(Serialize)]
-#[allow(non_snake_case)]
-struct Checksum<'a> { Categories: &'a [Category], TopAccounts: &'a [Account] }
 #[derive(Clone)]
 struct Row { account: String, category: String, quantity: i64, price: i64 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct Sample { iteration: usize, kernel_time_nanoseconds: u64 }
+
 fn argument(name: &str) -> String {
     let args: Vec<String> = env::args().collect();
     args[args.iter().position(|x| x == name).expect("missing argument") + 1].clone()
 }
-fn kernel(rows: &[Row]) -> Output {
-    let mut categories: HashMap<String, (i64, i64)> = HashMap::new();
-    let mut accounts: HashMap<String, i64> = HashMap::new();
-    let mut count = 0; let mut total_quantity = 0; let mut total_value = 0;
-    let mut minimum = i64::MAX; let mut maximum = 0;
-    for row in rows {
-        let account = row.account.clone(); let category = row.category.clone();
-        let quantity = row.quantity; let value = quantity * row.price;
-        count += 1; total_quantity += quantity; total_value += value;
-        minimum = minimum.min(value); maximum = maximum.max(value);
-        let entry = categories.entry(category).or_default(); entry.0 += quantity; entry.1 += value;
-        *accounts.entry(account).or_default() += value;
-    }
-    let mut categories: Vec<Category> = categories.into_iter().map(|(category, (quantity, value_minor_units))| Category { category, quantity, value_minor_units }).collect();
-    categories.sort_by(|a,b| a.category.cmp(&b.category));
-    let mut top_accounts: Vec<Account> = accounts.into_iter().map(|(account_id, value_minor_units)| Account { account_id, value_minor_units }).collect();
-    top_accounts.sort_by(|a,b| b.value_minor_units.cmp(&a.value_minor_units).then(a.account_id.cmp(&b.account_id)));
-    top_accounts.truncate(10);
-    let mut encoded = serde_json::to_vec(&Checksum { Categories: &categories, TopAccounts: &top_accounts }).unwrap();
-    encoded.push(b'\n');
-    let checksum = format!("{:x}", Sha256::digest(encoded));
-    Output { benchmark: "aggregation", version: 1, record_count: count, total_quantity,
-        total_value_minor_units: total_value, categories, top_accounts, minimum_transaction_minor_units: minimum,
-        maximum_transaction_minor_units: maximum, checksum }
+
+fn write_i64(buf: &mut Vec<u8>, mut v: i64) {
+    if v == 0 { buf.push(b'0'); return; }
+    if v < 0 { buf.push(b'-'); v = -v; }
+    let mut digits = [0u8; 20];
+    let mut i = 20;
+    while v > 0 { i -= 1; digits[i] = b'0' + (v % 10) as u8; v /= 10; }
+    buf.extend_from_slice(&digits[i..]);
 }
+
+fn kernel(rows: &[Row]) -> Output {
+    let mut categories: FxHashMap<&str, (i64, i64)> = FxHashMap::with_capacity_and_hasher(64, FxBuildHasher);
+    let mut accounts: FxHashMap<&str, i64> = FxHashMap::with_capacity_and_hasher(512, FxBuildHasher);
+    let mut count = 0usize;
+    let mut total_quantity = 0i64;
+    let mut total_value = 0i64;
+    let mut minimum = i64::MAX;
+    let mut maximum = 0i64;
+
+    for row in rows {
+        let value = row.quantity * row.price;
+        count += 1;
+        total_quantity += row.quantity;
+        total_value += value;
+        if value < minimum { minimum = value; }
+        if value > maximum { maximum = value; }
+        let cat_entry = categories.entry(row.category.as_str()).or_default();
+        cat_entry.0 += row.quantity;
+        cat_entry.1 += value;
+        *accounts.entry(row.account.as_str()).or_default() += value;
+    }
+
+    let mut cat_vec: Vec<(&str, i64, i64)> = categories.into_iter()
+        .map(|(k, (q, v))| (k, q, v))
+        .collect();
+    cat_vec.sort_unstable_by(|a, b| a.0.cmp(b.0));
+
+    let mut acc_vec: Vec<(&str, i64)> = accounts.into_iter().collect();
+    if acc_vec.len() > 10 {
+        acc_vec.select_nth_unstable_by(10, |a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(b.0)));
+        acc_vec.truncate(10);
+    }
+    acc_vec.sort_unstable_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(b.0)));
+
+    let mut checksum_buf = Vec::with_capacity(512);
+    checksum_buf.extend_from_slice(b"{\"Categories\":[");
+    for (i, &(cat, qty, val)) in cat_vec.iter().enumerate() {
+        if i > 0 { checksum_buf.push(b','); }
+        checksum_buf.extend_from_slice(b"{\"category\":\"");
+        checksum_buf.extend_from_slice(cat.as_bytes());
+        checksum_buf.extend_from_slice(b"\",\"quantity\":");
+        write_i64(&mut checksum_buf, qty);
+        checksum_buf.extend_from_slice(b",\"valueMinorUnits\":");
+        write_i64(&mut checksum_buf, val);
+        checksum_buf.push(b'}');
+    }
+    checksum_buf.extend_from_slice(b"],\"TopAccounts\":[");
+    for (i, &(acc, val)) in acc_vec.iter().enumerate() {
+        if i > 0 { checksum_buf.push(b','); }
+        checksum_buf.extend_from_slice(b"{\"accountId\":\"");
+        checksum_buf.extend_from_slice(acc.as_bytes());
+        checksum_buf.extend_from_slice(b"\",\"valueMinorUnits\":");
+        write_i64(&mut checksum_buf, val);
+        checksum_buf.push(b'}');
+    }
+    checksum_buf.extend_from_slice(b"]}");
+    checksum_buf.push(b'\n');
+
+    let hash = Sha256::digest(&checksum_buf);
+    let checksum = {
+        const HEX: &[u8; 16] = b"0123456789abcdef";
+        let mut s = String::with_capacity(64);
+        for &b in hash.as_slice() {
+            s.push(HEX[(b >> 4) as usize] as char);
+            s.push(HEX[(b & 0xf) as usize] as char);
+        }
+        s
+    };
+
+    let categories = cat_vec.into_iter()
+        .map(|(cat, qty, val)| Category { category: cat.to_owned(), quantity: qty, value_minor_units: val })
+        .collect();
+    let top_accounts = acc_vec.into_iter()
+        .map(|(acc, val)| Account { account_id: acc.to_owned(), value_minor_units: val })
+        .collect();
+
+    Output {
+        benchmark: "aggregation", version: 1, record_count: count,
+        total_quantity, total_value_minor_units: total_value,
+        categories, top_accounts,
+        minimum_transaction_minor_units: minimum,
+        maximum_transaction_minor_units: maximum, checksum,
+    }
+}
+
 fn main() {
     let mut reader = csv::Reader::from_path(argument("--input")).unwrap();
     let rows: Vec<Row> = reader.records().map(|row| { let row = row.unwrap(); Row { account: row[1].to_string(),

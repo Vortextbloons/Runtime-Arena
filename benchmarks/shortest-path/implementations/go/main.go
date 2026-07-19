@@ -40,33 +40,39 @@ type Sample struct {
 	Duration  int64 `json:"kernelTimeNanoseconds"`
 }
 
-func kernel(g Input) []Result {
-	a := make([][]Edge, g.N)
-	for _, e := range g.Edges {
+func buildAdjacency(n int, edges []Edge) [][]Edge {
+	a := make([][]Edge, n)
+	for _, e := range edges {
 		a[e.From] = append(a[e.From], e)
 	}
-	rs := []Result{}
-	for _, q := range g.Queries {
-		d := make([]int64, g.N)
-		pr := make([]int, g.N)
+	return a
+}
+
+func kernel(adj [][]Edge, queries []Query) []Result {
+	n := len(adj)
+	d := make([]int64, n)
+	pr := make([]int, n)
+	rs := make([]Result, 0, len(queries))
+	var pq PQ
+	for _, q := range queries {
 		for i := range d {
 			d[i] = math.MaxInt64
 			pr[i] = -1
 		}
 		d[q.Source] = 0
-		p := &PQ{{q.Source, 0}}
-		heap.Init(p)
-		for p.Len() > 0 {
-			x := heap.Pop(p).(Item)
+		pq = append(pq[:0], Item{q.Source, 0})
+		heap.Init(&pq)
+		for pq.Len() > 0 {
+			x := heap.Pop(&pq).(Item)
 			if x.d != d[x.n] {
 				continue
 			}
-			for _, e := range a[x.n] {
+			for _, e := range adj[x.n] {
 				nd := x.d + e.Weight
 				if nd < d[e.To] {
 					d[e.To] = nd
 					pr[e.To] = x.n
-					heap.Push(p, Item{e.To, nd})
+					heap.Push(&pq, Item{e.To, nd})
 				}
 			}
 		}
@@ -86,6 +92,7 @@ func kernel(g Input) []Result {
 	}
 	return rs
 }
+
 func main() {
 	ip := flag.String("input", "", "")
 	op := flag.String("output", "", "")
@@ -94,13 +101,14 @@ func main() {
 	n := flag.Int("iterations", 1, "")
 	flag.Parse()
 	raw, _ := os.ReadFile(*ip)
-	var g Input
-	json.Unmarshal(raw, &g)
+	var in Input
+	json.Unmarshal(raw, &in)
+	adj := buildAdjacency(in.N, in.Edges)
 	samples := []Sample{}
 	var results []Result
 	for i := -*w; i < *n; i++ {
 		start := nowNanoseconds()
-		results = kernel(g)
+		results = kernel(adj, in.Queries)
 		elapsed := max(int64(1), nowNanoseconds()-start)
 		if i >= 0 {
 			samples = append(samples, Sample{i + 1, elapsed})

@@ -5,9 +5,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"math"
 	"os"
+	"strconv"
 )
 
 type Body struct {
@@ -58,12 +58,17 @@ func kernel(in Input, b []Body) Output {
 	}
 	var e float64
 	ph, vh := sha256.New(), sha256.New()
+	var buf [64]byte
 	for i := range b {
 		var v float64
 		for k := 0; k < 3; k++ {
 			v += b[i].V[k] * b[i].V[k]
-			fmt.Fprintf(ph, "%.9f,", b[i].P[k])
-			fmt.Fprintf(vh, "%.9f,", b[i].V[k])
+			tmp := strconv.AppendFloat(buf[:0], b[i].P[k], 'f', 9, 64)
+			tmp = append(tmp, ',')
+			ph.Write(tmp)
+			tmp = strconv.AppendFloat(buf[:0], b[i].V[k], 'f', 9, 64)
+			tmp = append(tmp, ',')
+			vh.Write(tmp)
 		}
 		e += .5 * b[i].Mass * v
 		for j := i + 1; j < len(b); j++ {

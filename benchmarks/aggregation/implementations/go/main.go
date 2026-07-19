@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"flag"
+	"io"
 	"os"
 	"sort"
 	"strconv"
@@ -63,12 +64,12 @@ func kernel(rows []Row) Output {
 		cm[r.Category] = x
 		am[r.Account] += v
 	}
-	cats := []Category{}
+	cats := make([]Category, 0, len(cm))
 	for k, v := range cm {
 		cats = append(cats, Category{k, v[0], v[1]})
 	}
 	sort.Slice(cats, func(i, j int) bool { return cats[i].Category < cats[j].Category })
-	accounts := []Account{}
+	accounts := make([]Account, 0, len(am))
 	for k, v := range am {
 		accounts = append(accounts, Account{k, v})
 	}
@@ -78,14 +79,61 @@ func kernel(rows []Row) Output {
 	if len(accounts) > 10 {
 		accounts = accounts[:10]
 	}
-	encoded, _ := json.Marshal(struct {
-		Categories  []Category
-		TopAccounts []Account
-	}{cats, accounts})
-	encoded = append(encoded, '\n')
-	sum := sha256.Sum256(encoded)
+	var wb []byte
+	wb = append(wb, `{"Categories":[`...)
+	for i, c := range cats {
+		if i > 0 {
+			wb = append(wb, ',')
+		}
+		wb = append(wb, `{"category":"`...)
+		wb = append(wb, c.Category...)
+		wb = append(wb, `","quantity":`...)
+		wb = strconv.AppendInt(wb, c.Quantity, 10)
+		wb = append(wb, `,"valueMinorUnits":`...)
+		wb = strconv.AppendInt(wb, c.Value, 10)
+		wb = append(wb, '}')
+	}
+	wb = append(wb, `],"TopAccounts":[`...)
+	for i, a := range accounts {
+		if i > 0 {
+			wb = append(wb, ',')
+		}
+		wb = append(wb, `{"accountId":"`...)
+		wb = append(wb, a.Account...)
+		wb = append(wb, `","valueMinorUnits":`...)
+		wb = strconv.AppendInt(wb, a.Value, 10)
+		wb = append(wb, '}')
+	}
+	wb = append(wb, `]}`...)
+	wb = append(wb, '\n')
+	sum := sha256.Sum256(wb)
 	return Output{"aggregation", 1, len(rows), q, total, cats, accounts, min, max, hex.EncodeToString(sum[:])}
 }
+
+func readRows(path string) []Row {
+	f, _ := os.Open(path)
+	defer f.Close()
+	r := csv.NewReader(f)
+	r.Read()
+	var rows []Row
+	for {
+		rec, err := r.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			continue
+		}
+		if len(rec) < 5 {
+			continue
+		}
+		q, _ := strconv.ParseInt(rec[3], 10, 64)
+		p, _ := strconv.ParseInt(rec[4], 10, 64)
+		rows = append(rows, Row{rec[1], rec[2], q, p})
+	}
+	return rows
+}
+
 func main() {
 	ip := flag.String("input", "", "")
 	op := flag.String("output", "", "")
@@ -93,14 +141,7 @@ func main() {
 	w := flag.Int("warmup", 0, "")
 	n := flag.Int("iterations", 1, "")
 	flag.Parse()
-	f, _ := os.Open(*ip)
-	records, _ := csv.NewReader(f).ReadAll()
-	rows := []Row{}
-	for _, r := range records[1:] {
-		q, _ := strconv.ParseInt(r[3], 10, 64)
-		p, _ := strconv.ParseInt(r[4], 10, 64)
-		rows = append(rows, Row{r[1], r[2], q, p})
-	}
+	rows := readRows(*ip)
 	samples := []Sample{}
 	var out Output
 	for i := -*w; i < *n; i++ {
