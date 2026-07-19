@@ -11,10 +11,10 @@
 	<p class="run">Snapshot {run.snapshotId}</p>
 	<div class="table">
 		<div class="head"><span>Benchmark</span><span>Language</span><span>Median</span><span>Relative</span><span>Correctness</span></div>
-		{#each results as result (`${result.benchmark.id}-${result.benchmark.size}-${result.language.id}`)}
+		{#each results as result (`${result.benchmark.id}-${result.benchmark.size}-${result.benchmark.mutation ?? ''}-${result.language.id}`)}
 			{@const median = result.execution.summary.medianKernelTimeNanoseconds}
 			<article>
-				<strong>{result.benchmark.id} / {result.benchmark.size}</strong>
+				<strong>{result.benchmark.id} / {result.benchmark.size}{result.benchmark.mutation ? ` / ${result.benchmark.mutation}` : ''}</strong>
 				<span>{result.language.name}</span>
 				<code>{format(median)}</code>
 				<code>{result.checker.status === 'accepted' ? `${(median / fastest).toFixed(2)}x` : '—'}</code>

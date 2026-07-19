@@ -25,8 +25,8 @@ export type ParallelMeasurement = {
 };
 
 export type ArenaResult = {
-	benchmark: { id: string; version: number; size: string };
-	dataset?: { id: string; sha256: string; seed?: number };
+	benchmark: { id: string; version: number; size: string; mutation?: string };
+	dataset?: { id: string; sha256: string; seed?: number; mutation?: string; generatorVersion?: string };
 	language: { id: string; name: string; version: string; compilerVersion?: string };
 	build?: {
 		status: 'success' | 'failed' | 'skipped' | 'cached';
@@ -81,8 +81,20 @@ export type ArenaRun = {
 	results: ArenaResult[];
 };
 
+export type MutationScore = {
+	mutation?: string;
+	result: ArenaResult;
+	medianNanoseconds: number;
+	fastestMedianNanoseconds: number;
+	p95Nanoseconds: number;
+	variation: number;
+	performance: number;
+	consistency: number;
+};
+
 export type SizeScore = {
 	size: string;
+	mutations: MutationScore[];
 	result: ArenaResult;
 	medianNanoseconds: number;
 	fastestMedianNanoseconds: number;

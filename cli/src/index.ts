@@ -9,12 +9,19 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { metricAvailability } from "./metrics.js";
+import {
+  GENERATOR_VERSION,
+  cellKey,
+  expandSizeCells,
+  generateDatasetContent,
+  groupKey,
+  type SizeConfig
+} from "./mutations.js";
 import { readTimingSamples } from "./timing.js";
 
 type Command = { command: string; arguments: string[]; workingDirectory?: string; artifact?: string };
 type Language = { id: string; name: string; enabled: boolean; detect: Command; build: Command & { artifact: string }; run: Command; environment: Record<string, string>; sourceExtensions?: string[] };
-type Size = { dataset: string; warmupIterations: number; measuredIterations: number };
-type Benchmark = { id: string; name: string; version: number; sizes: Record<string, Size>; metrics: string[]; limits: { timeoutMilliseconds: number; maxOutputBytes: number } };
+type Benchmark = { id: string; name: string; version: number; sizes: Record<string, SizeConfig>; metrics: string[]; limits: { timeoutMilliseconds: number; maxOutputBytes: number } };
 type Proc = { code: number | null; stdout: string; stderr: string; durationNs: number; timedOut: boolean; limitExceeded: boolean };
 type Machine = { operatingSystem: { platform: string; release: string }; cpu: { model: string; architecture: string; logicalCores: number }; memoryBytes: number };
 type Provenance = { fingerprint: string; measurementContractVersion?: string; measuredAt: string; machine: Machine };
@@ -129,8 +136,12 @@ async function detections() {
 }
 
 const currentResultPath = path.join(root, config.resultDirectory, "current.json");
-const cellKey = (benchmarkId: string, size: string, languageId: string) => `${benchmarkId}/${size}/${languageId}`;
-const resultKey = (result: BenchmarkResult) => cellKey(result.benchmark.id, result.benchmark.size, result.language.id);
+const resultKey = (result: BenchmarkResult) => cellKey(
+  result.benchmark.id,
+  result.benchmark.size,
+  result.language.id,
+  result.benchmark.mutation as string | undefined
+);
 
 function currentMachine(): Machine {
   return {
@@ -153,13 +164,22 @@ async function hashTree(directory: string, hash: ReturnType<typeof createHash>) 
   }
 }
 
-async function fingerprintCell(language: Language, benchmark: Benchmark, sizeName: string, toolchainVersion: string, compilerVersion: string, warmups: number, iterations: number) {
+async function fingerprintCell(
+  language: Language,
+  benchmark: Benchmark,
+  sizeName: string,
+  mutation: string | undefined,
+  datasetFile: string,
+  toolchainVersion: string,
+  compilerVersion: string,
+  warmups: number,
+  iterations: number
+) {
   const hash = createHash("sha256");
-  const size = benchmark.sizes[sizeName]!;
   for (const file of [
     path.join(root, config.languageDirectory, `${language.id}.json`),
     path.join(root, config.benchmarkDirectory, benchmark.id, "benchmark.json"),
-    path.join(root, config.benchmarkDirectory, benchmark.id, "datasets", size.dataset),
+    path.join(root, config.benchmarkDirectory, benchmark.id, "datasets", datasetFile),
     path.join(root, "cli", "src", "metrics.ts")
   ]) {
     hash.update(path.relative(root, file).replaceAll("\\", "/"));
@@ -168,8 +188,15 @@ async function fingerprintCell(language: Language, benchmark: Benchmark, sizeNam
   await hashTree(path.join(root, config.benchmarkDirectory, benchmark.id, "implementations", language.id), hash);
   await hashTree(path.join(root, "checker"), hash);
   hash.update(JSON.stringify({
-    benchmarkVersion: benchmark.version, measurementContractVersion: "1.0.0", size: sizeName, warmups, iterations,
-    metrics: benchmark.metrics ?? config.defaults.metrics, toolchainVersion, compilerVersion
+    benchmarkVersion: benchmark.version,
+    measurementContractVersion: "1.0.0",
+    size: sizeName,
+    mutation: mutation ?? null,
+    warmups,
+    iterations,
+    metrics: benchmark.metrics ?? config.defaults.metrics,
+    toolchainVersion,
+    compilerVersion
   }));
   return hash.digest("hex");
 }
@@ -211,10 +238,15 @@ async function doctor(): Promise<number> {
       console.log(`${`Manifest ${benchmark.id}`.padEnd(24)} invalid: ${ajv.errorsText(validateBenchmark.errors)}`);
     }
     for (const [size, settings] of Object.entries(benchmark.sizes)) {
-      const dataset = path.join(root, config.benchmarkDirectory, benchmark.id, "datasets", settings.dataset);
-      if (!await exists(dataset)) {
-        bad = true;
-        console.log(`${`Dataset ${benchmark.id}/${size}`.padEnd(24)} missing`);
+      const datasets = settings.mutations
+        ? Object.entries(settings.mutations).map(([mutation, entry]) => ({ label: `${size}/${mutation}`, file: entry.dataset }))
+        : [{ label: size, file: settings.dataset! }];
+      for (const { label, file } of datasets) {
+        const dataset = path.join(root, config.benchmarkDirectory, benchmark.id, "datasets", file);
+        if (!await exists(dataset)) {
+          bad = true;
+          console.log(`${`Dataset ${benchmark.id}/${label}`.padEnd(24)} missing`);
+        }
       }
     }
     const implementationRoot = path.join(root, config.benchmarkDirectory, benchmark.id, "implementations");
@@ -338,32 +370,54 @@ async function runCommand(args: string[]) {
   const current = await readSnapshot();
   const canonical = new Map((current?.results ?? []).filter(result => result.execution?.mode === "persistent-worker" && result.provenance?.measurementContractVersion === "1.0.0").map(result => [resultKey(result), result]));
 
-  type Cell = { benchmark: Benchmark; sizeName: string; size: Size; language: Language; version: string; compilerVersion: string; fingerprint: string; key: string; input: string; datasetHash: string; warmups: number; iterations: number };
+  type Cell = {
+    benchmark: Benchmark;
+    sizeName: string;
+    mutation?: string;
+    language: Language;
+    version: string;
+    compilerVersion: string;
+    fingerprint: string;
+    key: string;
+    input: string;
+    datasetHash: string;
+    datasetSeed?: number;
+    warmups: number;
+    iterations: number;
+  };
   const staleCells: Cell[] = [];
   let currentCells = 0;
+  const mutationFilter = flags.get("--mutation");
 
   for (const benchmark of benchmarks) {
     const sizeNames = flags.get("--size") ? [flags.get("--size")!] : config.defaults.sizes.filter(name => benchmark.sizes[name]);
     for (const sizeName of sizeNames) {
-      const size = benchmark.sizes[sizeName];
-      if (!size) throw new Error(`Unknown size '${sizeName}' for ${benchmark.id}`);
-      const input = path.join(root, "benchmarks", benchmark.id, "datasets", size.dataset);
-      if (!await exists(input)) throw new Error(`Missing dataset: ${input}`);
-      const datasetHash = createHash("sha256").update(await readFile(input)).digest("hex");
-      for (const { language, version, compilerVersion } of languages) {
-        const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
-        if (!await exists(implementationDir)) continue;
-        const warmups = Number(flags.get("--warmup") ?? size.warmupIterations);
-        const iterations = Number(flags.get("--iterations") ?? size.measuredIterations);
-        const fingerprint = await fingerprintCell(language, benchmark, sizeName, version, compilerVersion, warmups, iterations);
-        const key = cellKey(benchmark.id, sizeName, language.id);
-        const previous = canonical.get(key);
-        if (!flags.has("--force") && previous?.provenance?.fingerprint === fingerprint) {
-          currentCells++;
-          if (!flags.has("--quiet") && flags.get("--format") !== "json") console.log(`${key}: current`);
-          continue;
+      const cells = expandSizeCells(benchmark.sizes, sizeName, mutationFilter);
+      if (!cells.length) throw new Error(`Unknown size '${sizeName}' for ${benchmark.id}${mutationFilter ? ` (mutation '${mutationFilter}')` : ""}`);
+      for (const cell of cells) {
+        const input = path.join(root, "benchmarks", benchmark.id, "datasets", cell.dataset);
+        if (!await exists(input)) throw new Error(`Missing dataset: ${input}`);
+        const datasetHash = createHash("sha256").update(await readFile(input)).digest("hex");
+        for (const { language, version, compilerVersion } of languages) {
+          const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
+          if (!await exists(implementationDir)) continue;
+          const warmups = Number(flags.get("--warmup") ?? cell.warmupIterations);
+          const iterations = Number(flags.get("--iterations") ?? cell.measuredIterations);
+          const fingerprint = await fingerprintCell(
+            language, benchmark, sizeName, cell.mutation, cell.dataset, version, compilerVersion, warmups, iterations
+          );
+          const key = cellKey(benchmark.id, sizeName, language.id, cell.mutation);
+          const previous = canonical.get(key);
+          if (!flags.has("--force") && previous?.provenance?.fingerprint === fingerprint) {
+            currentCells++;
+            if (!flags.has("--quiet") && flags.get("--format") !== "json") console.log(`${key}: current`);
+            continue;
+          }
+          staleCells.push({
+            benchmark, sizeName, mutation: cell.mutation, language, version, compilerVersion, fingerprint, key,
+            input, datasetHash, datasetSeed: cell.seed, warmups, iterations
+          });
         }
-        staleCells.push({ benchmark, sizeName, size, language, version, compilerVersion, fingerprint, key, input, datasetHash, warmups, iterations });
       }
     }
   }
@@ -373,7 +427,7 @@ async function runCommand(args: string[]) {
   const plannedCells = staleCells.length;
 
   await pool(staleCells, parallelism, async (cell) => {
-    const { benchmark, sizeName, language, version, compilerVersion, fingerprint, key, input, datasetHash, warmups, iterations } = cell;
+    const { benchmark, sizeName, mutation, language, version, compilerVersion, fingerprint, key, input, datasetHash, datasetSeed, warmups, iterations } = cell;
     const build = await buildOne(language, benchmark);
     if (build.status === "missing") return;
     let samples: Array<Record<string, unknown> & { valid: boolean; kernelTimeNanoseconds: number }> = [];
@@ -404,9 +458,18 @@ async function runCommand(args: string[]) {
       }
       await chmod(isolatedInput, 0o666);
     }
+    const datasetId = mutation
+      ? `${benchmark.id}-${sizeName}-${mutation}-${benchmark.version}`
+      : `${benchmark.id}-${sizeName}-${benchmark.version}`;
     const result: BenchmarkResult = {
-      benchmark: { id: benchmark.id, version: benchmark.version, size: sizeName },
-      dataset: { id: `${benchmark.id}-${sizeName}-${benchmark.version}`, sha256: datasetHash, seed: 0, generatorVersion: "committed-fixture-1.0.0" },
+      benchmark: { id: benchmark.id, version: benchmark.version, size: sizeName, ...(mutation ? { mutation } : {}) },
+      dataset: {
+        id: datasetId,
+        sha256: datasetHash,
+        seed: datasetSeed ?? 0,
+        generatorVersion: mutation ? GENERATOR_VERSION : "committed-fixture-1.0.0",
+        ...(mutation ? { mutation } : {})
+      },
       language: { id: language.id, name: language.name, version, compilerVersion, compilerFlags: language.build.arguments },
       build: { status: build.status, durationNanoseconds: build.durationNs, artifactSizeBytes: build.artifactSizeBytes, command: build.command },
       execution: {
@@ -419,7 +482,10 @@ async function runCommand(args: string[]) {
     };
     results.push(result);
     if (lastChecker.status === "accepted") canonical.set(key, result);
-    if (!flags.has("--quiet") && flags.get("--format") !== "json") console.log(`${benchmark.id}/${sizeName} ${language.name}: ${lastChecker.status} (${(summary(samples).medianKernelTimeNanoseconds / 1e6).toFixed(2)} ms median kernel)`);
+    if (!flags.has("--quiet") && flags.get("--format") !== "json") {
+      const label = groupKey(benchmark.id, sizeName, mutation);
+      console.log(`${label} ${language.name}: ${lastChecker.status} (${(summary(samples).medianKernelTimeNanoseconds / 1e6).toFixed(2)} ms median kernel)`);
+    }
   });
 
   const git = await runProcess("git", ["rev-parse", "HEAD"]).then(p => p.code === 0 ? p.stdout.trim() : "unknown");
@@ -467,14 +533,14 @@ function printSummary(results: any[]) {
   const fastest = new Map<string, number>();
   for (const result of results) {
     if (result.checker.status !== "accepted") continue;
-    const key = `${result.benchmark.id}/${result.benchmark.size}`;
+    const key = groupKey(result.benchmark.id, result.benchmark.size, result.benchmark.mutation);
     const median = result.execution.summary.medianKernelTimeNanoseconds as number;
     fastest.set(key, Math.min(fastest.get(key) ?? Number.POSITIVE_INFINITY, median));
   }
 
   type Row = { benchmark: string; language: string; correct: string; median: string; relative: string; sortKey: string; relativeValue: number };
   const rows: Row[] = results.map(result => {
-    const benchmark = `${result.benchmark.id}/${result.benchmark.size}`;
+    const benchmark = groupKey(result.benchmark.id, result.benchmark.size, result.benchmark.mutation);
     const accepted = result.checker.status === "accepted";
     const medianNs = result.execution.summary.medianKernelTimeNanoseconds as number;
     const best = fastest.get(benchmark);
@@ -566,33 +632,36 @@ async function resultsStatus(args: string[]) {
   const requestedBenchmarks = flags.all("--benchmark");
   const detectionsById = await detections();
   const benchmarks = (await discoverBenchmarks()).filter(b => !requestedBenchmarks.length || requestedBenchmarks.includes(b.id));
+  const mutationFilter = flags.get("--mutation");
   const rows: Array<{ key: string; status: string; detail: string }> = [];
   for (const benchmark of benchmarks) {
     const sizes = flags.get("--size") ? [flags.get("--size")!] : config.defaults.sizes.filter(name => benchmark.sizes[name]);
-    for (const sizeName of sizes) for (const detection of detectionsById) {
-      const { language, version, compilerVersion } = detection;
-      if (!language.enabled || (requestedLanguages.length && !requestedLanguages.includes(language.id))) continue;
-      const key = cellKey(benchmark.id, sizeName, language.id);
-      const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
-      if (!await exists(implementationDir)) {
-        rows.push({ key, status: "unavailable", detail: "implementation missing" });
-        continue;
+    for (const sizeName of sizes) {
+      const cells = expandSizeCells(benchmark.sizes, sizeName, mutationFilter);
+      for (const cell of cells) for (const detection of detectionsById) {
+        const { language, version, compilerVersion } = detection;
+        if (!language.enabled || (requestedLanguages.length && !requestedLanguages.includes(language.id))) continue;
+        const key = cellKey(benchmark.id, sizeName, language.id, cell.mutation);
+        const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
+        if (!await exists(implementationDir)) {
+          rows.push({ key, status: "unavailable", detail: "implementation missing" });
+          continue;
+        }
+        if (!detection.available) {
+          rows.push({ key, status: "unavailable", detail: "toolchain missing or unsupported" });
+          continue;
+        }
+        const warmups = Number(flags.get("--warmup") ?? cell.warmupIterations);
+        const iterations = Number(flags.get("--iterations") ?? cell.measuredIterations);
+        const fingerprint = await fingerprintCell(
+          language, benchmark, sizeName, cell.mutation, cell.dataset, version, compilerVersion, warmups, iterations
+        );
+        const saved = canonical.get(key);
+        const status = !saved ? "missing" : saved.provenance?.fingerprint === fingerprint ? "current" : "stale";
+        const machine = saved?.provenance?.machine;
+        const differentMachine = machine && (machine.cpu.model !== currentMachine().cpu.model || machine.operatingSystem.platform !== process.platform);
+        rows.push({ key, status, detail: differentMachine ? "different machine" : "" });
       }
-      if (!detection.available) {
-        rows.push({ key, status: "unavailable", detail: "toolchain missing or unsupported" });
-        continue;
-      }
-      const size = benchmark.sizes[sizeName]!;
-      const fingerprint = await fingerprintCell(
-        language, benchmark, sizeName, version, compilerVersion,
-        Number(flags.get("--warmup") ?? size.warmupIterations),
-        Number(flags.get("--iterations") ?? size.measuredIterations)
-      );
-      const saved = canonical.get(key);
-      const status = !saved ? "missing" : saved.provenance?.fingerprint === fingerprint ? "current" : "stale";
-      const machine = saved?.provenance?.machine;
-      const differentMachine = machine && (machine.cpu.model !== currentMachine().cpu.model || machine.operatingSystem.platform !== process.platform);
-      rows.push({ key, status, detail: differentMachine ? "different machine" : "" });
     }
   }
   const width = Math.max(4, ...rows.map(row => row.key.length));
@@ -609,10 +678,12 @@ async function resultsSummary(args: string[]) {
   const languages = flags.all("--language");
   const benchmarks = flags.all("--benchmark");
   const size = flags.get("--size");
+  const mutation = flags.get("--mutation");
   const filtered = current.results.filter(result =>
     (!languages.length || languages.includes(result.language.id))
     && (!benchmarks.length || benchmarks.includes(result.benchmark.id))
     && (!size || result.benchmark.size === size)
+    && (!mutation || result.benchmark.mutation === mutation)
   );
   if (!filtered.length) throw new Error("No results matched the given filters");
   printSummary(filtered);
@@ -651,103 +722,82 @@ function seeded(seed: number) {
 }
 
 async function datasetCommand(args: string[]) {
-  if (args[0] !== "generate") throw new Error("Usage: arena dataset generate --benchmark <id> --size <size> [--seed <integer>]");
+  if (args[0] !== "generate") throw new Error("Usage: arena dataset generate --benchmark <id> --size <size> [--mutation <name>] [--seed <integer>]");
   const flags = parseFlags(args.slice(1));
   const benchmarkId = flags.get("--benchmark");
   const sizeName = flags.get("--size");
-  const seed = Number(flags.get("--seed") ?? 729418);
-  if (!benchmarkId || !sizeName || !Number.isSafeInteger(seed)) throw new Error("A benchmark, size, and integer seed are required");
+  const mutationName = flags.get("--mutation");
+  const seedOverride = flags.get("--seed");
+  if (!benchmarkId || !sizeName) throw new Error("A benchmark and size are required");
   const benchmark = (await discoverBenchmarks()).find(x => x.id === benchmarkId);
   const size = benchmark?.sizes[sizeName];
   if (!benchmark || !size) throw new Error(`Unknown benchmark/size: ${benchmarkId}/${sizeName}`);
-  const random = seeded(seed);
+
   let content: string;
-  if (benchmarkId === "nbody") {
-    const profile = {
-      small: { bodies: 12, steps: 10_000 },
-      medium: { bodies: 7, steps: 25_000 },
-      large: { bodies: 8, steps: 50_000 }
-    }[sizeName];
-    if (!profile) throw new Error(`No nbody generation profile for size '${sizeName}'`);
-    const bodies = Array.from({ length: profile.bodies }, (_, index) => {
-      const angle = 2 * Math.PI * index / profile.bodies;
-      return {
-        mass: Number((0.1 + random() * 0.1).toFixed(9)),
-        position: [Number((5 * Math.cos(angle)).toFixed(9)), Number((5 * Math.sin(angle)).toFixed(9)), 0],
-        velocity: [Number((-0.01 * Math.sin(angle)).toFixed(9)), Number((0.01 * Math.cos(angle)).toFixed(9)), 0]
-      };
-    });
-    content = `${JSON.stringify({ steps: profile.steps, deltaTime: 0.0001, bodies })}\n`;
-  } else if (benchmarkId === "shortest-path") {
-    const vertexCount = { small: 400, medium: 300, large: 600 }[sizeName];
-    const queryCount = { small: 120, medium: 90, large: 180 }[sizeName];
-    if (!vertexCount || !queryCount) throw new Error(`No shortest-path generation profile for size '${sizeName}'`);
-    const edges: Array<{ from: number; to: number; weight: number }> = [];
-    const edgeKeys = new Set<string>();
-    for (let i = 0; i < vertexCount - 1; i++) {
-      edges.push({ from: i, to: i + 1, weight: 1 + Math.floor(random() * 20) });
-      edgeKeys.add(`${i}:${i + 1}`);
-    }
-    while (edges.length < vertexCount * 4 - 1) {
-      const from = Math.floor(random() * vertexCount), to = Math.floor(random() * vertexCount);
-      const key = `${from}:${to}`;
-      if (from !== to && !edgeKeys.has(key)) {
-        edges.push({ from, to, weight: 1 + Math.floor(random() * 100) });
-        edgeKeys.add(key);
-      }
-    }
-    const queries = Array.from({ length: queryCount }, (_, i) => ({ id: i + 1, source: Math.floor(random() * vertexCount), destination: Math.floor(random() * vertexCount) }));
-    content = `${JSON.stringify({ vertexCount, edges, queries })}\n`;
-  } else if (benchmarkId === "aggregation") {
-    const recordCount = { small: 100_000, medium: 120_000, large: 200_000 }[sizeName];
-    if (!recordCount) throw new Error(`No aggregation generation profile for size '${sizeName}'`);
-    const categories = ["books", "games", "garden", "tools"];
-    const rows = ["timestamp,account_id,category,quantity,unit_price"];
-    for (let i = 0; i < recordCount; i++) rows.push(`2026-01-01T00:00:${String(i % 60).padStart(2, "0")}Z,A${1 + Math.floor(random() * 100)},${categories[Math.floor(random() * categories.length)]},${1 + Math.floor(random() * 10)},${99 + Math.floor(random() * 9901)}`);
-    content = `${rows.join("\n")}\n`;
-  } else if (benchmarkId === "word-frequency") {
-    const profile = {
-      small: { totalWords: 50_000, uniqueWords: 3_421 },
-      medium: { totalWords: 50_000, uniqueWords: 3_421 },
-      large: { totalWords: 200_000, uniqueWords: 8_421 }
-    }[sizeName];
-    if (!profile) throw new Error(`No word-frequency generation profile for size '${sizeName}'`);
-    const vocabulary = Array.from({ length: profile.uniqueWords }, (_, index) => `word-${String(index).padStart(5, "0")}`);
-    const words = [...vocabulary];
-    while (words.length < profile.totalWords) words.push(vocabulary[Math.floor(random() * random() * profile.uniqueWords)]);
-    for (let index = words.length - 1; index > 0; index--) {
-      const other = Math.floor(random() * (index + 1));
-      [words[index], words[other]] = [words[other], words[index]];
-    }
-    content = `${JSON.stringify({ words })}\n`;
-  } else if (benchmarkId === "record-sorting") {
-    const recordCount = { small: 20_000, medium: 100_000, large: 500_000 }[sizeName];
-    if (!recordCount) throw new Error(`No record-sorting generation profile for size '${sizeName}'`);
-    const records = Array.from({ length: recordCount }, (_, index) => ({
-      id: index + 1,
-      score: Math.floor(random() * 1_000),
-      timestamp: 1_700_000_000_000 + Math.floor(random() * 10_000)
-    }));
-    content = `${JSON.stringify({ records })}\n`;
-  } else if (benchmarkId === "matrix-multiplication") {
-    const dimension = { small: 128, medium: 256, large: 512 }[sizeName];
-    if (!dimension) throw new Error(`No matrix-multiplication generation profile for size '${sizeName}'`);
-    const elementCount = dimension * dimension;
-    const matrix = () => Array.from({ length: elementCount }, () => Math.floor(random() * 21) - 10);
-    content = `${JSON.stringify({ dimension, left: matrix(), right: matrix() })}\n`;
-  } else if (benchmarkId === "barrier-wave") {
-    const profile = {
-      small: { workerCount: 2, phaseCount: 1500, itemsPerWorker: 64, roundsPerItem: 8 },
-      medium: { workerCount: 4, phaseCount: 250, itemsPerWorker: 1024, roundsPerItem: 16 },
-      large: { workerCount: 8, phaseCount: 100, itemsPerWorker: 8192, roundsPerItem: 16 }
-    }[sizeName];
-    if (!profile) throw new Error(`No barrier-wave generation profile for size '${sizeName}'`);
-    content = `${JSON.stringify({ schemaVersion: "1.0.0", ...profile, initialSeed: seed.toString(16).padStart(8, "0") })}\n`;
-  } else throw new Error(`No generator registered for ${benchmarkId}`);
-  const destination = path.join(root, config.benchmarkDirectory, benchmarkId, "datasets", size.dataset);
+  let mutation: string | undefined;
+  let seed: number;
+  let datasetFile: string;
+
+  if (size.mutations) {
+    if (!mutationName) throw new Error(`--mutation is required for ${benchmarkId}; available: ${Object.keys(size.mutations).join(", ")}`);
+    const entry = size.mutations[mutationName];
+    if (!entry) throw new Error(`Unknown mutation '${mutationName}' for ${benchmarkId}/${sizeName}`);
+    mutation = mutationName;
+    seed = Number(seedOverride ?? entry.seed);
+    if (!Number.isSafeInteger(seed)) throw new Error("Seed must be a safe integer");
+    datasetFile = entry.dataset;
+    content = generateDatasetContent(benchmarkId, sizeName, mutation, seed, seeded(seed));
+  } else {
+    seed = Number(seedOverride ?? 729418);
+    if (!Number.isSafeInteger(seed)) throw new Error("Seed must be a safe integer");
+    datasetFile = size.dataset!;
+    const random = seeded(seed);
+    if (benchmarkId === "nbody") {
+      const profile = {
+        small: { bodies: 12, steps: 10_000 },
+        medium: { bodies: 7, steps: 25_000 },
+        large: { bodies: 8, steps: 50_000 }
+      }[sizeName];
+      if (!profile) throw new Error(`No nbody generation profile for size '${sizeName}'`);
+      const bodies = Array.from({ length: profile.bodies }, (_, index) => {
+        const angle = 2 * Math.PI * index / profile.bodies;
+        return {
+          mass: Number((0.1 + random() * 0.1).toFixed(9)),
+          position: [Number((5 * Math.cos(angle)).toFixed(9)), Number((5 * Math.sin(angle)).toFixed(9)), 0],
+          velocity: [Number((-0.01 * Math.sin(angle)).toFixed(9)), Number((0.01 * Math.cos(angle)).toFixed(9)), 0]
+        };
+      });
+      content = `${JSON.stringify({ steps: profile.steps, deltaTime: 0.0001, bodies })}\n`;
+    } else if (benchmarkId === "aggregation") {
+      const recordCount = { small: 100_000, medium: 120_000, large: 200_000 }[sizeName];
+      if (!recordCount) throw new Error(`No aggregation generation profile for size '${sizeName}'`);
+      const categories = ["books", "games", "garden", "tools"];
+      const rows = ["timestamp,account_id,category,quantity,unit_price"];
+      for (let i = 0; i < recordCount; i++) rows.push(`2026-01-01T00:00:${String(i % 60).padStart(2, "0")}Z,A${1 + Math.floor(random() * 100)},${categories[Math.floor(random() * categories.length)]},${1 + Math.floor(random() * 10)},${99 + Math.floor(random() * 9901)}`);
+      content = `${rows.join("\n")}\n`;
+    } else if (benchmarkId === "barrier-wave") {
+      const profile = {
+        small: { workerCount: 2, phaseCount: 1500, itemsPerWorker: 64, roundsPerItem: 8 },
+        medium: { workerCount: 4, phaseCount: 250, itemsPerWorker: 1024, roundsPerItem: 16 },
+        large: { workerCount: 8, phaseCount: 100, itemsPerWorker: 8192, roundsPerItem: 16 }
+      }[sizeName];
+      if (!profile) throw new Error(`No barrier-wave generation profile for size '${sizeName}'`);
+      content = `${JSON.stringify({ schemaVersion: "1.0.0", ...profile, initialSeed: seed.toString(16).padStart(8, "0") })}\n`;
+    } else throw new Error(`No generator registered for ${benchmarkId}`);
+  }
+
+  const destination = path.join(root, config.benchmarkDirectory, benchmarkId, "datasets", datasetFile);
   await writeFile(destination, content);
   const sha256 = createHash("sha256").update(content).digest("hex");
-  await atomicJson(`${destination}.metadata.json`, { benchmark: benchmarkId, version: benchmark.version, size: sizeName, seed, generatorVersion: "2.0.0", sha256 });
+  await atomicJson(`${destination}.metadata.json`, {
+    benchmark: benchmarkId,
+    version: benchmark.version,
+    size: sizeName,
+    ...(mutation ? { mutation } : {}),
+    seed,
+    generatorVersion: mutation ? GENERATOR_VERSION : "2.0.0",
+    sha256
+  });
   console.log(`Generated ${path.relative(root, destination)}\nSHA-256 ${sha256}`);
 }
 

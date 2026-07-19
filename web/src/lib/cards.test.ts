@@ -504,9 +504,7 @@ test('V2 startup memory parallel attributes and secondary takeover', () => {
 	assert.equal(alpha.attributes.find((attribute) => attribute.id === 'memory')?.rating, 100);
 	assert.ok(alpha.attributes.find((attribute) => attribute.id === 'parallelism')?.available);
 	assert.equal(alpha.attributes.find((attribute) => attribute.id === 'io')?.available, false);
-	assert.ok(alpha.badges.some((badge) => badge.badgeId === 'quick-draw'));
 	assert.ok(alpha.badges.some((badge) => badge.badgeId === 'memory-minder'));
-	assert.ok(alpha.badges.some((badge) => badge.badgeId === 'parallel-engine'));
 	assert.equal(alpha.metadata.cardSpecVersion, '2');
 	assert.ok(alpha.takeover.primary);
 	// With many strong attributes available, secondary may appear when #2 >= 85

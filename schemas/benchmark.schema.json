@@ -61,22 +61,40 @@
       "type": "object",
       "minProperties": 1,
       "additionalProperties": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["dataset", "warmupIterations", "measuredIterations"],
-        "properties": {
-          "dataset": {
-            "type": "string"
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["dataset", "warmupIterations", "measuredIterations"],
+            "properties": {
+              "dataset": { "type": "string" },
+              "warmupIterations": { "type": "integer", "minimum": 0 },
+              "measuredIterations": { "type": "integer", "minimum": 1 }
+            }
           },
-          "warmupIterations": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "measuredIterations": {
-            "type": "integer",
-            "minimum": 1
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["mutations", "warmupIterations", "measuredIterations"],
+            "properties": {
+              "mutations": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["dataset", "seed"],
+                  "properties": {
+                    "dataset": { "type": "string" },
+                    "seed": { "type": "integer" }
+                  }
+                }
+              },
+              "warmupIterations": { "type": "integer", "minimum": 0 },
+              "measuredIterations": { "type": "integer", "minimum": 1 }
+            }
           }
-        }
+        ]
       }
     },
     "metrics": {

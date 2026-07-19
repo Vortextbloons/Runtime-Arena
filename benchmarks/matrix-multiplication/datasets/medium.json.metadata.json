@@ -1,8 +1,0 @@
-{
-  "benchmark": "matrix-multiplication",
-  "version": 1,
-  "size": "medium",
-  "seed": 729418,
-  "generatorVersion": "2.0.0",
-  "sha256": "5962a5f96d2a167ea1305ecd86a6a11ac1a660a9e550e0db064278f7542ab5d8"
-}

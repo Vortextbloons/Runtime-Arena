@@ -8,9 +8,30 @@
   "outputFormat": "json",
   "checker": { "task": "record-sorting", "timeoutMilliseconds": 30000 },
   "sizes": {
-    "small": { "dataset": "small.json", "warmupIterations": 2, "measuredIterations": 5 },
-    "medium": { "dataset": "medium.json", "warmupIterations": 2, "measuredIterations": 3 },
-    "large": { "dataset": "large.json", "warmupIterations": 2, "measuredIterations": 3 }
+    "small": {
+      "warmupIterations": 2,
+      "measuredIterations": 5,
+      "mutations": {
+        "random": { "dataset": "small-random.json", "seed": 729418 },
+        "mostly-sorted": { "dataset": "small-mostly-sorted.json", "seed": 729418 }
+      }
+    },
+    "medium": {
+      "warmupIterations": 2,
+      "measuredIterations": 3,
+      "mutations": {
+        "random": { "dataset": "medium-random.json", "seed": 729418 },
+        "mostly-sorted": { "dataset": "medium-mostly-sorted.json", "seed": 729418 }
+      }
+    },
+    "large": {
+      "warmupIterations": 2,
+      "measuredIterations": 3,
+      "mutations": {
+        "random": { "dataset": "large-random.json", "seed": 729418 },
+        "mostly-sorted": { "dataset": "large-mostly-sorted.json", "seed": 729418 }
+      }
+    }
   },
   "metrics": ["kernelTime"],
   "limits": { "timeoutMilliseconds": 120000, "maxOutputBytes": 10485760 }

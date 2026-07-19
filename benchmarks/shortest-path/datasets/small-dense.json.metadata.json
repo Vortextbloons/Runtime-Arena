@@ -1,0 +1,9 @@
+{
+  "benchmark": "shortest-path",
+  "version": 1,
+  "size": "small",
+  "mutation": "dense",
+  "seed": 729418,
+  "generatorVersion": "2.1.0",
+  "sha256": "f529861903cdca6dac88800f667d89122012ae19af1309e38fca542cb938fa3a"
+}

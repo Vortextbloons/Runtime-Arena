@@ -560,7 +560,7 @@ The scoring system (`src/lib/scoring.ts`) computes a 0-100 weighted overall scor
 - Shown on cards but not included in overall.
 
 **Badge bonuses**
-- Badges are awarded via `awardBadges()` (in `cards/badges/awardBadges.ts`) from four definition groups: **V1** (6 core badges), **V1.5** (2 build-time badges), **V2** (4 execution/control badges), **V2.5** (2 code-economy badges).
+- Badges are awarded via `awardBadges()` (in `cards/badges/awardBadges.ts`) from four definition groups: **V1** (6 core badges), **V1.5** (2 build-time badges), **V2** (1 memory badge), **V2.5** (2 code-economy badges).
 - Each badge tier is calculated by `awardHybridBadge()` using a hybrid formula: `0.55 × absolute attribute rating + 0.45 × percentile rank` (when 3+ languages have comparable data).
 - Tier values: Bronze +0.5, Silver +1.0, Gold +1.5, Hall of Fame +2.0, Legend +2.5.
 - Featured selection (`selectFeaturedBadgeIds`) picks up to 3 badges, preferring higher tiers and distinct categories.
@@ -688,7 +688,7 @@ Languages do **not** have fixed brand colorways. Appearance is:
 - **Art stage**: Grid, floating code particles, monogram with halo.
 - **Motion**: Pointer tilt (±6°) and particle float — disabled under `prefers-reduced-motion: reduce`.
 - **High tier**: Stronger top wash when `tierLevel >= 5`.
-- **Badges**: Badges are defined in four groups (`cards/badges/definitions.ts`): **V1** (6 core badges: Speedster, Compute Finisher, Data Wrangler, Pathfinder, Steady Hands, Scale Master), **V1.5** (Quick Build, Minimal Build), **V2** (Quick Draw, Memory Minder, Stream Controller, Parallel Engine), **V2.5** (Tight Code, High Yield). Tiers are computed via `awardHybridBadge()` which combines absolute attribute rating and percentile rank (when 3+ languages have data). Face shows up to three featured chips (name + tier) with hover tooltips showing the reason and next-tier requirements. Expanded cards show the full earned set as a compact chip grid.
+- **Badges**: Badges are defined in four groups (`cards/badges/definitions.ts`): **V1** (6 core badges: Speedster, Compute Finisher, Data Wrangler, Pathfinder, Steady Hands, Scale Master), **V1.5** (Quick Build, Minimal Build), **V2** (Memory Minder), **V2.5** (Tight Code, High Yield). Tiers are computed via `awardHybridBadge()` which combines absolute attribute rating and percentile rank (when 3+ languages have data). Face shows up to three featured chips (name + tier) with hover tooltips showing the reason and next-tier requirements. Expanded cards show the full earned set as a compact chip grid.
 
 ## Dimensions
 

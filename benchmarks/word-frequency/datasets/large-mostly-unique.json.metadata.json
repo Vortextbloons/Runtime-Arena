@@ -1,0 +1,9 @@
+{
+  "benchmark": "word-frequency",
+  "version": 1,
+  "size": "large",
+  "mutation": "mostly-unique",
+  "seed": 729418,
+  "generatorVersion": "2.1.0",
+  "sha256": "4f1d1099182776b0edecdc01ffae651cd4d95d1a966da2da7c6483a420617f51"
+}

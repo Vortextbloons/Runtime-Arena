@@ -1,0 +1,9 @@
+{
+  "benchmark": "word-frequency",
+  "version": 1,
+  "size": "medium",
+  "mutation": "repeated-vocabulary",
+  "seed": 729418,
+  "generatorVersion": "2.1.0",
+  "sha256": "c220e053e5f3b374a092843009e036d0d37100d575e2954f5b6403a391a1ac9a"
+}

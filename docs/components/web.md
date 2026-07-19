@@ -77,7 +77,7 @@ The scoring system (`src/lib/scoring.ts`) computes a 0-100 weighted overall scor
 - Shown on cards but not included in overall.
 
 **Badge bonuses**
-- Badges are awarded via `awardBadges()` (in `cards/badges/awardBadges.ts`) from four definition groups: **V1** (6 core badges), **V1.5** (2 build-time badges), **V2** (4 execution/control badges), **V2.5** (2 code-economy badges).
+- Badges are awarded via `awardBadges()` (in `cards/badges/awardBadges.ts`) from four definition groups: **V1** (6 core badges), **V1.5** (2 build-time badges), **V2** (1 memory badge), **V2.5** (2 code-economy badges).
 - Each badge tier is calculated by `awardHybridBadge()` using a hybrid formula: `0.55 × absolute attribute rating + 0.45 × percentile rank` (when 3+ languages have comparable data).
 - Tier values: Bronze +0.5, Silver +1.0, Gold +1.5, Hall of Fame +2.0, Legend +2.5.
 - Featured selection (`selectFeaturedBadgeIds`) picks up to 3 badges, preferring higher tiers and distinct categories.

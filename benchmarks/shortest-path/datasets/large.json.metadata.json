@@ -1,8 +1,0 @@
-{
-  "benchmark": "shortest-path",
-  "version": 1,
-  "size": "large",
-  "seed": 729418,
-  "generatorVersion": "2.0.0",
-  "sha256": "826f9d657c00844670b35007453f0a580e5ee361d51c930f6b92e315b9c5372e"
-}

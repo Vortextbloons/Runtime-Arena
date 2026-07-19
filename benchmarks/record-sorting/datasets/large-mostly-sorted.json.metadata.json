@@ -1,0 +1,9 @@
+{
+  "benchmark": "record-sorting",
+  "version": 1,
+  "size": "large",
+  "mutation": "mostly-sorted",
+  "seed": 729418,
+  "generatorVersion": "2.1.0",
+  "sha256": "45c6ca1129ddfedc8b18d136e292daeef970025196b009a0dd161e6a0252a52b"
+}

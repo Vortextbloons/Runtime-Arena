@@ -12,19 +12,28 @@
   },
   "sizes": {
     "small": {
-      "dataset": "small.json",
       "warmupIterations": 2,
-      "measuredIterations": 5
+      "measuredIterations": 5,
+      "mutations": {
+        "sparse": { "dataset": "small-sparse.json", "seed": 729418 },
+        "dense": { "dataset": "small-dense.json", "seed": 729418 }
+      }
     },
     "medium": {
-      "dataset": "medium.json",
       "warmupIterations": 2,
-      "measuredIterations": 3
+      "measuredIterations": 3,
+      "mutations": {
+        "sparse": { "dataset": "medium-sparse.json", "seed": 729418 },
+        "dense": { "dataset": "medium-dense.json", "seed": 729418 }
+      }
     },
     "large": {
-      "dataset": "large.json",
       "warmupIterations": 2,
-      "measuredIterations": 3
+      "measuredIterations": 3,
+      "mutations": {
+        "sparse": { "dataset": "large-sparse.json", "seed": 729418 },
+        "dense": { "dataset": "large-dense.json", "seed": 729418 }
+      }
     }
   },
   "metrics": ["kernelTime"],

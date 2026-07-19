@@ -26,12 +26,18 @@ test("discovers all benchmark definitions", () => {
 });
 
 test("generates deterministic new benchmark fixtures", () => {
-  for (const benchmark of ["word-frequency", "record-sorting", "matrix-multiplication"]) {
-    const first = arena("dataset", "generate", "--benchmark", benchmark, "--size", "small");
+  const cases = [
+    { benchmark: "record-sorting", mutation: "random" },
+    { benchmark: "record-sorting", mutation: "mostly-sorted" },
+    { benchmark: "word-frequency", mutation: "repeated-vocabulary" },
+    { benchmark: "matrix-multiplication", mutation: "row-major" }
+  ];
+  for (const { benchmark, mutation } of cases) {
+    const first = arena("dataset", "generate", "--benchmark", benchmark, "--size", "small", "--mutation", mutation);
     assert.equal(first.status, 0, first.stderr);
-    const dataset = path.join(root, "benchmarks", benchmark, "datasets", "small.json");
+    const dataset = path.join(root, "benchmarks", benchmark, "datasets", `small-${mutation}.json`);
     const firstContent = readFileSync(dataset, "utf8");
-    const second = arena("dataset", "generate", "--benchmark", benchmark, "--size", "small");
+    const second = arena("dataset", "generate", "--benchmark", benchmark, "--size", "small", "--mutation", mutation);
     assert.equal(second.status, 0, second.stderr);
     assert.equal(readFileSync(dataset, "utf8"), firstContent);
   }

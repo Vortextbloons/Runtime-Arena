@@ -7,11 +7,11 @@ function result(
 	language: string,
 	size: string,
 	median: number,
-	options: { deviation?: number; status?: string; valid?: number; measured?: number } = {}
+	options: { deviation?: number; status?: string; valid?: number; measured?: number; mutation?: string } = {}
 ): ArenaResult {
 	const measured = options.measured ?? 5;
 	return {
-		benchmark: { id: 'work', version: 1, size },
+		benchmark: { id: 'work', version: 1, size, ...(options.mutation ? { mutation: options.mutation } : {}) },
 		language: { id: language, name: language, version: '1' },
 		execution: {
 			measuredIterations: measured,
@@ -32,6 +32,21 @@ test('performance is proportional to the fastest valid median', () => {
 	const scores = scoreBenchmark([result('fast', 'small', 1_000_000), result('slow', 'small', 2_000_000)], 'work');
 	assert.equal(scores.find((score) => score.language.id === 'fast')?.performance, 100);
 	assert.equal(scores.find((score) => score.language.id === 'slow')?.performance, 63.728031366);
+});
+
+test('benchmark scores aggregate mutation variants within each size tier', () => {
+	const rows = [
+		{ ...result('fast', 'small', 1_000_000), benchmark: { id: 'work', version: 1, size: 'small', mutation: 'a' } },
+		{ ...result('fast', 'small', 1_000_000), benchmark: { id: 'work', version: 1, size: 'small', mutation: 'b' } },
+		{ ...result('slow', 'small', 2_000_000), benchmark: { id: 'work', version: 1, size: 'small', mutation: 'a' } },
+		{ ...result('slow', 'small', 2_000_000), benchmark: { id: 'work', version: 1, size: 'small', mutation: 'b' } }
+	];
+	const scores = scoreBenchmark(rows, 'work');
+	const fast = scores.find((score) => score.language.id === 'fast');
+	const slow = scores.find((score) => score.language.id === 'slow');
+	assert.equal(fast?.sizes[0]?.mutations.length, 2);
+	assert.equal(fast?.performance, 100);
+	assert.equal(slow?.performance, 63.728031366);
 });
 
 test('consistency scores zero variation at 100 and caps at zero', () => {

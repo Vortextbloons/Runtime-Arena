@@ -100,34 +100,11 @@ export const V15_BADGE_DEFINITIONS: BadgeDefinition[] = [
 
 export const V2_BADGE_DEFINITIONS: BadgeDefinition[] = [
 	{
-		id: 'quick-draw',
-		name: 'Quick Draw',
-		category: 'physical',
-		source: 'STA',
-		legendRequiresFastestRaw: true
-	},
-	{
 		id: 'memory-minder',
 		name: 'Memory Minder',
 		category: 'physical',
 		source: 'MEM',
 		legendRequiresSmallestRaw: true
-	},
-	{
-		id: 'stream-controller',
-		name: 'Stream Controller',
-		category: 'control',
-		source: 'IO',
-		benchmarkId: 'stream-io',
-		legendRequiresSizeSweep: true
-	},
-	{
-		id: 'parallel-engine',
-		name: 'Parallel Engine',
-		category: 'execution',
-		source: 'PAR',
-		benchmarkId: 'barrier-wave',
-		legendRequiresCategoryWin: true
 	}
 ];
 

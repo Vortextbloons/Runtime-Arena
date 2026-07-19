@@ -8,9 +8,30 @@
   "outputFormat": "json",
   "checker": { "task": "word-frequency", "timeoutMilliseconds": 30000 },
   "sizes": {
-    "small": { "dataset": "small.json", "warmupIterations": 2, "measuredIterations": 5 },
-    "medium": { "dataset": "medium.json", "warmupIterations": 2, "measuredIterations": 3 },
-    "large": { "dataset": "large.json", "warmupIterations": 2, "measuredIterations": 3 }
+    "small": {
+      "warmupIterations": 2,
+      "measuredIterations": 5,
+      "mutations": {
+        "repeated-vocabulary": { "dataset": "small-repeated-vocabulary.json", "seed": 729418 },
+        "mostly-unique": { "dataset": "small-mostly-unique.json", "seed": 729418 }
+      }
+    },
+    "medium": {
+      "warmupIterations": 2,
+      "measuredIterations": 3,
+      "mutations": {
+        "repeated-vocabulary": { "dataset": "medium-repeated-vocabulary.json", "seed": 729418 },
+        "mostly-unique": { "dataset": "medium-mostly-unique.json", "seed": 729418 }
+      }
+    },
+    "large": {
+      "warmupIterations": 2,
+      "measuredIterations": 3,
+      "mutations": {
+        "repeated-vocabulary": { "dataset": "large-repeated-vocabulary.json", "seed": 729418 },
+        "mostly-unique": { "dataset": "large-mostly-unique.json", "seed": 729418 }
+      }
+    }
   },
   "metrics": ["kernelTime"],
   "limits": { "timeoutMilliseconds": 120000, "maxOutputBytes": 10485760 }

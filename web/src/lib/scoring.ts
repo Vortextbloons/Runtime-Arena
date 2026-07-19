@@ -1,4 +1,4 @@
-import type { ArenaResult, BenchmarkScore, SizeScore } from './types';
+import type { ArenaResult, BenchmarkScore, MutationScore, SizeScore } from './types';
 
 const SIZE_ORDER = ['small', 'medium', 'large'];
 export const MINIMUM_RANKED_MEDIAN_NANOSECONDS = 1_000_000;
@@ -18,6 +18,8 @@ const performanceScore = (fastest: number, median: number) =>
 const weightedOverall = (performance: number, versatility: number) =>
 	normalizeScore(performance * SCORE_WEIGHTS.performance + versatility * SCORE_WEIGHTS.versatility);
 
+const variantKey = (size: string, mutation?: string) => (mutation ? `${size}/${mutation}` : size);
+
 export function formatDuration(nanoseconds: number): string {
 	if (nanoseconds < 1e6) return `${(nanoseconds / 1e3).toFixed(1)} µs`;
 	if (nanoseconds < 1e9) return `${(nanoseconds / 1e6).toFixed(2)} ms`;
@@ -28,55 +30,95 @@ export function formatVariation(value: number): string {
 	return `${(value * 100).toFixed(1)}%`;
 }
 
-export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): BenchmarkScore[] {
-	const cohort = results.filter((result) => result.benchmark.id === benchmarkId);
-	const expectedSizes = [...new Set(cohort.map((result) => result.benchmark.size))]
-		.toSorted((a, b) => {
-			const ai = SIZE_ORDER.indexOf(a);
-			const bi = SIZE_ORDER.indexOf(b);
-			return (ai < 0 ? Number.MAX_SAFE_INTEGER : ai) - (bi < 0 ? Number.MAX_SAFE_INTEGER : bi) || a.localeCompare(b);
-		});
-	const languages = new Map(cohort.map((result) => [result.language.id, result.language]));
-	const completeResult = (result: ArenaResult | undefined) =>
-		Boolean(
-			result &&
+function completeResult(result: ArenaResult | undefined) {
+	return Boolean(
+		result &&
 			result.checker.status === 'accepted' &&
 			result.execution.summary.validSamples === result.execution.measuredIterations
-		);
-	const fastestBySize = new Map<string, number>();
+	);
+}
 
-	for (const size of expectedSizes) {
-		const medians = cohort
-			.filter((result) => result.benchmark.size === size && completeResult(result))
-			.map((result) => result.execution.summary.medianKernelTimeNanoseconds)
-			.filter((median) => Number.isFinite(median) && median > 0);
-		const fastest = medians.length ? Math.min(...medians) : 0;
-		if (fastest >= MINIMUM_RANKED_MEDIAN_NANOSECONDS) fastestBySize.set(size, fastest);
+function mutationScore(result: ArenaResult, fastest: number): MutationScore {
+	const summary = result.execution.summary;
+	const mean = summary.meanKernelTimeNanoseconds ?? summary.medianKernelTimeNanoseconds;
+	const deviation = summary.standardDeviationKernelTimeNanoseconds ?? 0;
+	const variation = mean > 0 ? deviation / mean : 0;
+	return {
+		mutation: result.benchmark.mutation,
+		result,
+		medianNanoseconds: summary.medianKernelTimeNanoseconds,
+		fastestMedianNanoseconds: fastest,
+		p95Nanoseconds: summary.p95KernelTimeNanoseconds,
+		variation,
+		performance: performanceScore(fastest, summary.medianKernelTimeNanoseconds),
+		consistency: clampScore(100 - variation * 400)
+	};
+}
+
+export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): BenchmarkScore[] {
+	const cohort = results.filter((result) => result.benchmark.id === benchmarkId);
+	const expectedSizes = [...new Set(cohort.map((result) => result.benchmark.size))].toSorted((a, b) => {
+		const ai = SIZE_ORDER.indexOf(a);
+		const bi = SIZE_ORDER.indexOf(b);
+		return (ai < 0 ? Number.MAX_SAFE_INTEGER : ai) - (bi < 0 ? Number.MAX_SAFE_INTEGER : bi) || a.localeCompare(b);
+	});
+	const mutationsBySize = new Map<string, string[]>();
+	for (const result of cohort) {
+		const size = result.benchmark.size;
+		const mutation = result.benchmark.mutation ?? '';
+		const list = mutationsBySize.get(size) ?? [];
+		if (!list.includes(mutation)) list.push(mutation);
+		mutationsBySize.set(size, list.toSorted());
 	}
-	const rankedSizes = expectedSizes.filter((size) => fastestBySize.has(size));
+	const languages = new Map(cohort.map((result) => [result.language.id, result.language]));
+	const fastestByVariant = new Map<string, number>();
+
+	for (const [size, mutations] of mutationsBySize) {
+		for (const mutation of mutations) {
+			const key = variantKey(size, mutation || undefined);
+			const medians = cohort
+				.filter(
+					(result) =>
+						result.benchmark.size === size &&
+						(result.benchmark.mutation ?? '') === mutation &&
+						completeResult(result)
+				)
+				.map((result) => result.execution.summary.medianKernelTimeNanoseconds)
+				.filter((median) => Number.isFinite(median) && median > 0);
+			const fastest = medians.length ? Math.min(...medians) : 0;
+			if (fastest >= MINIMUM_RANKED_MEDIAN_NANOSECONDS) fastestByVariant.set(key, fastest);
+		}
+	}
+
+	const rankedSizes = expectedSizes.filter((size) =>
+		(mutationsBySize.get(size) ?? ['']).every((mutation) => fastestByVariant.has(variantKey(size, mutation || undefined)))
+	);
 
 	return [...languages.values()]
 		.map((language): BenchmarkScore => {
 			const languageResults = new Map(
 				cohort
 					.filter((result) => result.language.id === language.id)
-					.map((result) => [result.benchmark.size, result])
+					.map((result) => [variantKey(result.benchmark.size, result.benchmark.mutation), result])
 			);
 			const diagnostics: string[] = [];
 
 			for (const size of expectedSizes) {
-				const result = languageResults.get(size);
-				if (!result) {
-					diagnostics.push(`Missing ${size} result.`);
-					continue;
-				}
-				if (result.checker.status !== 'accepted') {
-					diagnostics.push(`${size}: ${result.checker.status}.`, ...result.checker.diagnostics);
-				}
-				if (result.execution.summary.validSamples !== result.execution.measuredIterations) {
-					diagnostics.push(
-						`${size}: ${result.execution.summary.validSamples}/${result.execution.measuredIterations} measured samples are valid.`
-					);
+				for (const mutation of mutationsBySize.get(size) ?? ['']) {
+					const label = variantKey(size, mutation || undefined);
+					const result = languageResults.get(label);
+					if (!result) {
+						diagnostics.push(`Missing ${label} result.`);
+						continue;
+					}
+					if (result.checker.status !== 'accepted') {
+						diagnostics.push(`${label}: ${result.checker.status}.`, ...result.checker.diagnostics);
+					}
+					if (result.execution.summary.validSamples !== result.execution.measuredIterations) {
+						diagnostics.push(
+							`${label}: ${result.execution.summary.validSamples}/${result.execution.measuredIterations} measured samples are valid.`
+						);
+					}
 				}
 			}
 			if (!rankedSizes.length) diagnostics.push('No size tier has a fastest valid median of at least 1 ms.');
@@ -98,21 +140,20 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 			}
 
 			const sizes = rankedSizes.map((size): SizeScore => {
-				const result = languageResults.get(size)!;
-				const summary = result.execution.summary;
-				const mean = summary.meanKernelTimeNanoseconds ?? summary.medianKernelTimeNanoseconds;
-				const deviation = summary.standardDeviationKernelTimeNanoseconds ?? 0;
-				const variation = mean > 0 ? deviation / mean : 0;
-				const fastest = fastestBySize.get(size)!;
+				const mutationScores = (mutationsBySize.get(size) ?? ['']).map((mutation) => {
+					const result = languageResults.get(variantKey(size, mutation || undefined))!;
+					return mutationScore(result, fastestByVariant.get(variantKey(size, mutation || undefined))!);
+				});
 				return {
 					size,
-					result,
-					medianNanoseconds: summary.medianKernelTimeNanoseconds,
-					fastestMedianNanoseconds: fastest,
-					p95Nanoseconds: summary.p95KernelTimeNanoseconds,
-					variation,
-					performance: performanceScore(fastest, summary.medianKernelTimeNanoseconds),
-					consistency: clampScore(100 - variation * 400)
+					mutations: mutationScores,
+					result: mutationScores[0]!.result,
+					medianNanoseconds: average(mutationScores.map((entry) => entry.medianNanoseconds)),
+					fastestMedianNanoseconds: average(mutationScores.map((entry) => entry.fastestMedianNanoseconds)),
+					p95Nanoseconds: average(mutationScores.map((entry) => entry.p95Nanoseconds)),
+					variation: average(mutationScores.map((entry) => entry.variation)),
+					performance: normalizeScore(geometricMean(mutationScores.map((entry) => entry.performance))),
+					consistency: average(mutationScores.map((entry) => entry.consistency))
 				};
 			});
 			const performance = normalizeScore(geometricMean(sizes.map((size) => size.performance)));
@@ -163,8 +204,6 @@ export function scoreOverall(results: ArenaResult[]): BenchmarkScore[] {
 				)
 			];
 
-			// Overall ranks from whatever eligible benchmarks this language completed.
-			// Skipping a workload (e.g. LuaJIT on barrier-wave) no longer zeros the card.
 			if (!eligibleEntries.length) {
 				return {
 					benchmarkId: 'overall',

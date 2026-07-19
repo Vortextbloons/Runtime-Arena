@@ -65,6 +65,9 @@
             },
             "size": {
               "type": "string"
+            },
+            "mutation": {
+              "type": "string"
             }
           }
         },
@@ -80,6 +83,12 @@
             },
             "seed": {
               "type": "integer"
+            },
+            "mutation": {
+              "type": "string"
+            },
+            "generatorVersion": {
+              "type": "string"
             }
           }
         },
