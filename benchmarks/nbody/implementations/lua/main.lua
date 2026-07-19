@@ -29,6 +29,7 @@ local steps = data.steps; local delta_time = data.deltaTime; local bodies = data
 
 local function kernel(b)
 local body_count = #b
+local dt = delta_time
 for step = 1, steps do
     for i = 1, body_count do
         local bi = b[i]; local pix, piy, piz = bi.position[1], bi.position[2], bi.position[3]
@@ -36,7 +37,7 @@ for step = 1, steps do
         for j = i + 1, body_count do
             local bj = b[j]; local mj = bj.mass
             local dx = bj.position[1] - pix; local dy = bj.position[2] - piy; local dz = bj.position[3] - piz
-            local r2 = dx*dx + dy*dy + dz*dz; local m = delta_time / (r2 * math.sqrt(r2))
+            local r2 = dx*dx + dy*dy + dz*dz; local m = dt / (r2 * math.sqrt(r2))
             local mix = dx * mj * m; local miy = dy * mj * m; local miz = dz * mj * m
             local mjx = dx * mi * m; local mjy = dy * mi * m; local mjz = dz * mi * m
             vix = vix + mix; viy = viy + miy; viz = viz + miz
@@ -46,15 +47,15 @@ for step = 1, steps do
     end
     for i = 1, body_count do
         local bi = b[i]; local v = bi.velocity
-        bi.position[1] = bi.position[1] + delta_time * v[1]
-        bi.position[2] = bi.position[2] + delta_time * v[2]
-        bi.position[3] = bi.position[3] + delta_time * v[3]
+        bi.position[1] = bi.position[1] + dt * v[1]
+        bi.position[2] = bi.position[2] + dt * v[2]
+        bi.position[3] = bi.position[3] + dt * v[3]
     end
 end
 local energy = 0.0; local pos_parts, vel_parts = {}, {}
 for i = 1, body_count do
     local bi = b[i]; local mass = bi.mass
-    local v2 = bi.velocity[1]^2 + bi.velocity[2]^2 + bi.velocity[3]^2; energy = energy + 0.5 * mass * v2
+    local v2 = bi.velocity[1]*bi.velocity[1] + bi.velocity[2]*bi.velocity[2] + bi.velocity[3]*bi.velocity[3]; energy = energy + 0.5 * mass * v2
     for k = 1, 3 do
         pos_parts[#pos_parts+1] = string.format("%.9f,", bi.position[k])
         vel_parts[#vel_parts+1] = string.format("%.9f,", bi.velocity[k]) end
@@ -66,14 +67,15 @@ return {
     positionChecksum = sha256(table.concat(pos_parts)), velocityChecksum = sha256(table.concat(vel_parts)) }
 end
 
-local samples = {}; local output
+local samples = {}; local sn = 0; local output
 for iteration = -warmups, iterations - 1 do
     local b = {}
     for idx = 1, #bodies do
-        b[idx] = {mass=bodies[idx].mass, position={bodies[idx].position[1], bodies[idx].position[2], bodies[idx].position[3]},
-            velocity={bodies[idx].velocity[1], bodies[idx].velocity[2], bodies[idx].velocity[3]}} end
+        local src = bodies[idx]
+        b[idx] = {mass=src.mass, position={src.position[1], src.position[2], src.position[3]},
+            velocity={src.velocity[1], src.velocity[2], src.velocity[3]}} end
     local started = now_ns(); output = kernel(b)
     local elapsed = math.max(1, math.floor(now_ns() - started + 0.5))
-    if iteration >= 0 then table.insert(samples, {iteration=iteration+1, kernelTimeNanoseconds=elapsed}) end end
+    if iteration >= 0 then sn = sn + 1; samples[sn] = {iteration=iteration+1, kernelTimeNanoseconds=elapsed} end end
 local out = io.open(output_file, "w"); out:write(json.encode(output)); out:close()
 local timing = io.open(timing_output_file, "w"); timing:write(json.encode({samples=samples})); timing:close()

@@ -49,6 +49,43 @@ func TestAggregation(t *testing.T) {
 	}
 }
 
+func TestWordFrequency(t *testing.T) {
+	got, err := wordFrequency(wordFrequencyInput{Words: []string{"beta", "alpha", "beta", "gamma", "alpha", "beta"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.TotalWords != 6 || got.UniqueWords != 3 || got.TopWords[0] != (wordCount{Word: "beta", Count: 3}) {
+		t.Fatalf("unexpected word frequency result: %+v", got)
+	}
+	if got.Checksum == "" {
+		t.Fatal("word frequency checksum is empty")
+	}
+}
+
+func TestRecordSortingTieBreaking(t *testing.T) {
+	got, err := recordSorting(recordSortingInput{Records: []record{
+		{ID: 3, Score: 5, Timestamp: 10}, {ID: 2, Score: 5, Timestamp: 10},
+		{ID: 1, Score: 5, Timestamp: 9}, {ID: 4, Score: 6, Timestamp: 20},
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []record{{ID: 4, Score: 6, Timestamp: 20}, {ID: 1, Score: 5, Timestamp: 9}, {ID: 2, Score: 5, Timestamp: 10}, {ID: 3, Score: 5, Timestamp: 10}}
+	if !sameJSON(got.FirstRecords, want) || !sameJSON(got.LastRecords, want) {
+		t.Fatalf("record sort tie-breaking mismatch: %+v", got)
+	}
+}
+
+func TestMatrixMultiplication(t *testing.T) {
+	got, err := matrixMultiplication(matrixMultiplicationInput{Dimension: 2, Left: []int64{1, 2, 3, 4}, Right: []int64{5, 6, 7, 8}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.ElementCount != 4 || got.ValueSum != 134 || got.DiagonalSum != 69 || got.Checksum == "" {
+		t.Fatalf("unexpected matrix multiplication result: %+v", got)
+	}
+}
+
 func TestStrictJSONRejectsUnknownFields(t *testing.T) {
 	file := filepath.Join(t.TempDir(), "output.json")
 	if err := os.WriteFile(file, []byte(`{"benchmark":"nbody","version":1,"bodyCount":1,"finalEnergy":0,"positionChecksum":"x","velocityChecksum":"y","extra":true}`), 0600); err != nil {

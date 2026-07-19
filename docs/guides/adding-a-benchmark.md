@@ -20,7 +20,8 @@
    with metadata). If you want `arena dataset generate` support, register a
    generator branch in `cli/src/index.ts` (`datasetCommand`) — without that,
    generate fails with "No generator registered". Generators already exist
-   for nbody, shortest-path, aggregation, and barrier-wave.
+   for nbody, shortest-path, aggregation, barrier-wave, word-frequency,
+   record-sorting, and matrix-multiplication.
 5. Create `benchmark.json` using an existing benchmark as a template. It must
    match `schemas/benchmark.schema.json`.
 6. Add independent validation logic to the Go checker (and unit tests).
@@ -45,3 +46,8 @@
 Each implementation must use the most idiomatic approach for its language while
 producing output accepted by the checker. Do not include setup, compilation, or
 validation work in the timed workload.
+
+If a workload is intentionally defined before implementations are added, keep
+an `implementations/.gitkeep` placeholder and document its pending status in
+the benchmark reference. Its manifest, fixtures, generator, schema, checker,
+and checker tests can still be completed and verified independently.

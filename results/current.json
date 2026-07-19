@@ -1,9 +1,9 @@
 {
   "schemaVersion": "3.0.0",
-  "snapshotId": "2026-07-19T08-34-30-880-e31b3a96Z",
-  "updatedAt": "2026-07-19T08:34:30.880Z",
+  "snapshotId": "2026-07-19T08-54-25-617-6ce78522Z",
+  "updatedAt": "2026-07-19T08:54:25.617Z",
   "arenaVersion": "0.2.0",
-  "gitCommit": "ede4efc012ff3c0d6ef5463ac39a0fb994f7c665",
+  "gitCommit": "ad300cd3e34193e9b727a883881ae270b75714f4",
   "gitDirty": true,
   "results": [
     {
@@ -565,8 +565,8 @@
       },
       "build": {
         "status": "success",
-        "durationNanoseconds": 14276600,
-        "artifactSizeBytes": 5564,
+        "durationNanoseconds": 16196200,
+        "artifactSizeBytes": 5959,
         "command": [
           "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
           "-b",
@@ -577,13 +577,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 323135700,
+        "totalProcessDurationNanoseconds": 252265700,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 8652600,
+            "kernelTimeNanoseconds": 3955400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -592,7 +592,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 9239700,
+            "kernelTimeNanoseconds": 3595700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -601,7 +601,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 10077800,
+            "kernelTimeNanoseconds": 3347700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -610,7 +610,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 9960600,
+            "kernelTimeNanoseconds": 3231000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -619,7 +619,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 9901500,
+            "kernelTimeNanoseconds": 3484100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -628,7 +628,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 9546000,
+            "kernelTimeNanoseconds": 4247200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -637,7 +637,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 9091800,
+            "kernelTimeNanoseconds": 3712700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -646,7 +646,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 8984000,
+            "kernelTimeNanoseconds": 3479800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -655,7 +655,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 8695100,
+            "kernelTimeNanoseconds": 3315100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -664,7 +664,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 8689000,
+            "kernelTimeNanoseconds": 3523200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -675,13 +675,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 8652600,
-          "maximumKernelTimeNanoseconds": 10077800,
-          "medianKernelTimeNanoseconds": 9091800,
-          "meanKernelTimeNanoseconds": 9283810,
-          "standardDeviationKernelTimeNanoseconds": 525951.8408561758,
-          "p95KernelTimeNanoseconds": 10077800,
-          "interquartileRangeKernelTimeNanoseconds": 1206400
+          "minimumKernelTimeNanoseconds": 3231000,
+          "maximumKernelTimeNanoseconds": 4247200,
+          "medianKernelTimeNanoseconds": 3484100,
+          "meanKernelTimeNanoseconds": 3589190,
+          "standardDeviationKernelTimeNanoseconds": 295210.36719600484,
+          "p95KernelTimeNanoseconds": 4247200,
+          "interquartileRangeKernelTimeNanoseconds": 365000
         },
         "metrics": {
           "kernelTime": {
@@ -697,9 +697,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "04f7b5cea2516ca882fdc2c0aab691e169ce683b75cc8a21bb095b9a3945e54b",
+        "fingerprint": "8d1c977393243ba6a68b30a6b84d523571046f9d6a02412bf19ec082c92d0069",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T08:15:52.183Z",
+        "measuredAt": "2026-07-19T08:54:25.617Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -1793,8 +1793,8 @@
       },
       "build": {
         "status": "success",
-        "durationNanoseconds": 15008800,
-        "artifactSizeBytes": 5564,
+        "durationNanoseconds": 15768600,
+        "artifactSizeBytes": 5959,
         "command": [
           "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
           "-b",
@@ -1805,13 +1805,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 85713500,
+        "totalProcessDurationNanoseconds": 68884600,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 1178200,
+            "kernelTimeNanoseconds": 558200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1820,7 +1820,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 1231000,
+            "kernelTimeNanoseconds": 530300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1829,7 +1829,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 1297500,
+            "kernelTimeNanoseconds": 641300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1838,7 +1838,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 1131100,
+            "kernelTimeNanoseconds": 487200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1847,7 +1847,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 1119400,
+            "kernelTimeNanoseconds": 455100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1856,7 +1856,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 1112100,
+            "kernelTimeNanoseconds": 480400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1865,7 +1865,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 1175600,
+            "kernelTimeNanoseconds": 535700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1874,7 +1874,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 1146000,
+            "kernelTimeNanoseconds": 507600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1883,7 +1883,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 1324300,
+            "kernelTimeNanoseconds": 512900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1892,7 +1892,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 1179600,
+            "kernelTimeNanoseconds": 486800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1903,13 +1903,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 1112100,
-          "maximumKernelTimeNanoseconds": 1324300,
-          "medianKernelTimeNanoseconds": 1175600,
-          "meanKernelTimeNanoseconds": 1189480,
-          "standardDeviationKernelTimeNanoseconds": 69414.5345010683,
-          "p95KernelTimeNanoseconds": 1324300,
-          "interquartileRangeKernelTimeNanoseconds": 99900
+          "minimumKernelTimeNanoseconds": 455100,
+          "maximumKernelTimeNanoseconds": 641300,
+          "medianKernelTimeNanoseconds": 507600,
+          "meanKernelTimeNanoseconds": 519550,
+          "standardDeviationKernelTimeNanoseconds": 49684.91219676251,
+          "p95KernelTimeNanoseconds": 641300,
+          "interquartileRangeKernelTimeNanoseconds": 48900
         },
         "metrics": {
           "kernelTime": {
@@ -1925,9 +1925,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "6841ed24dc490ffc3f8660a36ceadfb837d18a1012358d42aced2473884a8bd0",
+        "fingerprint": "194368736cc54f4d27c00801153fb788ef748e234fba3fd7cec696d6177de8e9",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T08:15:52.183Z",
+        "measuredAt": "2026-07-19T08:54:25.617Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -3021,8 +3021,8 @@
       },
       "build": {
         "status": "success",
-        "durationNanoseconds": 17733200,
-        "artifactSizeBytes": 5564,
+        "durationNanoseconds": 16319300,
+        "artifactSizeBytes": 5959,
         "command": [
           "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
           "-b",
@@ -3033,13 +3033,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 36806600,
+        "totalProcessDurationNanoseconds": 35830000,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 293600,
+            "kernelTimeNanoseconds": 163900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -3048,7 +3048,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 303000,
+            "kernelTimeNanoseconds": 165800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -3057,7 +3057,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 405300,
+            "kernelTimeNanoseconds": 179800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -3066,7 +3066,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 306200,
+            "kernelTimeNanoseconds": 151000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -3075,7 +3075,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 287300,
+            "kernelTimeNanoseconds": 140600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -3084,7 +3084,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 284800,
+            "kernelTimeNanoseconds": 161000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -3093,7 +3093,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 333000,
+            "kernelTimeNanoseconds": 190600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -3102,7 +3102,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 304900,
+            "kernelTimeNanoseconds": 260000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -3111,7 +3111,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 320200,
+            "kernelTimeNanoseconds": 317000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -3120,7 +3120,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 299500,
+            "kernelTimeNanoseconds": 261000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -3131,13 +3131,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 284800,
-          "maximumKernelTimeNanoseconds": 405300,
-          "medianKernelTimeNanoseconds": 303000,
-          "meanKernelTimeNanoseconds": 313780,
-          "standardDeviationKernelTimeNanoseconds": 33453.30476948428,
-          "p95KernelTimeNanoseconds": 405300,
-          "interquartileRangeKernelTimeNanoseconds": 26600
+          "minimumKernelTimeNanoseconds": 140600,
+          "maximumKernelTimeNanoseconds": 317000,
+          "medianKernelTimeNanoseconds": 165800,
+          "meanKernelTimeNanoseconds": 199070,
+          "standardDeviationKernelTimeNanoseconds": 56054.40303847683,
+          "p95KernelTimeNanoseconds": 317000,
+          "interquartileRangeKernelTimeNanoseconds": 99000
         },
         "metrics": {
           "kernelTime": {
@@ -3153,9 +3153,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "5df15612f67b065b0d2162162957ee87b202244ed49da7991e6e25d641af821d",
+        "fingerprint": "ed987b3f7b6c5a0d61b7b20ca83349a67b83757c9d8e410a340f95c90cf398dd",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T08:34:30.880Z",
+        "measuredAt": "2026-07-19T08:54:25.617Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -7303,8 +7303,8 @@
       },
       "build": {
         "status": "success",
-        "durationNanoseconds": 14419100,
-        "artifactSizeBytes": 4407,
+        "durationNanoseconds": 14890000,
+        "artifactSizeBytes": 4430,
         "command": [
           "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
           "-b",
@@ -7315,13 +7315,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 141781400,
+        "totalProcessDurationNanoseconds": 148922200,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 9870900,
+            "kernelTimeNanoseconds": 10298900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -7330,7 +7330,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 9393200,
+            "kernelTimeNanoseconds": 9866100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -7339,7 +7339,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 9512300,
+            "kernelTimeNanoseconds": 9914400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -7348,7 +7348,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 9875800,
+            "kernelTimeNanoseconds": 10366800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -7357,7 +7357,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 9422700,
+            "kernelTimeNanoseconds": 9661400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -7366,7 +7366,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 9445300,
+            "kernelTimeNanoseconds": 9798400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -7375,7 +7375,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 9403200,
+            "kernelTimeNanoseconds": 9842500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -7384,7 +7384,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 9602300,
+            "kernelTimeNanoseconds": 9721800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -7393,7 +7393,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 9633900,
+            "kernelTimeNanoseconds": 10402400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -7402,7 +7402,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 9615200,
+            "kernelTimeNanoseconds": 9733600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -7413,13 +7413,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 9393200,
-          "maximumKernelTimeNanoseconds": 9875800,
-          "medianKernelTimeNanoseconds": 9512300,
-          "meanKernelTimeNanoseconds": 9577480,
-          "standardDeviationKernelTimeNanoseconds": 170388.27307065472,
-          "p95KernelTimeNanoseconds": 9875800,
-          "interquartileRangeKernelTimeNanoseconds": 211200
+          "minimumKernelTimeNanoseconds": 9661400,
+          "maximumKernelTimeNanoseconds": 10402400,
+          "medianKernelTimeNanoseconds": 9842500,
+          "meanKernelTimeNanoseconds": 9960630,
+          "standardDeviationKernelTimeNanoseconds": 269077.82907552976,
+          "p95KernelTimeNanoseconds": 10402400,
+          "interquartileRangeKernelTimeNanoseconds": 565300
         },
         "metrics": {
           "kernelTime": {
@@ -7435,9 +7435,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "1b04927d9eaae92943e2752bd5f86cf8ba868579a1759d8ad323fc205654996e",
+        "fingerprint": "041fb3c919fa070dbd6adae8879a3a274533d82f05a29f6580c4234ab685c89f",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T08:15:52.183Z",
+        "measuredAt": "2026-07-19T08:54:25.617Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -8531,8 +8531,8 @@
       },
       "build": {
         "status": "success",
-        "durationNanoseconds": 14889300,
-        "artifactSizeBytes": 4407,
+        "durationNanoseconds": 14698600,
+        "artifactSizeBytes": 4430,
         "command": [
           "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
           "-b",
@@ -8543,13 +8543,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 51505200,
+        "totalProcessDurationNanoseconds": 55857800,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 2478600,
+            "kernelTimeNanoseconds": 2524700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -8558,7 +8558,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 2455800,
+            "kernelTimeNanoseconds": 2519400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -8567,7 +8567,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 2562200,
+            "kernelTimeNanoseconds": 2571700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -8576,7 +8576,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 2473700,
+            "kernelTimeNanoseconds": 2560400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -8585,7 +8585,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 2483500,
+            "kernelTimeNanoseconds": 2941600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -8594,7 +8594,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 2889100,
+            "kernelTimeNanoseconds": 2614400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -8603,7 +8603,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 2541200,
+            "kernelTimeNanoseconds": 2544100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -8612,7 +8612,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 2729300,
+            "kernelTimeNanoseconds": 2529100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -8621,7 +8621,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 2462400,
+            "kernelTimeNanoseconds": 2503800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -8630,7 +8630,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 2450900,
+            "kernelTimeNanoseconds": 2542000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 255,
@@ -8641,13 +8641,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 2450900,
-          "maximumKernelTimeNanoseconds": 2889100,
-          "medianKernelTimeNanoseconds": 2478600,
-          "meanKernelTimeNanoseconds": 2552670,
-          "standardDeviationKernelTimeNanoseconds": 137478.14408115932,
-          "p95KernelTimeNanoseconds": 2889100,
-          "interquartileRangeKernelTimeNanoseconds": 99800
+          "minimumKernelTimeNanoseconds": 2503800,
+          "maximumKernelTimeNanoseconds": 2941600,
+          "medianKernelTimeNanoseconds": 2542000,
+          "meanKernelTimeNanoseconds": 2585120,
+          "standardDeviationKernelTimeNanoseconds": 122470.13350200938,
+          "p95KernelTimeNanoseconds": 2941600,
+          "interquartileRangeKernelTimeNanoseconds": 47000
         },
         "metrics": {
           "kernelTime": {
@@ -8663,9 +8663,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "756c3563d77cb1892d1ff589430222bcbc8d2f129d295ad0cd671649f033f63f",
+        "fingerprint": "6bbcfad47d39d56874b1b0692cfd59e68b51d5e5e3ad30957e2ba6afba0ed0c4",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T08:15:52.183Z",
+        "measuredAt": "2026-07-19T08:54:25.617Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -9759,8 +9759,8 @@
       },
       "build": {
         "status": "success",
-        "durationNanoseconds": 14449100,
-        "artifactSizeBytes": 4407,
+        "durationNanoseconds": 16228100,
+        "artifactSizeBytes": 4430,
         "command": [
           "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
           "-b",
@@ -9771,13 +9771,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 24768600,
+        "totalProcessDurationNanoseconds": 25560500,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 391200,
+            "kernelTimeNanoseconds": 378100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9786,7 +9786,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 398300,
+            "kernelTimeNanoseconds": 401800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9795,7 +9795,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 463700,
+            "kernelTimeNanoseconds": 455800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9804,7 +9804,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 384900,
+            "kernelTimeNanoseconds": 381500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9813,7 +9813,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 396200,
+            "kernelTimeNanoseconds": 393800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9822,7 +9822,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 393300,
+            "kernelTimeNanoseconds": 378200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9831,7 +9831,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 644400,
+            "kernelTimeNanoseconds": 651800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9840,7 +9840,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 380000,
+            "kernelTimeNanoseconds": 385300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9849,7 +9849,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 381400,
+            "kernelTimeNanoseconds": 378800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9858,7 +9858,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 381200,
+            "kernelTimeNanoseconds": 375100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 254,
@@ -9869,13 +9869,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 380000,
-          "maximumKernelTimeNanoseconds": 644400,
-          "medianKernelTimeNanoseconds": 391200,
-          "meanKernelTimeNanoseconds": 421460,
-          "standardDeviationKernelTimeNanoseconds": 77878.62607930368,
-          "p95KernelTimeNanoseconds": 644400,
-          "interquartileRangeKernelTimeNanoseconds": 16900
+          "minimumKernelTimeNanoseconds": 375100,
+          "maximumKernelTimeNanoseconds": 651800,
+          "medianKernelTimeNanoseconds": 381500,
+          "meanKernelTimeNanoseconds": 418020,
+          "standardDeviationKernelTimeNanoseconds": 81175.1168770332,
+          "p95KernelTimeNanoseconds": 651800,
+          "interquartileRangeKernelTimeNanoseconds": 23600
         },
         "metrics": {
           "kernelTime": {
@@ -9891,9 +9891,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "fd58b6b5f4c530e431c6b007a6c7933f454c4c1d2f9a66ffa542f547142f85bd",
+        "fingerprint": "f7944e26e95921930aebcf250c36bef87f61db5c57da89e9e40dd31c47b23077",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T08:34:30.880Z",
+        "measuredAt": "2026-07-19T08:54:25.617Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -10987,8 +10987,8 @@
       },
       "build": {
         "status": "success",
-        "durationNanoseconds": 14706300,
-        "artifactSizeBytes": 4328,
+        "durationNanoseconds": 15212700,
+        "artifactSizeBytes": 4828,
         "command": [
           "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
           "-b",
@@ -10999,13 +10999,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 814148300,
+        "totalProcessDurationNanoseconds": 362727200,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 59377600,
+            "kernelTimeNanoseconds": 25288500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -11014,7 +11014,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 59935400,
+            "kernelTimeNanoseconds": 25648100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -11023,7 +11023,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 59751300,
+            "kernelTimeNanoseconds": 25319600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -11032,7 +11032,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 62053800,
+            "kernelTimeNanoseconds": 25037100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -11041,7 +11041,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 60475100,
+            "kernelTimeNanoseconds": 26498100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -11050,7 +11050,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 60254700,
+            "kernelTimeNanoseconds": 25418800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -11059,7 +11059,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 59740900,
+            "kernelTimeNanoseconds": 25826400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -11068,7 +11068,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 60047300,
+            "kernelTimeNanoseconds": 26194300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -11077,7 +11077,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 59306700,
+            "kernelTimeNanoseconds": 25625100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -11086,7 +11086,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 58932200,
+            "kernelTimeNanoseconds": 25774700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 13118,
@@ -11097,13 +11097,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 58932200,
-          "maximumKernelTimeNanoseconds": 62053800,
-          "medianKernelTimeNanoseconds": 59751300,
-          "meanKernelTimeNanoseconds": 59987500,
-          "standardDeviationKernelTimeNanoseconds": 815522.0708233468,
-          "p95KernelTimeNanoseconds": 62053800,
-          "interquartileRangeKernelTimeNanoseconds": 877100
+          "minimumKernelTimeNanoseconds": 25037100,
+          "maximumKernelTimeNanoseconds": 26498100,
+          "medianKernelTimeNanoseconds": 25625100,
+          "meanKernelTimeNanoseconds": 25663070,
+          "standardDeviationKernelTimeNanoseconds": 415940.47422678163,
+          "p95KernelTimeNanoseconds": 26498100,
+          "interquartileRangeKernelTimeNanoseconds": 506800
         },
         "metrics": {
           "kernelTime": {
@@ -11119,9 +11119,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "c939f4fb4eeee9305463fb2301eb895f4c748a3522cfabe6e2c77650c0d1a5de",
+        "fingerprint": "0c119004acffdad9b95eb8d7b7ad5ee49abb0507e369a2873039e7b5c88a7a06",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T08:15:52.183Z",
+        "measuredAt": "2026-07-19T08:54:25.617Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -12215,8 +12215,8 @@
       },
       "build": {
         "status": "success",
-        "durationNanoseconds": 16404000,
-        "artifactSizeBytes": 4328,
+        "durationNanoseconds": 15569500,
+        "artifactSizeBytes": 4828,
         "command": [
           "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
           "-b",
@@ -12227,13 +12227,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 213361700,
+        "totalProcessDurationNanoseconds": 102900600,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 14172400,
+            "kernelTimeNanoseconds": 5805300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -12242,7 +12242,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 14059300,
+            "kernelTimeNanoseconds": 6205200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -12251,7 +12251,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 14031500,
+            "kernelTimeNanoseconds": 5680900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -12260,7 +12260,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 14102300,
+            "kernelTimeNanoseconds": 5938500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -12269,7 +12269,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 13966600,
+            "kernelTimeNanoseconds": 5842800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -12278,7 +12278,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 14191100,
+            "kernelTimeNanoseconds": 5730100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -12287,7 +12287,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 14111600,
+            "kernelTimeNanoseconds": 5912700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -12296,7 +12296,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 13855700,
+            "kernelTimeNanoseconds": 5762100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -12305,7 +12305,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 13941600,
+            "kernelTimeNanoseconds": 6743600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -12314,7 +12314,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 14232500,
+            "kernelTimeNanoseconds": 5783000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 5975,
@@ -12325,13 +12325,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 13855700,
-          "maximumKernelTimeNanoseconds": 14232500,
-          "medianKernelTimeNanoseconds": 14059300,
-          "meanKernelTimeNanoseconds": 14066460,
-          "standardDeviationKernelTimeNanoseconds": 113536.38359574432,
-          "p95KernelTimeNanoseconds": 14232500,
-          "interquartileRangeKernelTimeNanoseconds": 205800
+          "minimumKernelTimeNanoseconds": 5680900,
+          "maximumKernelTimeNanoseconds": 6743600,
+          "medianKernelTimeNanoseconds": 5805300,
+          "meanKernelTimeNanoseconds": 5940420,
+          "standardDeviationKernelTimeNanoseconds": 301981.77693364216,
+          "p95KernelTimeNanoseconds": 6743600,
+          "interquartileRangeKernelTimeNanoseconds": 176400
         },
         "metrics": {
           "kernelTime": {
@@ -12347,9 +12347,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "8dc419c029af2464e9955aa62aa2275fcfab837138115f9113566dc1cab4bf8b",
+        "fingerprint": "c4ce3c1d1b32eaf6470fc1bf91490531808b52a66b270bde0927aacb1514f3cc",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T08:15:52.183Z",
+        "measuredAt": "2026-07-19T08:54:25.617Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -13443,8 +13443,8 @@
       },
       "build": {
         "status": "success",
-        "durationNanoseconds": 13982700,
-        "artifactSizeBytes": 4328,
+        "durationNanoseconds": 15167900,
+        "artifactSizeBytes": 4828,
         "command": [
           "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe",
           "-b",
@@ -13455,13 +13455,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 43917300,
+        "totalProcessDurationNanoseconds": 33878200,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 1493500,
+            "kernelTimeNanoseconds": 630600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -13470,7 +13470,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 1454100,
+            "kernelTimeNanoseconds": 579800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -13479,7 +13479,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 1410400,
+            "kernelTimeNanoseconds": 557500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -13488,7 +13488,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 1359000,
+            "kernelTimeNanoseconds": 576100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -13497,7 +13497,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 1334100,
+            "kernelTimeNanoseconds": 520200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -13506,7 +13506,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 1499100,
+            "kernelTimeNanoseconds": 557200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -13515,7 +13515,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 1602900,
+            "kernelTimeNanoseconds": 945600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -13524,7 +13524,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 1449600,
+            "kernelTimeNanoseconds": 679000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -13533,7 +13533,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 1258900,
+            "kernelTimeNanoseconds": 600100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -13542,7 +13542,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 1383000,
+            "kernelTimeNanoseconds": 714700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1711,
@@ -13553,13 +13553,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 1258900,
-          "maximumKernelTimeNanoseconds": 1602900,
-          "medianKernelTimeNanoseconds": 1410400,
-          "meanKernelTimeNanoseconds": 1424460,
-          "standardDeviationKernelTimeNanoseconds": 92447.66303157696,
-          "p95KernelTimeNanoseconds": 1602900,
-          "interquartileRangeKernelTimeNanoseconds": 134500
+          "minimumKernelTimeNanoseconds": 520200,
+          "maximumKernelTimeNanoseconds": 945600,
+          "medianKernelTimeNanoseconds": 579800,
+          "meanKernelTimeNanoseconds": 636080,
+          "standardDeviationKernelTimeNanoseconds": 117362.9140742509,
+          "p95KernelTimeNanoseconds": 945600,
+          "interquartileRangeKernelTimeNanoseconds": 121500
         },
         "metrics": {
           "kernelTime": {
@@ -13575,9 +13575,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "c7a365db0e47a2239c3b54cf7b61eaaa9ed17741c578828e60588d6a96b79879",
+        "fingerprint": "da5737f26a6ef9604619550a8d60b9bb9a1e234f263a1d567fd5da252a99044b",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T08:34:30.880Z",
+        "measuredAt": "2026-07-19T08:54:25.617Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",

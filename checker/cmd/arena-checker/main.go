@@ -326,6 +326,54 @@ type aggregation struct {
 	Checksum                     string     `json:"checksum"`
 }
 
+type wordFrequencyInput struct {
+	Words []string `json:"words"`
+}
+type wordCount struct {
+	Word  string `json:"word"`
+	Count int64  `json:"count"`
+}
+type wordFrequencyOutput struct {
+	Benchmark   string      `json:"benchmark"`
+	Version     int         `json:"version"`
+	TotalWords  int64       `json:"totalWords"`
+	UniqueWords int64       `json:"uniqueWords"`
+	TopWords    []wordCount `json:"topWords"`
+	Checksum    string      `json:"checksum"`
+}
+
+type record struct {
+	ID        int64 `json:"id"`
+	Score     int64 `json:"score"`
+	Timestamp int64 `json:"timestamp"`
+}
+type recordSortingInput struct {
+	Records []record `json:"records"`
+}
+type recordSortingOutput struct {
+	Benchmark    string   `json:"benchmark"`
+	Version      int      `json:"version"`
+	RecordCount  int64    `json:"recordCount"`
+	FirstRecords []record `json:"firstRecords"`
+	LastRecords  []record `json:"lastRecords"`
+	Checksum     string   `json:"checksum"`
+}
+
+type matrixMultiplicationInput struct {
+	Dimension int     `json:"dimension"`
+	Left      []int64 `json:"left"`
+	Right     []int64 `json:"right"`
+}
+type matrixMultiplicationOutput struct {
+	Benchmark    string `json:"benchmark"`
+	Version      int    `json:"version"`
+	Dimension    int    `json:"dimension"`
+	ElementCount int64  `json:"elementCount"`
+	ValueSum     int64  `json:"valueSum"`
+	DiagonalSum  int64  `json:"diagonalSum"`
+	Checksum     string `json:"checksum"`
+}
+
 type barrierWaveInput struct {
 	SchemaVersion  string `json:"schemaVersion"`
 	WorkerCount    int    `json:"workerCount"`
@@ -497,6 +545,109 @@ func aggregate(file string) (aggregation, error) {
 	o.Checksum = hex.EncodeToString(h.Sum(nil))
 	return o, nil
 }
+
+func wordFrequency(in wordFrequencyInput) (wordFrequencyOutput, error) {
+	if len(in.Words) == 0 {
+		return wordFrequencyOutput{}, errors.New("words must not be empty")
+	}
+	counts := map[string]int64{}
+	for _, word := range in.Words {
+		if word == "" {
+			return wordFrequencyOutput{}, errors.New("words must not contain empty strings")
+		}
+		counts[word]++
+	}
+	all := make([]wordCount, 0, len(counts))
+	for word, count := range counts {
+		all = append(all, wordCount{word, count})
+	}
+	sort.Slice(all, func(i, j int) bool {
+		if all[i].Count == all[j].Count {
+			return all[i].Word < all[j].Word
+		}
+		return all[i].Count > all[j].Count
+	})
+	h := sha256.New()
+	for _, entry := range all {
+		fmt.Fprintf(h, "%s,%d\n", entry.Word, entry.Count)
+	}
+	topCount := min(10, len(all))
+	return wordFrequencyOutput{
+		Benchmark: "word-frequency", Version: 1, TotalWords: int64(len(in.Words)),
+		UniqueWords: int64(len(all)), TopWords: all[:topCount], Checksum: hex.EncodeToString(h.Sum(nil)),
+	}, nil
+}
+
+func recordLess(a, b record) bool {
+	if a.Score != b.Score {
+		return a.Score > b.Score
+	}
+	if a.Timestamp != b.Timestamp {
+		return a.Timestamp < b.Timestamp
+	}
+	return a.ID < b.ID
+}
+
+func recordSorting(in recordSortingInput) (recordSortingOutput, error) {
+	if len(in.Records) == 0 {
+		return recordSortingOutput{}, errors.New("records must not be empty")
+	}
+	records := append([]record(nil), in.Records...)
+	sort.Slice(records, func(i, j int) bool { return recordLess(records[i], records[j]) })
+	h := sha256.New()
+	for _, entry := range records {
+		fmt.Fprintf(h, "%d,%d,%d\n", entry.ID, entry.Score, entry.Timestamp)
+	}
+	sampleCount := min(10, len(records))
+	return recordSortingOutput{
+		Benchmark: "record-sorting", Version: 1, RecordCount: int64(len(records)),
+		FirstRecords: records[:sampleCount], LastRecords: records[len(records)-sampleCount:],
+		Checksum: hex.EncodeToString(h.Sum(nil)),
+	}, nil
+}
+
+func matrixMultiplication(in matrixMultiplicationInput) (matrixMultiplicationOutput, error) {
+	if in.Dimension <= 0 || in.Dimension > 4096 {
+		return matrixMultiplicationOutput{}, errors.New("dimension must be between 1 and 4096")
+	}
+	elementCount := in.Dimension * in.Dimension
+	if len(in.Left) != elementCount || len(in.Right) != elementCount {
+		return matrixMultiplicationOutput{}, errors.New("matrix lengths must equal dimension squared")
+	}
+	product := make([]int64, elementCount)
+	for i := 0; i < in.Dimension; i++ {
+		for j := 0; j < in.Dimension; j++ {
+			var value int64
+			for k := 0; k < in.Dimension; k++ {
+				value += in.Left[i*in.Dimension+k] * in.Right[k*in.Dimension+j]
+			}
+			product[i*in.Dimension+j] = value
+		}
+	}
+	h := sha256.New()
+	fmt.Fprintf(h, "dimension=%d\n", in.Dimension)
+	var valueSum, diagonalSum int64
+	for index, value := range product {
+		valueSum += value
+		if index/in.Dimension == index%in.Dimension {
+			diagonalSum += value
+		}
+		fmt.Fprintf(h, "%d,", value)
+	}
+	fmt.Fprintln(h)
+	return matrixMultiplicationOutput{
+		Benchmark: "matrix-multiplication", Version: 1, Dimension: in.Dimension,
+		ElementCount: int64(elementCount), ValueSum: valueSum, DiagonalSum: diagonalSum,
+		Checksum: hex.EncodeToString(h.Sum(nil)),
+	}, nil
+}
+
+func sameJSON(a, b any) bool {
+	encodedA, _ := json.Marshal(a)
+	encodedB, _ := json.Marshal(b)
+	return bytes.Equal(encodedA, encodedB)
+}
+
 func main() {
 	if len(os.Args) < 2 || os.Args[1] != "check" {
 		fmt.Fprintln(os.Stderr, "usage: arena-checker check --benchmark ID --input FILE --output FILE")
@@ -560,6 +711,63 @@ func main() {
 			b, _ := json.Marshal(want)
 			if string(a) != string(b) {
 				err = errors.New("aggregation result mismatch")
+			}
+		}
+	case "word-frequency":
+		var in wordFrequencyInput
+		var out wordFrequencyOutput
+		if err = strictJSON(*input, &in); err != nil {
+			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
+		}
+		if err = strictJSON(*output, &out); err != nil {
+			status = "malformed-output"
+		} else if out.Version != 1 {
+			finish("unsupported-version", *benchmark, fmt.Errorf("unsupported word-frequency output version %d", out.Version))
+		} else {
+			want, checkErr := wordFrequency(in)
+			if checkErr != nil {
+				finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", checkErr))
+			}
+			if !sameJSON(out, want) {
+				err = errors.New("word-frequency result mismatch")
+			}
+		}
+	case "record-sorting":
+		var in recordSortingInput
+		var out recordSortingOutput
+		if err = strictJSON(*input, &in); err != nil {
+			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
+		}
+		if err = strictJSON(*output, &out); err != nil {
+			status = "malformed-output"
+		} else if out.Version != 1 {
+			finish("unsupported-version", *benchmark, fmt.Errorf("unsupported record-sorting output version %d", out.Version))
+		} else {
+			want, checkErr := recordSorting(in)
+			if checkErr != nil {
+				finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", checkErr))
+			}
+			if !sameJSON(out, want) {
+				err = errors.New("record-sorting result mismatch")
+			}
+		}
+	case "matrix-multiplication":
+		var in matrixMultiplicationInput
+		var out matrixMultiplicationOutput
+		if err = strictJSON(*input, &in); err != nil {
+			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
+		}
+		if err = strictJSON(*output, &out); err != nil {
+			status = "malformed-output"
+		} else if out.Version != 1 {
+			finish("unsupported-version", *benchmark, fmt.Errorf("unsupported matrix-multiplication output version %d", out.Version))
+		} else {
+			want, checkErr := matrixMultiplication(in)
+			if checkErr != nil {
+				finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", checkErr))
+			}
+			if !sameJSON(out, want) {
+				err = errors.New("matrix-multiplication result mismatch")
 			}
 		}
 	case "barrier-wave":

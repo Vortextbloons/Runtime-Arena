@@ -66,7 +66,9 @@ local maximum_transaction = 0
 local categories = {}
 local accounts = {}
 
-for _, fields in ipairs(rows) do
+local row_count = #rows
+for ri = 1, row_count do
+            local fields = rows[ri]
             local account_id = fields[1]
             local category = fields[2]
             local quantity = fields[3]
@@ -79,31 +81,39 @@ for _, fields in ipairs(rows) do
             if value < minimum_transaction then minimum_transaction = value end
             if value > maximum_transaction then maximum_transaction = value end
 
-            if not categories[category] then
-                categories[category] = {quantity = 0, valueMinorUnits = 0}
+            local cat = categories[category]
+            if not cat then
+                cat = {quantity = 0, valueMinorUnits = 0}
+                categories[category] = cat
             end
-            categories[category].quantity = categories[category].quantity + quantity
-            categories[category].valueMinorUnits = categories[category].valueMinorUnits + value
+            cat.quantity = cat.quantity + quantity
+            cat.valueMinorUnits = cat.valueMinorUnits + value
 
-            if not accounts[account_id] then
-                accounts[account_id] = 0
+            local acc = accounts[account_id]
+            if not acc then
+                accounts[account_id] = value
+            else
+                accounts[account_id] = acc + value
             end
-            accounts[account_id] = accounts[account_id] + value
 end
 
 local sorted_categories = {}
+local sc_n = 0
 for cat, data in pairs(categories) do
-    table.insert(sorted_categories, {
+    sc_n = sc_n + 1
+    sorted_categories[sc_n] = {
         category = cat,
         quantity = data.quantity,
         valueMinorUnits = data.valueMinorUnits
-    })
+    }
 end
 table.sort(sorted_categories, function(a, b) return a.category < b.category end)
 
 local sorted_accounts = {}
+local sa_n = 0
 for acc_id, value in pairs(accounts) do
-    table.insert(sorted_accounts, {accountId = acc_id, valueMinorUnits = value})
+    sa_n = sa_n + 1
+    sorted_accounts[sa_n] = {accountId = acc_id, valueMinorUnits = value}
 end
 table.sort(sorted_accounts, function(a, b)
     if a.valueMinorUnits ~= b.valueMinorUnits then
@@ -113,8 +123,9 @@ table.sort(sorted_accounts, function(a, b)
 end)
 
 local top_accounts = {}
-for idx = 1, math.min(10, #sorted_accounts) do
-    table.insert(top_accounts, sorted_accounts[idx])
+local top_n = math.min(10, #sorted_accounts)
+for idx = 1, top_n do
+    top_accounts[idx] = sorted_accounts[idx]
 end
 
 local function encode_category(cat)
@@ -128,13 +139,17 @@ local function encode_account(acc)
 end
 
 local cats_json = {}
-for _, cat in ipairs(sorted_categories) do
-    table.insert(cats_json, encode_category(cat))
+local cj_n = 0
+for ci = 1, sc_n do
+    cj_n = cj_n + 1
+    cats_json[cj_n] = encode_category(sorted_categories[ci])
 end
 
 local accs_json = {}
-for _, acc in ipairs(top_accounts) do
-    table.insert(accs_json, encode_account(acc))
+local aj_n = 0
+for ai = 1, top_n do
+    aj_n = aj_n + 1
+    accs_json[aj_n] = encode_account(top_accounts[ai])
 end
 
 local checksum_input = '{"Categories":[' .. table.concat(cats_json, ",") ..
@@ -156,13 +171,13 @@ return {
 }
 end
 
-local samples = {}
+local samples = {}; local sn = 0
 local output
 for iteration = -warmups, iterations - 1 do
     local started = now_ns()
     output = kernel()
     local elapsed = math.max(1, math.floor(now_ns() - started + 0.5))
-    if iteration >= 0 then table.insert(samples, {iteration=iteration + 1,kernelTimeNanoseconds=elapsed}) end
+    if iteration >= 0 then sn = sn + 1; samples[sn] = {iteration=iteration + 1,kernelTimeNanoseconds=elapsed} end
 end
 
 local out = io.open(output_file, "w")

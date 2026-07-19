@@ -10,24 +10,31 @@ local function now_ns() ffi.C.QueryPerformanceCounter(counter); return tonumber(
 
 local Heap = {}
 Heap.__index = Heap
-function Heap.new() return setmetatable({data = {}}, Heap) end
-function Heap:push(item)
-    table.insert(self.data, item); local i = #self.data
-    while i > 1 do local p = math.floor(i / 2)
-        if self.data[p][1] <= self.data[i][1] then break end
-        self.data[p], self.data[i] = self.data[i], self.data[p]; i = p end
+function Heap.new() return setmetatable({costs = {}, nodes = {}, size = 0}, Heap) end
+function Heap:push(cost, node)
+    local s = self.size + 1; self.size = s
+    self.costs[s] = cost; self.nodes[s] = node
+    while s > 1 do local p = math.floor(s / 2)
+        if self.costs[p] <= self.costs[s] then break end
+        self.costs[p], self.costs[s] = self.costs[s], self.costs[p]
+        self.nodes[p], self.nodes[s] = self.nodes[s], self.nodes[p]; s = p end
 end
 function Heap:pop()
-    local top = self.data[1]; local last = table.remove(self.data)
-    if #self.data > 0 then self.data[1] = last; local i = 1
-        while true do local s = i; local l = 2*i; local r = 2*i+1
-            if l <= #self.data and self.data[l][1] < self.data[s][1] then s = l end
-            if r <= #self.data and self.data[r][1] < self.data[s][1] then s = r end
-            if s == i then break end
-            self.data[s], self.data[i] = self.data[i], self.data[s]; i = s end end
-    return top
+    local top_cost, top_node = self.costs[1], self.nodes[1]
+    local s = self.size
+    if s == 1 then self.size = 0; return top_cost, top_node end
+    local last = s; self.size = s - 1
+    self.costs[1] = self.costs[last]; self.nodes[1] = self.nodes[last]
+    local i = 1
+    while true do local sc = i; local l = 2*i; local r = 2*i+1
+        if l <= self.size and self.costs[l] < self.costs[sc] then sc = l end
+        if r <= self.size and self.costs[r] < self.costs[sc] then sc = r end
+        if sc == i then break end
+        self.costs[sc], self.costs[i] = self.costs[i], self.costs[sc]
+        self.nodes[sc], self.nodes[i] = self.nodes[i], self.nodes[sc]; i = sc end
+    return top_cost, top_node
 end
-function Heap:empty() return #self.data == 0 end
+function Heap:empty() return self.size == 0 end
 
 local input_file, output_file, timing_output_file
 local warmups, iterations = 0, 1
@@ -50,36 +57,41 @@ local vertex_count = data.vertexCount; local edges = data.edges; local queries =
 local function kernel()
 local adjacency = {}
 for i = 0, vertex_count - 1 do adjacency[i] = {} end
-for _, edge in ipairs(edges) do table.insert(adjacency[edge.from], edge) end
+local edge_count = #edges
+for ei = 1, edge_count do local edge = edges[ei]; local adj = adjacency[edge.from]; adj[#adj+1] = edge end
 local results = {}
-for _, query in ipairs(queries) do
+local rn = 0
+local query_count = #queries
+for qi = 1, query_count do
+    local query = queries[qi]
     local source, destination = query.source, query.destination
     local distance, previous = {}, {}
-    for i = 0, vertex_count - 1 do distance[i] = math.huge; previous[i] = -1 end
+    for vi = 0, vertex_count - 1 do distance[vi] = math.huge; previous[vi] = -1 end
     distance[source] = 0
-    local heap = Heap.new(); heap:push({0, source})
+    local heap = Heap.new(); heap:push(0, source)
     while not heap:empty() do
-        local item = heap:pop(); local cost, node = item[1], item[2]
+        local cost, node = heap:pop()
         if cost == distance[node] then
-            for _, edge in ipairs(adjacency[node]) do
+            local adj = adjacency[node]
+            for ei = 1, #adj do
+                local edge = adj[ei]
                 local nc = cost + edge.weight
                 if nc < distance[edge.to] then
-                    distance[edge.to] = nc; previous[edge.to] = node; heap:push({nc, edge.to}) end end end end
+                    distance[edge.to] = nc; previous[edge.to] = node; heap:push(nc, edge.to) end end end end
     if distance[destination] == math.huge then
-        table.insert(results, {queryId = query.id, distance = json.null, path = {}})
+        rn = rn + 1; results[rn] = {queryId = query.id, distance = json.null, path = {}}
     else
-        local path = {}; local node = destination
-        while node ~= -1 do path[#path+1] = node; node = previous[node] end
-        local n = #path
-        for i = 1, math.floor(n/2) do path[i], path[n-i+1] = path[n-i+1], path[i] end
-        table.insert(results, {queryId = query.id, distance = distance[destination], path = path}) end end
+        local path = {}; local nd = destination; local pn = 0
+        while nd ~= -1 do pn = pn + 1; path[pn] = nd; nd = previous[nd] end
+        for i = 1, math.floor(pn/2) do path[i], path[pn-i+1] = path[pn-i+1], path[i] end
+        rn = rn + 1; results[rn] = {queryId = query.id, distance = distance[destination], path = path} end end
 return results end
 
-local samples = {}; local results
+local samples = {}; local sn = 0; local results
 for iteration = -warmups, iterations - 1 do
     local started = now_ns(); results = kernel()
     local elapsed = math.max(1, math.floor(now_ns() - started + 0.5))
-    if iteration >= 0 then table.insert(samples, {iteration=iteration+1, kernelTimeNanoseconds=elapsed}) end end
+    if iteration >= 0 then sn = sn + 1; samples[sn] = {iteration=iteration+1, kernelTimeNanoseconds=elapsed} end end
 local output = {benchmark="shortest-path", version=1, results=results}
 local out = io.open(output_file, "w"); out:write(json.encode(output)); out:close()
 local timing = io.open(timing_output_file, "w"); timing:write(json.encode({samples=samples})); timing:close()

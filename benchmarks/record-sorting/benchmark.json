@@ -1,0 +1,17 @@
+{
+  "$schema": "../../schemas/benchmark.schema.json",
+  "id": "record-sorting",
+  "name": "Record sorting",
+  "version": 1,
+  "description": "Multi-field record sorting exercising sorting implementations, comparator overhead, struct access, and memory layout.",
+  "inputFormat": "json",
+  "outputFormat": "json",
+  "checker": { "task": "record-sorting", "timeoutMilliseconds": 30000 },
+  "sizes": {
+    "small": { "dataset": "small.json", "warmupIterations": 3, "measuredIterations": 10 },
+    "medium": { "dataset": "medium.json", "warmupIterations": 3, "measuredIterations": 10 },
+    "large": { "dataset": "large.json", "warmupIterations": 3, "measuredIterations": 10 }
+  },
+  "metrics": ["kernelTime"],
+  "limits": { "timeoutMilliseconds": 120000, "maxOutputBytes": 10485760 }
+}

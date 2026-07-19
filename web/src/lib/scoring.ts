@@ -9,7 +9,11 @@ const geometricMean = (values: number[]) =>
 	values.length && values.every((value) => Number.isFinite(value) && value > 0)
 		? Math.exp(values.reduce((total, value) => total + Math.log(value), 0) / values.length)
 		: 0;
+const PERF_EXPONENT = 0.65;
+const PERF_FLOOR = 5;
 const clampScore = (value: number) => Math.max(0, Math.min(100, value));
+const performanceScore = (fastest: number, median: number) =>
+	Math.max(PERF_FLOOR, clampScore(100 * Math.pow(fastest / median, PERF_EXPONENT)));
 const normalizeScore = (value: number) => Math.round(clampScore(value) * 1e9) / 1e9;
 const weightedOverall = (performance: number, consistency: number, scalability: number) =>
 	normalizeScore(
@@ -109,7 +113,7 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 					medianNanoseconds: summary.medianKernelTimeNanoseconds,
 					p95Nanoseconds: summary.p95KernelTimeNanoseconds,
 					variation,
-					performance: clampScore((fastestBySize.get(size)! / summary.medianKernelTimeNanoseconds) * 100),
+					performance: performanceScore(fastestBySize.get(size)!, summary.medianKernelTimeNanoseconds),
 					consistency: clampScore(100 - variation * 400)
 				};
 			});

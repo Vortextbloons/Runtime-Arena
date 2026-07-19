@@ -1,6 +1,6 @@
 # Runtime Arena — Complete Documentation
 > Auto-generated from docs/INDEX.md by scripts/combine-docs.mjs
-> Generated: 2026-07-19T08:09:26.377Z
+> Generated: 2026-07-19T08:50:21.746Z
 > Total files: 20
 
 ## Table of Contents
@@ -966,7 +966,7 @@ Base output shape for implementations. Uses conditional validation based on the 
 
 # Benchmarks Reference
 
-Runtime Arena currently defines four benchmark workloads. Three are fully implemented across all seven supported languages (Rust, Go, TypeScript, Python, LuaJIT, C++, JavaScript). **Barrier Wave** is implemented in six languages (all except LuaJIT); datasets and checker support are ready.
+Runtime Arena currently defines seven benchmark workloads. Three are fully implemented across all seven supported languages (Rust, Go, TypeScript, Python, LuaJIT, C++, JavaScript). **Barrier Wave** is implemented in six languages (all except LuaJIT); datasets and checker support are ready. The three newest workloads have complete contracts, fixtures, generation, and checker support, but intentionally have no language implementations yet.
 
 | Benchmark | Status | Stresses |
 |-----------|--------|----------|
@@ -974,6 +974,9 @@ Runtime Arena currently defines four benchmark workloads. Three are fully implem
 | `shortest-path` | Complete (7 languages) | Priority queues, graph traversal |
 | `aggregation` | Complete (7 languages) | Hash map aggregation, sorting, checksum |
 | `barrier-wave` | 6 languages implemented (LuaJIT pending) | Structured parallel concurrency, barriers |
+| `word-frequency` | Definition ready; implementations pending | String hashing, hash maps, ranking |
+| `record-sorting` | Definition ready; implementations pending | Multi-field sorting, comparator and struct access |
+| `matrix-multiplication` | Definition ready; implementations pending | Numeric loops, memory layout, cache locality |
 
 Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md`.
 
@@ -1029,6 +1032,36 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 - Six of seven languages are implemented: Rust, Go, TypeScript, Python, JavaScript, and C++. LuaJIT is excluded (no native threading). See the tree under `benchmarks/barrier-wave/implementations/`.
 - `schemas/implementation-output.schema.json` does not yet include a barrier-wave branch; correctness is enforced by the Go checker.
 
+## word-frequency
+
+**Workload:** Count prepared normalized words, rank the complete frequency table, and report the top ten plus a checksum.
+
+**Input:** JSON `{words: string[]}`.
+
+**Output:** `totalWords`, `uniqueWords`, `topWords[]`, and `checksum`.
+
+**Stresses:** String hashing, hash maps, allocation, ranking, and dynamic-language object overhead.
+
+## record-sorting
+
+**Workload:** Sort numeric records by score descending, timestamp ascending, and ID ascending.
+
+**Input:** JSON `{records: [{id, score, timestamp}]}`.
+
+**Output:** `recordCount`, the first and last ten sorted records, and a checksum of the full ordering.
+
+**Stresses:** Sorting implementations, comparator overhead, object/struct access, and memory layout.
+
+## matrix-multiplication
+
+**Workload:** Multiply two dense square row-major integer matrices using a fixed `i → j → k` triple loop.
+
+**Input:** JSON `{dimension, left, right}` with flat row-major matrices.
+
+**Output:** Dimension and product summaries plus a checksum of the complete product matrix.
+
+**Stresses:** Numeric execution, nested loops, array representation, cache locality, and bounds checking.
+
 ## Dataset Sizes
 
 | Size | Warmup / Measured (typical) | N-body | Shortest path | Aggregation | Barrier Wave |
@@ -1040,6 +1073,14 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 Warmup and measured iteration counts come from each benchmark's `benchmark.json` size entries (not only `arena.config.json` defaults). Dataset paths are whatever `sizes.<name>.dataset` names — JSON or CSV.
 
 All datasets are deterministic from a seed. Regenerating via `arena dataset generate` writes metadata with `generatorVersion` `"2.0.0"`.
+
+## New benchmark dataset sizes
+
+| Size | Word frequency | Record sorting | Matrix multiplication |
+|------|----------------|----------------|-----------------------|
+| small | 10,000 words / 842 unique (3 / 10) | 10,000 records (3 / 10) | 64 × 64 (3 / 10) |
+| medium | 50,000 words / 3,421 unique (3 / 10) | 100,000 records (3 / 10) | 256 × 256 (3 / 10) |
+| large | 200,000 words / 8,421 unique (3 / 10) | 500,000 records (3 / 10) | 512 × 512 (3 / 10) |
 
 ---
 
@@ -1472,7 +1513,8 @@ The `prepare-results.ts` script handles copying the latest results into the stat
    with metadata). If you want `arena dataset generate` support, register a
    generator branch in `cli/src/index.ts` (`datasetCommand`) — without that,
    generate fails with "No generator registered". Generators already exist
-   for nbody, shortest-path, aggregation, and barrier-wave.
+   for nbody, shortest-path, aggregation, barrier-wave, word-frequency,
+   record-sorting, and matrix-multiplication.
 5. Create `benchmark.json` using an existing benchmark as a template. It must
    match `schemas/benchmark.schema.json`.
 6. Add independent validation logic to the Go checker (and unit tests).
@@ -1497,6 +1539,11 @@ The `prepare-results.ts` script handles copying the latest results into the stat
 Each implementation must use the most idiomatic approach for its language while
 producing output accepted by the checker. Do not include setup, compilation, or
 validation work in the timed workload.
+
+If a workload is intentionally defined before implementations are added, keep
+an `implementations/.gitkeep` placeholder and document its pending status in
+the benchmark reference. Its manifest, fixtures, generator, schema, checker,
+and checker tests can still be completed and verified independently.
 
 ---
 
@@ -1571,6 +1618,7 @@ commands on `PATH` when documenting or sharing manifests.
 
 Use this checklist to determine whether an implementation is efficient without
 making the comparison unfair.
+Use Conext7 To Help
 
 ## Correctness and Fairness
 

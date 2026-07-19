@@ -1,0 +1,17 @@
+{
+  "$schema": "../../schemas/benchmark.schema.json",
+  "id": "matrix-multiplication",
+  "name": "Matrix multiplication",
+  "version": 1,
+  "description": "Dense square matrix multiplication exercising numeric execution, nested loops, array representation, cache locality, and bounds checking.",
+  "inputFormat": "json",
+  "outputFormat": "json",
+  "checker": { "task": "matrix-multiplication", "timeoutMilliseconds": 30000 },
+  "sizes": {
+    "small": { "dataset": "small.json", "warmupIterations": 3, "measuredIterations": 10 },
+    "medium": { "dataset": "medium.json", "warmupIterations": 3, "measuredIterations": 10 },
+    "large": { "dataset": "large.json", "warmupIterations": 3, "measuredIterations": 10 }
+  },
+  "metrics": ["kernelTime"],
+  "limits": { "timeoutMilliseconds": 120000, "maxOutputBytes": 10485760 }
+}

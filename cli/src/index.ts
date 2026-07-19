@@ -214,11 +214,16 @@ async function doctor(): Promise<number> {
         console.log(`${`Dataset ${benchmark.id}/${size}`.padEnd(24)} missing`);
       }
     }
-    for (const language of await discoverLanguages()) {
-      const implementation = path.join(root, config.benchmarkDirectory, benchmark.id, "implementations", language.id);
-      if (!await exists(implementation)) {
-        bad = true;
-        console.log(`${`Impl ${benchmark.id}/${language.id}`.padEnd(24)} missing`);
+    const implementationRoot = path.join(root, config.benchmarkDirectory, benchmark.id, "implementations");
+    if (await exists(path.join(implementationRoot, ".gitkeep"))) {
+      console.log(`${`Impl ${benchmark.id}`.padEnd(24)} pending (definition only)`);
+    } else {
+      for (const language of await discoverLanguages()) {
+        const implementation = path.join(implementationRoot, language.id);
+        if (!await exists(implementation)) {
+          bad = true;
+          console.log(`${`Impl ${benchmark.id}/${language.id}`.padEnd(24)} missing`);
+        }
       }
     }
   }
@@ -639,6 +644,36 @@ async function datasetCommand(args: string[]) {
     const rows = ["timestamp,account_id,category,quantity,unit_price"];
     for (let i = 0; i < recordCount; i++) rows.push(`2026-01-01T00:00:${String(i % 60).padStart(2, "0")}Z,A${1 + Math.floor(random() * 100)},${categories[Math.floor(random() * categories.length)]},${1 + Math.floor(random() * 10)},${99 + Math.floor(random() * 9901)}`);
     content = `${rows.join("\n")}\n`;
+  } else if (benchmarkId === "word-frequency") {
+    const profile = {
+      small: { totalWords: 10_000, uniqueWords: 842 },
+      medium: { totalWords: 50_000, uniqueWords: 3_421 },
+      large: { totalWords: 200_000, uniqueWords: 8_421 }
+    }[sizeName];
+    if (!profile) throw new Error(`No word-frequency generation profile for size '${sizeName}'`);
+    const vocabulary = Array.from({ length: profile.uniqueWords }, (_, index) => `word-${String(index).padStart(5, "0")}`);
+    const words = [...vocabulary];
+    while (words.length < profile.totalWords) words.push(vocabulary[Math.floor(random() * random() * profile.uniqueWords)]);
+    for (let index = words.length - 1; index > 0; index--) {
+      const other = Math.floor(random() * (index + 1));
+      [words[index], words[other]] = [words[other], words[index]];
+    }
+    content = `${JSON.stringify({ words })}\n`;
+  } else if (benchmarkId === "record-sorting") {
+    const recordCount = { small: 10_000, medium: 100_000, large: 500_000 }[sizeName];
+    if (!recordCount) throw new Error(`No record-sorting generation profile for size '${sizeName}'`);
+    const records = Array.from({ length: recordCount }, (_, index) => ({
+      id: index + 1,
+      score: Math.floor(random() * 1_000),
+      timestamp: 1_700_000_000_000 + Math.floor(random() * 10_000)
+    }));
+    content = `${JSON.stringify({ records })}\n`;
+  } else if (benchmarkId === "matrix-multiplication") {
+    const dimension = { small: 64, medium: 256, large: 512 }[sizeName];
+    if (!dimension) throw new Error(`No matrix-multiplication generation profile for size '${sizeName}'`);
+    const elementCount = dimension * dimension;
+    const matrix = () => Array.from({ length: elementCount }, () => Math.floor(random() * 21) - 10);
+    content = `${JSON.stringify({ dimension, left: matrix(), right: matrix() })}\n`;
   } else if (benchmarkId === "barrier-wave") {
     const profile = {
       small: { workerCount: 2, phaseCount: 500, itemsPerWorker: 64, roundsPerItem: 8 },

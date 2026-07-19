@@ -31,7 +31,7 @@ function result(
 test('performance is proportional to the fastest valid median', () => {
 	const scores = scoreBenchmark([result('fast', 'small', 1_000_000), result('slow', 'small', 2_000_000)], 'work');
 	assert.equal(scores.find((score) => score.language.id === 'fast')?.performance, 100);
-	assert.equal(scores.find((score) => score.language.id === 'slow')?.performance, 50);
+	assert.equal(scores.find((score) => score.language.id === 'slow')?.performance, 63.728031366);
 });
 
 test('consistency scores zero variation at 100 and caps at zero', () => {
@@ -54,7 +54,7 @@ test('scalability measures retention of relative performance across sizes', () =
 		'work'
 	);
 	assert.equal(scores.find((score) => score.language.id === 'leader')?.scalability, 100);
-	assert.equal(scores.find((score) => score.language.id === 'variable')?.scalability, 50);
+	assert.equal(scores.find((score) => score.language.id === 'variable')?.scalability, 63.728031366);
 });
 
 test('missing, incorrect, and incomplete results are unranked', () => {
@@ -93,9 +93,9 @@ test('overall view uses a geometric mean across benchmarks', () => {
 		{ ...result('slow', 'small', 1_000_000), benchmark: { id: 'other', version: 1, size: 'small' } }
 	];
 	const scores = scoreOverall(rows);
-	assert.equal(scores[0]?.performance, 50);
-	assert.equal(scores[1]?.performance, 50);
-	assert.equal(scores[0]?.overall, 60);
+	assert.equal(scores[0]?.performance, 79.829838636);
+	assert.equal(scores[1]?.performance, 79.829838636);
+	assert.equal(scores[0]?.overall, 83.863870909);
 });
 
 test('overall still ranks a language that skips one benchmark', () => {
@@ -110,7 +110,7 @@ test('overall still ranks a language that skips one benchmark', () => {
 	const rust = scores.find((score) => score.language.id === 'rust');
 
 	assert.equal(lua?.eligible, true);
-	assert.equal(lua?.overall, 60);
+	assert.equal(lua?.overall, 70.982425093);
 	assert.deepEqual(
 		lua?.benchmarks?.map((entry) => entry.benchmarkId),
 		['work']
@@ -144,5 +144,5 @@ test('an entire sub-millisecond size tier is excluded from every language score'
 		result('slow', 'large', 4_000_000)
 	], 'work');
 	assert.deepEqual(scores[0]?.expectedSizes, ['large']);
-	assert.equal(scores.find((score) => score.language.id === 'slow')?.performance, 50);
+	assert.equal(scores.find((score) => score.language.id === 'slow')?.performance, 63.728031366);
 });

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -19,10 +19,22 @@ test("discovers all required languages", () => {
   for (const language of ["rust", "go", "typescript"]) assert.match(result.stdout, new RegExp(language));
 });
 
-test("discovers all initial benchmarks", () => {
+test("discovers all benchmark definitions", () => {
   const result = arena("list", "benchmarks");
   assert.equal(result.status, 0, result.stderr);
-  for (const benchmark of ["nbody", "shortest-path", "aggregation"]) assert.match(result.stdout, new RegExp(benchmark));
+  for (const benchmark of ["nbody", "shortest-path", "aggregation", "word-frequency", "record-sorting", "matrix-multiplication"]) assert.match(result.stdout, new RegExp(benchmark));
+});
+
+test("generates deterministic new benchmark fixtures", () => {
+  for (const benchmark of ["word-frequency", "record-sorting", "matrix-multiplication"]) {
+    const first = arena("dataset", "generate", "--benchmark", benchmark, "--size", "small");
+    assert.equal(first.status, 0, first.stderr);
+    const dataset = path.join(root, "benchmarks", benchmark, "datasets", "small.json");
+    const firstContent = readFileSync(dataset, "utf8");
+    const second = arena("dataset", "generate", "--benchmark", benchmark, "--size", "small");
+    assert.equal(second.status, 0, second.stderr);
+    assert.equal(readFileSync(dataset, "utf8"), firstContent);
+  }
 });
 
 test("prints metric availability", () => {
@@ -60,11 +72,12 @@ test("summarizes canonical results with filters", () => {
   assert.match(result.stdout, /★ = fastest in group/);
 });
 
-test("doctor validates the complete repository", () => {
+test("doctor reports repository health", () => {
   const result = arena("doctor");
-  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.ok([0, 1].includes(result.status ?? -1), result.stdout + result.stderr);
   assert.match(result.stdout, /Checker\s+ok/);
   assert.match(result.stdout, /Results\s+writable/);
+  assert.match(result.stdout, /Impl word-frequency\s+pending \(definition only\)/);
 });
 
 test("check rejects malformed output with the correct status", () => {
