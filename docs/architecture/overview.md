@@ -43,11 +43,4 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 4. Write canonical snapshot to `results/current.json`
 5. Web UI loads snapshot and computes scores
 
-## Scoring Algorithm
 
-- **Performance (speed)**: Per size tier: `fastest median / language median × 100`, clamped 0–100. Per benchmark: geometric mean across eligible sizes. Overall: geometric mean across completed benchmarks.
-- **Consistency**: `100 − 4 × CV%` (CV = standard deviation / mean of kernel samples). Clamped 0–100, averaged across sizes then benchmarks. Contributes 10% to the overall score.
-- **Scalability**: `(minPerformance / maxPerformance) × 100` across size tiers per benchmark. Clamped 0–100, averaged across benchmarks. Contributes 10% to the overall score.
-- **Weighted overall**: `0.8 × performance + 0.1 × consistency + 0.1 × scalability`, clamped 0–100. This is the leaderboard ranking score.
-- **Timing floor**: A size tier is excluded for all languages when its fastest valid median is below 1 ms.
-- **Skip handling**: Omitting a benchmark (no result, or rejected by the checker) does not zero the overall — only completed benchmarks contribute.

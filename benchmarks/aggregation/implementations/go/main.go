@@ -43,8 +43,8 @@ type Sample struct {
 }
 
 func kernel(rows []Row) Output {
-	cm := map[string][2]int64{}
-	am := map[string]int64{}
+	cm := map[string]*[2]int64{}
+	am := map[string]*int64{}
 	var q, total int64
 	min := int64(^uint64(0) >> 1)
 	var max int64
@@ -59,10 +59,18 @@ func kernel(rows []Row) Output {
 			max = v
 		}
 		x := cm[r.Category]
+		if x == nil {
+			x = &[2]int64{}
+			cm[r.Category] = x
+		}
 		x[0] += r.Quantity
 		x[1] += v
-		cm[r.Category] = x
-		am[r.Account] += v
+		y := am[r.Account]
+		if y == nil {
+			y = new(int64)
+			am[r.Account] = y
+		}
+		*y += v
 	}
 	cats := make([]Category, 0, len(cm))
 	for k, v := range cm {
@@ -71,7 +79,7 @@ func kernel(rows []Row) Output {
 	sort.Slice(cats, func(i, j int) bool { return cats[i].Category < cats[j].Category })
 	accounts := make([]Account, 0, len(am))
 	for k, v := range am {
-		accounts = append(accounts, Account{k, v})
+		accounts = append(accounts, Account{k, *v})
 	}
 	sort.Slice(accounts, func(i, j int) bool {
 		return accounts[i].Value > accounts[j].Value || accounts[i].Value == accounts[j].Value && accounts[i].Account < accounts[j].Account

@@ -1,6 +1,6 @@
 # Runtime Arena — Complete Documentation
 > Auto-generated from docs/INDEX.md by scripts/combine-docs.mjs
-> Generated: 2026-07-19T08:05:32.535Z
+> Generated: 2026-07-19T08:09:26.377Z
 > Total files: 20
 
 ## Table of Contents
@@ -76,15 +76,6 @@ The **checker** is intentionally written in Go and independent from the TypeScri
    - Record result with provenance (fingerprint, machine info)
 4. Write canonical snapshot to `results/current.json`
 5. Web UI loads snapshot and computes scores
-
-## Scoring Algorithm
-
-- **Performance (speed)**: Per size tier: `fastest median / language median × 100`, clamped 0–100. Per benchmark: geometric mean across eligible sizes. Overall: geometric mean across completed benchmarks.
-- **Consistency**: `100 − 4 × CV%` (CV = standard deviation / mean of kernel samples). Clamped 0–100, averaged across sizes then benchmarks. Contributes 10% to the overall score.
-- **Scalability**: `(minPerformance / maxPerformance) × 100` across size tiers per benchmark. Clamped 0–100, averaged across benchmarks. Contributes 10% to the overall score.
-- **Weighted overall**: `0.8 × performance + 0.1 × consistency + 0.1 × scalability`, clamped 0–100. This is the leaderboard ranking score.
-- **Timing floor**: A size tier is excluded for all languages when its fastest valid median is below 1 ms.
-- **Skip handling**: Omitting a benchmark (no result, or rejected by the checker) does not zero the overall — only completed benchmarks contribute.
 
 ---
 
@@ -280,12 +271,7 @@ cli/
     index.ts            # Main CLI logic (commands, discovery, run, fingerprints)
     metrics.ts          # Metric registry (kernelTime)
     timing.ts           # Timing sample reader
-    commands/           # Placeholder (.gitkeep) — not yet extracted
-    discovery/          # Placeholder (.gitkeep)
-    execution/          # Placeholder (.gitkeep)
-    metrics/            # Placeholder (.gitkeep)
-    reporting/          # Placeholder (.gitkeep)
-    results/            # Placeholder (.gitkeep)
+
   test/
     cli.test.ts         # Integration tests
     timing.test.ts      # Timing sample tests (also under src/)
@@ -346,9 +332,6 @@ checker/
       main.go           # All checker logic (single package today)
       main_test.go      # Unit tests
   internal/
-    benchmarks/         # Placeholder (.gitkeep) — not yet extracted
-    output/             # Placeholder (.gitkeep)
-    validation/         # Placeholder (.gitkeep)
 ```
 
 All validation currently lives in `main.go`. The `internal/` tree is reserved for a future split.
@@ -1058,10 +1041,6 @@ Warmup and measured iteration counts come from each benchmark's `benchmark.json`
 
 All datasets are deterministic from a seed. Regenerating via `arena dataset generate` writes metadata with `generatorVersion` `"2.0.0"`.
 
-## Adding a New Benchmark
-
-See [guides/adding-a-benchmark.md](../guides/adding-a-benchmark.md). Register a dataset generator in the CLI if you want `arena dataset generate` support.
-
 ---
 
 # guides > development
@@ -1147,17 +1126,6 @@ See [guides/adding-a-benchmark.md](adding-a-benchmark.md).
 ## Adding a Language
 
 See [guides/adding-a-language.md](adding-a-language.md).
-
-## Testing
-
-```bash
-npm test
-```
-
-This runs:
-1. CLI integration tests (`cli/test/cli.test.ts`)
-2. Web unit tests (`web/src/lib/scoring.test.ts`, `web/src/lib/tiers.test.ts`)
-3. Checker unit tests (`checker/cmd/arena-checker/main_test.go` via `scripts/test-checker.mjs`)
 
 ## Conventions
 
@@ -1667,46 +1635,22 @@ optimization only when the improvement is repeatable.
 
 # Operations Runbook
 
-## Health Check
+## Prerequisites
 
-```bash
-npm run arena -- doctor
-```
-
-Verifies language toolchains, checker binary, result directory writability, and manifest validity.
+- Installed toolchains for the languages you intend to run (`npm run arena -- doctor` to verify).
+- Built checker binary (`npm run build:checker`).
 
 ## Running Benchmarks
 
 ```bash
-# Run all benchmarks, all languages, all sizes
+# All stale/missing cells
 npm run arena -- run
 
-# Run specific combinations
+# Specific combination
 npm run arena -- run --language rust --benchmark nbody --size small
 
-# Force re-run even if current
-npm run arena -- run --force
-
-# Force re-run everything
+# Force re-run
 npm run arena -- run --force --all
-```
-
-## Checking Results Status
-
-```bash
-npm run arena -- results status
-```
-
-Shows each cell as `current`, `stale`, `missing`, or `unavailable`.
-
-## Viewing Results
-
-```bash
-# Print current snapshot
-npm run arena -- results current
-
-# Output as JSON
-npm run arena -- run --format json --quiet
 ```
 
 ## Building the Web UI
@@ -1715,7 +1659,15 @@ npm run arena -- run --format json --quiet
 npm run build:web
 ```
 
-This copies `results/current.json` into `web/static/results/` and builds the SvelteKit static site.
+Copies `results/current.json` into `web/static/results/` and builds the SvelteKit static site.
+
+## Viewing Results
+
+```bash
+npm run arena -- results current    # Raw JSON
+npm run arena -- results summary    # Table view
+npm run arena -- results status     # Cell freshness
+```
 
 ## Regenerating Datasets
 
@@ -1723,9 +1675,7 @@ This copies `results/current.json` into `web/static/results/` and builds the Sve
 npm run arena -- dataset generate --benchmark nbody --size small --seed 729418
 ```
 
-Generators are registered for all four benchmarks: `nbody`, `shortest-path`, `aggregation`, and `barrier-wave`.
-
-Successful generation writes metadata with `generatorVersion` `"2.0.0"`. Datasets are deterministic — the same seed produces the same data.
+Generators registered for all four benchmarks. Deterministic from seed.
 
 ## Local Caches
 

@@ -1,45 +1,21 @@
 # Operations Runbook
 
-## Health Check
+## Prerequisites
 
-```bash
-npm run arena -- doctor
-```
-
-Verifies language toolchains, checker binary, result directory writability, and manifest validity.
+- Installed toolchains for the languages you intend to run (`npm run arena -- doctor` to verify).
+- Built checker binary (`npm run build:checker`).
 
 ## Running Benchmarks
 
 ```bash
-# Run all benchmarks, all languages, all sizes
+# All stale/missing cells
 npm run arena -- run
 
-# Run specific combinations
+# Specific combination
 npm run arena -- run --language rust --benchmark nbody --size small
 
-# Force re-run even if current
-npm run arena -- run --force
-
-# Force re-run everything
+# Force re-run
 npm run arena -- run --force --all
-```
-
-## Checking Results Status
-
-```bash
-npm run arena -- results status
-```
-
-Shows each cell as `current`, `stale`, `missing`, or `unavailable`.
-
-## Viewing Results
-
-```bash
-# Print current snapshot
-npm run arena -- results current
-
-# Output as JSON
-npm run arena -- run --format json --quiet
 ```
 
 ## Building the Web UI
@@ -48,7 +24,15 @@ npm run arena -- run --format json --quiet
 npm run build:web
 ```
 
-This copies `results/current.json` into `web/static/results/` and builds the SvelteKit static site.
+Copies `results/current.json` into `web/static/results/` and builds the SvelteKit static site.
+
+## Viewing Results
+
+```bash
+npm run arena -- results current    # Raw JSON
+npm run arena -- results summary    # Table view
+npm run arena -- results status     # Cell freshness
+```
 
 ## Regenerating Datasets
 
@@ -56,9 +40,7 @@ This copies `results/current.json` into `web/static/results/` and builds the Sve
 npm run arena -- dataset generate --benchmark nbody --size small --seed 729418
 ```
 
-Generators are registered for all four benchmarks: `nbody`, `shortest-path`, `aggregation`, and `barrier-wave`.
-
-Successful generation writes metadata with `generatorVersion` `"2.0.0"`. Datasets are deterministic — the same seed produces the same data.
+Generators registered for all four benchmarks. Deterministic from seed.
 
 ## Local Caches
 

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"container/heap"
 	"encoding/json"
 	"flag"
 	"math"
@@ -23,21 +22,54 @@ type Result struct {
 	Distance *int64 `json:"distance"`
 	Path     []int  `json:"path"`
 }
-type Item struct {
-	n int
-	d int64
-}
-type PQ []Item
-
-func (p PQ) Len() int           { return len(p) }
-func (p PQ) Less(i, j int) bool { return p[i].d < p[j].d }
-func (p PQ) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-func (p *PQ) Push(x any)        { *p = append(*p, x.(Item)) }
-func (p *PQ) Pop() any          { o := *p; x := o[len(o)-1]; *p = o[:len(o)-1]; return x }
-
 type Sample struct {
 	Iteration int   `json:"iteration"`
 	Duration  int64 `json:"kernelTimeNanoseconds"`
+}
+
+type heapItem struct {
+	node int
+	dist int64
+}
+type minHeap []heapItem
+
+func (h *minHeap) push(x heapItem) {
+	*h = append(*h, x)
+	i := len(*h) - 1
+	for i > 0 {
+		p := (i - 1) / 2
+		if (*h)[p].dist <= (*h)[i].dist {
+			break
+		}
+		(*h)[p], (*h)[i] = (*h)[i], (*h)[p]
+		i = p
+	}
+}
+
+func (h *minHeap) pop() heapItem {
+	n := len(*h)
+	(*h)[0], (*h)[n-1] = (*h)[n-1], (*h)[0]
+	x := (*h)[n-1]
+	*h = (*h)[:n-1]
+	if n > 1 {
+		i := 0
+		for {
+			left := 2*i + 1
+			if left >= n-1 {
+				break
+			}
+			smallest := left
+			if right := left + 1; right < n-1 && (*h)[right].dist < (*h)[left].dist {
+				smallest = right
+			}
+			if (*h)[i].dist <= (*h)[smallest].dist {
+				break
+			}
+			(*h)[i], (*h)[smallest] = (*h)[smallest], (*h)[i]
+			i = smallest
+		}
+	}
+	return x
 }
 
 func buildAdjacency(n int, edges []Edge) [][]Edge {
@@ -52,27 +84,31 @@ func kernel(adj [][]Edge, queries []Query) []Result {
 	n := len(adj)
 	d := make([]int64, n)
 	pr := make([]int, n)
+	for i := range d {
+		d[i] = math.MaxInt64
+		pr[i] = -1
+	}
+	visited := make([]int, 0, n)
 	rs := make([]Result, 0, len(queries))
-	var pq PQ
+	var pq minHeap
 	for _, q := range queries {
-		for i := range d {
-			d[i] = math.MaxInt64
-			pr[i] = -1
-		}
 		d[q.Source] = 0
-		pq = append(pq[:0], Item{q.Source, 0})
-		heap.Init(&pq)
-		for pq.Len() > 0 {
-			x := heap.Pop(&pq).(Item)
-			if x.d != d[x.n] {
+		visited = append(visited[:0], q.Source)
+		pq = append(pq[:0], heapItem{q.Source, 0})
+		for len(pq) > 0 {
+			x := pq.pop()
+			if x.dist != d[x.node] {
 				continue
 			}
-			for _, e := range adj[x.n] {
-				nd := x.d + e.Weight
+			for _, e := range adj[x.node] {
+				nd := x.dist + e.Weight
 				if nd < d[e.To] {
+					if d[e.To] == math.MaxInt64 {
+						visited = append(visited, e.To)
+					}
 					d[e.To] = nd
-					pr[e.To] = x.n
-					heap.Push(&pq, Item{e.To, nd})
+					pr[e.To] = x.node
+					pq.push(heapItem{e.To, nd})
 				}
 			}
 		}
@@ -88,6 +124,10 @@ func kernel(adj [][]Edge, queries []Query) []Result {
 			}
 			v := d[q.Destination]
 			rs = append(rs, Result{q.ID, &v, pa})
+		}
+		for _, v := range visited {
+			d[v] = math.MaxInt64
+			pr[v] = -1
 		}
 	}
 	return rs

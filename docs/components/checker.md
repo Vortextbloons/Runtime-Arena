@@ -12,9 +12,6 @@ checker/
       main.go           # All checker logic (single package today)
       main_test.go      # Unit tests
   internal/
-    benchmarks/         # Placeholder (.gitkeep) — not yet extracted
-    output/             # Placeholder (.gitkeep)
-    validation/         # Placeholder (.gitkeep)
 ```
 
 All validation currently lives in `main.go`. The `internal/` tree is reserved for a future split.

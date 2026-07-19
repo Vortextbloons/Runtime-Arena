@@ -12,12 +12,7 @@ cli/
     index.ts            # Main CLI logic (commands, discovery, run, fingerprints)
     metrics.ts          # Metric registry (kernelTime)
     timing.ts           # Timing sample reader
-    commands/           # Placeholder (.gitkeep) — not yet extracted
-    discovery/          # Placeholder (.gitkeep)
-    execution/          # Placeholder (.gitkeep)
-    metrics/            # Placeholder (.gitkeep)
-    reporting/          # Placeholder (.gitkeep)
-    results/            # Placeholder (.gitkeep)
+
   test/
     cli.test.ts         # Integration tests
     timing.test.ts      # Timing sample tests (also under src/)

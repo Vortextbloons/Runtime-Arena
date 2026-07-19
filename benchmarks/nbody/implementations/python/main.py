@@ -1,43 +1,128 @@
-import json,hashlib,sys,math,time
-def arg(name): return sys.argv[sys.argv.index(name)+1]
-with open(arg("--input")) as f: data=json.load(f)
+import json, hashlib, sys, math, time
 
-steps=data["steps"]; dt=data["deltaTime"]
+def arg(name):
+    return sys.argv[sys.argv.index(name) + 1]
 
-def kernel(b):
-    n=len(b)
-    for _ in range(steps):
-        # velocity update
-        for i in range(n):
-            bi=b[i]; pi=bi["position"]; vi=bi["velocity"]; mi=bi["mass"]
-            pix,piy,piz=pi; vix,viy,viz=vi[0],vi[1],vi[2]
-            for j in range(i+1,n):
-                bj=b[j]; pj=bj["position"]; mj=bj["mass"]
-                dx=pj[0]-pix; dy=pj[1]-piy; dz=pj[2]-piz
-                r2=dx*dx+dy*dy+dz*dz; m=dt/(r2*math.sqrt(r2))
-                mix=dx*mj*m; miy=dy*mj*m; miz=dz*mj*m
-                mjx=dx*mi*m; mjy=dy*mi*m; mjz=dz*mi*m
-                vix+=mix; viy+=miy; viz+=miz
-                bj["velocity"][0]-=mjx; bj["velocity"][1]-=mjy; bj["velocity"][2]-=mjz
-            vi[0]=vix; vi[1]=viy; vi[2]=viz
-        # position update
-        for bi in b: pi=bi["position"]; vi=bi["velocity"]; pi[0]+=dt*vi[0]; pi[1]+=dt*vi[1]; pi[2]+=dt*vi[2]
-    energy=0.0
-    pos_hash=hashlib.sha256(); vel_hash=hashlib.sha256()
+with open(arg("--input")) as f:
+    data = json.load(f)
+
+bodies_input = data["bodies"]
+n = len(bodies_input)
+dt = data["deltaTime"]
+steps = data["steps"]
+SQRT = math.sqrt
+
+def build_state():
+    buf = [0.0] * (n * 7)
     for i in range(n):
-        bi=b[i]; mass=bi["mass"]; px,py,pz=bi["position"]; vx,vy,vz=bi["velocity"]
-        pos_hash.update(f"{px:.9f},".encode()); pos_hash.update(f"{py:.9f},".encode()); pos_hash.update(f"{pz:.9f},".encode())
-        vel_hash.update(f"{vx:.9f},".encode()); vel_hash.update(f"{vy:.9f},".encode()); vel_hash.update(f"{vz:.9f},".encode())
-        energy+=.5*mass*(vx*vx+vy*vy+vz*vz)
-        for j in range(i+1,n):
-            bj=b[j]; dx=px-bj["position"][0]; dy=py-bj["position"][1]; dz=pz-bj["position"][2]
-            energy-=mass*bj["mass"]/math.sqrt(dx*dx+dy*dy+dz*dz)
-    return{"benchmark":"nbody","version":1,"bodyCount":n,"finalEnergy":energy,"positionChecksum":pos_hash.hexdigest(),"velocityChecksum":vel_hash.hexdigest()}
+        b = bodies_input[i]
+        base = i * 7
+        buf[base] = b["mass"]
+        buf[base + 1] = b["position"][0]
+        buf[base + 2] = b["position"][1]
+        buf[base + 3] = b["position"][2]
+        buf[base + 4] = b["velocity"][0]
+        buf[base + 5] = b["velocity"][1]
+        buf[base + 6] = b["velocity"][2]
+    return buf
 
-samples=[];output=None
-for i in range(-int(arg("--warmup")),int(arg("--iterations"))):
-    state=[{"mass":x["mass"],"position":list(x["position"]),"velocity":list(x["velocity"])} for x in data["bodies"]]
-    start=time.perf_counter_ns();output=kernel(state);elapsed=time.perf_counter_ns()-start
-    if i>=0:samples.append({"iteration":i+1,"kernelTimeNanoseconds":elapsed})
-with open(arg("--output"),"w") as f:json.dump(output,f)
-with open(arg("--timing-output"),"w") as f:json.dump({"samples":samples},f,separators=(",",":"))
+def simulate(buf):
+    _dt = dt
+    _sqrt = SQRT
+    for _ in range(steps):
+        i = 0
+        bi = 0
+        while i < n - 1:
+            mi = buf[bi]
+            pix = buf[bi + 1]
+            piy = buf[bi + 2]
+            piz = buf[bi + 3]
+            vix = buf[bi + 4]
+            viy = buf[bi + 5]
+            viz = buf[bi + 6]
+            j = i + 1
+            bj = j * 7
+            while j < n:
+                mj = buf[bj]
+                dx = buf[bj + 1] - pix
+                dy = buf[bj + 2] - piy
+                dz = buf[bj + 3] - piz
+                r2 = dx * dx + dy * dy + dz * dz
+                m = _dt / (r2 * _sqrt(r2))
+                dxm = dx * m
+                dym = dy * m
+                dzm = dz * m
+                vix += dxm * mj
+                viy += dym * mj
+                viz += dzm * mj
+                buf[bj + 4] -= dxm * mi
+                buf[bj + 5] -= dym * mi
+                buf[bj + 6] -= dzm * mi
+                j += 1
+                bj += 7
+            buf[bi + 4] = vix
+            buf[bi + 5] = viy
+            buf[bi + 6] = viz
+            i += 1
+            bi += 7
+        i = 0
+        base = 0
+        while i < n:
+            buf[base + 1] += _dt * buf[base + 4]
+            buf[base + 2] += _dt * buf[base + 5]
+            buf[base + 3] += _dt * buf[base + 6]
+            i += 1
+            base += 7
+
+def compute_result(buf):
+    energy = 0.0
+    pos_parts = []
+    vel_parts = []
+    append_pos = pos_parts.append
+    append_vel = vel_parts.append
+    for i in range(n):
+        base = i * 7
+        mass = buf[base]
+        px = buf[base + 1]
+        py = buf[base + 2]
+        pz = buf[base + 3]
+        vx = buf[base + 4]
+        vy = buf[base + 5]
+        vz = buf[base + 6]
+        append_pos(f"{px:.9f},{py:.9f},{pz:.9f},")
+        append_vel(f"{vx:.9f},{vy:.9f},{vz:.9f},")
+        energy += 0.5 * mass * (vx * vx + vy * vy + vz * vz)
+        for j in range(i + 1, n):
+            bj = j * 7
+            dx = px - buf[bj + 1]
+            dy = py - buf[bj + 2]
+            dz = pz - buf[bj + 3]
+            energy -= mass * buf[bj] / SQRT(dx * dx + dy * dy + dz * dz)
+    return {
+        "benchmark": "nbody",
+        "version": 1,
+        "bodyCount": n,
+        "finalEnergy": energy,
+        "positionChecksum": hashlib.sha256("".join(pos_parts).encode()).hexdigest(),
+        "velocityChecksum": hashlib.sha256("".join(vel_parts).encode()).hexdigest(),
+    }
+
+result_buf = build_state()
+simulate(result_buf)
+output = compute_result(result_buf)
+
+samples = []
+warmup = int(arg("--warmup"))
+iterations = int(arg("--iterations"))
+for i in range(-warmup, iterations):
+    state = build_state()
+    start = time.perf_counter_ns()
+    simulate(state)
+    elapsed = time.perf_counter_ns() - start
+    if i >= 0:
+        samples.append({"iteration": i + 1, "kernelTimeNanoseconds": elapsed})
+
+with open(arg("--output"), "w") as f:
+    json.dump(output, f)
+with open(arg("--timing-output"), "w") as f:
+    json.dump({"samples": samples}, f, separators=(",", ":"))

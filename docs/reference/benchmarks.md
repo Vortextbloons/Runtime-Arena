@@ -75,6 +75,4 @@ Warmup and measured iteration counts come from each benchmark's `benchmark.json`
 
 All datasets are deterministic from a seed. Regenerating via `arena dataset generate` writes metadata with `generatorVersion` `"2.0.0"`.
 
-## Adding a New Benchmark
 
-See [guides/adding-a-benchmark.md](../guides/adding-a-benchmark.md). Register a dataset generator in the CLI if you want `arena dataset generate` support.

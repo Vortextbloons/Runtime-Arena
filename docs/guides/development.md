@@ -78,17 +78,6 @@ See [guides/adding-a-benchmark.md](adding-a-benchmark.md).
 
 See [guides/adding-a-language.md](adding-a-language.md).
 
-## Testing
-
-```bash
-npm test
-```
-
-This runs:
-1. CLI integration tests (`cli/test/cli.test.ts`)
-2. Web unit tests (`web/src/lib/scoring.test.ts`, `web/src/lib/tiers.test.ts`)
-3. Checker unit tests (`checker/cmd/arena-checker/main_test.go` via `scripts/test-checker.mjs`)
-
 ## Conventions
 
 - Each implementation must produce the same output for the same input

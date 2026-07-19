@@ -55,6 +55,4 @@ Runbook and troubleshooting.
 |------|-------------|
 | [ops/runbook.md](ops/runbook.md) | Operations runbook — common tasks and troubleshooting |
 
-## File Count
 
-**20 documentation files** (20 included in combined output).

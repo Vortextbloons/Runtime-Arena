@@ -13,8 +13,8 @@
   "sizes": {
     "small": {
       "dataset": "small.csv",
-      "warmupIterations": 1,
-      "measuredIterations": 5
+      "warmupIterations": 3,
+      "measuredIterations": 10
     },
     "medium": {
       "dataset": "medium.csv",

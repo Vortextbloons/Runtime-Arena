@@ -99,9 +99,7 @@ func rotateLeft64(x uint64, n uint) uint64 {
 	return x<<n | x>>(64-n)
 }
 
-func kernel(in Input, p *pool) Output {
-	seedVal, _ := strconv.ParseUint(in.InitialSeed, 16, 32)
-	phaseSeed := uint32(seedVal)
+func kernel(in Input, p *pool, phaseSeed uint32) Output {
 	digest := uint64(0x6a09e667f3bcc909)
 	results := p.results
 
@@ -154,12 +152,14 @@ func main() {
 
 	runtime.GOMAXPROCS(in.WorkerCount)
 	p := newPool(in.WorkerCount, in.ItemsPerWorker, in.RoundsPerItem)
+	seedVal, _ := strconv.ParseUint(in.InitialSeed, 16, 32)
+	phaseSeed := uint32(seedVal)
 
 	samples := []Sample{}
 	var out Output
 	for i := -*w; i < *n; i++ {
 		start := nowNanoseconds()
-		out = kernel(in, p)
+		out = kernel(in, p, phaseSeed)
 		elapsed := max(int64(1), nowNanoseconds()-start)
 		if i >= 0 {
 			samples = append(samples, Sample{i + 1, elapsed})

@@ -21,6 +21,8 @@ Only modify documentation-related files, including:
 
 Do not modify application code, tests, runtime configuration, APIs, or implementation behavior.
 
+`docs/Clean.md` and `docs/Update.md` are agent workflow instructions and must not be removed.
+
 ## Primary Objectives
 
 * Remove duplicated information
