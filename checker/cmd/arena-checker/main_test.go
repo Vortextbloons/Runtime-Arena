@@ -70,3 +70,35 @@ func TestStrictJSONRejectsDuplicateFields(t *testing.T) {
 		t.Fatal("duplicate field was accepted")
 	}
 }
+
+func TestBarrierWaveReference(t *testing.T) {
+	in := barrierWaveInput{
+		SchemaVersion: "1.0.0", WorkerCount: 2, PhaseCount: 3,
+		ItemsPerWorker: 4, RoundsPerItem: 2, InitialSeed: "729418ab",
+	}
+	got, err := runBarrierWave(in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.ItemsProcessed != 24 || got.FinalSeed != "cb9e49cc" || got.Digest != "ccff928c7ada488a" {
+		t.Fatalf("unexpected barrier-wave result: %+v", got)
+	}
+	if err := checkBarrierWave(in, got); err != nil {
+		t.Fatalf("valid result rejected: %v", err)
+	}
+}
+
+func TestBarrierWaveRejectsMalformedHex(t *testing.T) {
+	in := barrierWaveInput{
+		SchemaVersion: "1.0.0", WorkerCount: 1, PhaseCount: 1,
+		ItemsPerWorker: 1, RoundsPerItem: 1, InitialSeed: "729418ab",
+	}
+	out, err := runBarrierWave(in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out.FinalSeed = "ABCDEF12"
+	if err := checkBarrierWave(in, out); err == nil {
+		t.Fatal("uppercase hexadecimal output was accepted")
+	}
+}

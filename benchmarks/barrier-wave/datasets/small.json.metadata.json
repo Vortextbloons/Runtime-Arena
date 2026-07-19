@@ -1,0 +1,8 @@
+{
+  "benchmark": "barrier-wave",
+  "version": 1,
+  "size": "small",
+  "seed": 1922308267,
+  "generatorVersion": "1.0.0",
+  "sha256": "593918ba3cbf369848de09736bf342ff9ce8590d72f4652e88dac0c28712e7ee"
+}

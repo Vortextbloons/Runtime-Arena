@@ -1,0 +1,35 @@
+{
+  "$schema": "../../schemas/benchmark.schema.json",
+  "id": "barrier-wave",
+  "name": "Barrier Wave",
+  "version": 1,
+  "description": "Repeated parallel computation with deterministic fan-out, fan-in, and barrier synchronization.",
+  "inputFormat": "json",
+  "outputFormat": "json",
+  "checker": {
+    "task": "barrier-wave",
+    "timeoutMilliseconds": 30000
+  },
+  "sizes": {
+    "small": {
+      "dataset": "small.json",
+      "warmupIterations": 3,
+      "measuredIterations": 10
+    },
+    "medium": {
+      "dataset": "medium.json",
+      "warmupIterations": 3,
+      "measuredIterations": 10
+    },
+    "large": {
+      "dataset": "large.json",
+      "warmupIterations": 2,
+      "measuredIterations": 8
+    }
+  },
+  "metrics": ["kernelTime"],
+  "limits": {
+    "timeoutMilliseconds": 120000,
+    "maxOutputBytes": 1048576
+  }
+}

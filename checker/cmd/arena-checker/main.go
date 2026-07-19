@@ -14,6 +14,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 )
@@ -325,6 +326,113 @@ type aggregation struct {
 	Checksum                     string     `json:"checksum"`
 }
 
+type barrierWaveInput struct {
+	SchemaVersion  string `json:"schemaVersion"`
+	WorkerCount    int    `json:"workerCount"`
+	PhaseCount     int    `json:"phaseCount"`
+	ItemsPerWorker int    `json:"itemsPerWorker"`
+	RoundsPerItem  int    `json:"roundsPerItem"`
+	InitialSeed    string `json:"initialSeed"`
+}
+
+type barrierWaveOutput struct {
+	SchemaVersion  string `json:"schemaVersion"`
+	Benchmark      string `json:"benchmark"`
+	WorkerCount    int    `json:"workerCount"`
+	PhaseCount     int    `json:"phaseCount"`
+	ItemsProcessed int64  `json:"itemsProcessed"`
+	FinalSeed      string `json:"finalSeed"`
+	Digest         string `json:"digest"`
+}
+
+var (
+	hex32Pattern = regexp.MustCompile(`^[0-9a-f]{8}$`)
+	hex64Pattern = regexp.MustCompile(`^[0-9a-f]{16}$`)
+)
+
+func mix32(x uint32) uint32 {
+	x ^= x >> 16
+	x *= 0x21f0aaad
+	x ^= x >> 15
+	x *= 0x735a2d97
+	x ^= x >> 15
+	return x
+}
+
+func rotateLeft64(x uint64, n uint) uint64 {
+	return x<<n | x>>(64-n)
+}
+
+func runBarrierWave(in barrierWaveInput) (barrierWaveOutput, error) {
+	if in.SchemaVersion != "1.0.0" {
+		return barrierWaveOutput{}, fmt.Errorf("unsupported barrier-wave input schema version %q", in.SchemaVersion)
+	}
+	if in.WorkerCount <= 0 || in.PhaseCount <= 0 || in.ItemsPerWorker <= 0 || in.RoundsPerItem <= 0 {
+		return barrierWaveOutput{}, errors.New("barrier-wave counts must be positive")
+	}
+	if !hex32Pattern.MatchString(in.InitialSeed) {
+		return barrierWaveOutput{}, errors.New("initialSeed must be eight lowercase hexadecimal characters")
+	}
+	seedValue, err := strconv.ParseUint(in.InitialSeed, 16, 32)
+	if err != nil {
+		return barrierWaveOutput{}, fmt.Errorf("invalid initialSeed: %w", err)
+	}
+	phaseSeed := uint32(seedValue)
+	digest := uint64(0x6a09e667f3bcc909)
+	for phase := 0; phase < in.PhaseCount; phase++ {
+		nextSeed := phaseSeed ^ uint32(phase)
+		var phaseSum uint64
+		for workerID := 0; workerID < in.WorkerCount; workerID++ {
+			var localXor uint32
+			var localSum uint64
+			for localItem := 0; localItem < in.ItemsPerWorker; localItem++ {
+				globalItem := uint32(workerID*in.ItemsPerWorker + localItem)
+				x := phaseSeed ^ globalItem ^ uint32(workerID)*0x9e3779b9
+				for round := 0; round < in.RoundsPerItem; round++ {
+					x ^= x << 13
+					x ^= x >> 17
+					x ^= x << 5
+					x = x*0x9e3779b1 + 0x85ebca77
+				}
+				localXor ^= x
+				localSum += uint64(x)
+			}
+			nextSeed = mix32(nextSeed ^ localXor ^ uint32(localSum) ^ uint32(localSum>>32) ^ uint32(workerID))
+			phaseSum += localSum
+		}
+		phaseSeed = nextSeed
+		digest = rotateLeft64(digest, 7)
+		digest ^= uint64(nextSeed)
+		digest += phaseSum
+	}
+	return barrierWaveOutput{
+		SchemaVersion:  "1.0.0",
+		Benchmark:      "barrier-wave",
+		WorkerCount:    in.WorkerCount,
+		PhaseCount:     in.PhaseCount,
+		ItemsProcessed: int64(in.WorkerCount) * int64(in.PhaseCount) * int64(in.ItemsPerWorker),
+		FinalSeed:      fmt.Sprintf("%08x", phaseSeed),
+		Digest:         fmt.Sprintf("%016x", digest),
+	}, nil
+}
+
+func checkBarrierWave(in barrierWaveInput, out barrierWaveOutput) error {
+	if out.SchemaVersion != "1.0.0" {
+		return fmt.Errorf("unsupported barrier-wave output schema version %q", out.SchemaVersion)
+	}
+	if !hex32Pattern.MatchString(out.FinalSeed) || !hex64Pattern.MatchString(out.Digest) {
+		return errors.New("finalSeed and digest must be lowercase, zero-padded hexadecimal")
+	}
+	want, err := runBarrierWave(in)
+	if err != nil {
+		return err
+	}
+	if out != want {
+		return errors.New("barrier-wave result mismatch")
+	}
+	return nil
+}
+
 func aggregate(file string) (aggregation, error) {
 	f, e := os.Open(file)
 	if e != nil {
@@ -453,6 +561,19 @@ func main() {
 			if string(a) != string(b) {
 				err = errors.New("aggregation result mismatch")
 			}
+		}
+	case "barrier-wave":
+		var in barrierWaveInput
+		var out barrierWaveOutput
+		if err = strictJSON(*input, &in); err != nil {
+			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
+		}
+		if err = strictJSON(*output, &out); err != nil {
+			status = "malformed-output"
+		} else if out.SchemaVersion != "1.0.0" {
+			finish("unsupported-version", *benchmark, fmt.Errorf("unsupported barrier-wave output schema version %q", out.SchemaVersion))
+		} else {
+			err = checkBarrierWave(in, out)
 		}
 	default:
 		finish("unsupported-version", *benchmark, errors.New("unknown benchmark"))
