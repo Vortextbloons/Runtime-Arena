@@ -4,7 +4,7 @@
 </script>
 
 {#if data.run}
-	<ResultsExplorer title="Latest results" subtitle="Verified run" run={data.run} />
+	<ResultsExplorer title="Canonical results" subtitle="Current source of truth" run={data.run} />
 {:else}
 	<section class="empty">
 		<p class="eyebrow">No result data</p>

@@ -5,7 +5,7 @@ Utility scripts for the arena monorepo (to be implemented with the CLI).
 | Script | Purpose |
 |--------|---------|
 | `verify-environment.ts` | Report missing toolchains, invalid manifests, checker availability |
-| `prepare-results.ts` | Sync or publish result JSON for the optional web UI |
+| `prepare-results.ts` | Copy the canonical result snapshot for the optional web UI |
 
 Run via the root package:
 

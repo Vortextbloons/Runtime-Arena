@@ -11,10 +11,14 @@ import { createRequire } from "node:module";
 import { metricAvailability } from "./metrics.js";
 
 type Command = { command: string; arguments: string[]; workingDirectory?: string; artifact?: string };
-type Language = { id: string; name: string; enabled: boolean; detect: Command; build: Command & { artifact: string }; run: Command; environment: Record<string, string> };
+type Language = { id: string; name: string; enabled: boolean; detect: Command; build: Command & { artifact: string }; run: Command; environment: Record<string, string>; sourceExtensions?: string[] };
 type Size = { dataset: string; warmupIterations: number; measuredIterations: number };
 type Benchmark = { id: string; name: string; version: number; sizes: Record<string, Size>; metrics: string[]; limits: { timeoutMilliseconds: number; maxOutputBytes: number } };
 type Proc = { code: number | null; stdout: string; stderr: string; durationNs: number; timedOut: boolean; limitExceeded: boolean };
+type Machine = { operatingSystem: { platform: string; release: string }; cpu: { model: string; architecture: string; logicalCores: number }; memoryBytes: number };
+type Provenance = { fingerprint: string; measuredAt: string; machine: Machine };
+type BenchmarkResult = Record<string, any> & { benchmark: Record<string, any> & { id: string; version: number; size: string }; language: Record<string, any> & { id: string; name: string; version: string }; checker: Record<string, any> & { status: string }; provenance?: Provenance };
+type Snapshot = { schemaVersion: string; snapshotId: string; updatedAt: string; arenaVersion: string; gitCommit?: string | null; gitDirty?: boolean | null; results: BenchmarkResult[] };
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../..");
@@ -88,7 +92,7 @@ function parseFlags(args: string[]) {
   for (let i = 0; i < args.length; i++) {
     const key = args[i]!;
     if (!key.startsWith("-")) continue;
-    if (["--no-save", "--quiet", "--preserve-temp"].includes(key)) bools.add(key);
+    if (["--no-save", "--quiet", "--preserve-temp", "--force", "--all"].includes(key)) bools.add(key);
     else {
       const value = args[++i];
       if (!value) throw new Error(`Missing value for ${key}`);
@@ -118,6 +122,56 @@ async function detections() {
       : p;
     return { language, available: p.code === 0 && atLeast(version, minima[language.id] ?? [0]), version, compilerVersion: (compiler.stdout || compiler.stderr).trim() };
   }));
+}
+
+const currentResultPath = path.join(root, config.resultDirectory, "current.json");
+const cellKey = (benchmarkId: string, size: string, languageId: string) => `${benchmarkId}/${size}/${languageId}`;
+const resultKey = (result: BenchmarkResult) => cellKey(result.benchmark.id, result.benchmark.size, result.language.id);
+
+function currentMachine(): Machine {
+  return {
+    operatingSystem: { platform: process.platform, release: os.release() },
+    cpu: { model: os.cpus()[0]?.model ?? "unknown", architecture: process.arch, logicalCores: os.cpus().length },
+    memoryBytes: os.totalmem()
+  };
+}
+
+async function hashTree(directory: string, hash: ReturnType<typeof createHash>) {
+  if (!await exists(directory)) return;
+  for (const entry of (await readdir(directory, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
+    if (["node_modules", "target", "dist", "build", "__pycache__", ".arena"].includes(entry.name)) continue;
+    const file = path.join(directory, entry.name);
+    if (entry.isDirectory()) await hashTree(file, hash);
+    else if (!entry.name.endsWith(".exe") && !entry.name.endsWith(".pyc")) {
+      hash.update(path.relative(root, file).replaceAll("\\", "/"));
+      hash.update(await readFile(file));
+    }
+  }
+}
+
+async function fingerprintCell(language: Language, benchmark: Benchmark, sizeName: string, toolchainVersion: string, compilerVersion: string, warmups: number, iterations: number) {
+  const hash = createHash("sha256");
+  const size = benchmark.sizes[sizeName]!;
+  for (const file of [
+    path.join(root, config.languageDirectory, `${language.id}.json`),
+    path.join(root, config.benchmarkDirectory, benchmark.id, "benchmark.json"),
+    path.join(root, config.benchmarkDirectory, benchmark.id, "datasets", size.dataset),
+    path.join(root, "cli", "src", "metrics.ts")
+  ]) {
+    hash.update(path.relative(root, file).replaceAll("\\", "/"));
+    hash.update(await readFile(file));
+  }
+  await hashTree(path.join(root, config.benchmarkDirectory, benchmark.id, "implementations", language.id), hash);
+  await hashTree(path.join(root, "checker"), hash);
+  hash.update(JSON.stringify({
+    benchmarkVersion: benchmark.version, size: sizeName, warmups, iterations,
+    metrics: benchmark.metrics ?? config.defaults.metrics, toolchainVersion, compilerVersion
+  }));
+  return hash.digest("hex");
+}
+
+async function readSnapshot(): Promise<Snapshot | null> {
+  return await exists(currentResultPath) ? json<Snapshot>(currentResultPath) : null;
 }
 
 async function doctor(): Promise<number> {
@@ -218,14 +272,18 @@ async function runCommand(args: string[]) {
   const ds = await detections();
   const requestedLanguages = flags.all("--language");
   const requestedBenchmarks = flags.all("--benchmark");
-  const languages = ds.filter(d => d.available && (!requestedLanguages.length || requestedLanguages.includes(d.language.id)));
+  const languages = ds.filter(d => d.language.enabled && d.available && (!requestedLanguages.length || requestedLanguages.includes(d.language.id)));
   const benchmarks = (await discoverBenchmarks()).filter(b => !requestedBenchmarks.length || requestedBenchmarks.includes(b.id));
   if (!languages.length || !benchmarks.length) throw new Error("No available language/benchmark combinations selected");
   const createdAt = new Date().toISOString();
-  const runId = `${createdAt.replaceAll(":", "-").replace(".", "-").replace("Z", "")}-${randomUUID().slice(0, 8)}Z`;
-  const tempRoot = path.join(root, ".arena", "runs", runId);
+  const snapshotId = `${createdAt.replaceAll(":", "-").replace(".", "-").replace("Z", "")}-${randomUUID().slice(0, 8)}Z`;
+  const tempRoot = path.join(root, ".arena", "runs", snapshotId);
   await mkdir(tempRoot, { recursive: true });
-  const results: any[] = [];
+  const current = await readSnapshot();
+  const canonical = new Map((current?.results ?? []).map(result => [resultKey(result), result]));
+  const results: BenchmarkResult[] = [];
+  let currentCells = 0;
+  let plannedCells = 0;
   for (const benchmark of benchmarks) {
     const sizeNames = flags.get("--size") ? [flags.get("--size")!] : config.defaults.sizes.filter(name => benchmark.sizes[name]);
     for (const sizeName of sizeNames) {
@@ -235,10 +293,21 @@ async function runCommand(args: string[]) {
     if (!await exists(input)) throw new Error(`Missing dataset: ${input}`);
     const datasetHash = createHash("sha256").update(await readFile(input)).digest("hex");
     for (const { language, version, compilerVersion } of languages) {
-      const build = await buildOne(language, benchmark);
-      if (build.status === "missing") continue;
+      const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
+      if (!await exists(implementationDir)) continue;
       const warmups = Number(flags.get("--warmup") ?? size.warmupIterations);
       const iterations = Number(flags.get("--iterations") ?? size.measuredIterations);
+      const fingerprint = await fingerprintCell(language, benchmark, sizeName, version, compilerVersion, warmups, iterations);
+      const key = cellKey(benchmark.id, sizeName, language.id);
+      const previous = canonical.get(key);
+      if (!flags.has("--force") && previous?.provenance?.fingerprint === fingerprint) {
+        currentCells++;
+        if (!flags.has("--quiet") && flags.get("--format") !== "json") console.log(`${key}: current`);
+        continue;
+      }
+      plannedCells++;
+      const build = await buildOne(language, benchmark);
+      if (build.status === "missing") continue;
       const samples: Array<Record<string, unknown> & { valid: boolean; wallTimeNanoseconds: number }> = [];
       let lastChecker = { status: "checker-error", checkerVersion: "unknown", diagnostics: [] as string[] };
       for (let iteration = -warmups; iteration < iterations; iteration++) {
@@ -248,7 +317,7 @@ async function runCommand(args: string[]) {
         await writeFile(isolatedInput, await readFile(input));
         await chmod(isolatedInput, 0o444);
         const output = path.join(iterationDir, "output.json");
-        const vars = { projectRoot: root, benchmarkId: benchmark.id, benchmarkDir: path.join(root, "benchmarks", benchmark.id), implementationDir: build.implementationDir, inputFile: isolatedInput, outputFile: output, artifact: build.artifact, runId, size: sizeName };
+        const vars = { projectRoot: root, benchmarkId: benchmark.id, benchmarkDir: path.join(root, "benchmarks", benchmark.id), implementationDir: build.implementationDir, inputFile: isolatedInput, outputFile: output, artifact: build.artifact, runId: snapshotId, size: sizeName };
         const p = await runProcess(expand(language.run.command, vars), language.run.arguments.map(x => expand(x, vars)), iterationDir, benchmark.limits.timeoutMilliseconds, language.environment, benchmark.limits.maxOutputBytes, output);
         const outputSize = await exists(output) ? (await stat(output)).size : 0;
         lastChecker = p.code === 0 && outputSize <= benchmark.limits.maxOutputBytes
@@ -257,7 +326,7 @@ async function runCommand(args: string[]) {
         await chmod(isolatedInput, 0o666);
         if (iteration >= 0) samples.push({ iteration: iteration + 1, valid: p.code === 0 && lastChecker.status === "accepted", wallTimeNanoseconds: p.durationNs, exitCode: p.code ?? -1, outputSizeBytes: outputSize, timedOut: p.timedOut, outputLimitExceeded: p.limitExceeded });
       }
-      results.push({
+      const result: BenchmarkResult = {
         benchmark: { id: benchmark.id, version: benchmark.version, size: sizeName },
         dataset: { id: `${benchmark.id}-${sizeName}-${benchmark.version}`, sha256: datasetHash, seed: 0, generatorVersion: "committed-fixture-1.0.0" },
         language: { id: language.id, name: language.name, version, compilerVersion, compilerFlags: language.build.arguments },
@@ -266,19 +335,26 @@ async function runCommand(args: string[]) {
           mode: "cold-process", warmupIterations: warmups, measuredIterations: iterations, samples, summary: summary(samples),
           metrics: metricAvailability(benchmark.metrics ?? config.defaults.metrics)
         },
-        checker: { language: "go", version: lastChecker.checkerVersion, status: lastChecker.status, diagnostics: lastChecker.diagnostics }
-      });
+        checker: { language: "go", version: lastChecker.checkerVersion, status: lastChecker.status, diagnostics: lastChecker.diagnostics },
+        provenance: { fingerprint, measuredAt: createdAt, machine: currentMachine() }
+      };
+      results.push(result);
+      if (lastChecker.status === "accepted") canonical.set(key, result);
       if (!flags.has("--quiet") && flags.get("--format") !== "json") console.log(`${benchmark.id}/${sizeName} ${language.name}: ${lastChecker.status} (${(summary(samples).medianWallTimeNanoseconds / 1e6).toFixed(2)} ms median)`);
     }
     }
   }
   const git = await runProcess("git", ["rev-parse", "HEAD"]).then(p => p.code === 0 ? p.stdout.trim() : "unknown");
   const gitDirty = await runProcess("git", ["status", "--porcelain"]).then(p => p.code === 0 ? p.stdout.trim().length > 0 : null);
-  const record = { schemaVersion: "1.0.0", runId, createdAt, arenaVersion: "0.1.0", gitCommit: git, gitDirty, command: ["arena", "run", ...args], environment: { operatingSystem: { platform: process.platform, release: os.release() }, cpu: { model: os.cpus()[0]?.model ?? "unknown", architecture: process.arch, logicalCores: os.cpus().length }, memoryBytes: os.totalmem() }, results };
-  await validateResult(record);
-  if (!flags.has("--quiet") && flags.get("--format") !== "json") printSummary(results);
-  if (!flags.has("--no-save")) await saveResult(record, flags.get("--output"), flags.get("--format") === "json" || flags.has("--quiet"));
-  if (flags.get("--format") === "json") console.log(JSON.stringify(record, null, flags.has("--quiet") ? 0 : 2));
+  const snapshot: Snapshot = plannedCells === 0 && current ? current : {
+    schemaVersion: "2.0.0", snapshotId, updatedAt: createdAt, arenaVersion: "0.1.0",
+    gitCommit: git, gitDirty, results: [...canonical.values()].sort((a, b) => resultKey(a).localeCompare(resultKey(b)))
+  };
+  await validateResult(snapshot);
+  if (results.length && !flags.has("--quiet") && flags.get("--format") !== "json") printSummary(results);
+  if (!flags.has("--no-save") && plannedCells > 0) await saveResult(snapshot, flags.get("--output"), flags.get("--format") === "json" || flags.has("--quiet"));
+  if (!flags.has("--quiet") && flags.get("--format") !== "json" && plannedCells === 0) console.log(`All ${currentCells} selected cells are current.`);
+  if (flags.get("--format") === "json") console.log(JSON.stringify(snapshot, null, flags.has("--quiet") ? 0 : 2));
   if (!flags.has("--preserve-temp")) await rm(tempRoot, { recursive: true, force: true });
   return 0;
 }
@@ -329,24 +405,63 @@ async function atomicJson(file: string, value: unknown) {
   await writeFile(temp, `${JSON.stringify(value, null, 2)}\n`);
   await rename(temp, file);
 }
-async function saveResult(record: { runId: string; createdAt: string; results: any[] }, explicit?: string, silent = false) {
-  const resultDir = path.join(root, config.resultDirectory);
-  const runPath = explicit ? path.resolve(root, explicit) : path.join(resultDir, "runs", `${record.runId}.json`);
-  if (await exists(runPath)) throw new Error(`Refusing to overwrite immutable result ${runPath}`);
-  await atomicJson(runPath, record);
-  await atomicJson(path.join(resultDir, "latest.json"), { schemaVersion: "1.0.0", runId: record.runId, path: path.relative(resultDir, runPath).replaceAll("\\", "/") });
-  const indexPath = path.join(resultDir, "index.json");
-  const index = await exists(indexPath) ? await json<{ schemaVersion: string; runs: any[] }>(indexPath) : { schemaVersion: "1.0.0", runs: [] };
-  index.runs.unshift({ runId: record.runId, createdAt: record.createdAt, path: path.relative(resultDir, runPath).replaceAll("\\", "/"), benchmarks: [...new Set(record.results.map(x => x.benchmark.id))], languages: [...new Set(record.results.map(x => x.language.id))] });
-  await atomicJson(indexPath, index);
-  if (!silent) console.log(`Saved: ${path.relative(root, runPath)}`);
+async function saveResult(snapshot: Snapshot, explicit?: string, silent = false) {
+  const output = explicit ? path.resolve(root, explicit) : currentResultPath;
+  await atomicJson(output, snapshot);
+  if (!silent) console.log(`Updated: ${path.relative(root, output)}`);
+}
+
+async function resultsStatus(args: string[]) {
+  const flags = parseFlags(args);
+  const current = await readSnapshot();
+  const canonical = new Map((current?.results ?? []).map(result => [resultKey(result), result]));
+  const requestedLanguages = flags.all("--language");
+  const requestedBenchmarks = flags.all("--benchmark");
+  const detectionsById = await detections();
+  const benchmarks = (await discoverBenchmarks()).filter(b => !requestedBenchmarks.length || requestedBenchmarks.includes(b.id));
+  const rows: Array<{ key: string; status: string; detail: string }> = [];
+  for (const benchmark of benchmarks) {
+    const sizes = flags.get("--size") ? [flags.get("--size")!] : config.defaults.sizes.filter(name => benchmark.sizes[name]);
+    for (const sizeName of sizes) for (const detection of detectionsById) {
+      const { language, version, compilerVersion } = detection;
+      if (!language.enabled || (requestedLanguages.length && !requestedLanguages.includes(language.id))) continue;
+      const key = cellKey(benchmark.id, sizeName, language.id);
+      const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
+      if (!await exists(implementationDir)) {
+        rows.push({ key, status: "unavailable", detail: "implementation missing" });
+        continue;
+      }
+      if (!detection.available) {
+        rows.push({ key, status: "unavailable", detail: "toolchain missing or unsupported" });
+        continue;
+      }
+      const size = benchmark.sizes[sizeName]!;
+      const fingerprint = await fingerprintCell(
+        language, benchmark, sizeName, version, compilerVersion,
+        Number(flags.get("--warmup") ?? size.warmupIterations),
+        Number(flags.get("--iterations") ?? size.measuredIterations)
+      );
+      const saved = canonical.get(key);
+      const status = !saved ? "missing" : saved.provenance?.fingerprint === fingerprint ? "current" : "stale";
+      const machine = saved?.provenance?.machine;
+      const differentMachine = machine && (machine.cpu.model !== currentMachine().cpu.model || machine.operatingSystem.platform !== process.platform);
+      rows.push({ key, status, detail: differentMachine ? "different machine" : "" });
+    }
+  }
+  const width = Math.max(4, ...rows.map(row => row.key.length));
+  for (const row of rows) console.log(`${row.key.padEnd(width)}  ${row.status.padEnd(11)}${row.detail}`);
+  const counts = new Map<string, number>();
+  for (const row of rows) counts.set(row.status, (counts.get(row.status) ?? 0) + 1);
+  console.log(`\n${["current", "stale", "missing", "unavailable"].map(status => `${status}: ${counts.get(status) ?? 0}`).join(" · ")}`);
 }
 
 async function resultsCommand(args: string[]) {
-  const resultDir = path.join(root, config.resultDirectory);
-  if (args[0] === "list") return console.log(await readFile(path.join(resultDir, "index.json"), "utf8"));
-  const pointer = args[0] === "latest" ? await json<{ path: string }>(path.join(resultDir, "latest.json")) : { path: `runs/${args[1] ?? args[0]}.json` };
-  console.log(await readFile(path.join(resultDir, pointer.path), "utf8"));
+  if (!args[0] || args[0] === "current") {
+    if (!await exists(currentResultPath)) throw new Error("No canonical results yet. Run `arena run`.");
+    return console.log(await readFile(currentResultPath, "utf8"));
+  }
+  if (args[0] === "status") return resultsStatus(args.slice(1));
+  throw new Error("Usage: arena results current|status");
 }
 async function listCommand(kind: string) {
   if (kind === "languages") for (const d of await detections()) console.log(`${d.language.id.padEnd(14)} ${d.available ? "available" : "unavailable"}  ${d.version}`);

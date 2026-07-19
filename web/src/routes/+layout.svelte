@@ -14,9 +14,7 @@
 		<span>Runtime Arena</span>
 	</a>
 	<nav aria-label="Primary">
-		<a href={resolve('/')}>Latest</a>
-		<a href={resolve('/runs')}>Runs</a>
-		<a href={resolve('/compare')}>Compare</a>
+		<a href={resolve('/')}>Results</a>
 		<a href={resolve('/methodology')}>Methodology</a>
 	</nav>
 </header>
@@ -25,7 +23,7 @@
 
 <footer>
 	<span>Correctness before ranking.</span>
-	<code>schema 1.0.0</code>
+	<code>schema 2.0.0</code>
 </footer>
 
 <style>

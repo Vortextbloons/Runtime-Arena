@@ -8,7 +8,7 @@
 <section>
 	<p class="eyebrow">{subtitle}</p>
 	<h1>{title}</h1>
-	<p class="run">Run {run.runId}</p>
+	<p class="run">Snapshot {run.snapshotId}</p>
 	<div class="table">
 		<div class="head"><span>Benchmark</span><span>Language</span><span>Median</span><span>Relative</span><span>Correctness</span></div>
 		{#each results as result (`${result.benchmark.id}-${result.benchmark.size}-${result.language.id}`)}

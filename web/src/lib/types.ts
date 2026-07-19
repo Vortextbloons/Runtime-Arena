@@ -36,18 +36,22 @@ export type ArenaResult = {
 		metrics?: Record<string, { status: string; reason?: string }>;
 	};
 	checker: { status: string; diagnostics: string[] };
+	provenance: {
+		fingerprint: string;
+		measuredAt: string;
+		machine: {
+			cpu: { model: string; architecture: string; logicalCores: number };
+			memoryBytes: number;
+			operatingSystem: { platform: string; release: string };
+		};
+	};
 };
 
 export type ArenaRun = {
-	runId: string;
-	createdAt: string;
+	snapshotId: string;
+	updatedAt: string;
 	arenaVersion: string;
 	gitCommit?: string;
-	environment: {
-		cpu: { model: string; logicalCores: number };
-		memoryBytes: number;
-		operatingSystem: { platform: string; release: string };
-	};
 	results: ArenaResult[];
 };
 

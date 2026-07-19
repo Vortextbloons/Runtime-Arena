@@ -1,16 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://runtime-arena.dev/schemas/result.schema.json",
-  "title": "ArenaResult",
+  "title": "ArenaCanonicalSnapshot",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schemaVersion",
-    "runId",
-    "createdAt",
+    "snapshotId",
+    "updatedAt",
     "arenaVersion",
-    "command",
-    "environment",
     "results"
   ],
   "properties": {
@@ -18,11 +16,11 @@
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$"
     },
-    "runId": {
+    "snapshotId": {
       "type": "string",
       "minLength": 1
     },
-    "createdAt": {
+    "updatedAt": {
       "type": "string",
       "format": "date-time"
     },
@@ -34,51 +32,6 @@
     },
     "gitDirty": {
       "type": ["boolean", "null"]
-    },
-    "command": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "minItems": 1
-    },
-    "environment": {
-      "type": "object",
-      "required": ["operatingSystem", "cpu", "memoryBytes"],
-      "properties": {
-        "operatingSystem": {
-          "type": "object",
-          "required": ["platform", "release"],
-          "properties": {
-            "platform": {
-              "type": "string"
-            },
-            "release": {
-              "type": "string"
-            }
-          }
-        },
-        "cpu": {
-          "type": "object",
-          "required": ["model", "architecture", "logicalCores"],
-          "properties": {
-            "model": {
-              "type": "string"
-            },
-            "architecture": {
-              "type": "string"
-            },
-            "logicalCores": {
-              "type": "integer",
-              "minimum": 1
-            }
-          }
-        },
-        "memoryBytes": {
-          "type": "integer",
-          "minimum": 0
-        }
-      }
     },
     "results": {
       "type": "array",
@@ -96,7 +49,8 @@
         "language",
         "build",
         "execution",
-        "checker"
+        "checker",
+        "provenance"
       ],
       "properties": {
         "benchmark": {
@@ -244,6 +198,39 @@
               "type": "array",
               "items": {
                 "type": "string"
+              }
+            }
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["fingerprint", "measuredAt", "machine"],
+          "properties": {
+            "fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "measuredAt": { "type": "string", "format": "date-time" },
+            "machine": {
+              "type": "object",
+              "required": ["operatingSystem", "cpu", "memoryBytes"],
+              "properties": {
+                "operatingSystem": {
+                  "type": "object",
+                  "required": ["platform", "release"],
+                  "properties": {
+                    "platform": { "type": "string" },
+                    "release": { "type": "string" }
+                  }
+                },
+                "cpu": {
+                  "type": "object",
+                  "required": ["model", "architecture", "logicalCores"],
+                  "properties": {
+                    "model": { "type": "string" },
+                    "architecture": { "type": "string" },
+                    "logicalCores": { "type": "integer", "minimum": 1 }
+                  }
+                },
+                "memoryBytes": { "type": "integer", "minimum": 0 }
               }
             }
           }

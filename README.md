@@ -6,7 +6,7 @@ Extensible cross-language benchmarking system for comparing programming language
 
 ## Status
 
-The command-line benchmark workflow is implemented for Rust, Go, and TypeScript across all three initial benchmarks. It includes deterministic datasets, independent Go validation, result-schema validation, terminal rankings, and immutable JSON run history.
+The command-line benchmark workflow is implemented for Rust, Go, TypeScript, and Python across all three initial benchmarks. It includes deterministic datasets, independent Go validation, result-schema validation, terminal rankings, and one incrementally maintained canonical result snapshot.
 
 The SvelteKit web interface remains optional scaffolding and is not required for benchmark execution.
 
@@ -24,7 +24,7 @@ runtime-arena/
 │   └── aggregation/
 ├── languages/                 Language manifests (rust, go, typescript)
 ├── schemas/                   JSON Schema for manifests and results
-├── results/                   Versioned JSON run history
+├── results/                   Canonical benchmark result snapshot
 ├── web/                       Optional SvelteKit results UI
 └── scripts/                   Environment / results utilities
 ```
@@ -61,7 +61,8 @@ arena doctor
 arena list languages
 arena list benchmarks
 arena run
-arena results latest
+arena results current
+arena results status
 ```
 
 The CLI is the primary product. The web UI only reads generated JSON and is optional.
@@ -71,10 +72,17 @@ Use npm scripts without a globally linked executable:
 ```bash
 npm run doctor
 npm run arena -- run --language rust --benchmark nbody --size medium
-npm run arena -- results latest
+npm run arena -- results status
+npm run arena -- results current
 ```
 
-With no `--size` flag, `arena run` executes every configured default size.
+`arena run` executes only missing or stale benchmark/language/size cells. Use
+selectors to narrow the work, `--force` to refresh selected current cells, or
+`--force --all` to intentionally refresh every runnable cell. Accepted results
+are merged atomically into `results/current.json`; failed attempts do not replace
+an existing accepted result.
+
+With no `--size` flag, the runner considers every configured default size.
 Generate a deterministic replacement dataset and its hash metadata with:
 
 ```bash
@@ -87,7 +95,7 @@ Build the optional static results interface:
 npm run build:web
 ```
 
-This copies the current immutable result history into `web/static/results/` and
+This copies the canonical result snapshot into `web/static/results/` and
 prerenders the dashboard to `web/build/`. During development, run
 `npm run prepare-results` followed by `npm run dev --workspace=@runtime-arena/web`.
 After building, `npm run arena -- web` serves the static interface locally.

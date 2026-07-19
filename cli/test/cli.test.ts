@@ -35,11 +35,19 @@ test("prints metric availability", () => {
 test("runs a filtered benchmark and emits clean JSON", () => {
   const result = arena("run", "--language", "typescript", "--benchmark", "aggregation", "--size", "small", "--warmup", "0", "--iterations", "1", "--format", "json", "--quiet", "--no-save");
   assert.equal(result.status, 0, result.stderr);
-  const record = JSON.parse(result.stdout) as { runId: string; results: Array<{ checker: { status: string }; execution: { samples: unknown[] } }> };
-  assert.match(record.runId, /Z$/);
-  assert.equal(record.results.length, 1);
-  assert.equal(record.results[0]?.checker.status, "accepted");
-  assert.equal(record.results[0]?.execution.samples.length, 1);
+  const record = JSON.parse(result.stdout) as { snapshotId: string; results: Array<{ checker: { status: string }; execution: { samples: unknown[] } }> };
+  assert.match(record.snapshotId, /Z$/);
+  const measured = record.results.find((entry: any) =>
+    entry.benchmark.id === "aggregation" && entry.benchmark.size === "small" && entry.language.id === "typescript"
+  );
+  assert.equal(measured?.checker.status, "accepted");
+  assert.equal(measured?.execution.samples.length, 1);
+});
+
+test("reports canonical cell freshness without running benchmarks", () => {
+  const result = arena("results", "status", "--benchmark", "aggregation", "--language", "typescript", "--size", "small");
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /aggregation\/small\/typescript\s+current/);
 });
 
 test("doctor validates the complete repository", () => {

@@ -37,6 +37,11 @@
 			: []
 	);
 	const profileBenchmarks = $derived(['overall', ...benchmarks]);
+	const machineSignatures = $derived([...new Set(run.results.map((result) => {
+		const machine = result.provenance.machine;
+		return `${machine.cpu.model}|${machine.cpu.architecture}|${machine.operatingSystem.platform}`;
+	}))]);
+	const representativeMachine = $derived(run.results[0]?.provenance.machine);
 </script>
 
 <svelte:head><title>{title} · Runtime Arena</title></svelte:head>
@@ -46,14 +51,17 @@
 		<div>
 			<p class="eyebrow">{subtitle}</p>
 			<h1>{title}</h1>
-			<p class="lede">Verified runtime measurements from one machine, one dataset, and one clock.</p>
+			<p class="lede">Verified measurements maintained incrementally, one benchmark cell at a time.</p>
 		</div>
 		<div class="run-tag">
-			<span>Run</span>
-			<strong>{run.runId}</strong>
-			<time datetime={run.createdAt}>{new Date(run.createdAt).toLocaleString()}</time>
+			<span>Snapshot</span>
+			<strong>{run.snapshotId}</strong>
+			<time datetime={run.updatedAt}>{new Date(run.updatedAt).toLocaleString()}</time>
 		</div>
 	</header>
+	{#if machineSignatures.length > 1}
+		<p class="machine-warning">Comparability note: this snapshot contains measurements from {machineSignatures.length} materially different machine environments.</p>
+	{/if}
 
 	{#if fixedLanguage}
 		<nav class="profile-strip" aria-label="Benchmark scores">
@@ -120,8 +128,8 @@
 	{/if}
 
 	{#if expandedCard}
-		<div class="card-overlay" onclick={() => expandedCard = null} onkeydown={(e) => { if (e.key === 'Escape') expandedCard = null; }} role="dialog" aria-modal="true" tabindex="-1">
-			<div class="card-overlay-inner" role="group" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
+		<div class="card-overlay" onclick={(e) => { if (e.target === e.currentTarget) expandedCard = null; }} onkeydown={(e) => { if (e.key === 'Escape') expandedCard = null; }} role="dialog" aria-modal="true" tabindex="-1">
+			<div class="card-overlay-inner" role="group">
 				<OverallCard score={expandedCard} />
 				{#if expandedCard.benchmarks && expandedCard.benchmarks.length}
 					<div class="expanded-details">
@@ -152,12 +160,12 @@
 	{/if}
 
 	<details class="run-details">
-		<summary>Run and machine details</summary>
+		<summary>Snapshot and machine details</summary>
 		<dl>
-			<div><dt>Processor</dt><dd>{run.environment.cpu.model.trim()}</dd></div>
-			<div><dt>Logical cores</dt><dd>{run.environment.cpu.logicalCores}</dd></div>
-			<div><dt>Memory</dt><dd>{(run.environment.memoryBytes / 2 ** 30).toFixed(1)} GiB</dd></div>
-			<div><dt>System</dt><dd>{run.environment.operatingSystem.platform} {run.environment.operatingSystem.release}</dd></div>
+			<div><dt>Processor</dt><dd>{representativeMachine?.cpu.model.trim() ?? 'unknown'}</dd></div>
+			<div><dt>Logical cores</dt><dd>{representativeMachine?.cpu.logicalCores ?? 'unknown'}</dd></div>
+			<div><dt>Memory</dt><dd>{representativeMachine ? `${(representativeMachine.memoryBytes / 2 ** 30).toFixed(1)} GiB` : 'unknown'}</dd></div>
+			<div><dt>System</dt><dd>{representativeMachine?.operatingSystem.platform ?? 'unknown'} {representativeMachine?.operatingSystem.release ?? ''}</dd></div>
 			<div><dt>Revision</dt><dd><code>{run.gitCommit?.slice(0, 10) ?? 'unknown'}</code></dd></div>
 			<div><dt>Arena</dt><dd>{run.arenaVersion}</dd></div>
 		</dl>
@@ -173,6 +181,7 @@
 	.run-tag { display: grid; max-width: 20rem; justify-items: end; gap: .25rem; padding-right: 1rem; border-right: 2px solid var(--accent); font-family: var(--mono); text-align: right; }
 	.run-tag span, .run-tag time { color: var(--muted); font-size: .64rem; text-transform: uppercase; }
 	.run-tag strong { overflow: hidden; max-width: 100%; font-size: .75rem; text-overflow: ellipsis; }
+	.machine-warning { margin: -1rem 0 2rem; padding: .8rem 1rem; border-left: 2px solid var(--warning); background: color-mix(in srgb, var(--warning) 8%, transparent); color: var(--muted); }
 	.profile-strip { display: grid; grid-template-columns: repeat(4, 1fr); margin-bottom: 1rem; border: 1px solid var(--rule); border-radius: .65rem; overflow: hidden; }
 	.profile-strip button { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border: 0; border-right: 1px solid var(--rule); background: var(--panel); color: var(--muted); padding: .85rem 1rem; cursor: pointer; text-transform: capitalize; }
 	.profile-strip button:last-child { border-right: 0; }

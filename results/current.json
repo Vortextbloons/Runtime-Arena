@@ -1,0 +1,5914 @@
+{
+  "schemaVersion": "2.0.0",
+  "snapshotId": "2026-07-19T00-32-11-991-b5b7ef92Z",
+  "updatedAt": "2026-07-19T00:32:11.991Z",
+  "arenaVersion": "0.1.0",
+  "gitCommit": "42ed7f37a80ddb1758e58be8bfd0279c88047407",
+  "gitDirty": true,
+  "results": [
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "aggregation-large-1",
+        "sha256": "c6c05bd35c4bc6a9e98ccf04222ed01b20056014131674d7d59937004f915194",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 241735500,
+        "artifactSizeBytes": 3235840,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 17395500,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 17651600,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 16331800,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 17585500,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 18992800,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 19207300,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 16073000,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 14945800,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 15487000,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 16975400,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 14945800,
+          "maximumWallTimeNanoseconds": 19207300,
+          "medianWallTimeNanoseconds": 16975400,
+          "meanWallTimeNanoseconds": 17064570,
+          "standardDeviationWallTimeNanoseconds": 1324419.7741275234,
+          "p95WallTimeNanoseconds": 19207300,
+          "interquartileRangeWallTimeNanoseconds": 1578600
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "f6337920c266c96293ebab7c446121ea2bae4024ace8f935b231607ad56a7d24",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "aggregation-large-1",
+        "sha256": "c6c05bd35c4bc6a9e98ccf04222ed01b20056014131674d7d59937004f915194",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "python",
+        "name": "Python",
+        "version": "Python 3.14.6",
+        "compilerVersion": "Python 3.14.6",
+        "compilerFlags": [
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 74926500,
+        "artifactSizeBytes": 3361,
+        "command": [
+          "python",
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 45477600,
+            "exitCode": 0,
+            "outputSizeBytes": 843,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 48497100,
+            "exitCode": 0,
+            "outputSizeBytes": 843,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 44875900,
+            "exitCode": 0,
+            "outputSizeBytes": 843,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 45010400,
+            "exitCode": 0,
+            "outputSizeBytes": 843,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 50353200,
+            "exitCode": 0,
+            "outputSizeBytes": 843,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 63748400,
+            "exitCode": 0,
+            "outputSizeBytes": 843,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 69030900,
+            "exitCode": 0,
+            "outputSizeBytes": 843,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 51284500,
+            "exitCode": 0,
+            "outputSizeBytes": 843,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 61744300,
+            "exitCode": 0,
+            "outputSizeBytes": 843,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 52984900,
+            "exitCode": 0,
+            "outputSizeBytes": 843,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 44875900,
+          "maximumWallTimeNanoseconds": 69030900,
+          "medianWallTimeNanoseconds": 50353200,
+          "meanWallTimeNanoseconds": 53300720,
+          "standardDeviationWallTimeNanoseconds": 8153050.670246077,
+          "p95WallTimeNanoseconds": 69030900,
+          "interquartileRangeWallTimeNanoseconds": 16266700
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "14f90e2eacb5984ec3473d3a11b1d68a6db86829a208354045d025b5c007fa46",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "aggregation-large-1",
+        "sha256": "c6c05bd35c4bc6a9e98ccf04222ed01b20056014131674d7d59937004f915194",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 88407000,
+        "artifactSizeBytes": 230912,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 14175000,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 15711000,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 13838100,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 13750800,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 14288200,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 13852400,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 14242400,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 15192600,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 13893600,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 13706500,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 13706500,
+          "maximumWallTimeNanoseconds": 15711000,
+          "medianWallTimeNanoseconds": 13893600,
+          "meanWallTimeNanoseconds": 14265060,
+          "standardDeviationWallTimeNanoseconds": 634606.2514662143,
+          "p95WallTimeNanoseconds": 15711000,
+          "interquartileRangeWallTimeNanoseconds": 450100
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "20674822f3888a8b850066634526f7a5c38f468059b5d5ec09ff939d058376bb",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "aggregation-large-1",
+        "sha256": "c6c05bd35c4bc6a9e98ccf04222ed01b20056014131674d7d59937004f915194",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 370618200,
+        "artifactSizeBytes": 1440,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 57872800,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 50902500,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 49248400,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 55082400,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 50506700,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 55755700,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 59969700,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 53744800,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 50353300,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 52119000,
+            "exitCode": 0,
+            "outputSizeBytes": 778,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 49248400,
+          "maximumWallTimeNanoseconds": 59969700,
+          "medianWallTimeNanoseconds": 52119000,
+          "meanWallTimeNanoseconds": 53555530,
+          "standardDeviationWallTimeNanoseconds": 3379223.239163107,
+          "p95WallTimeNanoseconds": 59969700,
+          "interquartileRangeWallTimeNanoseconds": 5249000
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "05cec1a2f6be9fb588def2043cf111917ac59e44ddf3fb5ba137179cced51f0f",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "aggregation-medium-1",
+        "sha256": "b1a8e21775e39db1543dd8a45f206f00485b7c9814dcc6fb4c1e790b16e3f403",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 630312700,
+        "artifactSizeBytes": 3235840,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 17128800,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 18477700,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 18235700,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 19425800,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 17968500,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 18294600,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 19261000,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 21983200,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 20352000,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 25542600,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 17128800,
+          "maximumWallTimeNanoseconds": 25542600,
+          "medianWallTimeNanoseconds": 18477700,
+          "meanWallTimeNanoseconds": 19666990,
+          "standardDeviationWallTimeNanoseconds": 2350608.297207342,
+          "p95WallTimeNanoseconds": 25542600,
+          "interquartileRangeWallTimeNanoseconds": 2116300
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "5244a207ccd9477c4f5439bbe49e5e05cd5b7a638591f1a10f5134480149c0f5",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "aggregation-medium-1",
+        "sha256": "b1a8e21775e39db1543dd8a45f206f00485b7c9814dcc6fb4c1e790b16e3f403",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "python",
+        "name": "Python",
+        "version": "Python 3.14.6",
+        "compilerVersion": "Python 3.14.6",
+        "compilerFlags": [
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 88744500,
+        "artifactSizeBytes": 3361,
+        "command": [
+          "python",
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 47787200,
+            "exitCode": 0,
+            "outputSizeBytes": 792,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 47824100,
+            "exitCode": 0,
+            "outputSizeBytes": 792,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 48843900,
+            "exitCode": 0,
+            "outputSizeBytes": 792,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 47007400,
+            "exitCode": 0,
+            "outputSizeBytes": 792,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 46291400,
+            "exitCode": 0,
+            "outputSizeBytes": 792,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 48094800,
+            "exitCode": 0,
+            "outputSizeBytes": 792,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 53198400,
+            "exitCode": 0,
+            "outputSizeBytes": 792,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 57561400,
+            "exitCode": 0,
+            "outputSizeBytes": 792,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 52332300,
+            "exitCode": 0,
+            "outputSizeBytes": 792,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 48996500,
+            "exitCode": 0,
+            "outputSizeBytes": 792,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 46291400,
+          "maximumWallTimeNanoseconds": 57561400,
+          "medianWallTimeNanoseconds": 48094800,
+          "meanWallTimeNanoseconds": 49793740,
+          "standardDeviationWallTimeNanoseconds": 3327649.077111347,
+          "p95WallTimeNanoseconds": 57561400,
+          "interquartileRangeWallTimeNanoseconds": 4545100
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "1d1170ccdd86c6fd755af82f72f5be11a70532b5ac7350e43ba2746e43521a42",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "aggregation-medium-1",
+        "sha256": "b1a8e21775e39db1543dd8a45f206f00485b7c9814dcc6fb4c1e790b16e3f403",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 103845300,
+        "artifactSizeBytes": 230912,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 16662900,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 15585700,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 15150600,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 14928600,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 14968600,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 15696600,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 16404900,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 15042100,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 15342900,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 16839700,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 14928600,
+          "maximumWallTimeNanoseconds": 16839700,
+          "medianWallTimeNanoseconds": 15342900,
+          "meanWallTimeNanoseconds": 15662260,
+          "standardDeviationWallTimeNanoseconds": 686586.2352246803,
+          "p95WallTimeNanoseconds": 16839700,
+          "interquartileRangeWallTimeNanoseconds": 1362800
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "4ed90017e50c2374242f33f9f2f2dd8c140ce6baaeca8a9bd3f37f4523451634",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "aggregation-medium-1",
+        "sha256": "b1a8e21775e39db1543dd8a45f206f00485b7c9814dcc6fb4c1e790b16e3f403",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 278428900,
+        "artifactSizeBytes": 1440,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 62621900,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 49941300,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 53770500,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 49416000,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 51236500,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 58046900,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 57511500,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 49836900,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 63720500,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 59661600,
+            "exitCode": 0,
+            "outputSizeBytes": 731,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 49416000,
+          "maximumWallTimeNanoseconds": 63720500,
+          "medianWallTimeNanoseconds": 53770500,
+          "meanWallTimeNanoseconds": 55576360,
+          "standardDeviationWallTimeNanoseconds": 5169574.678675219,
+          "p95WallTimeNanoseconds": 63720500,
+          "interquartileRangeWallTimeNanoseconds": 9720300
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "d01e988f20d8f9a21d92485355de39ac37a90b1b50b0f017fc934cce49a72798",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "aggregation-small-1",
+        "sha256": "c37cbf8a2fd4fe5503310d4df24309eb3d298e6799caac83336e825a062da10a",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 579152500,
+        "artifactSizeBytes": 3235840,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 22188800,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 19536800,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 23623700,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 23647200,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 28138900,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 19536800,
+          "maximumWallTimeNanoseconds": 28138900,
+          "medianWallTimeNanoseconds": 23623700,
+          "meanWallTimeNanoseconds": 23427080,
+          "standardDeviationWallTimeNanoseconds": 2791271.2440033485,
+          "p95WallTimeNanoseconds": 28138900,
+          "interquartileRangeWallTimeNanoseconds": 1458400
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "faba5d94618eb1b6d4d9ff888944d2dc2551eb826db0df3d663692777154a62b",
+        "measuredAt": "2026-07-19T00:11:27.466Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "aggregation-small-1",
+        "sha256": "c37cbf8a2fd4fe5503310d4df24309eb3d298e6799caac83336e825a062da10a",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "python",
+        "name": "Python",
+        "version": "Python 3.14.6",
+        "compilerVersion": "Python 3.14.6",
+        "compilerFlags": [
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 126184700,
+        "artifactSizeBytes": 3361,
+        "command": [
+          "python",
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 53665000,
+            "exitCode": 0,
+            "outputSizeBytes": 630,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 49979900,
+            "exitCode": 0,
+            "outputSizeBytes": 630,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 50372800,
+            "exitCode": 0,
+            "outputSizeBytes": 630,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 50081000,
+            "exitCode": 0,
+            "outputSizeBytes": 630,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 50645200,
+            "exitCode": 0,
+            "outputSizeBytes": 630,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 49979900,
+          "maximumWallTimeNanoseconds": 53665000,
+          "medianWallTimeNanoseconds": 50372800,
+          "meanWallTimeNanoseconds": 50948780,
+          "standardDeviationWallTimeNanoseconds": 1377935.807503383,
+          "p95WallTimeNanoseconds": 53665000,
+          "interquartileRangeWallTimeNanoseconds": 564200
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "72a871f4b5f88a40be6ca7969995f2a383068cc1ca1ec8af6c5765289f244860",
+        "measuredAt": "2026-07-19T00:11:27.466Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "aggregation-small-1",
+        "sha256": "c37cbf8a2fd4fe5503310d4df24309eb3d298e6799caac83336e825a062da10a",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 100424800,
+        "artifactSizeBytes": 230912,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 17769400,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 17678900,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 17246300,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 16908500,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 27011500,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 16908500,
+          "maximumWallTimeNanoseconds": 27011500,
+          "medianWallTimeNanoseconds": 17678900,
+          "meanWallTimeNanoseconds": 19322920,
+          "standardDeviationWallTimeNanoseconds": 3856741.1924576946,
+          "p95WallTimeNanoseconds": 27011500,
+          "interquartileRangeWallTimeNanoseconds": 523100
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "59c12354e584f1a8944f5bd61955f5e02e078312ff8de87e22039fbc0d622d02",
+        "measuredAt": "2026-07-19T00:11:27.466Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "aggregation",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "aggregation-small-1",
+        "sha256": "c37cbf8a2fd4fe5503310d4df24309eb3d298e6799caac83336e825a062da10a",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 461852500,
+        "artifactSizeBytes": 1440,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 92860700,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 82180400,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 73225800,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 62246000,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 59360400,
+            "exitCode": 0,
+            "outputSizeBytes": 583,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 59360400,
+          "maximumWallTimeNanoseconds": 92860700,
+          "medianWallTimeNanoseconds": 73225800,
+          "meanWallTimeNanoseconds": 73974660,
+          "standardDeviationWallTimeNanoseconds": 12455645.530216409,
+          "p95WallTimeNanoseconds": 92860700,
+          "interquartileRangeWallTimeNanoseconds": 19934400
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "cb0a7944eaca3378d06a6bf0e3a93533da1aa48802ebe15be05822fa78ce5c8b",
+        "measuredAt": "2026-07-19T00:11:27.466Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "nbody-large-1",
+        "sha256": "f24d3f51acbbdb9c269ab3a8e5bedb7058ed092709bbc114f7388e3f443c419b",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 228950400,
+        "artifactSizeBytes": 3511808,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 16440700,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 16911600,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 16568600,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 17186000,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 16968100,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 18026100,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 19290900,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 16237000,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 16917300,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 16665400,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 16237000,
+          "maximumWallTimeNanoseconds": 19290900,
+          "medianWallTimeNanoseconds": 16911600,
+          "meanWallTimeNanoseconds": 17121170,
+          "standardDeviationWallTimeNanoseconds": 860092.9252702873,
+          "p95WallTimeNanoseconds": 19290900,
+          "interquartileRangeWallTimeNanoseconds": 617400
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "ac6adffda74886f25d59c557c7a260e6d04de452281d919198f0aba9c7040176",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "nbody-large-1",
+        "sha256": "f24d3f51acbbdb9c269ab3a8e5bedb7058ed092709bbc114f7388e3f443c419b",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "python",
+        "name": "Python",
+        "version": "Python 3.14.6",
+        "compilerVersion": "Python 3.14.6",
+        "compilerFlags": [
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 79039700,
+        "artifactSizeBytes": 2665,
+        "command": [
+          "python",
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 225456400,
+            "exitCode": 0,
+            "outputSizeBytes": 263,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 216402500,
+            "exitCode": 0,
+            "outputSizeBytes": 263,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 243224200,
+            "exitCode": 0,
+            "outputSizeBytes": 263,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 201934000,
+            "exitCode": 0,
+            "outputSizeBytes": 263,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 209068900,
+            "exitCode": 0,
+            "outputSizeBytes": 263,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 193808000,
+            "exitCode": 0,
+            "outputSizeBytes": 263,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 215205900,
+            "exitCode": 0,
+            "outputSizeBytes": 263,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 210524900,
+            "exitCode": 0,
+            "outputSizeBytes": 263,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 202240300,
+            "exitCode": 0,
+            "outputSizeBytes": 263,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 194007500,
+            "exitCode": 0,
+            "outputSizeBytes": 263,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 193808000,
+          "maximumWallTimeNanoseconds": 243224200,
+          "medianWallTimeNanoseconds": 209068900,
+          "meanWallTimeNanoseconds": 211187260,
+          "standardDeviationWallTimeNanoseconds": 14286714.080375515,
+          "p95WallTimeNanoseconds": 243224200,
+          "interquartileRangeWallTimeNanoseconds": 14468500
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "4282698a567dae9b17b845517246959912735356f818541eac1feb945acdf546",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "nbody-large-1",
+        "sha256": "f24d3f51acbbdb9c269ab3a8e5bedb7058ed092709bbc114f7388e3f443c419b",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 76777000,
+        "artifactSizeBytes": 261632,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 14306600,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 15203800,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 14458100,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 14431100,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 14600300,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 14272700,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 15661000,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 17541400,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 17345100,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 18965900,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 14272700,
+          "maximumWallTimeNanoseconds": 18965900,
+          "medianWallTimeNanoseconds": 14600300,
+          "meanWallTimeNanoseconds": 15678600,
+          "standardDeviationWallTimeNanoseconds": 1592070.2993272627,
+          "p95WallTimeNanoseconds": 18965900,
+          "interquartileRangeWallTimeNanoseconds": 2914000
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "f1ad115af70ca0c57e691c5ad61d575d00d749ca119497c442b6a738d5f59ddd",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "nbody-large-1",
+        "sha256": "f24d3f51acbbdb9c269ab3a8e5bedb7058ed092709bbc114f7388e3f443c419b",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 320302800,
+        "artifactSizeBytes": 1558,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 71169900,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 70755800,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 70313700,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 68771600,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 87033000,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 121448300,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 110587200,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 76066000,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 81296800,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 85130000,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 68771600,
+          "maximumWallTimeNanoseconds": 121448300,
+          "medianWallTimeNanoseconds": 76066000,
+          "meanWallTimeNanoseconds": 84257230,
+          "standardDeviationWallTimeNanoseconds": 17171382.044381283,
+          "p95WallTimeNanoseconds": 121448300,
+          "interquartileRangeWallTimeNanoseconds": 16277200
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "82c7ebdf60ed7741e113d626e7794dcc18671f15d645bbc433c17927a91f9a80",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "nbody-medium-1",
+        "sha256": "b67c88171ac27f2205b6039774ec15ecfd930dca123524395ab4f925f5ffdddc",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 622967300,
+        "artifactSizeBytes": 3511808,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 22938600,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 18545400,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 18840500,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 17730400,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 18697900,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 19618500,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 18166800,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 20112800,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 21032500,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 27081800,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 17730400,
+          "maximumWallTimeNanoseconds": 27081800,
+          "medianWallTimeNanoseconds": 18840500,
+          "meanWallTimeNanoseconds": 20276520,
+          "standardDeviationWallTimeNanoseconds": 2700267.0730133345,
+          "p95WallTimeNanoseconds": 27081800,
+          "interquartileRangeWallTimeNanoseconds": 2487100
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "3fb049b526bae8602b010baac7f3a249578c8794cb50a8cec1ddfc52ffafdc3c",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "nbody-medium-1",
+        "sha256": "b67c88171ac27f2205b6039774ec15ecfd930dca123524395ab4f925f5ffdddc",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "python",
+        "name": "Python",
+        "version": "Python 3.14.6",
+        "compilerVersion": "Python 3.14.6",
+        "compilerFlags": [
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 135327100,
+        "artifactSizeBytes": 2665,
+        "command": [
+          "python",
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 85669200,
+            "exitCode": 0,
+            "outputSizeBytes": 261,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 88268400,
+            "exitCode": 0,
+            "outputSizeBytes": 261,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 88719300,
+            "exitCode": 0,
+            "outputSizeBytes": 261,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 81354800,
+            "exitCode": 0,
+            "outputSizeBytes": 261,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 112923400,
+            "exitCode": 0,
+            "outputSizeBytes": 261,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 100787100,
+            "exitCode": 0,
+            "outputSizeBytes": 261,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 106037600,
+            "exitCode": 0,
+            "outputSizeBytes": 261,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 97189200,
+            "exitCode": 0,
+            "outputSizeBytes": 261,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 81359200,
+            "exitCode": 0,
+            "outputSizeBytes": 261,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 79398700,
+            "exitCode": 0,
+            "outputSizeBytes": 261,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 79398700,
+          "maximumWallTimeNanoseconds": 112923400,
+          "medianWallTimeNanoseconds": 88268400,
+          "meanWallTimeNanoseconds": 92170690,
+          "standardDeviationWallTimeNanoseconds": 10903205.87106838,
+          "p95WallTimeNanoseconds": 112923400,
+          "interquartileRangeWallTimeNanoseconds": 19427900
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "c4b62f36220ec52eea008313cb565ab4e3bf6ffafaa509ec54da46d848783965",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "nbody-medium-1",
+        "sha256": "b67c88171ac27f2205b6039774ec15ecfd930dca123524395ab4f925f5ffdddc",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 87040900,
+        "artifactSizeBytes": 261632,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 16421500,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 19339100,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 19286800,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 17641100,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 19116200,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 19414600,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 20127100,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 23681900,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 21159900,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 24615200,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 16421500,
+          "maximumWallTimeNanoseconds": 24615200,
+          "medianWallTimeNanoseconds": 19339100,
+          "meanWallTimeNanoseconds": 20080340,
+          "standardDeviationWallTimeNanoseconds": 2378922.9921121867,
+          "p95WallTimeNanoseconds": 24615200,
+          "interquartileRangeWallTimeNanoseconds": 2043700
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "aa13b846b194020782c7fde0d4873c63809156f4da46b19eb9c460cdbd747039",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "nbody-medium-1",
+        "sha256": "b67c88171ac27f2205b6039774ec15ecfd930dca123524395ab4f925f5ffdddc",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 336626400,
+        "artifactSizeBytes": 1558,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 54954100,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 58493200,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 53021500,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 62204900,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 60709000,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 68554100,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 61220300,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 85829200,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 75857300,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 55892300,
+            "exitCode": 0,
+            "outputSizeBytes": 250,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 53021500,
+          "maximumWallTimeNanoseconds": 85829200,
+          "medianWallTimeNanoseconds": 60709000,
+          "meanWallTimeNanoseconds": 63673590,
+          "standardDeviationWallTimeNanoseconds": 9782531.060768476,
+          "p95WallTimeNanoseconds": 85829200,
+          "interquartileRangeWallTimeNanoseconds": 12661800
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "f521723e178e53686a8df2c076a5e55afc9e99985af436c0960390ce5373de0d",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "nbody-small-1",
+        "sha256": "a8e202e24b5ad5d691cd2017ee6776330e33b6ed45793c8fd16658430c1a001c",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 590316700,
+        "artifactSizeBytes": 3511808,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 20148400,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 26227600,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 24309100,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 21733100,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 20186900,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 20148400,
+          "maximumWallTimeNanoseconds": 26227600,
+          "medianWallTimeNanoseconds": 21733100,
+          "meanWallTimeNanoseconds": 22521020,
+          "standardDeviationWallTimeNanoseconds": 2393082.746082968,
+          "p95WallTimeNanoseconds": 26227600,
+          "interquartileRangeWallTimeNanoseconds": 4122200
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "ffc992bb28815a7426d6ec74cf132981ed50d8dfc5d97f8a3d1a3149fde46d4c",
+        "measuredAt": "2026-07-19T00:11:27.466Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "nbody-small-1",
+        "sha256": "a8e202e24b5ad5d691cd2017ee6776330e33b6ed45793c8fd16658430c1a001c",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "python",
+        "name": "Python",
+        "version": "Python 3.14.6",
+        "compilerVersion": "Python 3.14.6",
+        "compilerFlags": [
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 91279900,
+        "artifactSizeBytes": 2665,
+        "command": [
+          "python",
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 85075300,
+            "exitCode": 0,
+            "outputSizeBytes": 263,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 65002400,
+            "exitCode": 0,
+            "outputSizeBytes": 263,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 61841700,
+            "exitCode": 0,
+            "outputSizeBytes": 263,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 65113400,
+            "exitCode": 0,
+            "outputSizeBytes": 263,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 54622400,
+            "exitCode": 0,
+            "outputSizeBytes": 263,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 54622400,
+          "maximumWallTimeNanoseconds": 85075300,
+          "medianWallTimeNanoseconds": 65002400,
+          "meanWallTimeNanoseconds": 66331040,
+          "standardDeviationWallTimeNanoseconds": 10117723.446032709,
+          "p95WallTimeNanoseconds": 85075300,
+          "interquartileRangeWallTimeNanoseconds": 3271700
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "0666d3169f41df3a4c0500119f969b0b0edff3ddfaf448fbf6f2985466424514",
+        "measuredAt": "2026-07-19T00:11:27.466Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "nbody-small-1",
+        "sha256": "a8e202e24b5ad5d691cd2017ee6776330e33b6ed45793c8fd16658430c1a001c",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 88912100,
+        "artifactSizeBytes": 261632,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 20405400,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 19738800,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 21472700,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 22859200,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 21787800,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 19738800,
+          "maximumWallTimeNanoseconds": 22859200,
+          "medianWallTimeNanoseconds": 21472700,
+          "meanWallTimeNanoseconds": 21252780,
+          "standardDeviationWallTimeNanoseconds": 1088612.3945647506,
+          "p95WallTimeNanoseconds": 22859200,
+          "interquartileRangeWallTimeNanoseconds": 1382400
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "0376c8b7932cb7c3f5c3c66716cf49225f6162bd560f7ac381417eacfc985848",
+        "measuredAt": "2026-07-19T00:11:27.466Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "nbody",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "nbody-small-1",
+        "sha256": "a8e202e24b5ad5d691cd2017ee6776330e33b6ed45793c8fd16658430c1a001c",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 352793200,
+        "artifactSizeBytes": 1558,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 65169100,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 70830600,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 68091800,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 64936000,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 65669800,
+            "exitCode": 0,
+            "outputSizeBytes": 252,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 64936000,
+          "maximumWallTimeNanoseconds": 70830600,
+          "medianWallTimeNanoseconds": 65669800,
+          "meanWallTimeNanoseconds": 66939460,
+          "standardDeviationWallTimeNanoseconds": 2246282.306033683,
+          "p95WallTimeNanoseconds": 70830600,
+          "interquartileRangeWallTimeNanoseconds": 2922700
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "11a4404d546f14805e0f0e33685737d746806ade3a33c3c83dc981522170e549",
+        "measuredAt": "2026-07-19T00:11:27.466Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "shortest-path-large-1",
+        "sha256": "9b3438291b677ed546f166e6617bffbea8fcecb6be9d32b0aa78f3af72669210",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 213517300,
+        "artifactSizeBytes": 3308032,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 20653900,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 17999800,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 18187400,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 19851100,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 15659500,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 16817300,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 16228000,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 18147300,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 15757200,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 16464400,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 15659500,
+          "maximumWallTimeNanoseconds": 20653900,
+          "medianWallTimeNanoseconds": 16817300,
+          "meanWallTimeNanoseconds": 17576590,
+          "standardDeviationWallTimeNanoseconds": 1616747.8148740453,
+          "p95WallTimeNanoseconds": 20653900,
+          "interquartileRangeWallTimeNanoseconds": 1959400
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "651ef8ba45b2a7380fdb7d675b1bc3b2c70ac98989da4f19b8f59e7952ef3e25",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "shortest-path-large-1",
+        "sha256": "9b3438291b677ed546f166e6617bffbea8fcecb6be9d32b0aa78f3af72669210",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "python",
+        "name": "Python",
+        "version": "Python 3.14.6",
+        "compilerVersion": "Python 3.14.6",
+        "compilerFlags": [
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 83760300,
+        "artifactSizeBytes": 2636,
+        "command": [
+          "python",
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 42519000,
+            "exitCode": 0,
+            "outputSizeBytes": 228,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 42148100,
+            "exitCode": 0,
+            "outputSizeBytes": 228,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 44877000,
+            "exitCode": 0,
+            "outputSizeBytes": 228,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 41800000,
+            "exitCode": 0,
+            "outputSizeBytes": 228,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 41782200,
+            "exitCode": 0,
+            "outputSizeBytes": 228,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 41998300,
+            "exitCode": 0,
+            "outputSizeBytes": 228,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 51908900,
+            "exitCode": 0,
+            "outputSizeBytes": 228,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 74338300,
+            "exitCode": 0,
+            "outputSizeBytes": 228,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 61647500,
+            "exitCode": 0,
+            "outputSizeBytes": 228,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 53142800,
+            "exitCode": 0,
+            "outputSizeBytes": 228,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 41782200,
+          "maximumWallTimeNanoseconds": 74338300,
+          "medianWallTimeNanoseconds": 42519000,
+          "meanWallTimeNanoseconds": 49616210,
+          "standardDeviationWallTimeNanoseconds": 10405419.308653545,
+          "p95WallTimeNanoseconds": 74338300,
+          "interquartileRangeWallTimeNanoseconds": 11144500
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "80ff283cc5a86ff4f23195137b17325cadf2fea67ed0b793f7b5a7f81463ef7d",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "shortest-path-large-1",
+        "sha256": "9b3438291b677ed546f166e6617bffbea8fcecb6be9d32b0aa78f3af72669210",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 85165800,
+        "artifactSizeBytes": 255488,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 16257300,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 15304800,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 14156500,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 14254300,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 14082000,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 14166500,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 13834500,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 27915600,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 19730300,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 15945600,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 13834500,
+          "maximumWallTimeNanoseconds": 27915600,
+          "medianWallTimeNanoseconds": 14254300,
+          "meanWallTimeNanoseconds": 16564740,
+          "standardDeviationWallTimeNanoseconds": 4140478.37458427,
+          "p95WallTimeNanoseconds": 27915600,
+          "interquartileRangeWallTimeNanoseconds": 2100800
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "4cce3660370d5b5f4956d1ce86ce411f2d6bf0ffdb5feaf73ba8d0b7749e1f38",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "large"
+      },
+      "dataset": {
+        "id": "shortest-path-large-1",
+        "sha256": "9b3438291b677ed546f166e6617bffbea8fcecb6be9d32b0aa78f3af72669210",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 342516900,
+        "artifactSizeBytes": 1186,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 45681600,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 43010900,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 43538700,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 42660200,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 41364600,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 43106300,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 41142300,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 43287100,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 44575500,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 41422700,
+            "exitCode": 0,
+            "outputSizeBytes": 194,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 41142300,
+          "maximumWallTimeNanoseconds": 45681600,
+          "medianWallTimeNanoseconds": 43010900,
+          "meanWallTimeNanoseconds": 42978990,
+          "standardDeviationWallTimeNanoseconds": 1370464.4829035155,
+          "p95WallTimeNanoseconds": 45681600,
+          "interquartileRangeWallTimeNanoseconds": 2116000
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "5a6f7a1c88ce9b7ef5653d8ac7544c3d1189fa46142039da49d0fa149749024e",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "shortest-path-medium-1",
+        "sha256": "14d90a48ad4abb32936eef96ce8dd40980a421322335b36bdf4327913c278654",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 516807300,
+        "artifactSizeBytes": 3308032,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 16465600,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 16633400,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 16382200,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 15839500,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 16521900,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 16167200,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 16652000,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 16596400,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 16210100,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 16353300,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 15839500,
+          "maximumWallTimeNanoseconds": 16652000,
+          "medianWallTimeNanoseconds": 16382200,
+          "meanWallTimeNanoseconds": 16382160,
+          "standardDeviationWallTimeNanoseconds": 240717.39945421478,
+          "p95WallTimeNanoseconds": 16652000,
+          "interquartileRangeWallTimeNanoseconds": 386300
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "14270ef80224792831cb0a16c21e46d240646b60db5dfd2bb86912f3dfeb32a7",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "shortest-path-medium-1",
+        "sha256": "14d90a48ad4abb32936eef96ce8dd40980a421322335b36bdf4327913c278654",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "python",
+        "name": "Python",
+        "version": "Python 3.14.6",
+        "compilerVersion": "Python 3.14.6",
+        "compilerFlags": [
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 70154400,
+        "artifactSizeBytes": 2636,
+        "command": [
+          "python",
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 48140300,
+            "exitCode": 0,
+            "outputSizeBytes": 216,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 52009600,
+            "exitCode": 0,
+            "outputSizeBytes": 216,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 49149700,
+            "exitCode": 0,
+            "outputSizeBytes": 216,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 50415900,
+            "exitCode": 0,
+            "outputSizeBytes": 216,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 49880200,
+            "exitCode": 0,
+            "outputSizeBytes": 216,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 46410000,
+            "exitCode": 0,
+            "outputSizeBytes": 216,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 48215900,
+            "exitCode": 0,
+            "outputSizeBytes": 216,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 51659700,
+            "exitCode": 0,
+            "outputSizeBytes": 216,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 46683800,
+            "exitCode": 0,
+            "outputSizeBytes": 216,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 50115200,
+            "exitCode": 0,
+            "outputSizeBytes": 216,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 46410000,
+          "maximumWallTimeNanoseconds": 52009600,
+          "medianWallTimeNanoseconds": 49149700,
+          "meanWallTimeNanoseconds": 49268030,
+          "standardDeviationWallTimeNanoseconds": 1813440.9491626685,
+          "p95WallTimeNanoseconds": 52009600,
+          "interquartileRangeWallTimeNanoseconds": 2275600
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "94d2ad2e83fc607e586dc8b8c90e7a11da2c0b31687c3849b465cf56bd993864",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "shortest-path-medium-1",
+        "sha256": "14d90a48ad4abb32936eef96ce8dd40980a421322335b36bdf4327913c278654",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 80091100,
+        "artifactSizeBytes": 255488,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 16069200,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 15909200,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 16516400,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 14978900,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 14743600,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 14963100,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 15302600,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 16045100,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 16231000,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 15285300,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 14743600,
+          "maximumWallTimeNanoseconds": 16516400,
+          "medianWallTimeNanoseconds": 15302600,
+          "meanWallTimeNanoseconds": 15604440,
+          "standardDeviationWallTimeNanoseconds": 588551.6752163739,
+          "p95WallTimeNanoseconds": 16516400,
+          "interquartileRangeWallTimeNanoseconds": 1090300
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "fa2598d3832482ccbfed6499ff4e6e78da200b109a3f855a1b84088c4d6e6860",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "medium"
+      },
+      "dataset": {
+        "id": "shortest-path-medium-1",
+        "sha256": "14d90a48ad4abb32936eef96ce8dd40980a421322335b36bdf4327913c278654",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 356026900,
+        "artifactSizeBytes": 1186,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 3,
+        "measuredIterations": 10,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 41884400,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 44616700,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 42466100,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 40622400,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 42611300,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 6,
+            "valid": true,
+            "wallTimeNanoseconds": 42796700,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 7,
+            "valid": true,
+            "wallTimeNanoseconds": 42175500,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 8,
+            "valid": true,
+            "wallTimeNanoseconds": 43848500,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "valid": true,
+            "wallTimeNanoseconds": 41193600,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "valid": true,
+            "wallTimeNanoseconds": 42338900,
+            "exitCode": 0,
+            "outputSizeBytes": 186,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 10,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 40622400,
+          "maximumWallTimeNanoseconds": 44616700,
+          "medianWallTimeNanoseconds": 42338900,
+          "meanWallTimeNanoseconds": 42455410,
+          "standardDeviationWallTimeNanoseconds": 1101037.5011324547,
+          "p95WallTimeNanoseconds": 44616700,
+          "interquartileRangeWallTimeNanoseconds": 912300
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "de1620fa689cee9bef86d6792b2e657b9d8f5aba63b850d8433e8780dac6efd2",
+        "measuredAt": "2026-07-19T00:32:11.991Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "shortest-path-small-1",
+        "sha256": "764c46a335c2fb84f61985cb22e877386bd54ddd2fa8f757f41076f006e9358e",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "go",
+        "name": "Go",
+        "version": "go version go1.26.5 windows/amd64",
+        "compilerVersion": "go version go1.26.5 windows/amd64",
+        "compilerFlags": [
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 556264600,
+        "artifactSizeBytes": 3308032,
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "{artifact}",
+          "."
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 18246100,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 18798800,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 19093700,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 21512500,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 19306700,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 18246100,
+          "maximumWallTimeNanoseconds": 21512500,
+          "medianWallTimeNanoseconds": 19093700,
+          "meanWallTimeNanoseconds": 19391560,
+          "standardDeviationWallTimeNanoseconds": 1118727.072346066,
+          "p95WallTimeNanoseconds": 21512500,
+          "interquartileRangeWallTimeNanoseconds": 507900
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "d51789a715fe3e16d58c05509ad8d73efa77f8d5b3d6e0cd934ae36a068e382f",
+        "measuredAt": "2026-07-19T00:11:27.466Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "shortest-path-small-1",
+        "sha256": "764c46a335c2fb84f61985cb22e877386bd54ddd2fa8f757f41076f006e9358e",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "python",
+        "name": "Python",
+        "version": "Python 3.14.6",
+        "compilerVersion": "Python 3.14.6",
+        "compilerFlags": [
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 80030500,
+        "artifactSizeBytes": 2636,
+        "command": [
+          "python",
+          "-m",
+          "py_compile",
+          "main.py"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 49507700,
+            "exitCode": 0,
+            "outputSizeBytes": 208,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 45278100,
+            "exitCode": 0,
+            "outputSizeBytes": 208,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 47851600,
+            "exitCode": 0,
+            "outputSizeBytes": 208,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 46553800,
+            "exitCode": 0,
+            "outputSizeBytes": 208,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 52636700,
+            "exitCode": 0,
+            "outputSizeBytes": 208,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 45278100,
+          "maximumWallTimeNanoseconds": 52636700,
+          "medianWallTimeNanoseconds": 47851600,
+          "meanWallTimeNanoseconds": 48365580,
+          "standardDeviationWallTimeNanoseconds": 2554453.3312628753,
+          "p95WallTimeNanoseconds": 52636700,
+          "interquartileRangeWallTimeNanoseconds": 2953900
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "3ed819393d89dc46e4326b3e04335afad3ca9b04ec4e3297fe60d4504a43a808",
+        "measuredAt": "2026-07-19T00:11:27.466Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "shortest-path-small-1",
+        "sha256": "764c46a335c2fb84f61985cb22e877386bd54ddd2fa8f757f41076f006e9358e",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "rust",
+        "name": "Rust",
+        "version": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerVersion": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+        "compilerFlags": [
+          "build",
+          "--release"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 78774600,
+        "artifactSizeBytes": 255488,
+        "command": [
+          "cargo",
+          "build",
+          "--release"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 17059700,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 16304200,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 18224100,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 18199000,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 18979500,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 16304200,
+          "maximumWallTimeNanoseconds": 18979500,
+          "medianWallTimeNanoseconds": 18199000,
+          "meanWallTimeNanoseconds": 17753300,
+          "standardDeviationWallTimeNanoseconds": 949193.2722054028,
+          "p95WallTimeNanoseconds": 18979500,
+          "interquartileRangeWallTimeNanoseconds": 1164400
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "7d1ccfc7d4dc3a723c64e70887b4922569928024a70bf11b2e9e5a09680df724",
+        "measuredAt": "2026-07-19T00:11:27.466Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    },
+    {
+      "benchmark": {
+        "id": "shortest-path",
+        "version": 1,
+        "size": "small"
+      },
+      "dataset": {
+        "id": "shortest-path-small-1",
+        "sha256": "764c46a335c2fb84f61985cb22e877386bd54ddd2fa8f757f41076f006e9358e",
+        "seed": 0,
+        "generatorVersion": "committed-fixture-1.0.0"
+      },
+      "language": {
+        "id": "typescript",
+        "name": "TypeScript",
+        "version": "v26.4.0",
+        "compilerVersion": "Version 7.0.2",
+        "compilerFlags": [
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "build": {
+        "status": "success",
+        "durationNanoseconds": 435522700,
+        "artifactSizeBytes": 1186,
+        "command": [
+          "node",
+          "{projectRoot}/node_modules/typescript/bin/tsc",
+          "--project",
+          "tsconfig.json"
+        ]
+      },
+      "execution": {
+        "mode": "cold-process",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "samples": [
+          {
+            "iteration": 1,
+            "valid": true,
+            "wallTimeNanoseconds": 43111000,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 2,
+            "valid": true,
+            "wallTimeNanoseconds": 45726000,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 3,
+            "valid": true,
+            "wallTimeNanoseconds": 47403600,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 4,
+            "valid": true,
+            "wallTimeNanoseconds": 44145900,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 5,
+            "valid": true,
+            "wallTimeNanoseconds": 43531000,
+            "exitCode": 0,
+            "outputSizeBytes": 181,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          }
+        ],
+        "summary": {
+          "validSamples": 5,
+          "rejectedSamples": 0,
+          "minimumWallTimeNanoseconds": 43111000,
+          "maximumWallTimeNanoseconds": 47403600,
+          "medianWallTimeNanoseconds": 44145900,
+          "meanWallTimeNanoseconds": 44783500,
+          "standardDeviationWallTimeNanoseconds": 1582768.2407731083,
+          "p95WallTimeNanoseconds": 47403600,
+          "interquartileRangeWallTimeNanoseconds": 2195000
+        },
+        "metrics": {
+          "wallTime": {
+            "status": "available",
+            "unit": "nanoseconds"
+          },
+          "cpuTime": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child CPU time"
+          },
+          "peakMemory": {
+            "status": "unavailable",
+            "reason": "The portable Node child-process API does not expose per-child peak RSS"
+          }
+        }
+      },
+      "checker": {
+        "language": "go",
+        "version": "1.0.0",
+        "status": "accepted",
+        "diagnostics": []
+      },
+      "provenance": {
+        "fingerprint": "b19b38cd1ce8c9dc30bcac8a80b2c368cc1528bc22e47ea8c984898f9568d262",
+        "measuredAt": "2026-07-19T00:11:27.466Z",
+        "machine": {
+          "operatingSystem": {
+            "platform": "win32",
+            "release": "10.0.26200"
+          },
+          "cpu": {
+            "model": "AMD Ryzen 5 9600X 6-Core Processor             ",
+            "architecture": "x64",
+            "logicalCores": 12
+          },
+          "memoryBytes": 33407356928
+        }
+      }
+    }
+  ]
+}
