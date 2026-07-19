@@ -18,8 +18,8 @@ function kernel(buf:Float64Array){
         buf[bi+4]+=dj0*mj;buf[bi+5]+=dj1*mj;buf[bi+6]+=dj2*mj;
         buf[bj+4]-=dj0*mi;buf[bj+5]-=dj1*mi;buf[bj+6]-=dj2*mi;
       }
-      buf[bi+1]+=dt*buf[bi+4]!;buf[bi+2]+=dt*buf[bi+5]!;buf[bi+3]+=dt*buf[bi+6]!;
     }
+    for(let i=0;i<n;i++){const bi=i*7;buf[bi+1]+=dt*buf[bi+4]!;buf[bi+2]+=dt*buf[bi+5]!;buf[bi+3]+=dt*buf[bi+6]!;}
   }
   let energy=0;
   for(let i=0;i<n;i++){const bi=i*7;const mx=buf[bi]!,px=buf[bi+1]!,py=buf[bi+2]!,pz=buf[bi+3]!,vx=buf[bi+4]!,vy=buf[bi+5]!,vz=buf[bi+6]!;

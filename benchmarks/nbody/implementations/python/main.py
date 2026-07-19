@@ -107,17 +107,18 @@ def compute_result(buf):
         "velocityChecksum": hashlib.sha256("".join(vel_parts).encode()).hexdigest(),
     }
 
-result_buf = build_state()
-simulate(result_buf)
-output = compute_result(result_buf)
+def kernel(buf):
+    simulate(buf)
+    return compute_result(buf)
 
 samples = []
 warmup = int(arg("--warmup"))
 iterations = int(arg("--iterations"))
+output = None
 for i in range(-warmup, iterations):
     state = build_state()
     start = time.perf_counter_ns()
-    simulate(state)
+    output = kernel(state)
     elapsed = time.perf_counter_ns() - start
     if i >= 0:
         samples.append({"iteration": i + 1, "kernelTimeNanoseconds": elapsed})

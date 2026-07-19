@@ -56,12 +56,15 @@ Input parseInput(const json& j) {
     return input;
 }
 
-std::vector<Result> kernel(const Input& input) {
+std::vector<std::vector<Edge>> buildAdjacency(const Input& input) {
     std::vector<std::vector<Edge>> adj(input.vertexCount);
     for (const auto& e : input.edges) {
         adj[e.from].push_back(e);
     }
+    return adj;
+}
 
+std::vector<Result> kernel(const std::vector<std::vector<Edge>>& adj, const Input& input) {
     constexpr int64_t INF = std::numeric_limits<int64_t>::max();
     std::vector<Result> results;
     results.reserve(input.queries.size());
@@ -124,13 +127,14 @@ int main(int argc, char* argv[]) {
     json inputJson;
     in >> inputJson;
     Input input = parseInput(inputJson);
+    auto adjacency = buildAdjacency(input);
 
     std::vector<Sample> samples;
     std::vector<Result> results;
 
     for (int i = -warmup; i < iterations; ++i) {
         auto start = std::chrono::high_resolution_clock::now();
-        results = kernel(input);
+        results = kernel(adjacency, input);
         auto end = std::chrono::high_resolution_clock::now();
         int64_t elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
         if (elapsed < 1) elapsed = 1;

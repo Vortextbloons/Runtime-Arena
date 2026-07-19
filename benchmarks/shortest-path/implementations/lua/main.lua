@@ -54,11 +54,12 @@ if not input_file or not output_file or not timing_output_file then
 local f = io.open(input_file, "r"); local data = json.decode(f:read("*a")); f:close()
 local vertex_count = data.vertexCount; local edges = data.edges; local queries = data.queries
 
-local function kernel()
 local adjacency = {}
 for i = 0, vertex_count - 1 do adjacency[i] = {} end
 local edge_count = #edges
 for ei = 1, edge_count do local edge = edges[ei]; local adj = adjacency[edge.from]; adj[#adj+1] = edge end
+
+local function kernel()
 local results = {}
 local rn = 0
 local query_count = #queries

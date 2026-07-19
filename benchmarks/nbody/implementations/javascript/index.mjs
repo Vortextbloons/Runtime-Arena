@@ -9,15 +9,15 @@ const inputBuf=new Float64Array(n*7);
 for(let i=0;i<n;i++){const b=input.bodies[i];const o=i*7;inputBuf[o]=b.mass;inputBuf[o+1]=b.position[0];inputBuf[o+2]=b.position[1];inputBuf[o+3]=b.position[2];inputBuf[o+4]=b.velocity[0];inputBuf[o+5]=b.velocity[1];inputBuf[o+6]=b.velocity[2]}
 function kernel(buf){
   for(let step=0;step<steps;step++){
-    for(let i=0;i<n;i++){const bi=i*7;const bix=buf[bi],bi1=buf[bi+1],bi2=buf[bi+2],bi3=buf[bi+3];const bv4=buf[bi+4],bv5=buf[bi+5],bv6=buf[bi+6];
+    for(let i=0;i<n;i++){const bi=i*7;const bix=buf[bi],bi1=buf[bi+1],bi2=buf[bi+2],bi3=buf[bi+3];
       for(let j=i+1;j<n;j++){const bj=j*7;const dj0=buf[bj+1]-bi1,dj1=buf[bj+2]-bi2,dj2=buf[bj+3]-bi3;
         const r2=dj0*dj0+dj1*dj1+dj2*dj2;const m=dt/(r2*Math.sqrt(r2));
         const mj=buf[bj]*m,mi=bix*m;
         buf[bi+4]+=dj0*mj;buf[bi+5]+=dj1*mj;buf[bi+6]+=dj2*mj;
         buf[bj+4]-=dj0*mi;buf[bj+5]-=dj1*mi;buf[bj+6]-=dj2*mi;
       }
-      buf[bi+1]+=dt*buf[bi+4];buf[bi+2]+=dt*buf[bi+5];buf[bi+3]+=dt*buf[bi+6];
     }
+    for(let i=0;i<n;i++){const bi=i*7;buf[bi+1]+=dt*buf[bi+4];buf[bi+2]+=dt*buf[bi+5];buf[bi+3]+=dt*buf[bi+6];}
   }
   let energy=0;
   for(let i=0;i<n;i++){const bi=i*7;const mx=buf[bi],px=buf[bi+1],py=buf[bi+2],pz=buf[bi+3],vx=buf[bi+4],vy=buf[bi+5],vz=buf[bi+6];
