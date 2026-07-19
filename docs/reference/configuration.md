@@ -42,7 +42,7 @@ Temp run directories live under `.arena/runs/` and are deleted after each run un
 
 ## Language Manifests (`languages/*.json`)
 
-Each language has a manifest defining detection, build, and run commands.
+Each language has a manifest defining detection, build, and run commands. The project ships six manifests: `cpp.json`, `go.json`, `lua.json`, `python.json`, `rust.json`, and `typescript.json`.
 
 ```json
 {
@@ -84,6 +84,8 @@ Each language has a manifest defining detection, build, and run commands.
 - `{measuredIterations}` — Number of measured iterations (integer)
 - `{runId}` — Run snapshot ID
 - `{size}` — Dataset size name
+
+C++ implementations use shared headers (JSON parser, SHA-256) bundled at `languages/cpp/include/` and referenced by the build command's include path.
 
 ## Benchmark Manifests (`benchmarks/*/benchmark.json`)
 

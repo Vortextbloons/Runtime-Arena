@@ -35,7 +35,7 @@
 8. For barrier-wave, use real parallel workers with stable IDs and a
    dedicated inbox per worker (shared work queues allow steal races). Rust
    uses native threads, Go uses goroutines with `GOMAXPROCS >= workerCount`,
-   TypeScript uses `worker_threads`, and Python uses multiprocessing. Mark
+   TypeScript uses `worker_threads`, Python uses multiprocessing, and C++ uses std::thread. Mark
    LuaJIT unavailable unless real native threads or processes are used.
 9. Verify the integration:
 

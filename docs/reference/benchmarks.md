@@ -1,13 +1,13 @@
 # Benchmarks Reference
 
-Runtime Arena currently defines four benchmark workloads. Three are fully implemented across Rust, Go, TypeScript, Python, and LuaJIT. **Barrier Wave** has committed datasets and checker support; language implementations are in progress.
+Runtime Arena currently defines four benchmark workloads. Three are fully implemented across all six supported languages (Rust, Go, TypeScript, Python, LuaJIT, C++). **Barrier Wave** is implemented in five languages (all except LuaJIT); datasets and checker support are ready.
 
 | Benchmark | Status | Stresses |
 |-----------|--------|----------|
-| `nbody` | Complete (5 languages) | Numeric computation, tight loops |
-| `shortest-path` | Complete (5 languages) | Priority queues, graph traversal |
-| `aggregation` | Complete (5 languages) | Parsing, hash maps, sorting, GC |
-| `barrier-wave` | Datasets + checker ready; implementations WIP | Structured parallel concurrency, barriers |
+| `nbody` | Complete (6 languages) | Numeric computation, tight loops |
+| `shortest-path` | Complete (6 languages) | Priority queues, graph traversal |
+| `aggregation` | Complete (6 languages) | Parsing, hash maps, sorting, GC |
+| `barrier-wave` | 5 languages implemented (LuaJIT pending) | Structured parallel concurrency, barriers |
 
 Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md`.
 
@@ -59,8 +59,8 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 
 **Status notes:**
 - Checker task `barrier-wave` is implemented and tested.
-- Datasets are committed fixtures (`generatorVersion` `1.0.0` in metadata). `arena dataset generate` has **no** barrier-wave generator yet (only nbody, shortest-path, aggregation).
-- Language implementations are incomplete relative to the other three benchmarks; see the tree under `benchmarks/barrier-wave/implementations/`.
+- Datasets are committed fixtures. `arena dataset generate --benchmark barrier-wave` works with the same `--size` and `--seed` flags as other benchmarks.
+- Five of six languages are implemented: Rust, Go, TypeScript, Python, and C++. LuaJIT is excluded (no native threading). See the tree under `benchmarks/barrier-wave/implementations/`.
 - `schemas/implementation-output.schema.json` does not yet include a barrier-wave branch; correctness is enforced by the Go checker.
 
 ## Dataset Sizes
@@ -73,7 +73,7 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 
 Warmup and measured iteration counts come from each benchmark's `benchmark.json` size entries (not only `arena.config.json` defaults). Dataset paths are whatever `sizes.<name>.dataset` names — JSON or CSV.
 
-Datasets for the three generated benchmarks are deterministic from a seed. Regenerating them via `arena dataset generate` writes metadata with `generatorVersion` `"2.0.0"`. Barrier-wave fixtures were committed separately and are not regenerable through the CLI yet.
+All datasets are deterministic from a seed. Regenerating via `arena dataset generate` writes metadata with `generatorVersion` `"2.0.0"`.
 
 ## Adding a New Benchmark
 

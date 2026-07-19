@@ -1,6 +1,6 @@
 # Architecture Overview
 
-Runtime Arena is a cross-language benchmarking system that runs equivalent workloads in Rust, Go, TypeScript, Python, and Lua (LuaJIT), validates their output, records metrics, and stores immutable JSON results.
+Runtime Arena is a cross-language benchmarking system that runs equivalent workloads in Rust, Go, TypeScript, Python, Lua (LuaJIT), and C++, validates their output, records metrics, and stores immutable JSON results.
 
 ## System Components
 
@@ -45,7 +45,9 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 ## Scoring Algorithm
 
-- **Overall speed**: Geometric mean of `fastest median / language median` across eligible sizes and the benchmarks that language completed in the snapshot (skipping a workload does not zero overall)
-- **Timing floor**: A size tier is excluded for all languages when its fastest valid median is below 1 ms
-- **Consistency**: Reported separately from coefficient of variation; it does not affect rank
-- **Scalability**: Reported separately from relative performance retention; it does not affect rank
+- **Performance (speed)**: Per size tier: `fastest median / language median × 100`, clamped 0–100. Per benchmark: geometric mean across eligible sizes. Overall: geometric mean across completed benchmarks.
+- **Consistency**: `100 − 4 × CV%` (CV = standard deviation / mean of kernel samples). Clamped 0–100, averaged across sizes then benchmarks. Contributes 10% to the overall score.
+- **Scalability**: `(minPerformance / maxPerformance) × 100` across size tiers per benchmark. Clamped 0–100, averaged across benchmarks. Contributes 10% to the overall score.
+- **Weighted overall**: `0.8 × performance + 0.1 × consistency + 0.1 × scalability`, clamped 0–100. This is the leaderboard ranking score.
+- **Timing floor**: A size tier is excluded for all languages when its fastest valid median is below 1 ms.
+- **Skip handling**: Omitting a benchmark (no result, or rejected by the checker) does not zero the overall — only completed benchmarks contribute.

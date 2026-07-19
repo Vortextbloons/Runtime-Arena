@@ -17,7 +17,7 @@ Both modes call `getScoreTier(score.overall)`. Only `OverallCard` implements the
 
 | Card surface | Score field | Notes |
 |--------------|-------------|-------|
-| Large SPEED number (OVR) | `overall` | Same value as `performance` (geometric-mean speed, 0–100). Displayed as a rounded integer; `null` → `—` |
+| Large SPEED number (OVR) | `overall` | Weighted composite: 80% geometric-mean speed + 10% consistency + 10% scalability (0–100). Displayed as a rounded integer; `null` → `—` |
 | SPEED / STABLE / SCALE meters | `performance`, `consistency`, `scalability` | Segmented 10-bar meters **plus** tabular numeric values beside each label |
 | Language name + monogram | `language.id` / `language.name` | Stable abbreviations (`RS`, `TS`, `PY`, `LJ`, `GO`, `C++`) via `languageMonogram` |
 | Footer runtime line | `language.id`, `language.version` | Version shows the first whitespace-delimited token |
@@ -73,7 +73,7 @@ Languages do **not** have fixed brand colorways. Appearance is:
 
 Near rankings in `ResultsExplorer`, a small line clarifies scope:
 
-> Snapshot rankings · accepted geometric-mean speed only · stability and scaling are diagnostic
+> Snapshot rankings · 80% geometric-mean speed · 10% consistency · 10% scalability · skipped workloads noted
 
 ## Data Model
 

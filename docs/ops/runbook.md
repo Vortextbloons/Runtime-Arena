@@ -56,7 +56,7 @@ This copies `results/current.json` into `web/static/results/` and builds the Sve
 npm run arena -- dataset generate --benchmark nbody --size small --seed 729418
 ```
 
-Generators are registered for `nbody`, `shortest-path`, and `aggregation` only. Other benchmarks (including `barrier-wave`) use committed fixtures and fail with "No generator registered" until a generator is added.
+Generators are registered for all four benchmarks: `nbody`, `shortest-path`, `aggregation`, and `barrier-wave`.
 
 Successful generation writes metadata with `generatorVersion` `"2.0.0"`. Datasets are deterministic — the same seed produces the same data.
 

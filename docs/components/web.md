@@ -36,14 +36,24 @@ web/
 
 ## Scoring Algorithm
 
-The scoring system (`src/lib/scoring.ts`) computes a 0-100 speed score:
+The scoring system (`src/lib/scoring.ts`) computes a 0-100 weighted overall score from three components:
 
-- Each eligible benchmark/size contributes `fastestMedian / thisMedian`.
+**Speed (80% weight)**
+- Each eligible benchmark/size contributes `fastestMedian / thisMedian` as a 0-100 performance score.
 - Ratios are combined with a geometric mean across sizes and benchmarks.
 - A size tier is excluded for every language when its fastest valid median is below 1 ms.
+
+**Consistency (10% weight)**
+- Per size: `consistency = clampScore(100 − CV × 400)`, where CV is the coefficient of variation of kernel times.
+- Averaged across all eligible sizes within a benchmark.
+
+**Scalability (10% weight)**
+- Per benchmark: `scalability = (minimumPerformance / maximumPerformance) × 100`, measuring how well performance holds up across small/medium/large sizes.
+
+**Overall**
+- `overall = 0.8 × geometric-mean speed + 0.1 × average consistency + 0.1 × average scalability`
 - Correctness and complete sample counts remain strict eligibility gates **within** a benchmark.
-- Overall scores use the geometric mean of whatever benchmarks that language completed successfully. Skipping a workload (no cells in the snapshot) does not zero the overall card; coverage gaps are noted as diagnostics.
-- Consistency and scalability are displayed as diagnostics but do not affect rank.
+- Overall scores use the weighted formula across whatever benchmarks that language completed successfully. Skipping a workload (no cells in the snapshot) does not zero the overall card; coverage gaps are noted as diagnostics.
 
 ## Build & Deploy
 

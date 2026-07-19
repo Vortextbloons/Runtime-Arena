@@ -8,6 +8,7 @@
 - Rust >= 1.97 (for Rust implementations)
 - Python >= 3.8 (for Python implementations)
 - LuaJIT (for Lua implementations)
+- g++ (with C++23 support, for C++ implementations)
 
 ## Setup
 
@@ -57,8 +58,8 @@ benchmarks/             # Workloads, datasets, implementations
   nbody/
   shortest-path/
   aggregation/
-  barrier-wave/         # Rust/Go/TS/Python; LuaJIT marked unavailable
-languages/              # Language manifests (rust, go, typescript, python, lua)
+  barrier-wave/         # Rust/Go/TS/Python/C++; LuaJIT marked unavailable
+languages/              # Language manifests (rust, go, typescript, python, lua, cpp)
 schemas/                # JSON Schema definitions
 results/                # Canonical result snapshots
 web/                    # SvelteKit dashboard

@@ -1,6 +1,6 @@
 # Runtime Arena — Complete Documentation
 > Auto-generated from docs/INDEX.md by scripts/combine-docs.mjs
-> Generated: 2026-07-19T06:56:26.941Z
+> Generated: 2026-07-19T07:21:37.649Z
 > Total files: 20
 
 ## Table of Contents
@@ -34,7 +34,7 @@
 
 # Architecture Overview
 
-Runtime Arena is a cross-language benchmarking system that runs equivalent workloads in Rust, Go, TypeScript, Python, and Lua (LuaJIT), validates their output, records metrics, and stores immutable JSON results.
+Runtime Arena is a cross-language benchmarking system that runs equivalent workloads in Rust, Go, TypeScript, Python, Lua (LuaJIT), and C++, validates their output, records metrics, and stores immutable JSON results.
 
 ## System Components
 
@@ -79,10 +79,12 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 ## Scoring Algorithm
 
-- **Overall speed**: Geometric mean of `fastest median / language median` across eligible sizes and the benchmarks that language completed in the snapshot (skipping a workload does not zero overall)
-- **Timing floor**: A size tier is excluded for all languages when its fastest valid median is below 1 ms
-- **Consistency**: Reported separately from coefficient of variation; it does not affect rank
-- **Scalability**: Reported separately from relative performance retention; it does not affect rank
+- **Performance (speed)**: Per size tier: `fastest median / language median × 100`, clamped 0–100. Per benchmark: geometric mean across eligible sizes. Overall: geometric mean across completed benchmarks.
+- **Consistency**: `100 − 4 × CV%` (CV = standard deviation / mean of kernel samples). Clamped 0–100, averaged across sizes then benchmarks. Contributes 10% to the overall score.
+- **Scalability**: `(minPerformance / maxPerformance) × 100` across size tiers per benchmark. Clamped 0–100, averaged across benchmarks. Contributes 10% to the overall score.
+- **Weighted overall**: `0.8 × performance + 0.1 × consistency + 0.1 × scalability`, clamped 0–100. This is the leaderboard ranking score.
+- **Timing floor**: A size tier is excluded for all languages when its fastest valid median is below 1 ms.
+- **Skip handling**: Omitting a benchmark (no result, or rejected by the checker) does not zero the overall — only completed benchmarks contribute.
 
 ---
 
@@ -226,20 +228,20 @@ Source: `checker/cmd/arena-checker/main.go`. Details: [checker.md](checker.md).
 
 ## Benchmarks (`benchmarks/`)
 
-Four workloads under `benchmarks/<id>/`. Three are fully implemented in all five languages; barrier-wave is checker-ready with implementations in progress.
+Four workloads under `benchmarks/<id>/`. nbody, shortest-path, and aggregation are fully implemented in all six languages. barrier-wave has Rust, Go, TypeScript, Python, and C++ implementations (LuaJIT excluded).
 
 | Benchmark | Workload | Key Metrics | Status |
 |---|---|---|---|
 | **nbody** | Gravitational N-body simulation | Numeric computation, tight loops | Complete |
 | **shortest-path** | Weighted directed graph shortest-path | Priority queues, memory access | Complete |
 | **aggregation** | CSV transaction record aggregation | Parsing, hash maps, sorting | Complete |
-| **barrier-wave** | Parallel phases with barriers | Fan-out/fan-in, synchronization | WIP implementations |
+| **barrier-wave** | Parallel phases with barriers | Fan-out/fan-in, synchronization | C++ complete; LuaJIT excluded |
 
 Each has `small`, `medium`, and `large` datasets with per-size warmup/iteration counts in `benchmark.json`. Full reference: [benchmarks.md](../reference/benchmarks.md).
 
 ## Languages (`languages/`)
 
-JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `typescript.json`, `python.json`, `lua.json`. Run argument templates must include `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations` (persistent-worker contract).
+JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `typescript.json`, `python.json`, `lua.json`, `cpp.json`. Run argument templates must include `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations` (persistent-worker contract).
 
 Detect/build/run commands may use machine-local absolute paths (the LuaJIT manifest often does on Windows). Prefer portable commands when possible; absolute paths are valid when the toolchain is not on `PATH`.
 
@@ -256,7 +258,7 @@ JSON Schema definitions for validation:
 
 ## Web (`web/`)
 
-SvelteKit static dashboard for viewing results. Loads `results/current.json`, computes scores, and displays charts and 2K-style scorecards. Built with adapter-static for deployment anywhere. Scorecard design system: [scorecards.md](scorecards.md). Overview: [web.md](web.md).
+SvelteKit static dashboard for viewing results. Loads `results/current.json`, computes scores (80% geometric-mean speed / 10% consistency / 10% scalability), and displays charts and 2K-style scorecards. Built with adapter-static for deployment anywhere. Scorecard design system: [scorecards.md](scorecards.md). Overview: [web.md](web.md).
 
 ---
 
@@ -307,6 +309,8 @@ cli/
 **Incremental execution**: The fingerprint system ensures only changed cells are re-executed, making iterative development fast.
 
 **Platform awareness**: Handles Windows-specific concerns (`.exe` suffixes, `.cmd` wrappers for npm/npx, `windowsHide: true`).
+
+**Results summary**: `arena results summary` reads `results/current.json`, filters by `--language`, `--benchmark`, and `--size`, then prints an ANSI-colored box-drawing table with benchmark, language, correctness, median kernel time, and relative-speed columns. Fastest entries are marked with a green ★. Color is auto-detected from TTY and suppressed with `NO_COLOR`.
 
 **Version string**: Result snapshots write `arenaVersion: "0.2.0"` (hardcoded in the CLI). Root/`cli` npm `package.json` may still say `0.1.0` — treat the snapshot field as the arena protocol version for results.
 
@@ -461,14 +465,24 @@ web/
 
 ## Scoring Algorithm
 
-The scoring system (`src/lib/scoring.ts`) computes a 0-100 speed score:
+The scoring system (`src/lib/scoring.ts`) computes a 0-100 weighted overall score from three components:
 
-- Each eligible benchmark/size contributes `fastestMedian / thisMedian`.
+**Speed (80% weight)**
+- Each eligible benchmark/size contributes `fastestMedian / thisMedian` as a 0-100 performance score.
 - Ratios are combined with a geometric mean across sizes and benchmarks.
 - A size tier is excluded for every language when its fastest valid median is below 1 ms.
+
+**Consistency (10% weight)**
+- Per size: `consistency = clampScore(100 − CV × 400)`, where CV is the coefficient of variation of kernel times.
+- Averaged across all eligible sizes within a benchmark.
+
+**Scalability (10% weight)**
+- Per benchmark: `scalability = (minimumPerformance / maximumPerformance) × 100`, measuring how well performance holds up across small/medium/large sizes.
+
+**Overall**
+- `overall = 0.8 × geometric-mean speed + 0.1 × average consistency + 0.1 × average scalability`
 - Correctness and complete sample counts remain strict eligibility gates **within** a benchmark.
-- Overall scores use the geometric mean of whatever benchmarks that language completed successfully. Skipping a workload (no cells in the snapshot) does not zero the overall card; coverage gaps are noted as diagnostics.
-- Consistency and scalability are displayed as diagnostics but do not affect rank.
+- Overall scores use the weighted formula across whatever benchmarks that language completed successfully. Skipping a workload (no cells in the snapshot) does not zero the overall card; coverage gaps are noted as diagnostics.
 
 ## Build & Deploy
 
@@ -530,7 +544,7 @@ Both modes call `getScoreTier(score.overall)`. Only `OverallCard` implements the
 
 | Card surface | Score field | Notes |
 |--------------|-------------|-------|
-| Large SPEED number (OVR) | `overall` | Same value as `performance` (geometric-mean speed, 0–100). Displayed as a rounded integer; `null` → `—` |
+| Large SPEED number (OVR) | `overall` | Weighted composite: 80% geometric-mean speed + 10% consistency + 10% scalability (0–100). Displayed as a rounded integer; `null` → `—` |
 | SPEED / STABLE / SCALE meters | `performance`, `consistency`, `scalability` | Segmented 10-bar meters **plus** tabular numeric values beside each label |
 | Language name + monogram | `language.id` / `language.name` | Stable abbreviations (`RS`, `TS`, `PY`, `LJ`, `GO`, `C++`) via `languageMonogram` |
 | Footer runtime line | `language.id`, `language.version` | Version shows the first whitespace-delimited token |
@@ -586,7 +600,7 @@ Languages do **not** have fixed brand colorways. Appearance is:
 
 Near rankings in `ResultsExplorer`, a small line clarifies scope:
 
-> Snapshot rankings · accepted geometric-mean speed only · stability and scaling are diagnostic
+> Snapshot rankings · 80% geometric-mean speed · 10% consistency · 10% scalability · skipped workloads noted
 
 ## Data Model
 
@@ -796,7 +810,7 @@ Temp run directories live under `.arena/runs/` and are deleted after each run un
 
 ## Language Manifests (`languages/*.json`)
 
-Each language has a manifest defining detection, build, and run commands.
+Each language has a manifest defining detection, build, and run commands. The project ships six manifests: `cpp.json`, `go.json`, `lua.json`, `python.json`, `rust.json`, and `typescript.json`.
 
 ```json
 {
@@ -838,6 +852,8 @@ Each language has a manifest defining detection, build, and run commands.
 - `{measuredIterations}` — Number of measured iterations (integer)
 - `{runId}` — Run snapshot ID
 - `{size}` — Dataset size name
+
+C++ implementations use shared headers (JSON parser, SHA-256) bundled at `languages/cpp/include/` and referenced by the build command's include path.
 
 ## Benchmark Manifests (`benchmarks/*/benchmark.json`)
 
@@ -965,14 +981,14 @@ Base output shape for implementations. Uses conditional validation based on the 
 
 # Benchmarks Reference
 
-Runtime Arena currently defines four benchmark workloads. Three are fully implemented across Rust, Go, TypeScript, Python, and LuaJIT. **Barrier Wave** has committed datasets and checker support; language implementations are in progress.
+Runtime Arena currently defines four benchmark workloads. Three are fully implemented across all six supported languages (Rust, Go, TypeScript, Python, LuaJIT, C++). **Barrier Wave** is implemented in five languages (all except LuaJIT); datasets and checker support are ready.
 
 | Benchmark | Status | Stresses |
 |-----------|--------|----------|
-| `nbody` | Complete (5 languages) | Numeric computation, tight loops |
-| `shortest-path` | Complete (5 languages) | Priority queues, graph traversal |
-| `aggregation` | Complete (5 languages) | Parsing, hash maps, sorting, GC |
-| `barrier-wave` | Datasets + checker ready; implementations WIP | Structured parallel concurrency, barriers |
+| `nbody` | Complete (6 languages) | Numeric computation, tight loops |
+| `shortest-path` | Complete (6 languages) | Priority queues, graph traversal |
+| `aggregation` | Complete (6 languages) | Parsing, hash maps, sorting, GC |
+| `barrier-wave` | 5 languages implemented (LuaJIT pending) | Structured parallel concurrency, barriers |
 
 Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md`.
 
@@ -1024,8 +1040,8 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 
 **Status notes:**
 - Checker task `barrier-wave` is implemented and tested.
-- Datasets are committed fixtures (`generatorVersion` `1.0.0` in metadata). `arena dataset generate` has **no** barrier-wave generator yet (only nbody, shortest-path, aggregation).
-- Language implementations are incomplete relative to the other three benchmarks; see the tree under `benchmarks/barrier-wave/implementations/`.
+- Datasets are committed fixtures. `arena dataset generate --benchmark barrier-wave` works with the same `--size` and `--seed` flags as other benchmarks.
+- Five of six languages are implemented: Rust, Go, TypeScript, Python, and C++. LuaJIT is excluded (no native threading). See the tree under `benchmarks/barrier-wave/implementations/`.
 - `schemas/implementation-output.schema.json` does not yet include a barrier-wave branch; correctness is enforced by the Go checker.
 
 ## Dataset Sizes
@@ -1038,7 +1054,7 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 
 Warmup and measured iteration counts come from each benchmark's `benchmark.json` size entries (not only `arena.config.json` defaults). Dataset paths are whatever `sizes.<name>.dataset` names — JSON or CSV.
 
-Datasets for the three generated benchmarks are deterministic from a seed. Regenerating them via `arena dataset generate` writes metadata with `generatorVersion` `"2.0.0"`. Barrier-wave fixtures were committed separately and are not regenerable through the CLI yet.
+All datasets are deterministic from a seed. Regenerating via `arena dataset generate` writes metadata with `generatorVersion` `"2.0.0"`.
 
 ## Adding a New Benchmark
 
@@ -1060,6 +1076,7 @@ See [guides/adding-a-benchmark.md](../guides/adding-a-benchmark.md). Register a 
 - Rust >= 1.97 (for Rust implementations)
 - Python >= 3.8 (for Python implementations)
 - LuaJIT (for Lua implementations)
+- g++ (with C++23 support, for C++ implementations)
 
 ## Setup
 
@@ -1109,8 +1126,8 @@ benchmarks/             # Workloads, datasets, implementations
   nbody/
   shortest-path/
   aggregation/
-  barrier-wave/         # Rust/Go/TS/Python; LuaJIT marked unavailable
-languages/              # Language manifests (rust, go, typescript, python, lua)
+  barrier-wave/         # Rust/Go/TS/Python/C++; LuaJIT marked unavailable
+languages/              # Language manifests (rust, go, typescript, python, lua, cpp)
 schemas/                # JSON Schema definitions
 results/                # Canonical result snapshots
 web/                    # SvelteKit dashboard
@@ -1246,7 +1263,9 @@ Useful extras:
 
 ### 4. Browse results
 
-Prefer the summary table over dumping the full JSON:
+Prefer the summary table over dumping the full JSON. In a TTY it renders as a
+boxed table with color (green/yellow/red relative times, ★ on the fastest row
+per benchmark/size). Set `NO_COLOR=1` for plain output.
 
 ```bash
 # All cells in current.json
@@ -1551,7 +1570,7 @@ validation work in the timed workload.
 8. For barrier-wave, use real parallel workers with stable IDs and a
    dedicated inbox per worker (shared work queues allow steal races). Rust
    uses native threads, Go uses goroutines with `GOMAXPROCS >= workerCount`,
-   TypeScript uses `worker_threads`, and Python uses multiprocessing. Mark
+   TypeScript uses `worker_threads`, Python uses multiprocessing, and C++ uses std::thread. Mark
    LuaJIT unavailable unless real native threads or processes are used.
 9. Verify the integration:
 
@@ -1699,7 +1718,7 @@ This copies `results/current.json` into `web/static/results/` and builds the Sve
 npm run arena -- dataset generate --benchmark nbody --size small --seed 729418
 ```
 
-Generators are registered for `nbody`, `shortest-path`, and `aggregation` only. Other benchmarks (including `barrier-wave`) use committed fixtures and fail with "No generator registered" until a generator is added.
+Generators are registered for all four benchmarks: `nbody`, `shortest-path`, `aggregation`, and `barrier-wave`.
 
 Successful generation writes metadata with `generatorVersion` `"2.0.0"`. Datasets are deterministic — the same seed produces the same data.
 

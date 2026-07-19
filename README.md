@@ -6,9 +6,9 @@ Extensible cross-language benchmarking system for comparing programming language
 
 ## Status
 
-The command-line benchmark workflow is implemented for Rust, Go, TypeScript, Python, and LuaJIT across **nbody**, **shortest-path**, and **aggregation**. It includes deterministic datasets, independent Go validation, result-schema validation, terminal rankings, and one incrementally maintained canonical result snapshot.
+The command-line benchmark workflow is implemented for Rust, Go, TypeScript, Python, LuaJIT, and C++ across **nbody**, **shortest-path**, **aggregation**, and **barrier-wave**. It includes deterministic datasets, independent Go validation, result-schema validation, terminal rankings, and one incrementally maintained canonical result snapshot.
 
-**Barrier Wave** is an additional workload with committed datasets and checker support; language implementations are in progress and not yet part of the full five-language matrix.
+**Barrier Wave** is an additional workload with committed datasets and checker support; C++ is implemented, and language implementations for the remaining languages are in progress and not yet part of the full six-language matrix.
 
 The SvelteKit web interface remains optional scaffolding and is not required for benchmark execution.
 
@@ -24,8 +24,8 @@ runtime-arena/
 │   ├── nbody/
 │   ├── shortest-path/
 │   ├── aggregation/
-│   └── barrier-wave/          # WIP language implementations
-├── languages/                 Language manifests (rust, go, typescript, python, lua)
+│   └── barrier-wave/          # Committed workload; C++ implemented, others WIP
+├── languages/                 Language manifests (rust, go, typescript, python, lua, cpp)
 ├── schemas/                   JSON Schema for manifests and results
 ├── results/                   Canonical benchmark result snapshot
 ├── web/                       Optional SvelteKit results UI
@@ -45,6 +45,7 @@ Aligned to the local toolchain used for development:
 | TypeScript | 7.x | CLI and web typing |
 | Python | ≥ 3.8 | Python benchmarks |
 | LuaJIT | — | Lua benchmarks |
+| g++ (C++23) | — | C++ implementations |
 
 ## Setup
 
