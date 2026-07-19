@@ -664,8 +664,8 @@ async function datasetCommand(args: string[]) {
   let content: string;
   if (benchmarkId === "nbody") {
     const profile = {
-      small: { bodies: 4, steps: 5_000 },
-      medium: { bodies: 6, steps: 20_000 },
+      small: { bodies: 12, steps: 10_000 },
+      medium: { bodies: 7, steps: 25_000 },
       large: { bodies: 8, steps: 50_000 }
     }[sizeName];
     if (!profile) throw new Error(`No nbody generation profile for size '${sizeName}'`);
@@ -679,8 +679,8 @@ async function datasetCommand(args: string[]) {
     });
     content = `${JSON.stringify({ steps: profile.steps, deltaTime: 0.0001, bodies })}\n`;
   } else if (benchmarkId === "shortest-path") {
-    const vertexCount = { small: 100, medium: 300, large: 600 }[sizeName];
-    const queryCount = { small: 30, medium: 90, large: 180 }[sizeName];
+    const vertexCount = { small: 400, medium: 300, large: 600 }[sizeName];
+    const queryCount = { small: 120, medium: 90, large: 180 }[sizeName];
     if (!vertexCount || !queryCount) throw new Error(`No shortest-path generation profile for size '${sizeName}'`);
     const edges: Array<{ from: number; to: number; weight: number }> = [];
     const edgeKeys = new Set<string>();
@@ -699,7 +699,7 @@ async function datasetCommand(args: string[]) {
     const queries = Array.from({ length: queryCount }, (_, i) => ({ id: i + 1, source: Math.floor(random() * vertexCount), destination: Math.floor(random() * vertexCount) }));
     content = `${JSON.stringify({ vertexCount, edges, queries })}\n`;
   } else if (benchmarkId === "aggregation") {
-    const recordCount = { small: 10_000, medium: 50_000, large: 200_000 }[sizeName];
+    const recordCount = { small: 100_000, medium: 120_000, large: 200_000 }[sizeName];
     if (!recordCount) throw new Error(`No aggregation generation profile for size '${sizeName}'`);
     const categories = ["books", "games", "garden", "tools"];
     const rows = ["timestamp,account_id,category,quantity,unit_price"];
@@ -707,7 +707,7 @@ async function datasetCommand(args: string[]) {
     content = `${rows.join("\n")}\n`;
   } else if (benchmarkId === "word-frequency") {
     const profile = {
-      small: { totalWords: 10_000, uniqueWords: 842 },
+      small: { totalWords: 50_000, uniqueWords: 3_421 },
       medium: { totalWords: 50_000, uniqueWords: 3_421 },
       large: { totalWords: 200_000, uniqueWords: 8_421 }
     }[sizeName];
@@ -721,7 +721,7 @@ async function datasetCommand(args: string[]) {
     }
     content = `${JSON.stringify({ words })}\n`;
   } else if (benchmarkId === "record-sorting") {
-    const recordCount = { small: 10_000, medium: 100_000, large: 500_000 }[sizeName];
+    const recordCount = { small: 20_000, medium: 100_000, large: 500_000 }[sizeName];
     if (!recordCount) throw new Error(`No record-sorting generation profile for size '${sizeName}'`);
     const records = Array.from({ length: recordCount }, (_, index) => ({
       id: index + 1,
@@ -730,14 +730,14 @@ async function datasetCommand(args: string[]) {
     }));
     content = `${JSON.stringify({ records })}\n`;
   } else if (benchmarkId === "matrix-multiplication") {
-    const dimension = { small: 64, medium: 256, large: 512 }[sizeName];
+    const dimension = { small: 128, medium: 256, large: 512 }[sizeName];
     if (!dimension) throw new Error(`No matrix-multiplication generation profile for size '${sizeName}'`);
     const elementCount = dimension * dimension;
     const matrix = () => Array.from({ length: elementCount }, () => Math.floor(random() * 21) - 10);
     content = `${JSON.stringify({ dimension, left: matrix(), right: matrix() })}\n`;
   } else if (benchmarkId === "barrier-wave") {
     const profile = {
-      small: { workerCount: 2, phaseCount: 500, itemsPerWorker: 64, roundsPerItem: 8 },
+      small: { workerCount: 2, phaseCount: 1500, itemsPerWorker: 64, roundsPerItem: 8 },
       medium: { workerCount: 4, phaseCount: 250, itemsPerWorker: 1024, roundsPerItem: 16 },
       large: { workerCount: 8, phaseCount: 100, itemsPerWorker: 8192, roundsPerItem: 16 }
     }[sizeName];

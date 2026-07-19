@@ -13,18 +13,18 @@
   "sizes": {
     "small": {
       "dataset": "small.csv",
-      "warmupIterations": 3,
-      "measuredIterations": 10
+      "warmupIterations": 2,
+      "measuredIterations": 5
     },
     "medium": {
       "dataset": "medium.csv",
-      "warmupIterations": 3,
-      "measuredIterations": 10
+      "warmupIterations": 2,
+      "measuredIterations": 3
     },
     "large": {
       "dataset": "large.csv",
-      "warmupIterations": 3,
-      "measuredIterations": 10
+      "warmupIterations": 2,
+      "measuredIterations": 3
     }
   },
   "metrics": ["kernelTime"],

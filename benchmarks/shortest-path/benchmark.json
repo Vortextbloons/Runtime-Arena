@@ -13,18 +13,18 @@
   "sizes": {
     "small": {
       "dataset": "small.json",
-      "warmupIterations": 3,
-      "measuredIterations": 10
+      "warmupIterations": 2,
+      "measuredIterations": 5
     },
     "medium": {
       "dataset": "medium.json",
-      "warmupIterations": 3,
-      "measuredIterations": 10
+      "warmupIterations": 2,
+      "measuredIterations": 3
     },
     "large": {
       "dataset": "large.json",
-      "warmupIterations": 3,
-      "measuredIterations": 10
+      "warmupIterations": 2,
+      "measuredIterations": 3
     }
   },
   "metrics": ["kernelTime"],

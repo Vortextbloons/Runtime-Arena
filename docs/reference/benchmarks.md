@@ -100,9 +100,9 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 
 | Size | Warmup / Measured (typical) | N-body | Shortest path | Aggregation | Barrier Wave |
 |------|----------------------------|--------|---------------|-------------|--------------|
-| small | see manifest | 4 bodies × 5,000 steps (1 / 5) | 100 vertices × 30 queries (1 / 5) | 10,000 records (1 / 5) | 2 workers × 500 phases × 64 items (3 / 10) |
-| medium | see manifest | 6 bodies × 20,000 steps (3 / 10) | 300 vertices × 90 queries (3 / 10) | 50,000 records (3 / 10) | 4 workers × 250 phases × 1024 items (3 / 10) |
-| large | see manifest | 8 bodies × 50,000 steps (3 / 10) | 600 vertices × 180 queries (3 / 10) | 200,000 records (3 / 10) | 8 workers × 100 phases × 8192 items (2 / 8) |
+| small | see manifest | 12 bodies × 10,000 steps (2 / 5) | 400 vertices × 120 queries (2 / 5) | 100,000 records (2 / 5) | 2 workers × 1,500 phases × 64 items (2 / 5) |
+| medium | see manifest | 7 bodies × 25,000 steps (2 / 3) | 300 vertices × 90 queries (2 / 3) | 120,000 records (2 / 3) | 4 workers × 250 phases × 1,024 items (2 / 3) |
+| large | see manifest | 8 bodies × 50,000 steps (2 / 3) | 600 vertices × 180 queries (2 / 3) | 200,000 records (2 / 3) | 8 workers × 100 phases × 8,192 items (2 / 3) |
 
 Warmup and measured iteration counts come from each benchmark's `benchmark.json` size entries (not only `arena.config.json` defaults). Dataset paths are whatever `sizes.<name>.dataset` names — JSON or CSV.
 
@@ -112,6 +112,6 @@ All datasets are deterministic from a seed. Regenerating via `arena dataset gene
 
 | Size | Word frequency | Record sorting | Matrix multiplication |
 |------|----------------|----------------|-----------------------|
-| small | 10,000 words / 842 unique (3 / 10) | 10,000 records (3 / 10) | 64 × 64 (3 / 10) |
-| medium | 50,000 words / 3,421 unique (3 / 10) | 100,000 records (3 / 10) | 256 × 256 (3 / 10) |
-| large | 200,000 words / 8,421 unique (3 / 10) | 500,000 records (3 / 10) | 512 × 512 (3 / 10) |
+| small | 50,000 words / 3,421 unique (2 / 5) | 20,000 records (2 / 5) | 128 × 128 (2 / 5) |
+| medium | 50,000 words / 3,421 unique (2 / 3) | 100,000 records (2 / 3) | 256 × 256 (2 / 3) |
+| large | 200,000 words / 8,421 unique (2 / 3) | 500,000 records (2 / 3) | 512 × 512 (2 / 3) |
