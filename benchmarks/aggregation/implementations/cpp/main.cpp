@@ -1,18 +1,26 @@
 #include <algorithm>
 #include <chrono>
 #include <climits>
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <iostream>
-#include <map>
-#include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "json.hpp"
 #include "sha256.hpp"
 
 using json = nlohmann::json;
+
+struct Row {
+    std::string accountId;
+    std::string category;
+    int64_t quantity;
+    int64_t price;
+};
 
 struct CategoryAgg {
     int64_t quantity = 0;
@@ -29,71 +37,103 @@ struct Sample {
     int64_t kernelTimeNanoseconds;
 };
 
-std::string readFile(const std::string& path) {
-    std::ifstream f(path);
-    if (!f.is_open()) {
-        std::cerr << "Failed to open input file: " << path << std::endl;
-        std::exit(1);
+static int64_t parseI64(const char* p, const char* end) {
+    int64_t val = 0;
+    bool neg = false;
+    if (p < end && *p == '-') { neg = true; ++p; }
+    while (p < end && *p >= '0' && *p <= '9') {
+        val = val * 10 + (*p - '0');
+        ++p;
     }
-    std::ostringstream ss;
-    ss << f.rdbuf();
-    return ss.str();
+    return neg ? -val : val;
 }
 
-std::vector<std::string> splitLine(const std::string& line) {
-    std::vector<std::string> fields;
-    std::istringstream ss(line);
-    std::string field;
-    while (std::getline(ss, field, ',')) {
-        fields.push_back(field);
+std::vector<Row> parseCSV(const std::string& content) {
+    std::vector<Row> rows;
+    const char* p = content.data();
+    const char* end = content.data() + content.size();
+
+    while (p < end && *p != '\n' && *p != '\r') ++p;
+    while (p < end && (*p == '\n' || *p == '\r')) ++p;
+
+    while (p < end) {
+        const char* lineStart = p;
+        while (p < end && *p != '\n' && *p != '\r') ++p;
+        const char* lineEnd = p;
+        while (p < end && (*p == '\n' || *p == '\r')) ++p;
+
+        if (lineStart == lineEnd) continue;
+
+        const char* fieldStarts[5];
+        const char* fieldEnds[5];
+        int fieldCount = 0;
+        const char* f = lineStart;
+
+        for (int i = 0; i < 5 && f <= lineEnd; i++) {
+            fieldStarts[i] = f;
+            if (i < 4) {
+                while (f < lineEnd && *f != ',') ++f;
+                fieldEnds[i] = f;
+                if (f < lineEnd) ++f;
+            } else {
+                fieldEnds[i] = lineEnd;
+            }
+            fieldCount++;
+        }
+
+        if (fieldCount < 5) continue;
+
+        Row row;
+        row.accountId.assign(fieldStarts[1], fieldEnds[1]);
+        row.category.assign(fieldStarts[2], fieldEnds[2]);
+        row.quantity = parseI64(fieldStarts[3], fieldEnds[3]);
+        row.price = parseI64(fieldStarts[4], fieldEnds[4]);
+        rows.push_back(std::move(row));
     }
-    return fields;
+
+    return rows;
 }
 
-json computeAggregation(const std::string& csvContent) {
-    std::istringstream stream(csvContent);
-    std::string line;
-
-    std::getline(stream, line);
-
+json computeAggregation(const std::vector<Row>& rows) {
     int64_t recordCount = 0;
     int64_t totalQuantity = 0;
     int64_t totalValueMinorUnits = 0;
     int64_t minTransaction = INT64_MAX;
     int64_t maxTransaction = 0;
-    std::map<std::string, CategoryAgg> categories;
-    std::map<std::string, int64_t> accounts;
 
-    while (std::getline(stream, line)) {
-        if (line.empty()) continue;
+    std::unordered_map<std::string, CategoryAgg> categories;
+    std::unordered_map<std::string, int64_t> accounts;
+    categories.reserve(64);
+    accounts.reserve(512);
 
-        auto fields = splitLine(line);
-        if (fields.size() < 5) continue;
-
-        const std::string& accountId = fields[1];
-        const std::string& category = fields[2];
-        int64_t qty = std::stoll(fields[3]);
-        int64_t price = std::stoll(fields[4]);
-        int64_t value = qty * price;
+    for (const auto& row : rows) {
+        int64_t value = row.quantity * row.price;
 
         recordCount++;
-        totalQuantity += qty;
+        totalQuantity += row.quantity;
         totalValueMinorUnits += value;
         if (value < minTransaction) minTransaction = value;
         if (value > maxTransaction) maxTransaction = value;
 
-        categories[category].quantity += qty;
-        categories[category].value += value;
-        accounts[accountId] += value;
+        auto& cat = categories[row.category];
+        cat.quantity += row.quantity;
+        cat.value += value;
+
+        accounts[row.accountId] += value;
     }
 
+    std::vector<std::pair<std::string, CategoryAgg>> sortedCats(categories.begin(), categories.end());
+    std::sort(sortedCats.begin(), sortedCats.end(),
+        [](const auto& a, const auto& b) { return a.first < b.first; });
+
     json catsArray = json::array();
-    for (auto& [cat, agg] : categories) {
+    for (const auto& [cat, agg] : sortedCats) {
         catsArray.push_back({{"category", cat}, {"quantity", agg.quantity}, {"valueMinorUnits", agg.value}});
     }
 
     std::vector<AccountAgg> accountVec;
-    for (auto& [id, val] : accounts) {
+    accountVec.reserve(accounts.size());
+    for (const auto& [id, val] : accounts) {
         accountVec.push_back({id, val});
     }
     std::sort(accountVec.begin(), accountVec.end(), [](const AccountAgg& a, const AccountAgg& b) {
@@ -137,8 +177,8 @@ int main(int argc, char* argv[]) {
         if (arg == "--input" && i + 1 < argc) inputPath = argv[++i];
         else if (arg == "--output" && i + 1 < argc) outputPath = argv[++i];
         else if (arg == "--timing-output" && i + 1 < argc) timingPath = argv[++i];
-        else if (arg == "--warmup" && i + 1 < argc) warmup = std::stoi(argv[++i]);
-        else if (arg == "--iterations" && i + 1 < argc) iterations = std::stoi(argv[++i]);
+        else if (arg == "--warmup" && i + 1 < argc) warmup = std::atoi(argv[++i]);
+        else if (arg == "--iterations" && i + 1 < argc) iterations = std::atoi(argv[++i]);
     }
 
     if (inputPath.empty() || outputPath.empty() || timingPath.empty()) {
@@ -146,14 +186,26 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::string csvContent = readFile(inputPath);
+    std::string csvContent;
+    {
+        std::ifstream f(inputPath);
+        if (!f.is_open()) {
+            std::cerr << "Failed to open input file: " << inputPath << std::endl;
+            std::exit(1);
+        }
+        std::ostringstream ss;
+        ss << f.rdbuf();
+        csvContent = ss.str();
+    }
+
+    std::vector<Row> rows = parseCSV(csvContent);
 
     std::vector<Sample> samples;
     json outputJson;
 
     for (int i = -warmup; i < iterations; i++) {
         auto start = std::chrono::high_resolution_clock::now();
-        outputJson = computeAggregation(csvContent);
+        outputJson = computeAggregation(rows);
         auto end = std::chrono::high_resolution_clock::now();
 
         int64_t elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
@@ -164,13 +216,14 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::ofstream outFile(outputPath);
-    if (!outFile.is_open()) {
-        std::cerr << "Failed to open output file: " << outputPath << std::endl;
-        return 1;
+    {
+        std::ofstream outFile(outputPath);
+        if (!outFile.is_open()) {
+            std::cerr << "Failed to open output file: " << outputPath << std::endl;
+            return 1;
+        }
+        outFile << outputJson.dump();
     }
-    outFile << outputJson.dump();
-    outFile.close();
 
     json timingJson;
     timingJson["samples"] = json::array();
@@ -178,13 +231,14 @@ int main(int argc, char* argv[]) {
         timingJson["samples"].push_back({{"iteration", s.iteration}, {"kernelTimeNanoseconds", s.kernelTimeNanoseconds}});
     }
 
-    std::ofstream timingFile(timingPath);
-    if (!timingFile.is_open()) {
-        std::cerr << "Failed to open timing output file: " << timingPath << std::endl;
-        return 1;
+    {
+        std::ofstream timingFile(timingPath);
+        if (!timingFile.is_open()) {
+            std::cerr << "Failed to open timing output file: " << timingPath << std::endl;
+            return 1;
+        }
+        timingFile << timingJson.dump();
     }
-    timingFile << timingJson.dump();
-    timingFile.close();
 
     return 0;
 }

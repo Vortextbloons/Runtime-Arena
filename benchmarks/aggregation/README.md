@@ -4,12 +4,10 @@ Aggregate CSV transaction records using integer minor currency units.
 
 ## Purpose
 
-- Parsing
-- Allocation
-- Hash maps
+- Hash map aggregation
 - Sorting
-- Garbage collection
-- General data processing
+- Checksum computation
+- General data processing over pre-parsed rows
 
 ## Input
 

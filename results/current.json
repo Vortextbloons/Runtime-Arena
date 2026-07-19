@@ -1,9 +1,9 @@
 {
   "schemaVersion": "3.0.0",
-  "snapshotId": "2026-07-19T07-06-12-375-c281f013Z",
-  "updatedAt": "2026-07-19T07:06:12.375Z",
+  "snapshotId": "2026-07-19T07-26-03-099-75d5cb77Z",
+  "updatedAt": "2026-07-19T07:26:03.099Z",
   "arenaVersion": "0.2.0",
-  "gitCommit": "2ab65568e59953d86ca45470f17ea545068ee2f8",
+  "gitCommit": "be55d2b9bac778c9f5ccf025b1d799d565799006",
   "gitDirty": true,
   "results": [
     {
@@ -36,8 +36,8 @@
       },
       "build": {
         "status": "success",
-        "durationNanoseconds": 3115765500,
-        "artifactSizeBytes": 264570,
+        "durationNanoseconds": 3006324600,
+        "artifactSizeBytes": 267633,
         "command": [
           "g++",
           "-O3",
@@ -53,13 +53,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 1015639000,
+        "totalProcessDurationNanoseconds": 113689400,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 73042800,
+            "kernelTimeNanoseconds": 2923900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -68,7 +68,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 71318700,
+            "kernelTimeNanoseconds": 2842600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -77,7 +77,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 72238900,
+            "kernelTimeNanoseconds": 2844600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -86,7 +86,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 73294400,
+            "kernelTimeNanoseconds": 2849400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -95,7 +95,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 71234700,
+            "kernelTimeNanoseconds": 2830400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -104,7 +104,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 75758000,
+            "kernelTimeNanoseconds": 2823200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -113,7 +113,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 70674000,
+            "kernelTimeNanoseconds": 2860800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -122,7 +122,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 73261900,
+            "kernelTimeNanoseconds": 2816700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -131,7 +131,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 73609500,
+            "kernelTimeNanoseconds": 3507800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -140,7 +140,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 73520100,
+            "kernelTimeNanoseconds": 2804300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1040,
@@ -151,13 +151,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 70674000,
-          "maximumKernelTimeNanoseconds": 75758000,
-          "medianKernelTimeNanoseconds": 73042800,
-          "meanKernelTimeNanoseconds": 72795300,
-          "standardDeviationKernelTimeNanoseconds": 1411355.205467426,
-          "p95KernelTimeNanoseconds": 75758000,
-          "interquartileRangeKernelTimeNanoseconds": 2201400
+          "minimumKernelTimeNanoseconds": 2804300,
+          "maximumKernelTimeNanoseconds": 3507800,
+          "medianKernelTimeNanoseconds": 2842600,
+          "meanKernelTimeNanoseconds": 2910370,
+          "standardDeviationKernelTimeNanoseconds": 201548.35176701396,
+          "p95KernelTimeNanoseconds": 3507800,
+          "interquartileRangeKernelTimeNanoseconds": 37600
         },
         "metrics": {
           "kernelTime": {
@@ -173,9 +173,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "d12481cb0424e24c9f85ea8e399436a5133973cb7b9778d397e4f72de90f6b08",
+        "fingerprint": "1781eadacfdfc3502fb2d6234b2e37a732dc4fe8b784b4ff5552632a72a3e316",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T07:06:12.375Z",
+        "measuredAt": "2026-07-19T07:26:03.099Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -1090,8 +1090,8 @@
       },
       "build": {
         "status": "success",
-        "durationNanoseconds": 3346341900,
-        "artifactSizeBytes": 264570,
+        "durationNanoseconds": 2982238600,
+        "artifactSizeBytes": 267633,
         "command": [
           "g++",
           "-O3",
@@ -1107,13 +1107,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 317836100,
+        "totalProcessDurationNanoseconds": 75095800,
         "warmupIterations": 3,
         "measuredIterations": 10,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 17692400,
+            "kernelTimeNanoseconds": 761500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1122,7 +1122,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 17710000,
+            "kernelTimeNanoseconds": 726800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1131,7 +1131,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 17937800,
+            "kernelTimeNanoseconds": 723600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1140,7 +1140,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 18204500,
+            "kernelTimeNanoseconds": 722700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1149,7 +1149,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 18283500,
+            "kernelTimeNanoseconds": 743700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1158,7 +1158,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 18001000,
+            "kernelTimeNanoseconds": 722900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1167,7 +1167,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 18492800,
+            "kernelTimeNanoseconds": 725700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1176,7 +1176,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 19476200,
+            "kernelTimeNanoseconds": 724000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1185,7 +1185,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 18816900,
+            "kernelTimeNanoseconds": 729900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1194,7 +1194,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 23753600,
+            "kernelTimeNanoseconds": 724800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1030,
@@ -1205,13 +1205,13 @@
         "summary": {
           "validSamples": 10,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 17692400,
-          "maximumKernelTimeNanoseconds": 23753600,
-          "medianKernelTimeNanoseconds": 18204500,
-          "meanKernelTimeNanoseconds": 18836870,
-          "standardDeviationKernelTimeNanoseconds": 1717396.954143101,
-          "p95KernelTimeNanoseconds": 23753600,
-          "interquartileRangeKernelTimeNanoseconds": 879100
+          "minimumKernelTimeNanoseconds": 722700,
+          "maximumKernelTimeNanoseconds": 761500,
+          "medianKernelTimeNanoseconds": 724800,
+          "meanKernelTimeNanoseconds": 730560,
+          "standardDeviationKernelTimeNanoseconds": 11887.993943470867,
+          "p95KernelTimeNanoseconds": 761500,
+          "interquartileRangeKernelTimeNanoseconds": 6300
         },
         "metrics": {
           "kernelTime": {
@@ -1227,9 +1227,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "7419886f2f83fb62d0e3584f56d948b9b4246d76c47fbd2ddd3b056b4a06fa1b",
+        "fingerprint": "b8bd8ce40ab64ff07ee89364ca15d2922a15112b6fd5c126a7b155c631122b6c",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T07:05:46.978Z",
+        "measuredAt": "2026-07-19T07:26:03.099Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -2144,8 +2144,8 @@
       },
       "build": {
         "status": "success",
-        "durationNanoseconds": 3202772000,
-        "artifactSizeBytes": 264570,
+        "durationNanoseconds": 3000049400,
+        "artifactSizeBytes": 267633,
         "command": [
           "g++",
           "-O3",
@@ -2161,13 +2161,13 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.0.0",
-        "totalProcessDurationNanoseconds": 96416700,
+        "totalProcessDurationNanoseconds": 66304500,
         "warmupIterations": 1,
         "measuredIterations": 5,
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 3592900,
+            "kernelTimeNanoseconds": 168300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -2176,7 +2176,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 3612400,
+            "kernelTimeNanoseconds": 216100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -2185,7 +2185,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 3707600,
+            "kernelTimeNanoseconds": 174800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -2194,7 +2194,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 3872500,
+            "kernelTimeNanoseconds": 162300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -2203,7 +2203,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 3558900,
+            "kernelTimeNanoseconds": 161600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 1015,
@@ -2214,13 +2214,13 @@
         "summary": {
           "validSamples": 5,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 3558900,
-          "maximumKernelTimeNanoseconds": 3872500,
-          "medianKernelTimeNanoseconds": 3612400,
-          "meanKernelTimeNanoseconds": 3668860,
-          "standardDeviationKernelTimeNanoseconds": 113153.78208438284,
-          "p95KernelTimeNanoseconds": 3872500,
-          "interquartileRangeKernelTimeNanoseconds": 114700
+          "minimumKernelTimeNanoseconds": 161600,
+          "maximumKernelTimeNanoseconds": 216100,
+          "medianKernelTimeNanoseconds": 168300,
+          "meanKernelTimeNanoseconds": 176620,
+          "standardDeviationKernelTimeNanoseconds": 20306.98402028228,
+          "p95KernelTimeNanoseconds": 216100,
+          "interquartileRangeKernelTimeNanoseconds": 12500
         },
         "metrics": {
           "kernelTime": {
@@ -2236,9 +2236,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "7a39148e24e69358bd15a4de4e6c9b00f64193ccf6b5c4b26050c05b8ba790bd",
+        "fingerprint": "38be732adf3f6ad43550cbb74f96036f0766f7801a4f34e64cec2bf38076de2e",
         "measurementContractVersion": "1.0.0",
-        "measuredAt": "2026-07-19T07:00:42.235Z",
+        "measuredAt": "2026-07-19T07:26:03.099Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",

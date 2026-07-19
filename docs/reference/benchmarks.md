@@ -6,7 +6,7 @@ Runtime Arena currently defines four benchmark workloads. Three are fully implem
 |-----------|--------|----------|
 | `nbody` | Complete (6 languages) | Numeric computation, tight loops |
 | `shortest-path` | Complete (6 languages) | Priority queues, graph traversal |
-| `aggregation` | Complete (6 languages) | Parsing, hash maps, sorting, GC |
+| `aggregation` | Complete (6 languages) | Hash map aggregation, sorting, checksum |
 | `barrier-wave` | 5 languages implemented (LuaJIT pending) | Structured parallel concurrency, barriers |
 
 Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md`.
@@ -43,7 +43,7 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 
 **Output:** JSON with `recordCount`, `totalQuantity`, `totalValueMinorUnits`, `categories[]`, `topAccounts[]`, `minimumTransactionMinorUnits`, `maximumTransactionMinorUnits`, `checksum`.
 
-**Stresses:** Parsing, string allocation, hash maps, sorting, garbage collection.
+**Stresses:** Hash map aggregation, sorting, and checksum computation over pre-parsed rows.
 
 **Algorithm:** Parse CSV, aggregate by category and account, sort categories alphabetically, sort accounts by value descending (top 10), compute SHA-256 checksum.
 
