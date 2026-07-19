@@ -8,8 +8,9 @@ making the comparison unfair.
 - Run the checker first; an incorrect result is not an optimization.
 - Read the benchmark's `IMPLEMENTING.md` for exact output format, checksum
   rules, sort orders, and tolerance values.
-- Compare the algorithm, precision, input parsing, and produced output with the
-  other language implementations.
+- Verify the algorithm, precision, and produced output against the
+  `IMPLEMENTING.md` contract. Implementations may differ internally
+  across languages — what matters is the checker accepts the output.
 - Do not skip required work, hard-code dataset answers, cache results between
   runs, or move timed computation into setup.
 - Keep implementation-specific tuning idiomatic and document unusual choices.
@@ -34,5 +35,4 @@ npm run arena -- run --language <language-id> --benchmark <benchmark-id> --size 
 
 Compare multiple measured iterations, not a single run. Test before and after
 under the same machine conditions, confirm checker acceptance, and keep an
-optimization only when the improvement is repeatable and the workload remains
-equivalent.
+optimization only when the improvement is repeatable.

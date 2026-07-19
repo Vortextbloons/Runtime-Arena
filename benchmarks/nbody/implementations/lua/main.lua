@@ -9,126 +9,71 @@ local counter, frequency = ffi.new("LARGE_INTEGER[1]"), ffi.new("LARGE_INTEGER[1
 ffi.C.QueryPerformanceFrequency(frequency)
 local function now_ns() ffi.C.QueryPerformanceCounter(counter); return tonumber(counter[0]) * 1000000000 / tonumber(frequency[0]) end
 
-local input_file = nil
-local output_file = nil
-local timing_output_file = nil
-local warmups = 0
-local iterations = 1
-
+local input_file, output_file, timing_output_file
+local warmups, iterations = 0, 1
 local i = 1
 while i <= #arg do
-    if arg[i] == "--input" then
-        input_file = arg[i + 1]
-        i = i + 2
-    elseif arg[i] == "--output" then
-        output_file = arg[i + 1]
-        i = i + 2
-    elseif arg[i] == "--timing-output" then
-        timing_output_file = arg[i + 1]
-        i = i + 2
-    elseif arg[i] == "--warmup" then
-        warmups = tonumber(arg[i + 1])
-        i = i + 2
-    elseif arg[i] == "--iterations" then
-        iterations = tonumber(arg[i + 1])
-        i = i + 2
-    else
-        i = i + 1
-    end
+    local a = arg[i]
+    if a == "--input" then input_file = arg[i+1]; i = i+2
+    elseif a == "--output" then output_file = arg[i+1]; i = i+2
+    elseif a == "--timing-output" then timing_output_file = arg[i+1]; i = i+2
+    elseif a == "--warmup" then warmups = tonumber(arg[i+1]); i = i+2
+    elseif a == "--iterations" then iterations = tonumber(arg[i+1]); i = i+2
+    else i = i+1 end
 end
-
 if not input_file or not output_file or not timing_output_file then
-    io.stderr:write("Usage: luajit main.lua --input <input-file> --output <output-file>\n")
-    os.exit(1)
-end
+    io.stderr:write("Usage: luajit main.lua --input <input-file> --output <output-file>\n"); os.exit(1) end
 
-local f = io.open(input_file, "r")
-local data = json.decode(f:read("*a"))
-f:close()
-
-local steps = data.steps
-local delta_time = data.deltaTime
-local bodies = data.bodies
+local f = io.open(input_file, "r"); local data = json.decode(f:read("*a")); f:close()
+local steps = data.steps; local delta_time = data.deltaTime; local bodies = data.bodies
 
 local function kernel(b)
 local body_count = #b
-
 for step = 1, steps do
     for i = 1, body_count do
+        local bi = b[i]; local pix, piy, piz = bi.position[1], bi.position[2], bi.position[3]
+        local vix, viy, viz = bi.velocity[1], bi.velocity[2], bi.velocity[3]; local mi = bi.mass
         for j = i + 1, body_count do
-            local dx = b[j].position[1] - b[i].position[1]
-            local dy = b[j].position[2] - b[i].position[2]
-            local dz = b[j].position[3] - b[i].position[3]
-            local r2 = dx*dx + dy*dy + dz*dz
-            local magnitude = delta_time / (r2 * math.sqrt(r2))
-            b[i].velocity[1] = b[i].velocity[1] + dx * b[j].mass * magnitude
-            b[i].velocity[2] = b[i].velocity[2] + dy * b[j].mass * magnitude
-            b[i].velocity[3] = b[i].velocity[3] + dz * b[j].mass * magnitude
-            b[j].velocity[1] = b[j].velocity[1] - dx * b[i].mass * magnitude
-            b[j].velocity[2] = b[j].velocity[2] - dy * b[i].mass * magnitude
-            b[j].velocity[3] = b[j].velocity[3] - dz * b[i].mass * magnitude
+            local bj = b[j]; local mj = bj.mass
+            local dx = bj.position[1] - pix; local dy = bj.position[2] - piy; local dz = bj.position[3] - piz
+            local r2 = dx*dx + dy*dy + dz*dz; local m = delta_time / (r2 * math.sqrt(r2))
+            local mix = dx * mj * m; local miy = dy * mj * m; local miz = dz * mj * m
+            local mjx = dx * mi * m; local mjy = dy * mi * m; local mjz = dz * mi * m
+            vix = vix + mix; viy = viy + miy; viz = viz + miz
+            bj.velocity[1] = bj.velocity[1] - mjx; bj.velocity[2] = bj.velocity[2] - mjy; bj.velocity[3] = bj.velocity[3] - mjz
         end
+        bi.velocity[1] = vix; bi.velocity[2] = viy; bi.velocity[3] = viz
     end
-
     for i = 1, body_count do
-        b[i].position[1] = b[i].position[1] + delta_time * b[i].velocity[1]
-        b[i].position[2] = b[i].position[2] + delta_time * b[i].velocity[2]
-        b[i].position[3] = b[i].position[3] + delta_time * b[i].velocity[3]
+        local bi = b[i]; local v = bi.velocity
+        bi.position[1] = bi.position[1] + delta_time * v[1]
+        bi.position[2] = bi.position[2] + delta_time * v[2]
+        bi.position[3] = bi.position[3] + delta_time * v[3]
     end
 end
-
-local energy = 0.0
+local energy = 0.0; local pos_parts, vel_parts = {}, {}
 for i = 1, body_count do
-    local v2 = b[i].velocity[1]^2 + b[i].velocity[2]^2 + b[i].velocity[3]^2
-    energy = energy + 0.5 * b[i].mass * v2
-    for j = i + 1, body_count do
-        local dx = b[i].position[1] - b[j].position[1]
-        local dy = b[i].position[2] - b[j].position[2]
-        local dz = b[i].position[3] - b[j].position[3]
-        local r2 = dx*dx + dy*dy + dz*dz
-        energy = energy - b[i].mass * b[j].mass / math.sqrt(r2)
-    end
-end
-
-local position_data = ""
-local velocity_data = ""
-for i = 1, body_count do
+    local bi = b[i]; local mass = bi.mass
+    local v2 = bi.velocity[1]^2 + bi.velocity[2]^2 + bi.velocity[3]^2; energy = energy + 0.5 * mass * v2
     for k = 1, 3 do
-        position_data = position_data .. string.format("%.9f,", b[i].position[k])
-        velocity_data = velocity_data .. string.format("%.9f,", b[i].velocity[k])
-    end
-end
-
-local position_checksum = sha256(position_data)
-local velocity_checksum = sha256(velocity_data)
-
+        pos_parts[#pos_parts+1] = string.format("%.9f,", bi.position[k])
+        vel_parts[#vel_parts+1] = string.format("%.9f,", bi.velocity[k]) end
+    for j = i + 1, body_count do
+        local bj = b[j]; local dx = bi.position[1] - bj.position[1]; local dy = bi.position[2] - bj.position[2]; local dz = bi.position[3] - bj.position[3]
+        energy = energy - mass * bj.mass / math.sqrt(dx*dx + dy*dy + dz*dz) end end
 return {
-    benchmark = "nbody",
-    version = 1,
-    bodyCount = body_count,
-    finalEnergy = energy,
-    positionChecksum = position_checksum,
-    velocityChecksum = velocity_checksum
-}
+    benchmark = "nbody", version = 1, bodyCount = body_count, finalEnergy = energy,
+    positionChecksum = sha256(table.concat(pos_parts)), velocityChecksum = sha256(table.concat(vel_parts)) }
 end
 
-local samples = {}
-local output
+local samples = {}; local output
 for iteration = -warmups, iterations - 1 do
     local b = {}
     for idx = 1, #bodies do
-        b[idx] = {mass=bodies[idx].mass,position={bodies[idx].position[1],bodies[idx].position[2],bodies[idx].position[3]},
-            velocity={bodies[idx].velocity[1],bodies[idx].velocity[2],bodies[idx].velocity[3]}}
-    end
-    local started = now_ns()
-    output = kernel(b)
+        b[idx] = {mass=bodies[idx].mass, position={bodies[idx].position[1], bodies[idx].position[2], bodies[idx].position[3]},
+            velocity={bodies[idx].velocity[1], bodies[idx].velocity[2], bodies[idx].velocity[3]}} end
+    local started = now_ns(); output = kernel(b)
     local elapsed = math.max(1, math.floor(now_ns() - started + 0.5))
-    if iteration >= 0 then table.insert(samples, {iteration=iteration + 1, kernelTimeNanoseconds=elapsed}) end
-end
-
-local out = io.open(output_file, "w")
-out:write(json.encode(output))
-out:close()
-local timing = io.open(timing_output_file, "w")
-timing:write(json.encode({samples=samples}))
-timing:close()
+    if iteration >= 0 then table.insert(samples, {iteration=iteration+1, kernelTimeNanoseconds=elapsed}) end end
+local out = io.open(output_file, "w"); out:write(json.encode(output)); out:close()
+local timing = io.open(timing_output_file, "w"); timing:write(json.encode({samples=samples})); timing:close()

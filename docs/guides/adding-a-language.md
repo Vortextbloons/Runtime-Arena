@@ -20,8 +20,9 @@
    --input <input-file> --output <output-file>
    ```
 
-7. Use optimized release builds, but preserve the exact workload and output
-   requirements used by the other languages.
+ 7. Use optimized release builds. Produce output that passes the checker —
+    the internal approach can differ from other language implementations.
+    Use the language's best idioms, data structures, and patterns.
 8. Verify the integration:
 
    ```bash

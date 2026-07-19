@@ -6,6 +6,11 @@ Deterministic gravitational n-body simulation. Computes pairwise gravitational
 interactions over a fixed number of timesteps and reports final energy and
 position/velocity checksums.
 
+**Design philosophy:** Implementations must produce output accepted by the
+checker. Use the language's best idioms, types, and data structures — do not
+copy code structure from the reference implementations. The checker is the
+source of truth for correctness.
+
 ## CLI Contract
 
 Your program must:

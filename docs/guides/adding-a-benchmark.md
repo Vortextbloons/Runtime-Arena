@@ -20,17 +20,20 @@
 5. Create `benchmark.json` using an existing benchmark as a template. It must
    match `schemas/benchmark.schema.json`.
 6. Add independent validation logic to the Go checker.
-7. Add equivalent implementations under
-   `implementations/<language-id>/`.
-8. Confirm discovery and run a small test:
+ 7. Add implementations under `implementations/<language-id>/` that produce
+    output accepted by the checker. Use each language's best idioms — prefer
+    native types, optimized data structures, and language-appropriate
+    algorithmic choices. The checker validates the output; the internal
+    implementation can differ freely across languages.
+ 8. Confirm discovery and run a small test:
 
-   ```bash
-   npm run build:checker
-   npm run arena -- list benchmarks
-   npm run arena -- run --benchmark <benchmark-id> --size small
-   npm test
-   ```
+    ```bash
+    npm run build:checker
+    npm run arena -- list benchmarks
+    npm run arena -- run --benchmark <benchmark-id> --size small
+    npm test
+    ```
 
-All implementations must perform the same work and produce output accepted by
-the same checker. Do not include setup, compilation, or validation work in the
-timed workload.
+Each implementation must use the most idiomatic approach for its language while
+producing output accepted by the checker. Do not include setup, compilation, or
+validation work in the timed workload.

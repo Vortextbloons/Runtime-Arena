@@ -5,6 +5,11 @@
 Aggregate CSV transaction records. Parse rows, compute totals, group by
 category, rank accounts, and produce a deterministic checksum.
 
+**Design philosophy:** Implementations must produce output accepted by the
+checker. Use the language's best idioms, types, and data structures — do not
+copy code structure from the reference implementations. The checker is the
+source of truth for correctness.
+
 ## CLI Contract
 
 Your program must:

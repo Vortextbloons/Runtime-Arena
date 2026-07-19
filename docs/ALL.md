@@ -1,6 +1,6 @@
 # Runtime Arena — Complete Documentation
 > Auto-generated from docs/INDEX.md by scripts/combine-docs.mjs
-> Generated: 2026-07-19T05:06:15.671Z
+> Generated: 2026-07-19T05:27:06.491Z
 > Total files: 18
 
 ## Table of Contents
@@ -966,11 +966,13 @@ This runs:
 
 ## Conventions
 
-- Keep benchmark workloads equivalent across languages
+- Each implementation must produce the same output for the same input
+  (validated by the checker). Use each language's best idioms and data
+  structures internally — no need to mirror structure from other implementations.
 - Keep datasets deterministic (committed fixtures with SHA-256 hashes)
 - Do not manually edit generated result files (`results/current.json`)
 - The checker must be independent from the CLI (no shared code)
-- All implementations must accept `--input <file> --output <file>`
+- All implementations must accept `--input <file> --output <file> --timing-output <file> --warmup <n> --iterations <n>`
 
 ---
 
@@ -1134,20 +1136,23 @@ The `prepare-results.ts` script handles copying the latest results into the stat
 5. Create `benchmark.json` using an existing benchmark as a template. It must
    match `schemas/benchmark.schema.json`.
 6. Add independent validation logic to the Go checker.
-7. Add equivalent implementations under
-   `implementations/<language-id>/`.
-8. Confirm discovery and run a small test:
+ 7. Add implementations under `implementations/<language-id>/` that produce
+    output accepted by the checker. Use each language's best idioms — prefer
+    native types, optimized data structures, and language-appropriate
+    algorithmic choices. The checker validates the output; the internal
+    implementation can differ freely across languages.
+ 8. Confirm discovery and run a small test:
 
-   ```bash
-   npm run build:checker
-   npm run arena -- list benchmarks
-   npm run arena -- run --benchmark <benchmark-id> --size small
-   npm test
-   ```
+    ```bash
+    npm run build:checker
+    npm run arena -- list benchmarks
+    npm run arena -- run --benchmark <benchmark-id> --size small
+    npm test
+    ```
 
-All implementations must perform the same work and produce output accepted by
-the same checker. Do not include setup, compilation, or validation work in the
-timed workload.
+Each implementation must use the most idiomatic approach for its language while
+producing output accepted by the checker. Do not include setup, compilation, or
+validation work in the timed workload.
 
 ---
 
@@ -1177,8 +1182,9 @@ timed workload.
    --input <input-file> --output <output-file>
    ```
 
-7. Use optimized release builds, but preserve the exact workload and output
-   requirements used by the other languages.
+ 7. Use optimized release builds. Produce output that passes the checker —
+    the internal approach can differ from other language implementations.
+    Use the language's best idioms, data structures, and patterns.
 8. Verify the integration:
 
    ```bash
@@ -1207,8 +1213,9 @@ making the comparison unfair.
 - Run the checker first; an incorrect result is not an optimization.
 - Read the benchmark's `IMPLEMENTING.md` for exact output format, checksum
   rules, sort orders, and tolerance values.
-- Compare the algorithm, precision, input parsing, and produced output with the
-  other language implementations.
+- Verify the algorithm, precision, and produced output against the
+  `IMPLEMENTING.md` contract. Implementations may differ internally
+  across languages — what matters is the checker accepts the output.
 - Do not skip required work, hard-code dataset answers, cache results between
   runs, or move timed computation into setup.
 - Keep implementation-specific tuning idiomatic and document unusual choices.
@@ -1233,8 +1240,7 @@ npm run arena -- run --language <language-id> --benchmark <benchmark-id> --size 
 
 Compare multiple measured iterations, not a single run. Test before and after
 under the same machine conditions, confirm checker acceptance, and keep an
-optimization only when the improvement is repeatable and the workload remains
-equivalent.
+optimization only when the improvement is repeatable.
 
 ---
 

@@ -73,8 +73,10 @@ This runs:
 
 ## Conventions
 
-- Keep benchmark workloads equivalent across languages
+- Each implementation must produce the same output for the same input
+  (validated by the checker). Use each language's best idioms and data
+  structures internally — no need to mirror structure from other implementations.
 - Keep datasets deterministic (committed fixtures with SHA-256 hashes)
 - Do not manually edit generated result files (`results/current.json`)
 - The checker must be independent from the CLI (no shared code)
-- All implementations must accept `--input <file> --output <file>`
+- All implementations must accept `--input <file> --output <file> --timing-output <file> --warmup <n> --iterations <n>`

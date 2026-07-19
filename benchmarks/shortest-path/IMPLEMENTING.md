@@ -6,6 +6,11 @@ Weighted shortest-path queries on a directed graph with nonnegative integer
 edge weights. For each query, find the shortest distance and path from source
 to destination.
 
+**Design philosophy:** Implementations must produce output accepted by the
+checker. Use the language's best idioms, types, and data structures — do not
+copy code structure from the reference implementations. The checker is the
+source of truth for correctness.
+
 ## CLI Contract
 
 Your program must:

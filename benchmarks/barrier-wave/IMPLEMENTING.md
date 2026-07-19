@@ -1,5 +1,10 @@
 # Implementing Barrier Wave in a New Language
 
+**Design philosophy:** Implementations must produce output accepted by the
+checker. Use the language's best idioms, types, and data structures — do not
+copy code structure from other implementations. The checker is the source of
+truth for correctness.
+
 ## CLI contract
 
 The program accepts `--input <file>` and `--output <file>`, writes exactly one
