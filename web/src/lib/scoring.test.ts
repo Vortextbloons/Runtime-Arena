@@ -77,12 +77,26 @@ test('missing, incorrect, and incomplete results are unranked', () => {
 	}
 });
 
-test('overall uses an 80/10/10 speed, consistency, and flexibility split', () => {
+test('benchmark overall equals speed when stability is diagnostic only', () => {
 	const score = scoreBenchmark([result('only', 'small', 1_000_000, { deviation: 250_000 })], 'work')[0]!;
 	assert.equal(score.performance, 100);
 	assert.equal(score.consistency, 0);
 	assert.equal(score.versatility, null);
-	assert.equal(score.overall, 80);
+	assert.equal(score.overall, 100);
+});
+
+test('overall uses a 75/25 speed and flexibility split', () => {
+	const rows = [
+		result('lang', 'small', 4_000_000),
+		result('peer', 'small', 1_000_000),
+		{ ...result('lang', 'small', 1_000_000), benchmark: { id: 'other', version: 1, size: 'small' } },
+		{ ...result('peer', 'small', 4_000_000), benchmark: { id: 'other', version: 1, size: 'small' } }
+	];
+	const scores = scoreOverall(rows);
+	const lang = scores.find((score) => score.language.id === 'lang');
+	assert.equal(lang?.performance, 63.728031366);
+	assert.equal(lang?.versatility, 52.490095854);
+	assert.equal(lang?.overall, 60.918547488);
 });
 
 test('overall view uses a geometric mean across benchmarks', () => {
@@ -95,7 +109,7 @@ test('overall view uses a geometric mean across benchmarks', () => {
 	const scores = scoreOverall(rows);
 	assert.equal(scores[0]?.performance, 63.728031366);
 	assert.equal(scores[1]?.performance, 63.728031366);
-	assert.equal(scores[0]?.overall, 66.231434678);
+	assert.equal(scores[0]?.overall, 60.918547488);
 });
 
 test('overall still ranks a language that skips one benchmark', () => {
@@ -110,7 +124,7 @@ test('overall still ranks a language that skips one benchmark', () => {
 	const rust = scores.find((score) => score.language.id === 'rust');
 
 	assert.equal(lua?.eligible, true);
-	assert.equal(lua?.overall, 67.355228229);
+	assert.equal(lua?.overall, 63.728031366);
 	assert.deepEqual(
 		lua?.benchmarks?.map((entry) => entry.benchmarkId),
 		['work']

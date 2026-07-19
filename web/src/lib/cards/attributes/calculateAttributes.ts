@@ -6,6 +6,10 @@ import {
 	CORE_ATTRIBUTE_DEFINITIONS,
 	type AttributeDefinition
 } from './definitions.ts';
+import {
+	averageLogicalLinesForLanguage,
+	codeEconomyRaw
+} from '../../implementationLines.ts';
 import { average, normalizeScore } from '../util.ts';
 
 /** Per-benchmark scalability: (min size performance / max size performance) × 100. */
@@ -49,6 +53,14 @@ export function pressureProofRetention(
 	}
 	if (!retentions.length) return null;
 	return normalizeScore(average(retentions));
+}
+
+/** Relative score where higher raw values are better (best → 100). */
+export function relativeHigherIsBetter(value: number, field: number[]): number | null {
+	const positive = field.filter((entry) => Number.isFinite(entry) && entry > 0);
+	if (!positive.length || !Number.isFinite(value) || value <= 0) return null;
+	const best = Math.max(...positive);
+	return normalizeScore((value / best) * 100);
 }
 
 /** Relative score where lower raw values are better (best → 100). */
@@ -171,6 +183,7 @@ function attributeFromRating(
 
 export type AttributeContext = {
 	overall: BenchmarkScore;
+	overallScores: BenchmarkScore[];
 	/** Eligible benchmark scores for this language, keyed by benchmark id. */
 	benchmarkById: Record<string, BenchmarkScore | undefined>;
 	/** All language scores per benchmark (for cohort-derived metrics). */
@@ -183,11 +196,27 @@ export type AttributeContext = {
 		artifactBytes: Map<string, number>;
 		startupNanoseconds: Map<string, number>;
 		peakMemoryBytes: Map<string, number>;
+		averageImplementationLines: Map<string, number>;
 	};
 };
 
+export function cohortCodeEconomyValues(
+	overallScores: BenchmarkScore[],
+	averageImplementationLines: Map<string, number>
+): number[] {
+	const values: number[] = [];
+	for (const score of overallScores) {
+		if (!score.eligible || score.performance === null) continue;
+		const lines = averageImplementationLines.get(score.language.id);
+		if (lines === undefined) continue;
+		const raw = codeEconomyRaw(score.performance, lines);
+		if (raw !== null) values.push(raw);
+	}
+	return values;
+}
+
 export function calculateAttributes(ctx: AttributeContext): CardAttribute[] {
-	const { overall, benchmarkById, benchmarkScoresById, languageResults, cohortRaw } = ctx;
+	const { overall, overallScores, benchmarkById, benchmarkScoresById, languageResults, cohortRaw } = ctx;
 	const languageId = overall.language.id;
 	const scalabilityValues = Object.values(benchmarkById)
 		.map((score) => scalabilityFromSizes(score))
@@ -205,6 +234,12 @@ export function calculateAttributes(ctx: AttributeContext): CardAttribute[] {
 	const artifactBytes = cohortRaw.artifactBytes.get(languageId);
 	const startupNs = cohortRaw.startupNanoseconds.get(languageId);
 	const peakMemory = cohortRaw.peakMemoryBytes.get(languageId);
+	const averageLines = cohortRaw.averageImplementationLines.get(languageId);
+	const codeEconomyField = cohortCodeEconomyValues(overallScores, cohortRaw.averageImplementationLines);
+	const codeEconomy =
+		overall.eligible && overall.performance !== null && averageLines !== undefined
+			? codeEconomyRaw(overall.performance, averageLines)
+			: null;
 	const parallelScaling = parallelScalingScore(
 		languageResults.filter((result) => result.benchmark.id === BENCHMARK_ATTRIBUTE_IDS.parallelism)
 	);
@@ -303,6 +338,26 @@ export function calculateAttributes(ctx: AttributeContext): CardAttribute[] {
 						: parallelBenchmark?.eligible
 							? [`Benchmark ${BENCHMARK_ATTRIBUTE_IDS.parallelism}`]
 							: ['No parallel workload or scaling measurement']
+			},
+			'implementation-size': {
+				rating:
+					averageLines === undefined
+						? null
+						: relativeLowerIsBetter(averageLines, [...cohortRaw.averageImplementationLines.values()]),
+				evidence:
+					averageLines === undefined
+						? ['No implementation line count available']
+						: [`Average ${Math.round(averageLines)} logical lines per benchmark`],
+				extras: averageLines === undefined ? undefined : { rawValue: averageLines, unit: 'lines' }
+			},
+			'code-economy': {
+				rating:
+					codeEconomy === null ? null : relativeHigherIsBetter(codeEconomy, codeEconomyField),
+				evidence:
+					codeEconomy === null
+						? ['Code economy unavailable without eligible performance and line counts']
+						: [`${codeEconomy.toFixed(2)} performance points per 100 logical lines`],
+				extras: codeEconomy === null ? undefined : { rawValue: codeEconomy, unit: 'pts/100 lines' }
 			}
 		};
 
@@ -324,6 +379,7 @@ export function buildCohortRawMaps(results: ArenaResult[]): AttributeContext['co
 	const artifactBytes = new Map<string, number>();
 	const startupNanoseconds = new Map<string, number>();
 	const peakMemoryBytes = new Map<string, number>();
+	const averageImplementationLines = new Map<string, number>();
 
 	for (const [languageId, languageResults] of byLanguage) {
 		const build = representativeBuildDuration(languageResults);
@@ -334,9 +390,12 @@ export function buildCohortRawMaps(results: ArenaResult[]): AttributeContext['co
 		if (startup !== null) startupNanoseconds.set(languageId, startup);
 		const memory = representativePeakMemoryBytes(languageResults);
 		if (memory !== null) peakMemoryBytes.set(languageId, memory);
+		const benchmarkIds = [...new Set(languageResults.map((result) => result.benchmark.id))];
+		const lines = averageLogicalLinesForLanguage(languageId, benchmarkIds);
+		if (lines !== null) averageImplementationLines.set(languageId, lines);
 	}
 
-	return { buildDurations, artifactBytes, startupNanoseconds, peakMemoryBytes };
+	return { buildDurations, artifactBytes, startupNanoseconds, peakMemoryBytes, averageImplementationLines };
 }
 
 export function attributeMap(attributes: CardAttribute[]): Record<string, CardAttribute> {

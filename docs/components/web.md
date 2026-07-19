@@ -36,22 +36,28 @@ web/
 
 ## Scoring Algorithm
 
-The scoring system (`src/lib/scoring.ts`) computes a 0-100 weighted overall score from three components:
+The scoring system (`src/lib/scoring.ts`) computes a 0-100 weighted overall score from two measured components, then applies optional badge bonuses in `buildCardData.ts`:
 
-**Speed (80% weight)**
+**Speed (75% weight)**
 - Each eligible benchmark/size contributes `fastestMedian / thisMedian` as a 0-100 performance score.
 - Ratios are combined with a geometric mean across sizes and benchmarks.
 - A size tier is excluded for every language when its fastest valid median is below 1 ms.
 
-**Consistency (10% weight)**
-- Per size: `consistency = clampScore(100 − CV × 400)`, where CV is the coefficient of variation of kernel times.
-- Averaged across all eligible sizes within a benchmark.
+**Flexibility (25% weight)**
+- `versatility = 0.6 × min(benchmark performances) + 0.4 × average(benchmark performances)`, measuring breadth across completed workloads.
 
-**Scalability (10% weight)**
-- Per benchmark: `scalability = (minimumPerformance / maximumPerformance) × 100`, measuring how well performance holds up across small/medium/large sizes.
+**Stability (diagnostic)**
+- Per size: `consistency = clampScore(100 − CV × 400)`, where CV is the coefficient of variation of kernel times.
+- Shown on cards but not included in overall.
+
+**Badge bonuses**
+- Featured badges (up to three) add tier-based points: Bronze +0.5, Silver +1.0, Gold +1.5, Hall of Fame +2.0, Legend +2.5.
+- Total badge bonus is capped at +5 and can only raise overall, never lower it.
 
 **Overall**
-- `overall = 0.8 × geometric-mean speed + 0.1 × average consistency + 0.1 × average scalability`
+- `baseOverall = 0.75 × geometric-mean speed + 0.25 × flexibility`
+- `overall = min(100, baseOverall + badgeBonus)`
+- Per-benchmark card scores use speed only.
 - Correctness and complete sample counts remain strict eligibility gates **within** a benchmark.
 - Overall scores use the weighted formula across whatever benchmarks that language completed successfully. Skipping a workload (no cells in the snapshot) does not zero the overall card; coverage gaps are noted as diagnostics.
 

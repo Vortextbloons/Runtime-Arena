@@ -2,7 +2,7 @@
 	import { browser } from '$app/environment';
 	import BenchmarkChart from './BenchmarkChart.svelte';
 	import BenchmarkScorecard from './BenchmarkScorecard.svelte';
-	import { buildAllCardData, type LanguageCardData } from './cards';
+	import { applyBadgeBonusesToScores, buildAllCardData, type EarnedBadge, type LanguageCardData } from './cards';
 	import OverallCard from './OverallCard.svelte';
 	import OverallChart from './OverallChart.svelte';
 	import { scoreBenchmark, scoreOverall } from './scoring';
@@ -24,6 +24,7 @@
 
 	let view = $state<'chart' | 'scorecard'>('chart');
 	let expandedCard = $state<{ score: BenchmarkScore; card?: LanguageCardData } | null>(null);
+	let selectedBadgeId = $state<string | null>(null);
 	let overlayEl: HTMLDivElement | undefined = $state();
 
 	$effect(() => {
@@ -36,36 +37,91 @@
 		};
 	});
 
+	const expandedBadges = $derived(expandedCard?.card?.badges ?? []);
+	const selectedBadge = $derived.by(() => {
+		const badges = expandedBadges;
+		if (!badges.length) return null;
+		return badges.find((badge) => badge.badgeId === selectedBadgeId) ?? badges[0] ?? null;
+	});
+	const showExpandedDetails = $derived.by(() => {
+		const current = expandedCard;
+		if (!current) return false;
+		const hasDiagnostics = !current.score.eligible && current.score.diagnostics.length > 0;
+		const hasBenchmarks = Boolean(current.score.benchmarks?.length);
+		const hasBadges = Boolean(current.card?.badges.length);
+		return hasDiagnostics || hasBenchmarks || hasBadges;
+	});
+
 	function closeExpanded() {
 		expandedCard = null;
+		selectedBadgeId = null;
 	}
 
 	function openExpanded(score: BenchmarkScore, card?: LanguageCardData) {
 		expandedCard = { score, card };
+		selectedBadgeId = card?.featuredBadgeIds[0] ?? card?.badges[0]?.badgeId ?? null;
+	}
+
+	function badgeTierLabel(tier: string): string {
+		if (tier === 'hall-of-fame') return 'HOF';
+		return tier.replace(/-/g, ' ').toUpperCase();
+	}
+
+	function selectBadge(badge: EarnedBadge) {
+		selectedBadgeId = badge.badgeId;
 	}
 	const benchmarks = $derived([...new Set(run.results.map((result) => result.benchmark.id))].toSorted());
 	let selectedBenchmark = $derived(fixedBenchmark ?? 'overall');
 	const activeBenchmark = $derived(selectedBenchmark);
 	const benchmarkResults = $derived(run.results.filter((result) => result.benchmark.id === activeBenchmark));
-	const allScores = $derived(activeBenchmark === 'overall' ? scoreOverall(run.results) : scoreBenchmark(run.results, activeBenchmark));
+	const baseOverallScores = $derived(scoreOverall(run.results));
 	const languageCards = $derived(
 		activeBenchmark === 'overall'
 			? buildAllCardData({
 					snapshotId: run.snapshotId,
 					measuredAt: run.updatedAt,
 					results: run.results,
-					overallScores: allScores
+					overallScores: baseOverallScores
 				})
 			: []
+	);
+	const allScores = $derived(
+		activeBenchmark === 'overall'
+			? applyBadgeBonusesToScores(baseOverallScores, languageCards)
+			: scoreBenchmark(run.results, activeBenchmark)
 	);
 	const cardsByLanguage = $derived(new Map(languageCards.map((card) => [card.languageId, card])));
 	const visibleScores = $derived(fixedLanguage ? allScores.filter((score) => score.language.id === fixedLanguage) : allScores);
 	const profileScores = $derived(
 		fixedLanguage
-			? ['overall', ...benchmarks].map((benchmark) =>
-				(benchmark === 'overall' ? scoreOverall(run.results) : scoreBenchmark(run.results, benchmark))
-					.find((score) => score.language.id === fixedLanguage)
-			)
+			? ['overall', ...benchmarks].map((benchmark) => {
+				if (benchmark === 'overall') {
+					return baseOverallScores.find((score) => score.language.id === fixedLanguage);
+				}
+				return scoreBenchmark(run.results, benchmark).find((score) => score.language.id === fixedLanguage);
+			})
+			: []
+	);
+	const profileOverallCards = $derived(
+		fixedLanguage
+			? buildAllCardData({
+					snapshotId: run.snapshotId,
+					measuredAt: run.updatedAt,
+					results: run.results,
+					overallScores: baseOverallScores
+				})
+			: []
+	);
+	const profileDisplayScores = $derived(
+		fixedLanguage
+			? profileBenchmarks.map((benchmark, index) => {
+				const score = profileScores[index];
+				if (benchmark !== 'overall' || !score) return score;
+				const card = profileOverallCards.find((entry) => entry.languageId === fixedLanguage);
+				return card?.overall !== null && card?.overall !== undefined
+					? { ...score, overall: card.overall }
+					: score;
+			})
 			: []
 	);
 	const profileBenchmarks = $derived(['overall', ...benchmarks]);
@@ -97,7 +153,7 @@
 
 	{#if fixedLanguage}
 		<nav class="profile-strip" aria-label="Benchmark scores">
-			{#each profileScores as score, index (profileBenchmarks[index])}
+			{#each profileDisplayScores as score, index (profileBenchmarks[index])}
 				<button class:active={activeBenchmark === profileBenchmarks[index]} onclick={() => selectedBenchmark = profileBenchmarks[index]}>
 					<span>{profileBenchmarks[index]}</span>
 					<strong>{score?.overall === null || score?.overall === undefined ? '—' : Math.round(score.overall)}</strong>
@@ -131,7 +187,7 @@
 		<div>
 			<p>{view === 'chart' ? 'Measured comparison' : 'Weighted overall score'}</p>
 			<h2>{activeBenchmark === 'overall' ? 'Overall' : activeBenchmark.replace(/[-_]+/g, ' ')}</h2>
-			<p class="qualification">Snapshot rankings · 80% geometric-mean speed · 10% stability · 10% flexibility · skipped workloads noted</p>
+			<p class="qualification">Snapshot rankings · 75% geometric-mean speed · 25% flexibility · badge bonuses · skipped workloads noted</p>
 		</div>
 		<p>
 			{view === 'chart' && activeBenchmark === 'overall'
@@ -173,8 +229,46 @@
 		>
 			<div class="card-overlay-inner" role="group">
 				<OverallCard score={expandedCard.score} card={expandedCard.card} expanded />
-				{#if (!expandedCard.score.eligible && expandedCard.score.diagnostics.length) || (expandedCard.score.benchmarks && expandedCard.score.benchmarks.length)}
+				{#if showExpandedDetails}
 					<div class="expanded-details">
+						{#if expandedBadges.length && selectedBadge}
+							<section class="badge-dossier" aria-label="Badge collection">
+								<h3>Badge collection</h3>
+								<ul class="badge-dossier-list">
+									{#each expandedBadges as badge (badge.badgeId)}
+										<li>
+											<button
+												type="button"
+												class="badge-dossier-chip tier-{badge.tier}"
+												class:active={selectedBadge.badgeId === badge.badgeId}
+												onclick={() => selectBadge(badge)}
+												aria-pressed={selectedBadge.badgeId === badge.badgeId}
+											>
+												<span class="badge-dossier-name">{badge.name}</span>
+												<span class="badge-dossier-tier">{badgeTierLabel(badge.tier)}</span>
+											</button>
+										</li>
+									{/each}
+								</ul>
+								<div class="badge-dossier-detail">
+									<p class="badge-dossier-heading">
+										<strong>{selectedBadge.name}</strong>
+										<span class="badge-dossier-tier-label tier-{selectedBadge.tier}">
+											{badgeTierLabel(selectedBadge.tier)}
+										</span>
+									</p>
+									<p class="badge-dossier-reason">{selectedBadge.reason}</p>
+									{#if selectedBadge.nextTier}
+										<p class="badge-dossier-next">
+											<span>Next {badgeTierLabel(selectedBadge.nextTier.tier)}</span>
+											{selectedBadge.nextTier.requirements.join(' · ')}
+										</p>
+									{:else}
+										<p class="badge-dossier-maxed">Max tier reached</p>
+									{/if}
+								</div>
+							</section>
+						{/if}
 						{#if !expandedCard.score.eligible && expandedCard.score.diagnostics.length}
 							<section class="expanded-diagnostics">
 								<h3>{expandedCard.score.diagnostics.length === 1 ? 'UNVERIFIED · 1 issue' : `UNVERIFIED · ${expandedCard.score.diagnostics.length} issues`}</h3>
@@ -337,6 +431,118 @@
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
 		color: var(--muted);
+	}
+
+	.badge-dossier-list {
+		list-style: none;
+		margin: 0 0 1rem;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+		gap: 0.4rem;
+	}
+
+	.badge-dossier-chip {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		align-items: baseline;
+		gap: 0.35rem;
+		width: 100%;
+		padding: 0.45rem 0.55rem;
+		border: 1px solid var(--rule);
+		border-radius: 0.35rem;
+		background: color-mix(in srgb, var(--panel) 80%, #000);
+		color: var(--text);
+		cursor: pointer;
+		text-align: left;
+		font: 650 0.62rem var(--mono);
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	.badge-dossier-chip:hover {
+		border-color: color-mix(in srgb, var(--accent) 45%, var(--rule));
+	}
+
+	.badge-dossier-chip.active {
+		border-color: var(--accent);
+		background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+	}
+
+	.badge-dossier-name {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.badge-dossier-tier,
+	.badge-dossier-tier-label {
+		color: var(--muted);
+		white-space: nowrap;
+	}
+
+	.badge-dossier-chip.tier-legend .badge-dossier-tier,
+	.badge-dossier-tier-label.tier-legend { color: #c9a227; }
+	.badge-dossier-chip.tier-hall-of-fame .badge-dossier-tier,
+	.badge-dossier-tier-label.tier-hall-of-fame { color: #9b7bb8; }
+	.badge-dossier-chip.tier-gold .badge-dossier-tier,
+	.badge-dossier-tier-label.tier-gold { color: #b8860b; }
+	.badge-dossier-chip.tier-silver .badge-dossier-tier,
+	.badge-dossier-tier-label.tier-silver { color: #8a939c; }
+	.badge-dossier-chip.tier-bronze .badge-dossier-tier,
+	.badge-dossier-tier-label.tier-bronze { color: #a0673a; }
+
+	.badge-dossier-detail {
+		display: grid;
+		gap: 0.45rem;
+		padding: 0.85rem 0.95rem;
+		border: 1px solid var(--rule);
+		border-radius: 0.5rem;
+		background: color-mix(in srgb, var(--bg, #0b0d10) 35%, transparent);
+	}
+
+	.badge-dossier-heading {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.75rem;
+		margin: 0;
+		font: 650 0.78rem var(--body);
+	}
+
+	.badge-dossier-heading strong {
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	.badge-dossier-tier-label {
+		font: 700 0.62rem var(--mono);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.badge-dossier-reason,
+	.badge-dossier-next,
+	.badge-dossier-maxed {
+		margin: 0;
+		color: var(--muted);
+		font-size: 0.8rem;
+		line-height: 1.45;
+	}
+
+	.badge-dossier-next span {
+		display: block;
+		margin-bottom: 0.15rem;
+		color: var(--accent);
+		font: 650 0.62rem var(--mono);
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
+	.badge-dossier-maxed {
+		font: 650 0.62rem var(--mono);
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
 	}
 
 	.expanded-diagnostics h3 {

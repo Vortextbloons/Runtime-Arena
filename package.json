@@ -14,8 +14,9 @@
     "build:web": "npm run prepare-results && npm run build --workspace=@runtime-arena/web",
     "doctor": "npm run arena -- doctor",
     "dev": "npm run dev --workspace=@runtime-arena/web",
-    "prepare-results": "tsx scripts/prepare-results.ts",
-    "test": "npm run build:checker && npm run test --workspaces --if-present && node scripts/test-checker.mjs",
+    "count-loc": "node scripts/count-implementation-loc.mjs",
+    "prepare-results": "npm run count-loc && tsx scripts/prepare-results.ts",
+    "test": "npm run build:checker && npm run test --workspaces --if-present && node scripts/count-implementation-loc.test.mjs && node scripts/test-checker.mjs",
     "combine-docs": "node scripts/combine-docs.mjs"
   },
   "engines": {

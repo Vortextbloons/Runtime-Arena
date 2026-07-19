@@ -1,4 +1,4 @@
-export type TierLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type TierLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export type ScoreTier = {
 	/** Band label shown on the tier strip (e.g. DOMINANT). */
@@ -39,6 +39,28 @@ const LANGUAGE_MONOGRAMS: Record<string, string> = {
 
 export function getScoreTier(score: number | null): ScoreTier {
 	if (score === null) return UNRANKED;
+	if (score >= 100) {
+		return {
+			name: 'FLAWLESS',
+			sub: 'Dark Matter',
+			tag: 'DM',
+			class: 'dark-matter',
+			gradient: 'linear-gradient(135deg, #0a0612 0%, #1a0f3d 35%, #00d4ff 70%, #7b2fff 100%)',
+			glow: '#00e5ff',
+			tierLevel: 9
+		};
+	}
+	if (score >= 99) {
+		return {
+			name: 'TRANSCENDENT',
+			sub: 'Prismatic Opal',
+			tag: 'PO',
+			class: 'prismatic-opal',
+			gradient: 'linear-gradient(135deg, #ff6ec7 0%, #7afcff 35%, #ffe66d 65%, #b388ff 100%)',
+			glow: '#e8c4ff',
+			tierLevel: 8
+		};
+	}
 	if (score >= 95) {
 		return {
 			name: 'UNTOUCHABLE',

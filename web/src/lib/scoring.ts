@@ -2,7 +2,7 @@ import type { ArenaResult, BenchmarkScore, SizeScore } from './types';
 
 const SIZE_ORDER = ['small', 'medium', 'large'];
 export const MINIMUM_RANKED_MEDIAN_NANOSECONDS = 1_000_000;
-export const SCORE_WEIGHTS = { performance: 0.8, consistency: 0.1, versatility: 0.1 } as const;
+export const SCORE_WEIGHTS = { performance: 0.75, versatility: 0.25 } as const;
 
 const average = (values: number[]) => values.reduce((total, value) => total + value, 0) / values.length;
 const geometricMean = (values: number[]) =>
@@ -15,12 +15,8 @@ const clampScore = (value: number) => Math.max(0, Math.min(100, value));
 const normalizeScore = (value: number) => Math.round(clampScore(value) * 1e9) / 1e9;
 const performanceScore = (fastest: number, median: number) =>
 	Math.max(PERF_FLOOR, normalizeScore(100 * Math.pow(fastest / median, PERF_EXPONENT)));
-const weightedOverall = (performance: number, consistency: number, versatility: number) =>
-	normalizeScore(
-		performance * SCORE_WEIGHTS.performance +
-		consistency * SCORE_WEIGHTS.consistency +
-		versatility * SCORE_WEIGHTS.versatility
-	);
+const weightedOverall = (performance: number, versatility: number) =>
+	normalizeScore(performance * SCORE_WEIGHTS.performance + versatility * SCORE_WEIGHTS.versatility);
 
 export function formatDuration(nanoseconds: number): string {
 	if (nanoseconds < 1e6) return `${(nanoseconds / 1e3).toFixed(1)} µs`;
@@ -121,7 +117,7 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 			});
 			const performance = normalizeScore(geometricMean(sizes.map((size) => size.performance)));
 			const consistency = average(sizes.map((size) => size.consistency));
-			const overall = weightedOverall(performance, consistency, 0);
+			const overall = performance;
 
 			return {
 				benchmarkId,
@@ -188,7 +184,7 @@ export function scoreOverall(results: ArenaResult[]): BenchmarkScore[] {
 			const consistency = average(eligibleEntries.map((score) => score.consistency!));
 			const benchmarkPerformances = eligibleEntries.map((score) => score.performance!);
 			const versatility = normalizeScore(0.6 * Math.min(...benchmarkPerformances) + 0.4 * average(benchmarkPerformances));
-			const overall = weightedOverall(performance, consistency, versatility);
+			const overall = weightedOverall(performance, versatility);
 
 			return {
 				benchmarkId: 'overall',
@@ -217,9 +213,9 @@ export function scoreOverall(results: ArenaResult[]): BenchmarkScore[] {
 }
 
 export function scoreInterpretation(score: number): string {
-	if (score >= 90) return 'Strong overall performance across speed, stability, and flexibility.';
+	if (score >= 90) return 'Strong overall performance across speed and flexibility.';
 	if (score >= 75) return 'Competitive overall performance across the ranked workloads.';
-	if (score >= 60) return 'Solid results with room to improve speed, stability, or flexibility.';
+	if (score >= 60) return 'Solid results with room to improve speed or flexibility.';
 	return 'Overall results trail this cohort across the ranked workloads.';
 }
 

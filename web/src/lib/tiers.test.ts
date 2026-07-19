@@ -12,6 +12,10 @@ test('getScoreTier maps null to unverified tierLevel 0', () => {
 
 test('getScoreTier boundary thresholds inclusive and exclusive', () => {
 	const cases: Array<{ score: number; class: string; tierLevel: number }> = [
+		{ score: 100, class: 'dark-matter', tierLevel: 9 },
+		{ score: 99.5, class: 'prismatic-opal', tierLevel: 8 },
+		{ score: 99, class: 'prismatic-opal', tierLevel: 8 },
+		{ score: 98.9, class: 'galaxy-opal', tierLevel: 7 },
 		{ score: 94.9, class: 'pink-diamond', tierLevel: 6 },
 		{ score: 95, class: 'galaxy-opal', tierLevel: 7 },
 		{ score: 89.9, class: 'diamond', tierLevel: 5 },
@@ -24,8 +28,7 @@ test('getScoreTier boundary thresholds inclusive and exclusive', () => {
 		{ score: 60, class: 'ruby', tierLevel: 3 },
 		{ score: 44.9, class: 'emerald', tierLevel: 1 },
 		{ score: 45, class: 'sapphire', tierLevel: 2 },
-		{ score: 0, class: 'emerald', tierLevel: 1 },
-		{ score: 100, class: 'galaxy-opal', tierLevel: 7 }
+		{ score: 0, class: 'emerald', tierLevel: 1 }
 	];
 
 	for (const { score, class: expectedClass, tierLevel } of cases) {

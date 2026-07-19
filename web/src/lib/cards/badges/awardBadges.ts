@@ -107,6 +107,22 @@ function awardFromDefinition(
 				hasCategoryWin = false;
 			}
 		}
+		if (definition.legendRequiresLargestRaw) {
+			const rawValues = languageIds
+				.map((id) => {
+					const peer = attributeMap(languageAttributes.get(id) ?? [])[definition.source];
+					return peer?.available ? peer.rawValue : undefined;
+				})
+				.filter((value): value is number => typeof value === 'number' && value > 0);
+			const ownRaw = attribute.rawValue;
+			if (typeof ownRaw === 'number' && rawValues.length) {
+				const best = Math.max(...rawValues);
+				hasCategoryWin = ownRaw === best;
+				independentLegendEvidence = hasCategoryWin;
+			} else {
+				hasCategoryWin = false;
+			}
+		}
 	}
 
 	if (absoluteScore === null) return null;

@@ -14,6 +14,8 @@ export type BadgeSource =
 	| 'MEM'
 	| 'IO'
 	| 'PAR'
+	| 'LOC'
+	| 'ECO'
 	| 'pressure-proof';
 
 export type BadgeDefinition = {
@@ -27,6 +29,7 @@ export type BadgeDefinition = {
 	legendRequiresFirstOverall?: boolean;
 	legendRequiresFastestRaw?: boolean;
 	legendRequiresSmallestRaw?: boolean;
+	legendRequiresLargestRaw?: boolean;
 };
 
 /** Performance badges only — no participation / correctness trophies. */
@@ -135,10 +138,28 @@ export const V2_BADGE_DEFINITIONS: BadgeDefinition[] = [
 	}
 ];
 
+export const V25_BADGE_DEFINITIONS: BadgeDefinition[] = [
+	{
+		id: 'tight-code',
+		name: 'Tight Code',
+		category: 'physical',
+		source: 'LOC',
+		legendRequiresSmallestRaw: true
+	},
+	{
+		id: 'code-economy',
+		name: 'Code Economy',
+		category: 'execution',
+		source: 'ECO',
+		legendRequiresLargestRaw: true
+	}
+];
+
 export const ALL_BADGE_DEFINITIONS = [
 	...V1_BADGE_DEFINITIONS,
 	...V15_BADGE_DEFINITIONS,
-	...V2_BADGE_DEFINITIONS
+	...V2_BADGE_DEFINITIONS,
+	...V25_BADGE_DEFINITIONS
 ];
 
 export const HYBRID_RULES: Record<BadgeTier, BadgeTierRule> = Object.fromEntries(

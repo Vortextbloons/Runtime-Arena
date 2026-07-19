@@ -7,13 +7,13 @@ import {
 import { BENCHMARK_ATTRIBUTE_IDS } from './attributes/definitions.ts';
 import { generateBuildName } from './archetypes/buildNames.ts';
 import { awardBadges, selectFeaturedBadgeIds } from './badges/awardBadges.ts';
+import { applyFinalOverall, calculateBadgeBonus } from './badges/calculateBadgeBonus.ts';
 import {
 	displayClassifications,
 	getLanguageClassification
 } from './classifications.ts';
 import {
 	calculateDivisionRanks,
-	divisionLanguagesFromScores,
 	selectFeaturedDivisionRank
 } from './divisions/calculateDivisionRanks.ts';
 import {
@@ -114,6 +114,12 @@ export function buildCardDataForLanguage(options: {
 		},
 		attributesByLanguage
 	);
+	const featuredBadgeIds = selectFeaturedBadgeIds(badges);
+	const badgeBonus = calculateBadgeBonus(badges, featuredBadgeIds);
+	const finalOverall =
+		overall.eligible && overall.overall !== null
+			? applyFinalOverall(overall.overall, badgeBonus)
+			: null;
 	const divisionRanks = divisionRanksByLanguage.get(languageId) ?? [];
 	const primary = calculatePrimaryTakeover(attributes);
 	const secondary = calculateSecondaryTakeover(attributes, primary);
@@ -122,8 +128,8 @@ export function buildCardDataForLanguage(options: {
 	return {
 		languageId,
 		languageName: overall.language.name,
-		overall: overall.eligible ? overall.overall : null,
-		cardTier: cardTierFromOverall(overall.eligible ? overall.overall : null),
+		overall: finalOverall,
+		cardTier: cardTierFromOverall(finalOverall),
 		buildName: generateBuildName(classification, attributes),
 		classifications: {
 			executionModels: classification.executionModels,
@@ -133,7 +139,7 @@ export function buildCardDataForLanguage(options: {
 		displayClassifications: displayClassifications(classification),
 		attributes,
 		badges,
-		featuredBadgeIds: selectFeaturedBadgeIds(badges),
+		featuredBadgeIds,
 		takeover: {
 			primary,
 			...(secondary ? { secondary } : {})
@@ -178,6 +184,7 @@ export function buildAllCardData(options: BuildCardsOptions): LanguageCardData[]
 			languageId,
 			calculateAttributes({
 				overall,
+				overallScores,
 				benchmarkById,
 				benchmarkScoresById,
 				languageResults,
@@ -186,11 +193,7 @@ export function buildAllCardData(options: BuildCardsOptions): LanguageCardData[]
 		);
 	}
 
-	const divisionRanksByLanguage = calculateDivisionRanks(
-		divisionLanguagesFromScores(overallScores, getLanguageClassification)
-	);
-
-	return overallScores.map((overall) =>
+	const preliminaryCards = overallScores.map((overall) =>
 		buildCardDataForLanguage({
 			languageId: overall.language.id,
 			snapshotId: options.snapshotId,
@@ -199,7 +202,38 @@ export function buildAllCardData(options: BuildCardsOptions): LanguageCardData[]
 			benchmarkScoresById,
 			results: options.results,
 			attributesByLanguage,
-			divisionRanksByLanguage
+			divisionRanksByLanguage: new Map()
 		})
 	);
+
+	const divisionRanksByLanguage = calculateDivisionRanks(
+		preliminaryCards.map((card) => ({
+			languageId: card.languageId,
+			overall: card.overall,
+			classification: getLanguageClassification(card.languageId)
+		}))
+	);
+
+	return preliminaryCards.map((card) => ({
+		...card,
+		divisionRanks: divisionRanksByLanguage.get(card.languageId) ?? [],
+		featuredDivisionRank: selectFeaturedDivisionRank(divisionRanksByLanguage.get(card.languageId) ?? [])
+	}));
+}
+
+export function applyBadgeBonusesToScores(
+	baseScores: BenchmarkScore[],
+	cards: LanguageCardData[]
+): BenchmarkScore[] {
+	const overallByLanguage = new Map(cards.map((card) => [card.languageId, card.overall]));
+	return baseScores
+		.map((score) => {
+			const finalOverall = overallByLanguage.get(score.language.id);
+			if (!score.eligible || finalOverall === undefined || finalOverall === null) return score;
+			return { ...score, overall: finalOverall };
+		})
+		.toSorted((a, b) => {
+			if (a.eligible !== b.eligible) return a.eligible ? -1 : 1;
+			return (b.overall ?? -1) - (a.overall ?? -1) || a.language.name.localeCompare(b.language.name);
+		});
 }

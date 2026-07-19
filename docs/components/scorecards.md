@@ -17,8 +17,8 @@ Both modes call `getScoreTier(score.overall)`. Only `OverallCard` implements the
 
 | Card surface | Score field | Notes |
 |--------------|-------------|-------|
-| Large SPEED number (OVR) | `overall` | Weighted composite: 80% geometric-mean speed + 10% consistency + 10% flexibility (0–100). Displayed as a rounded integer; `null` → `—` |
-| SPEED / STABLE / FLEX meters | `performance`, `consistency`, `versatility` | Segmented 10-bar meters **plus** tabular numeric values beside each label |
+| Large SPEED number (OVR) | `overall` | Weighted composite: 75% geometric-mean speed + 25% flexibility, plus non-negative badge bonuses (capped at +5). Displayed as a rounded integer; `null` → `—` |
+| SPEED / STABLE / FLEX meters | `performance`, `consistency`, `versatility` | Segmented 10-bar meters **plus** tabular numeric values beside each label. STABLE is diagnostic only. |
 | Language name + monogram | `language.id` / `language.name` | Stable abbreviations (`RS`, `TS`, `PY`, `LJ`, `GO`, `C++`) via `languageMonogram` |
 | Footer runtime line | `language.id`, `language.version` | Version shows the first whitespace-delimited token |
 | Archetype / team label | `benchmarkId` | `formatBenchmarkLabel` → `ARENA` or id with `[-_]+` → spaces, uppercased |
@@ -34,6 +34,8 @@ Resolved by `getScoreTier(score: number | null)`:
 
 | `overall` | Band name | Gem (rarity) | Tag | `tierLevel` | CSS class |
 |-----------|-----------|--------------|-----|-------------|-----------|
+| 100 | FLAWLESS | Dark Matter | DM | 9 | `dark-matter` |
+| ≥ 99 | TRANSCENDENT | Prismatic Opal | PO | 8 | `prismatic-opal` |
 | ≥ 95 | UNTOUCHABLE | Galaxy Opal | GO | 7 | `galaxy-opal` |
 | ≥ 90 | INVINCIBLE | Pink Diamond | PD | 6 | `pink-diamond` |
 | ≥ 80 | DOMINANT | Diamond | DIA | 5 | `diamond` |
@@ -43,7 +45,7 @@ Resolved by `getScoreTier(score: number | null)`:
 | &lt; 45 | COMMON | Emerald | EME | 1 | `emerald` |
 | `null` | UNVERIFIED | No Rank | — | 0 | `unranked` |
 
-`tierLevel` (`0 | 1 | … | 7`) drives shimmer intensity and `high-tier` styling (`tierLevel >= 5`). Each tier sets `--tier-glow` and `--tier-gradient`.
+`tierLevel` (`0 | 1 | … | 9`) drives shimmer intensity and `high-tier` styling (`tierLevel >= 5`). Apex cards (`tierLevel >= 8`) get stronger foil shimmer. Each tier sets `--tier-glow` and `--tier-gradient`.
 
 ## Language Visual Identity
 
@@ -61,6 +63,7 @@ Languages do **not** have fixed brand colorways. Appearance is:
 - **Art stage**: Grid, floating code particles, monogram with halo.
 - **Motion**: Pointer tilt (±6°) and particle float — disabled under `prefers-reduced-motion: reduce`.
 - **High tier**: Stronger top wash when `tierLevel >= 5`.
+- **Badges**: Face shows up to three featured chips (name + tier) with hover tooltips. Expanded cards show the full earned set as a compact chip grid; qualification copy and next-tier requirements live in the overlay **Badge collection** dossier, not inline on the card.
 
 ## Dimensions
 
@@ -73,7 +76,7 @@ Languages do **not** have fixed brand colorways. Appearance is:
 
 Near rankings in `ResultsExplorer`, a small line clarifies scope:
 
-> Snapshot rankings · 80% geometric-mean speed · 10% consistency · 10% flexibility · skipped workloads noted
+> Snapshot rankings · 75% geometric-mean speed · 25% flexibility · badge bonuses · skipped workloads noted
 
 ## Data Model
 

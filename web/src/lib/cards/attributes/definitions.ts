@@ -82,6 +82,18 @@ export const EXTENDED_ATTRIBUTE_DEFINITIONS: AttributeDefinition[] = [
 		label: 'Parallelism',
 		abbreviation: 'PAR',
 		category: 'execution'
+	},
+	{
+		id: 'implementation-size',
+		label: 'Implementation Size',
+		abbreviation: 'LOC',
+		category: 'physical'
+	},
+	{
+		id: 'code-economy',
+		label: 'Code Economy',
+		abbreviation: 'ECO',
+		category: 'execution'
 	}
 ];
 

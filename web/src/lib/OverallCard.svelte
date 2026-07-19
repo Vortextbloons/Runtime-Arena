@@ -46,6 +46,7 @@
 	const overallDisplay = $derived(score.overall === null ? '—' : Math.round(score.overall));
 	const overallDigits = $derived(String(overallDisplay).padStart(2, '0').split(''));
 	const isHighTier = $derived(tierInfo.tierLevel >= 5);
+	const isApexTier = $derived(tierInfo.tierLevel >= 8);
 	const ovrCopy = $derived(score.overall === null ? '—' : String(Math.round(score.overall)));
 	const issueCount = $derived(score.diagnostics.length);
 	const issueLabel = $derived(
@@ -76,13 +77,29 @@
 	}
 
 	function badgeTierLabel(tier: string): string {
+		if (tier === 'hall-of-fame') return 'HOF';
 		return tier.replace(/-/g, ' ').toUpperCase();
+	}
+
+	function badgeTooltip(badge: {
+		name: string;
+		tier: string;
+		reason: string;
+		nextTier?: { tier: string; requirements: string[] };
+	}): string {
+		const lines = [`${badge.name} — ${badgeTierLabel(badge.tier)}`, badge.reason];
+		if (badge.nextTier) {
+			lines.push(
+				`Next ${badgeTierLabel(badge.nextTier.tier)}: ${badge.nextTier.requirements.join('; ')}`
+			);
+		}
+		return lines.join('\n');
 	}
 </script>
 
 <div
 	bind:this={cardEl}
-	class="card-2k tier-{tierInfo.class} {isHighTier ? 'high-tier' : ''}"
+	class="card-2k tier-{tierInfo.class} {isHighTier ? 'high-tier' : ''} {isApexTier ? 'apex-tier' : ''}"
 	class:expanded
 	class:card-v1={Boolean(card)}
 	onclick={expanded ? undefined : onexpand}
@@ -255,20 +272,15 @@
 			{/if}
 
 			{#if expandedBadges.length}
-				<ul class="badge-list" aria-label={expanded ? 'All badges' : 'Featured badges'}>
+				<ul
+					class="badge-chip-grid"
+					class:badge-chip-grid-expanded={expanded}
+					aria-label={expanded ? 'All badges' : 'Featured badges'}
+				>
 					{#each expandedBadges as badge (badge.badgeId)}
-						<li class="badge-row tier-{badge.tier}">
+						<li class="badge-chip tier-{badge.tier}" title={badgeTooltip(badge)}>
 							<span class="badge-name">{badge.name}</span>
 							<span class="badge-tier">{badgeTierLabel(badge.tier)}</span>
-							{#if expanded}
-								<p class="badge-reason">{badge.reason}</p>
-								{#if badge.nextTier}
-									<p class="badge-next">
-										Next {badgeTierLabel(badge.nextTier.tier)}:
-										{badge.nextTier.requirements.join('; ')}
-									</p>
-								{/if}
-							{/if}
 						</li>
 					{/each}
 				</ul>
@@ -543,12 +555,12 @@
 		background:
 			linear-gradient(
 				115deg,
-				transparent calc(30% - 12% * var(--tier-level) / 7),
-				color-mix(in srgb, var(--tier-glow) calc(8% + 5% * var(--tier-level) / 7), transparent) 50%,
-				transparent calc(70% + 12% * var(--tier-level) / 7)
+				transparent calc(30% - 12% * var(--tier-level) / 9),
+				color-mix(in srgb, var(--tier-glow) calc(8% + 5% * var(--tier-level) / 9), transparent) 50%,
+				transparent calc(70% + 12% * var(--tier-level) / 9)
 			);
 		mix-blend-mode: screen;
-		opacity: calc(0.25 + 0.55 * var(--tier-level) / 7);
+		opacity: calc(0.25 + 0.55 * var(--tier-level) / 9);
 		pointer-events: none;
 	}
 
@@ -569,6 +581,8 @@
 	}
 
 	/* --- Tier glow palette --- */
+	.dark-matter { --tier-glow: #00e5ff; }
+	.prismatic-opal { --tier-glow: #e8c4ff; }
 	.galaxy-opal { --tier-glow: #ff2bd6; }
 	.pink-diamond { --tier-glow: #ff5fa8; }
 	.diamond { --tier-glow: #5ce6ff; }
@@ -942,50 +956,50 @@
 		color: #fff;
 	}
 
-	.badge-list {
+	.badge-chip-grid {
 		list-style: none;
 		margin: 0 0.15rem 0.3rem;
 		padding: 0;
 		display: grid;
-		gap: 0.22rem;
+		gap: 0.2rem;
 	}
 
-	.badge-row {
+	.badge-chip-grid-expanded {
+		grid-template-columns: 1fr 1fr;
+		gap: 0.18rem;
+	}
+
+	.badge-chip {
 		display: grid;
 		grid-template-columns: 1fr auto;
-		gap: 0.1rem 0.5rem;
-		padding: 0.28rem 0.4rem;
+		align-items: baseline;
+		gap: 0.25rem;
+		padding: 0.22rem 0.35rem;
 		border: 1px solid color-mix(in srgb, var(--tier-glow) 30%, transparent);
 		background: rgba(0, 0, 0, 0.35);
-		font: 700 0.55rem var(--mono);
-		letter-spacing: 0.08em;
+		font: 700 0.5rem var(--mono);
+		letter-spacing: 0.06em;
 		text-transform: uppercase;
 		color: #fff;
+		min-width: 0;
+	}
+
+	.badge-chip .badge-name {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.badge-tier {
 		color: color-mix(in srgb, var(--tier-glow) 85%, #fff);
+		white-space: nowrap;
 	}
 
-	.badge-row.tier-legend .badge-tier { color: #f6e27a; }
-	.badge-row.tier-hall-of-fame .badge-tier { color: #d7b4ff; }
-	.badge-row.tier-gold .badge-tier { color: #f0c14b; }
-	.badge-row.tier-silver .badge-tier { color: #d0d7de; }
-	.badge-row.tier-bronze .badge-tier { color: #c48a5a; }
-
-	.badge-reason,
-	.badge-next {
-		grid-column: 1 / -1;
-		margin: 0;
-		font: 500 0.58rem / 1.35 var(--mono);
-		letter-spacing: 0.02em;
-		text-transform: none;
-		color: rgba(255, 255, 255, 0.72);
-	}
-
-	.badge-next {
-		color: color-mix(in srgb, var(--tier-glow) 70%, #fff);
-	}
+	.badge-chip.tier-legend .badge-tier { color: #f6e27a; }
+	.badge-chip.tier-hall-of-fame .badge-tier { color: #d7b4ff; }
+	.badge-chip.tier-gold .badge-tier { color: #f0c14b; }
+	.badge-chip.tier-silver .badge-tier { color: #d0d7de; }
+	.badge-chip.tier-bronze .badge-tier { color: #c48a5a; }
 
 	.division-rank {
 		margin: 0 0.2rem 0.35rem;
@@ -1227,6 +1241,23 @@
 		background:
 			radial-gradient(ellipse 80% 60% at 50% 4%, color-mix(in srgb, var(--tier-glow) 50%, transparent), transparent 65%),
 			linear-gradient(180deg, color-mix(in srgb, var(--tier-glow) 28%, #0a0e14) 0%, #060a10 60%, #03060a 100%);
+	}
+
+	.apex-tier .card-shimmer {
+		opacity: calc(0.45 + 0.45 * var(--tier-level) / 9);
+	}
+
+	.apex-tier.tier-dark-matter .card-frame {
+		background:
+			radial-gradient(ellipse 90% 70% at 50% 2%, color-mix(in srgb, var(--tier-glow) 62%, transparent), transparent 58%),
+			radial-gradient(ellipse 60% 40% at 80% 90%, color-mix(in srgb, #7b2fff 35%, transparent), transparent 70%),
+			linear-gradient(180deg, #120a24 0%, #060810 55%, #020408 100%);
+	}
+
+	.apex-tier.tier-prismatic-opal .card-frame {
+		background:
+			radial-gradient(ellipse 85% 65% at 50% 4%, color-mix(in srgb, var(--tier-glow) 58%, transparent), transparent 62%),
+			linear-gradient(180deg, color-mix(in srgb, #ff6ec7 18%, #0a0e14) 0%, #060a10 58%, #03060a 100%);
 	}
 
 	@media (max-width: 600px) {

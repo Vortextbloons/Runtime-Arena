@@ -6,7 +6,12 @@ import { calculateAttributes, scalabilityFromSizes } from './cards/attributes/ca
 import { generateBuildName } from './cards/archetypes/buildNames.ts';
 import { awardHybridBadge, hybridQualificationScore } from './cards/badges/calculateBadgeTier.ts';
 import { selectFeaturedBadgeIds } from './cards/badges/awardBadges.ts';
-import { buildAllCardData } from './cards/buildCardData.ts';
+import {
+	applyFinalOverall,
+	BADGE_BONUS_CAP,
+	calculateBadgeBonus
+} from './cards/badges/calculateBadgeBonus.ts';
+import { applyBadgeBonusesToScores, buildAllCardData } from './cards/buildCardData.ts';
 import { getLanguageClassification } from './cards/classifications.ts';
 import {
 	calculateDivisionRanks,
@@ -255,12 +260,13 @@ test('buildAllCardData is deterministic and wires face fields', () => {
 	assert.deepEqual(rust!.displayClassifications, ['Native', 'Systems']);
 	assert.equal(rust!.featuredBadgeIds.length <= 3, true);
 	assert.ok(rust!.takeover.primary);
-	assert.equal(rust!.attributes.length, 12);
+	assert.equal(rust!.attributes.length, 14);
 	assert.equal(rust!.attributes.filter((attribute) => attribute.id.startsWith('runtime') || ['consistency','scalability','compute','algorithms','data-processing'].includes(attribute.id)).length, 6);
 
 	const overall = scoreOverall(rows);
 	const attributes = calculateAttributes({
 		overall: overall.find((score) => score.language.id === 'rust')!,
+		overallScores: overall,
 		benchmarkById: {
 			nbody: scoreBenchmark(rows, 'nbody').find((score) => score.language.id === 'rust'),
 			'shortest-path': scoreBenchmark(rows, 'shortest-path').find((score) => score.language.id === 'rust'),
@@ -276,7 +282,8 @@ test('buildAllCardData is deterministic and wires face fields', () => {
 			buildDurations: new Map(),
 			artifactBytes: new Map(),
 			startupNanoseconds: new Map(),
-			peakMemoryBytes: new Map()
+			peakMemoryBytes: new Map(),
+			averageImplementationLines: new Map([['rust', 200], ['python', 120]])
 		}
 	});
 	assert.equal(attributes.find((attribute) => attribute.abbreviation === 'SPD')?.available, true);
@@ -319,6 +326,72 @@ test('featured badges prefer higher tiers and fill to three', () => {
 	]);
 	assert.equal(featured[0], 'steady-hands');
 	assert.equal(featured.length, 3);
+});
+
+test('badge bonus only increases overall and caps at five', () => {
+	const badges = [
+		{
+			badgeId: 'speedster',
+			name: 'Speedster',
+			tier: 'legend',
+			category: 'execution',
+			qualificationScore: 99,
+			reason: 'Legend'
+		},
+		{
+			badgeId: 'steady-hands',
+			name: 'Steady Hands',
+			tier: 'legend',
+			category: 'reliability',
+			qualificationScore: 98,
+			reason: 'Legend'
+		},
+		{
+			badgeId: 'pathfinder',
+			name: 'Pathfinder',
+			tier: 'legend',
+			category: 'control',
+			qualificationScore: 97,
+			reason: 'Legend'
+		}
+	] as const;
+
+	assert.equal(calculateBadgeBonus([...badges]), BADGE_BONUS_CAP);
+	assert.equal(applyFinalOverall(92, calculateBadgeBonus([...badges])), 97);
+	assert.equal(applyFinalOverall(98, calculateBadgeBonus([...badges])), 100);
+	assert.equal(calculateBadgeBonus([]), 0);
+});
+
+test('applyBadgeBonusesToScores re-sorts by final overall', () => {
+	const baseScores = scoreOverall([
+		...sizes('alpha', 'nbody', 1_000_000, 1_000_000, 1_000_000),
+		...sizes('alpha', 'shortest-path', 1_000_000, 1_000_000, 1_000_000),
+		...sizes('alpha', 'aggregation', 1_000_000, 1_000_000, 1_000_000),
+		...sizes('beta', 'nbody', 1_050_000, 1_050_000, 1_050_000),
+		...sizes('beta', 'shortest-path', 1_050_000, 1_050_000, 1_050_000),
+		...sizes('beta', 'aggregation', 1_050_000, 1_050_000, 1_050_000),
+		...sizes('gamma', 'nbody', 1_200_000, 1_200_000, 1_200_000),
+		...sizes('gamma', 'shortest-path', 1_200_000, 1_200_000, 1_200_000),
+		...sizes('gamma', 'aggregation', 1_200_000, 1_200_000, 1_200_000)
+	]);
+	const cards = buildAllCardData({ snapshotId: 'bonus-sort', results: [
+		...sizes('alpha', 'nbody', 1_000_000, 1_000_000, 1_000_000),
+		...sizes('alpha', 'shortest-path', 1_000_000, 1_000_000, 1_000_000),
+		...sizes('alpha', 'aggregation', 1_000_000, 1_000_000, 1_000_000),
+		...sizes('beta', 'nbody', 1_050_000, 1_050_000, 1_050_000),
+		...sizes('beta', 'shortest-path', 1_050_000, 1_050_000, 1_050_000),
+		...sizes('beta', 'aggregation', 1_050_000, 1_050_000, 1_050_000),
+		...sizes('gamma', 'nbody', 1_200_000, 1_200_000, 1_200_000),
+		...sizes('gamma', 'shortest-path', 1_200_000, 1_200_000, 1_200_000),
+		...sizes('gamma', 'aggregation', 1_200_000, 1_200_000, 1_200_000)
+	], overallScores: baseScores });
+	const adjusted = applyBadgeBonusesToScores(baseScores, cards);
+	const alpha = adjusted.find((score) => score.language.id === 'alpha');
+	const alphaCard = cards.find((card) => card.languageId === 'alpha');
+	assert.ok(alpha);
+	assert.ok(alphaCard);
+	assert.equal(alpha!.overall, alphaCard!.overall);
+	assert.ok((alpha!.overall ?? 0) >= (baseScores.find((score) => score.language.id === 'alpha')?.overall ?? 0));
 });
 
 test('incorrect languages do not earn performance badges from null attributes', () => {
@@ -461,4 +534,29 @@ test('unsupported V2 measurements stay unavailable and do not become zero', () =
 		assert.equal(attribute.available, false);
 		assert.equal(attribute.rating, null);
 	}
+});
+
+test('tight code and code economy attributes are available from implementation line counts', () => {
+	const rows = [
+		...sizes('rust', 'nbody', 1_000_000, 1_000_000, 1_000_000),
+		...sizes('rust', 'shortest-path', 1_000_000, 1_000_000, 1_000_000),
+		...sizes('rust', 'aggregation', 1_000_000, 1_000_000, 1_000_000),
+		...sizes('javascript', 'nbody', 1_200_000, 1_200_000, 1_200_000),
+		...sizes('javascript', 'shortest-path', 1_200_000, 1_200_000, 1_200_000),
+		...sizes('javascript', 'aggregation', 1_200_000, 1_200_000, 1_200_000),
+		...sizes('python', 'nbody', 2_000_000, 2_000_000, 2_000_000),
+		...sizes('python', 'shortest-path', 2_000_000, 2_000_000, 2_000_000),
+		...sizes('python', 'aggregation', 2_000_000, 2_000_000, 2_000_000)
+	];
+	const cards = buildAllCardData({ snapshotId: 'loc-badges', results: rows });
+	const javascript = cards.find((card) => card.languageId === 'javascript');
+	const python = cards.find((card) => card.languageId === 'python');
+	assert.ok(javascript);
+	assert.ok(python);
+	const jsLoc = javascript!.attributes.find((attribute) => attribute.abbreviation === 'LOC');
+	const pyEco = python!.attributes.find((attribute) => attribute.abbreviation === 'ECO');
+	assert.ok(jsLoc?.available);
+	assert.ok((jsLoc!.rating ?? 0) > 50);
+	assert.ok(javascript!.badges.some((badge) => badge.badgeId === 'tight-code'));
+	assert.ok(pyEco?.available);
 });

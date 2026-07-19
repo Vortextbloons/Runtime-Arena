@@ -305,6 +305,8 @@
 
 	article.unranked { opacity: 0.78; }
 
+	.dark-matter { --tier-glow: #00e5ff; }
+	.prismatic-opal { --tier-glow: #e8c4ff; }
 	.galaxy-opal { --tier-glow: #ff2bd6; }
 	.pink-diamond { --tier-glow: #ff5fa8; }
 	.diamond { --tier-glow: #5ce6ff; }
