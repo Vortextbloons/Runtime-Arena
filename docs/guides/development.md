@@ -9,6 +9,7 @@
 - Python >= 3.8 (for Python implementations)
 - LuaJIT (for Lua implementations)
 - g++ (with C++23 support, for C++ implementations)
+- Node.js (for JavaScript implementations, see workspace Node requirement)
 
 ## Setup
 

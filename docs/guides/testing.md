@@ -40,8 +40,8 @@ Unit tests in `checker/cmd/arena-checker/main_test.go` verify:
 - Deterministic nbody simulation produces consistent results
 - Alternate optimal shortest-paths are accepted
 - Aggregation correctness with known datasets
-- Barrier-wave reference output and rejection of malformed hex
-- Strict JSON rejection of unknown/duplicate fields
+- Barrier-wave reference output and rejection of malformed/uppercase hex
+- Strict JSON rejection of unknown fields and duplicate keys
 
 Run checker tests manually:
 

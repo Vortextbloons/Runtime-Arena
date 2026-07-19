@@ -1,6 +1,6 @@
 # Architecture Overview
 
-Runtime Arena is a cross-language benchmarking system that runs equivalent workloads in Rust, Go, TypeScript, Python, Lua (LuaJIT), and C++, validates their output, records metrics, and stores immutable JSON results.
+Runtime Arena is a cross-language benchmarking system that runs equivalent workloads in Rust, Go, TypeScript, Python, Lua (LuaJIT), C++, and JavaScript (Node.js), validates their output, records metrics, and stores immutable JSON results.
 
 ## System Components
 
@@ -24,7 +24,7 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 ## Execution Model
 
-**Persistent-worker mode**: Each (benchmark, size, language) cell runs in one process. The CLI passes `--warmup` and `--iterations`; the implementation discards warmup work and records only measured kernel samples via `--timing-output`. Full contract: [execution-model.md](execution-model.md).
+**Persistent-worker mode**: Each (benchmark, size, language) cell runs in one process. The CLI passes `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations`; the implementation discards warmup work and records only measured kernel samples via `--timing-output`. Full contract: [execution-model.md](execution-model.md).
 
 **Fingerprinting**: A SHA-256 hash of all source files, manifests, datasets, checker code, toolchain version, and compiler version determines if a cell is "current" or "stale". `arena run` only re-executes cells whose fingerprint has changed.
 

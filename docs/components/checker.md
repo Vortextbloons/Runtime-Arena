@@ -37,7 +37,7 @@ All validation currently lives in `main.go`. The `internal/` tree is reserved fo
 | 1 | `wrong-answer` | Output is incorrect |
 | 2 | `malformed-output` | Output doesn't match expected JSON structure |
 | 3 | `unsupported-version` | Output version not supported |
-| 4 | other | Checker error or unknown benchmark |
+| 4 | `checker-error` | Checker error or unknown benchmark |
 
 ## Benchmark Validation
 

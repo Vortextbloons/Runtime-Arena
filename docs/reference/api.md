@@ -144,4 +144,4 @@ The `results/current.json` snapshot contains:
 | 1 | `wrong-answer` | Output is incorrect |
 | 2 | `malformed-output` | Output doesn't match expected JSON structure |
 | 3 | `unsupported-version` | Output version not supported |
-| 4 | other | Checker error or unknown benchmark |
+| 4 | `checker-error` | Checker error or unknown benchmark |

@@ -56,4 +56,4 @@ cli/
 
 ## Local Caches
 
-Go builds set `GOCACHE` to `.arena/go-build-cache`. Run scratch directories live under `.arena/runs/<snapshotId>` and are deleted after a run unless `--preserve-temp` is set.
+Go builds set `GOCACHE` to `.arena/go-build-cache` (language builds) or `.arena/go-checker-cache` (checker compilation via `build-checker.mjs`). Go test runs use `.arena/go-test-cache`. Run scratch directories live under `.arena/runs/<snapshotId>` and are deleted after a run unless `--preserve-temp` is set.

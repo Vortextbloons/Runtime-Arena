@@ -42,7 +42,7 @@ Temp run directories live under `.arena/runs/` and are deleted after each run un
 
 ## Language Manifests (`languages/*.json`)
 
-Each language has a manifest defining detection, build, and run commands. The project ships six manifests: `cpp.json`, `go.json`, `lua.json`, `python.json`, `rust.json`, and `typescript.json`.
+Each language has a manifest defining detection, build, and run commands. The project ships seven manifests: `cpp.json`, `go.json`, `javascript.json`, `lua.json`, `python.json`, `rust.json`, and `typescript.json`.
 
 ```json
 {
@@ -70,6 +70,8 @@ Each language has a manifest defining detection, build, and run commands. The pr
   "sourceExtensions": [".rs"]
 }
 ```
+
+Note: Go's build manifest uses `".arena/{benchmarkId}"` as its artifact path to avoid polluting the implementation directory.
 
 **Template Variables:**
 - `{projectRoot}` — Repository root
@@ -120,4 +122,4 @@ Each benchmark has a manifest defining sizes, metrics, and limits.
 
 The CLI detects toolchains by running the commands defined in each language manifest's `detect` block (e.g., `rustc --version`, `go version`). It does not read toolchain-specific environment variables like `RUSTC` or `GOPATH`. No custom Runtime Arena environment variables are defined for users.
 
-Internally, Go builds set `GOCACHE` to `.arena/go-build-cache` under the repository root.
+Internally, Go language builds set `GOCACHE` to `.arena/go-build-cache`, checker compilation (via `build-checker.mjs`) uses `.arena/go-checker-cache`, and checker test runs (via `test-checker.mjs`) use `.arena/go-test-cache`.

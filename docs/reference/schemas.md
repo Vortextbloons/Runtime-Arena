@@ -67,7 +67,7 @@ Each result is required to contain:
 - `dataset` — id and sha256 are required; seed and generatorVersion are optional but present in practice
 - `language` — id, name, version; compilerVersion and compilerFlags are optional
 - `build` — status, durationNanoseconds, command; artifactSizeBytes is optional
-- `execution` — mode (always `"persistent-worker"`), measurementContractVersion (`"1.0.0"`), totalProcessDurationNanoseconds, warmupIterations, measuredIterations, samples, summary, metrics
+- `execution` — mode (always `"persistent-worker"`), measurementContractVersion (`"1.0.0"`), totalProcessDurationNanoseconds, warmupIterations, measuredIterations, samples, summary (includes `validSamples`, `rejectedSamples`, `medianKernelTimeNanoseconds`, `meanKernelTimeNanoseconds`, `minimumKernelTimeNanoseconds`, `maximumKernelTimeNanoseconds`, `standardDeviationKernelTimeNanoseconds`, `p95KernelTimeNanoseconds`, `interquartileRangeKernelTimeNanoseconds`), metrics
 - `checker` — language, version, status (enum: accepted / wrong-answer / malformed-output / unsupported-version / checker-error), diagnostics (optional)
 - `provenance` — fingerprint (sha256 hex), measurementContractVersion (`"1.0.0"`), measuredAt, machine (os, cpu, memoryBytes)
 

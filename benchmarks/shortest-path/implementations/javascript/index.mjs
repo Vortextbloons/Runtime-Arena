@@ -1,6 +1,102 @@
-import{readFile,writeFile}from"node:fs/promises";const arg=(n)=>process.argv[process.argv.indexOf(n)+1];
-const warmups=Number(arg("--warmup")),iterations=Number(arg("--iterations"));
-const g=JSON.parse(await readFile(arg("--input"),"utf8"));
-function kernel(){const adj=Array.from({length:g.vertexCount},()=>[]);for(const e of g.edges)adj[e.from].push(e);return g.queries.map(q=>{const d=Array(g.vertexCount).fill(Infinity),prev=new Int32Array(g.vertexCount).fill(-1);d[q.source]=0;const h=[[0,q.source]];while(h.length){const k=h[0],t=h.pop();if(h.length){h[0]=t;let i=0;for(;;){const l=2*i+1,r=2*i+2;let s=i;if(l<h.length&&h[l][0]<h[s][0])s=l;if(r<h.length&&h[r][0]<h[s][0])s=r;if(s===i)break;[h[i],h[s]]=[h[s],h[i]];i=s}}const[c,u]=k;if(c!==d[u])continue;for(const e of adj[u]){const n=c+e.weight;if(n<d[e.to]){d[e.to]=n;prev[e.to]=u;h.push([n,e.to]);let i=h.length-1;while(i>0){const p=i-1>>>1;if(h[p][0]<=h[i][0])break;[h[p],h[i]]=[h[i],h[p]];i=p}}}}if(d[q.destination]===Infinity)return{queryId:q.id,distance:null,path:[]};const path=[];for(let x=q.destination;x>=0;x=prev[x])path.push(x);path.reverse();return{queryId:q.id,distance:d[q.destination],path}})}
-let results;const samples=[];for(let i=-warmups;i<iterations;i++){const start=process.hrtime.bigint();results=kernel();const elapsed=process.hrtime.bigint()-start;if(i>=0)samples.push({iteration:i+1,kernelTimeNanoseconds:Number(elapsed)})}
-await writeFile(arg("--output"),JSON.stringify({benchmark:"shortest-path",version:1,results}));await writeFile(arg("--timing-output"),JSON.stringify({samples}));
+import { readFile, writeFile } from "node:fs/promises";
+
+const arg = (n) => process.argv[process.argv.indexOf(n) + 1];
+const warmups = Number(arg("--warmup"));
+const iterations = Number(arg("--iterations"));
+const g = JSON.parse(await readFile(arg("--input"), "utf8"));
+
+const vertexCount = g.vertexCount;
+
+// Build adjacency list once
+const adj = Array.from({ length: vertexCount }, () => []);
+for (const e of g.edges) adj[e.from].push(e);
+
+// Pre-allocate reusable arrays
+const dist = new Float64Array(vertexCount);
+const prev = new Int32Array(vertexCount);
+const heapCost = new Float64Array(vertexCount);
+const heapNode = new Int32Array(vertexCount);
+let heapLen = 0;
+
+function kernel() {
+  const results = [];
+  for (const q of g.queries) {
+    dist.fill(Infinity);
+    prev.fill(-1);
+    dist[q.source] = 0;
+
+    // Heap push source
+    heapLen = 1;
+    heapCost[0] = 0;
+    heapNode[0] = q.source;
+
+    while (heapLen > 0) {
+      // Pop min element
+      const cost = heapCost[0];
+      const u = heapNode[0];
+      heapLen--;
+      if (heapLen > 0) {
+        heapCost[0] = heapCost[heapLen];
+        heapNode[0] = heapNode[heapLen];
+        // Sift down
+        let i = 0;
+        for (;;) {
+          const l = 2 * i + 1;
+          const r = 2 * i + 2;
+          let s = i;
+          if (l < heapLen && heapCost[l] < heapCost[s]) s = l;
+          if (r < heapLen && heapCost[r] < heapCost[s]) s = r;
+          if (s === i) break;
+          let tmp = heapCost[i]; heapCost[i] = heapCost[s]; heapCost[s] = tmp;
+          tmp = heapNode[i]; heapNode[i] = heapNode[s]; heapNode[s] = tmp;
+          i = s;
+        }
+      }
+
+      if (cost !== dist[u]) continue;
+
+      for (const e of adj[u]) {
+        const next = cost + e.weight;
+        if (next < dist[e.to]) {
+          dist[e.to] = next;
+          prev[e.to] = u;
+          // Heap push
+          let i = heapLen;
+          heapLen++;
+          heapCost[i] = next;
+          heapNode[i] = e.to;
+          // Sift up
+          while (i > 0) {
+            const p = (i - 1) >>> 1;
+            if (heapCost[p] <= heapCost[i]) break;
+            let tmp = heapCost[p]; heapCost[p] = heapCost[i]; heapCost[i] = tmp;
+            tmp = heapNode[p]; heapNode[p] = heapNode[i]; heapNode[i] = tmp;
+            i = p;
+          }
+        }
+      }
+    }
+
+    if (dist[q.destination] === Infinity) {
+      results.push({ queryId: q.id, distance: null, path: [] });
+    } else {
+      const path = [];
+      for (let x = q.destination; x !== -1; x = prev[x]) path.push(x);
+      path.reverse();
+      results.push({ queryId: q.id, distance: dist[q.destination], path });
+    }
+  }
+  return results;
+}
+
+let results;
+const samples = [];
+for (let i = -warmups; i < iterations; i++) {
+  const start = process.hrtime.bigint();
+  results = kernel();
+  const elapsed = process.hrtime.bigint() - start;
+  if (i >= 0) samples.push({ iteration: i + 1, kernelTimeNanoseconds: Number(elapsed) });
+}
+
+await writeFile(arg("--output"), JSON.stringify({ benchmark: "shortest-path", version: 1, results }));
+await writeFile(arg("--timing-output"), JSON.stringify({ samples }));

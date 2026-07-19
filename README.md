@@ -6,9 +6,9 @@ Extensible cross-language benchmarking system for comparing programming language
 
 ## Status
 
-The command-line benchmark workflow is implemented for Rust, Go, TypeScript, Python, LuaJIT, and C++ across **nbody**, **shortest-path**, **aggregation**, and **barrier-wave**. It includes deterministic datasets, independent Go validation, result-schema validation, terminal rankings, and one incrementally maintained canonical result snapshot.
+The command-line benchmark workflow is implemented for Rust, Go, TypeScript, Python, LuaJIT, C++, and JavaScript across **nbody**, **shortest-path**, **aggregation**, and **barrier-wave**. It includes deterministic datasets, independent Go validation, result-schema validation, terminal rankings, and one incrementally maintained canonical result snapshot.
 
-**Barrier Wave** is an additional workload with committed datasets and checker support; C++ is implemented, and language implementations for the remaining languages are in progress and not yet part of the full six-language matrix.
+**Barrier Wave** is an additional workload with committed datasets and checker support; it is implemented in 6 languages (all except LuaJIT).
 
 The SvelteKit web interface remains optional scaffolding and is not required for benchmark execution.
 
@@ -24,8 +24,8 @@ runtime-arena/
 │   ├── nbody/
 │   ├── shortest-path/
 │   ├── aggregation/
-│   └── barrier-wave/          # Committed workload; C++ implemented, others WIP
-├── languages/                 Language manifests (rust, go, typescript, python, lua, cpp)
+│   └── barrier-wave/          # 6/7 languages implemented
+├── languages/                 Language manifests (rust, go, typescript, python, lua, cpp, javascript)
 ├── schemas/                   JSON Schema for manifests and results
 ├── results/                   Canonical benchmark result snapshot
 ├── web/                       Optional SvelteKit results UI
@@ -46,6 +46,7 @@ Aligned to the local toolchain used for development:
 | Python | ≥ 3.8 | Python benchmarks |
 | LuaJIT | — | Lua benchmarks |
 | g++ (C++23) | — | C++ implementations |
+| Node.js | ≥ 26.4 | JavaScript benchmarks |
 
 ## Setup
 
@@ -115,7 +116,7 @@ cd checker && go test ./...
 
 ## Extending
 
-**Language:** add `languages/<id>.json` and an implementation under each benchmark.
+**Language:** add `languages/<id>.json` and an implementation under each benchmark. A JavaScript manifest (`javascript.json`) is already present — implementations use `.mjs` sources.
 
 **Benchmark:** add `benchmarks/<id>/benchmark.json`, datasets/generator, checker task, and language implementations.
 

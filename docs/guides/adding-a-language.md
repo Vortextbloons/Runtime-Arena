@@ -6,7 +6,8 @@
 3. Ensure the manifest matches `schemas/language.schema.json`.
 4. Add `benchmarks/<benchmark-id>/implementations/<language-id>/` for every
    supported benchmark you intend to ship (nbody, shortest-path, aggregation,
-   and barrier-wave).
+   barrier-wave). Note that JavaScript (Node.js) implementations use the `javascript`
+   language ID and `.mjs` source extension.
 5. Read each benchmark's `IMPLEMENTING.md` for the exact implementation
    contract — input/output formats, algorithm requirements, checksum rules,
    and checker gotchas:
@@ -35,7 +36,8 @@
 8. For barrier-wave, use real parallel workers with stable IDs and a
    dedicated inbox per worker (shared work queues allow steal races). Rust
    uses native threads, Go uses goroutines with `GOMAXPROCS >= workerCount`,
-   TypeScript uses `worker_threads`, Python uses multiprocessing, and C++ uses std::thread. Mark
+   TypeScript uses `worker_threads`, Python uses multiprocessing, JavaScript
+   uses `worker_threads`, and C++ uses std::thread. Mark
    LuaJIT unavailable unless real native threads or processes are used.
 9. Verify the integration:
 

@@ -1,6 +1,6 @@
 # Runtime Arena — Complete Documentation
 > Auto-generated from docs/INDEX.md by scripts/combine-docs.mjs
-> Generated: 2026-07-19T07:24:19.941Z
+> Generated: 2026-07-19T08:05:32.535Z
 > Total files: 20
 
 ## Table of Contents
@@ -34,7 +34,7 @@
 
 # Architecture Overview
 
-Runtime Arena is a cross-language benchmarking system that runs equivalent workloads in Rust, Go, TypeScript, Python, Lua (LuaJIT), and C++, validates their output, records metrics, and stores immutable JSON results.
+Runtime Arena is a cross-language benchmarking system that runs equivalent workloads in Rust, Go, TypeScript, Python, Lua (LuaJIT), C++, and JavaScript (Node.js), validates their output, records metrics, and stores immutable JSON results.
 
 ## System Components
 
@@ -58,7 +58,7 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 ## Execution Model
 
-**Persistent-worker mode**: Each (benchmark, size, language) cell runs in one process. The CLI passes `--warmup` and `--iterations`; the implementation discards warmup work and records only measured kernel samples via `--timing-output`. Full contract: [execution-model.md](execution-model.md).
+**Persistent-worker mode**: Each (benchmark, size, language) cell runs in one process. The CLI passes `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations`; the implementation discards warmup work and records only measured kernel samples via `--timing-output`. Full contract: [execution-model.md](execution-model.md).
 
 **Fingerprinting**: A SHA-256 hash of all source files, manifests, datasets, checker code, toolchain version, and compiler version determines if a cell is "current" or "stale". `arena run` only re-executes cells whose fingerprint has changed.
 
@@ -222,26 +222,26 @@ Source: `cli/src/index.ts` with modules for `metrics.ts` and `timing.ts`. Detail
 
 ## Checker (`checker/`)
 
-Independent Go program that validates benchmark output correctness. Re-implements the same algorithms as implementations to ensure no shared code masks bugs. Exit codes: 0=accepted, 1=wrong-answer, 2=malformed-output, 3=unsupported-version, 4=other.
+Independent Go program that validates benchmark output correctness. Re-implements the same algorithms as implementations to ensure no shared code masks bugs. Exit codes: 0=accepted, 1=wrong-answer, 2=malformed-output, 3=unsupported-version, 4=checker-error.
 
 Source: `checker/cmd/arena-checker/main.go`. Details: [checker.md](checker.md).
 
 ## Benchmarks (`benchmarks/`)
 
-Four workloads under `benchmarks/<id>/`. nbody, shortest-path, and aggregation are fully implemented in all six languages. barrier-wave has Rust, Go, TypeScript, Python, and C++ implementations (LuaJIT excluded).
+Four workloads under `benchmarks/<id>/`. nbody, shortest-path, and aggregation are fully implemented in all seven languages. barrier-wave has implementations in Rust, Go, TypeScript, Python, JavaScript, and C++ (LuaJIT excluded).
 
 | Benchmark | Workload | Key Metrics | Status |
 |---|---|---|---|
 | **nbody** | Gravitational N-body simulation | Numeric computation, tight loops | Complete |
 | **shortest-path** | Weighted directed graph shortest-path | Priority queues, memory access | Complete |
 | **aggregation** | CSV transaction record aggregation | Parsing, hash maps, sorting | Complete |
-| **barrier-wave** | Parallel phases with barriers | Fan-out/fan-in, synchronization | C++ complete; LuaJIT excluded |
+| **barrier-wave** | Parallel phases with barriers | Fan-out/fan-in, synchronization | 6/7 languages complete; LuaJIT excluded |
 
 Each has `small`, `medium`, and `large` datasets with per-size warmup/iteration counts in `benchmark.json`. Full reference: [benchmarks.md](../reference/benchmarks.md).
 
 ## Languages (`languages/`)
 
-JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `typescript.json`, `python.json`, `lua.json`, `cpp.json`. Run argument templates must include `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations` (persistent-worker contract).
+JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `typescript.json`, `python.json`, `lua.json`, `cpp.json`, and `javascript.json`. Run argument templates must include `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations` (persistent-worker contract).
 
 Detect/build/run commands may use machine-local absolute paths (the LuaJIT manifest often does on Windows). Prefer portable commands when possible; absolute paths are valid when the toolchain is not on `PATH`.
 
@@ -324,7 +324,7 @@ cli/
 
 ## Local Caches
 
-Go builds set `GOCACHE` to `.arena/go-build-cache`. Run scratch directories live under `.arena/runs/<snapshotId>` and are deleted after a run unless `--preserve-temp` is set.
+Go builds set `GOCACHE` to `.arena/go-build-cache` (language builds) or `.arena/go-checker-cache` (checker compilation via `build-checker.mjs`). Go test runs use `.arena/go-test-cache`. Run scratch directories live under `.arena/runs/<snapshotId>` and are deleted after a run unless `--preserve-temp` is set.
 
 ---
 
@@ -371,7 +371,7 @@ All validation currently lives in `main.go`. The `internal/` tree is reserved fo
 | 1 | `wrong-answer` | Output is incorrect |
 | 2 | `malformed-output` | Output doesn't match expected JSON structure |
 | 3 | `unsupported-version` | Output version not supported |
-| 4 | other | Checker error or unknown benchmark |
+| 4 | `checker-error` | Checker error or unknown benchmark |
 
 ## Benchmark Validation
 
@@ -758,7 +758,7 @@ The `results/current.json` snapshot contains:
 | 1 | `wrong-answer` | Output is incorrect |
 | 2 | `malformed-output` | Output doesn't match expected JSON structure |
 | 3 | `unsupported-version` | Output version not supported |
-| 4 | other | Checker error or unknown benchmark |
+| 4 | `checker-error` | Checker error or unknown benchmark |
 
 ---
 
@@ -810,7 +810,7 @@ Temp run directories live under `.arena/runs/` and are deleted after each run un
 
 ## Language Manifests (`languages/*.json`)
 
-Each language has a manifest defining detection, build, and run commands. The project ships six manifests: `cpp.json`, `go.json`, `lua.json`, `python.json`, `rust.json`, and `typescript.json`.
+Each language has a manifest defining detection, build, and run commands. The project ships seven manifests: `cpp.json`, `go.json`, `javascript.json`, `lua.json`, `python.json`, `rust.json`, and `typescript.json`.
 
 ```json
 {
@@ -838,6 +838,8 @@ Each language has a manifest defining detection, build, and run commands. The pr
   "sourceExtensions": [".rs"]
 }
 ```
+
+Note: Go's build manifest uses `".arena/{benchmarkId}"` as its artifact path to avoid polluting the implementation directory.
 
 **Template Variables:**
 - `{projectRoot}` — Repository root
@@ -888,7 +890,7 @@ Each benchmark has a manifest defining sizes, metrics, and limits.
 
 The CLI detects toolchains by running the commands defined in each language manifest's `detect` block (e.g., `rustc --version`, `go version`). It does not read toolchain-specific environment variables like `RUSTC` or `GOPATH`. No custom Runtime Arena environment variables are defined for users.
 
-Internally, Go builds set `GOCACHE` to `.arena/go-build-cache` under the repository root.
+Internally, Go language builds set `GOCACHE` to `.arena/go-build-cache`, checker compilation (via `build-checker.mjs`) uses `.arena/go-checker-cache`, and checker test runs (via `test-checker.mjs`) use `.arena/go-test-cache`.
 
 ---
 
@@ -965,7 +967,7 @@ Each result is required to contain:
 - `dataset` — id and sha256 are required; seed and generatorVersion are optional but present in practice
 - `language` — id, name, version; compilerVersion and compilerFlags are optional
 - `build` — status, durationNanoseconds, command; artifactSizeBytes is optional
-- `execution` — mode (always `"persistent-worker"`), measurementContractVersion (`"1.0.0"`), totalProcessDurationNanoseconds, warmupIterations, measuredIterations, samples, summary, metrics
+- `execution` — mode (always `"persistent-worker"`), measurementContractVersion (`"1.0.0"`), totalProcessDurationNanoseconds, warmupIterations, measuredIterations, samples, summary (includes `validSamples`, `rejectedSamples`, `medianKernelTimeNanoseconds`, `meanKernelTimeNanoseconds`, `minimumKernelTimeNanoseconds`, `maximumKernelTimeNanoseconds`, `standardDeviationKernelTimeNanoseconds`, `p95KernelTimeNanoseconds`, `interquartileRangeKernelTimeNanoseconds`), metrics
 - `checker` — language, version, status (enum: accepted / wrong-answer / malformed-output / unsupported-version / checker-error), diagnostics (optional)
 - `provenance` — fingerprint (sha256 hex), measurementContractVersion (`"1.0.0"`), measuredAt, machine (os, cpu, memoryBytes)
 
@@ -981,14 +983,14 @@ Base output shape for implementations. Uses conditional validation based on the 
 
 # Benchmarks Reference
 
-Runtime Arena currently defines four benchmark workloads. Three are fully implemented across all six supported languages (Rust, Go, TypeScript, Python, LuaJIT, C++). **Barrier Wave** is implemented in five languages (all except LuaJIT); datasets and checker support are ready.
+Runtime Arena currently defines four benchmark workloads. Three are fully implemented across all seven supported languages (Rust, Go, TypeScript, Python, LuaJIT, C++, JavaScript). **Barrier Wave** is implemented in six languages (all except LuaJIT); datasets and checker support are ready.
 
 | Benchmark | Status | Stresses |
 |-----------|--------|----------|
-| `nbody` | Complete (6 languages) | Numeric computation, tight loops |
-| `shortest-path` | Complete (6 languages) | Priority queues, graph traversal |
-| `aggregation` | Complete (6 languages) | Hash map aggregation, sorting, checksum |
-| `barrier-wave` | 5 languages implemented (LuaJIT pending) | Structured parallel concurrency, barriers |
+| `nbody` | Complete (7 languages) | Numeric computation, tight loops |
+| `shortest-path` | Complete (7 languages) | Priority queues, graph traversal |
+| `aggregation` | Complete (7 languages) | Hash map aggregation, sorting, checksum |
+| `barrier-wave` | 6 languages implemented (LuaJIT pending) | Structured parallel concurrency, barriers |
 
 Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md`.
 
@@ -1041,7 +1043,7 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 **Status notes:**
 - Checker task `barrier-wave` is implemented and tested.
 - Datasets are committed fixtures. `arena dataset generate --benchmark barrier-wave` works with the same `--size` and `--seed` flags as other benchmarks.
-- Five of six languages are implemented: Rust, Go, TypeScript, Python, and C++. LuaJIT is excluded (no native threading). See the tree under `benchmarks/barrier-wave/implementations/`.
+- Six of seven languages are implemented: Rust, Go, TypeScript, Python, JavaScript, and C++. LuaJIT is excluded (no native threading). See the tree under `benchmarks/barrier-wave/implementations/`.
 - `schemas/implementation-output.schema.json` does not yet include a barrier-wave branch; correctness is enforced by the Go checker.
 
 ## Dataset Sizes
@@ -1077,6 +1079,7 @@ See [guides/adding-a-benchmark.md](../guides/adding-a-benchmark.md). Register a 
 - Python >= 3.8 (for Python implementations)
 - LuaJIT (for Lua implementations)
 - g++ (with C++23 support, for C++ implementations)
+- Node.js (for JavaScript implementations, see workspace Node requirement)
 
 ## Setup
 
@@ -1381,8 +1384,8 @@ Unit tests in `checker/cmd/arena-checker/main_test.go` verify:
 - Deterministic nbody simulation produces consistent results
 - Alternate optimal shortest-paths are accepted
 - Aggregation correctness with known datasets
-- Barrier-wave reference output and rejection of malformed hex
-- Strict JSON rejection of unknown/duplicate fields
+- Barrier-wave reference output and rejection of malformed/uppercase hex
+- Strict JSON rejection of unknown fields and duplicate keys
 
 Run checker tests manually:
 
@@ -1541,7 +1544,8 @@ validation work in the timed workload.
 3. Ensure the manifest matches `schemas/language.schema.json`.
 4. Add `benchmarks/<benchmark-id>/implementations/<language-id>/` for every
    supported benchmark you intend to ship (nbody, shortest-path, aggregation,
-   and barrier-wave).
+   barrier-wave). Note that JavaScript (Node.js) implementations use the `javascript`
+   language ID and `.mjs` source extension.
 5. Read each benchmark's `IMPLEMENTING.md` for the exact implementation
    contract — input/output formats, algorithm requirements, checksum rules,
    and checker gotchas:
@@ -1570,7 +1574,8 @@ validation work in the timed workload.
 8. For barrier-wave, use real parallel workers with stable IDs and a
    dedicated inbox per worker (shared work queues allow steal races). Rust
    uses native threads, Go uses goroutines with `GOMAXPROCS >= workerCount`,
-   TypeScript uses `worker_threads`, Python uses multiprocessing, and C++ uses std::thread. Mark
+   TypeScript uses `worker_threads`, Python uses multiprocessing, JavaScript
+   uses `worker_threads`, and C++ uses std::thread. Mark
    LuaJIT unavailable unless real native threads or processes are used.
 9. Verify the integration:
 
@@ -1726,6 +1731,8 @@ Successful generation writes metadata with `generatorVersion` `"2.0.0"`. Dataset
 
 - `.arena/runs/<snapshotId>/` — per-run scratch (deleted unless `--preserve-temp`)
 - `.arena/go-build-cache/` — Go `GOCACHE` for language builds
+- `.arena/go-checker-cache/` — Go `GOCACHE` for checker compilation
+- `.arena/go-test-cache/` — Go `GOCACHE` for checker tests
 
 ## Rebuilding the Checker
 

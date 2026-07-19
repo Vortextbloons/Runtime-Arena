@@ -10,26 +10,26 @@ Source: `cli/src/index.ts` with modules for `metrics.ts` and `timing.ts`. Detail
 
 ## Checker (`checker/`)
 
-Independent Go program that validates benchmark output correctness. Re-implements the same algorithms as implementations to ensure no shared code masks bugs. Exit codes: 0=accepted, 1=wrong-answer, 2=malformed-output, 3=unsupported-version, 4=other.
+Independent Go program that validates benchmark output correctness. Re-implements the same algorithms as implementations to ensure no shared code masks bugs. Exit codes: 0=accepted, 1=wrong-answer, 2=malformed-output, 3=unsupported-version, 4=checker-error.
 
 Source: `checker/cmd/arena-checker/main.go`. Details: [checker.md](checker.md).
 
 ## Benchmarks (`benchmarks/`)
 
-Four workloads under `benchmarks/<id>/`. nbody, shortest-path, and aggregation are fully implemented in all six languages. barrier-wave has Rust, Go, TypeScript, Python, and C++ implementations (LuaJIT excluded).
+Four workloads under `benchmarks/<id>/`. nbody, shortest-path, and aggregation are fully implemented in all seven languages. barrier-wave has implementations in Rust, Go, TypeScript, Python, JavaScript, and C++ (LuaJIT excluded).
 
 | Benchmark | Workload | Key Metrics | Status |
 |---|---|---|---|
 | **nbody** | Gravitational N-body simulation | Numeric computation, tight loops | Complete |
 | **shortest-path** | Weighted directed graph shortest-path | Priority queues, memory access | Complete |
 | **aggregation** | CSV transaction record aggregation | Parsing, hash maps, sorting | Complete |
-| **barrier-wave** | Parallel phases with barriers | Fan-out/fan-in, synchronization | C++ complete; LuaJIT excluded |
+| **barrier-wave** | Parallel phases with barriers | Fan-out/fan-in, synchronization | 6/7 languages complete; LuaJIT excluded |
 
 Each has `small`, `medium`, and `large` datasets with per-size warmup/iteration counts in `benchmark.json`. Full reference: [benchmarks.md](../reference/benchmarks.md).
 
 ## Languages (`languages/`)
 
-JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `typescript.json`, `python.json`, `lua.json`, `cpp.json`. Run argument templates must include `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations` (persistent-worker contract).
+JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `typescript.json`, `python.json`, `lua.json`, `cpp.json`, and `javascript.json`. Run argument templates must include `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations` (persistent-worker contract).
 
 Detect/build/run commands may use machine-local absolute paths (the LuaJIT manifest often does on Windows). Prefer portable commands when possible; absolute paths are valid when the toolchain is not on `PATH`.
 

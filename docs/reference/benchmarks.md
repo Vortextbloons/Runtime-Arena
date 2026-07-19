@@ -1,13 +1,13 @@
 # Benchmarks Reference
 
-Runtime Arena currently defines four benchmark workloads. Three are fully implemented across all six supported languages (Rust, Go, TypeScript, Python, LuaJIT, C++). **Barrier Wave** is implemented in five languages (all except LuaJIT); datasets and checker support are ready.
+Runtime Arena currently defines four benchmark workloads. Three are fully implemented across all seven supported languages (Rust, Go, TypeScript, Python, LuaJIT, C++, JavaScript). **Barrier Wave** is implemented in six languages (all except LuaJIT); datasets and checker support are ready.
 
 | Benchmark | Status | Stresses |
 |-----------|--------|----------|
-| `nbody` | Complete (6 languages) | Numeric computation, tight loops |
-| `shortest-path` | Complete (6 languages) | Priority queues, graph traversal |
-| `aggregation` | Complete (6 languages) | Hash map aggregation, sorting, checksum |
-| `barrier-wave` | 5 languages implemented (LuaJIT pending) | Structured parallel concurrency, barriers |
+| `nbody` | Complete (7 languages) | Numeric computation, tight loops |
+| `shortest-path` | Complete (7 languages) | Priority queues, graph traversal |
+| `aggregation` | Complete (7 languages) | Hash map aggregation, sorting, checksum |
+| `barrier-wave` | 6 languages implemented (LuaJIT pending) | Structured parallel concurrency, barriers |
 
 Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md`.
 
@@ -60,7 +60,7 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 **Status notes:**
 - Checker task `barrier-wave` is implemented and tested.
 - Datasets are committed fixtures. `arena dataset generate --benchmark barrier-wave` works with the same `--size` and `--seed` flags as other benchmarks.
-- Five of six languages are implemented: Rust, Go, TypeScript, Python, and C++. LuaJIT is excluded (no native threading). See the tree under `benchmarks/barrier-wave/implementations/`.
+- Six of seven languages are implemented: Rust, Go, TypeScript, Python, JavaScript, and C++. LuaJIT is excluded (no native threading). See the tree under `benchmarks/barrier-wave/implementations/`.
 - `schemas/implementation-output.schema.json` does not yet include a barrier-wave branch; correctness is enforced by the Go checker.
 
 ## Dataset Sizes

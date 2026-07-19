@@ -64,6 +64,8 @@ Successful generation writes metadata with `generatorVersion` `"2.0.0"`. Dataset
 
 - `.arena/runs/<snapshotId>/` — per-run scratch (deleted unless `--preserve-temp`)
 - `.arena/go-build-cache/` — Go `GOCACHE` for language builds
+- `.arena/go-checker-cache/` — Go `GOCACHE` for checker compilation
+- `.arena/go-test-cache/` — Go `GOCACHE` for checker tests
 
 ## Rebuilding the Checker
 
