@@ -34,6 +34,19 @@ func TestShortestPathAndAlternateOptimalPath(t *testing.T) {
 	}
 }
 
+func TestShortestPathUsesCheapestParallelEdgeForPathCost(t *testing.T) {
+	graph := graphInput{VertexCount: 2, Edges: []edge{
+		{From: 0, To: 1, Weight: 2}, {From: 0, To: 1, Weight: 5},
+	}, Queries: []query{{ID: 1, Source: 0, Destination: 1}}}
+	distance := int64(2)
+	output := pathOutput{Benchmark: "shortest-path", Version: 1, Results: []pathResult{
+		{QueryID: 1, Distance: &distance, Path: []int{0, 1}},
+	}}
+	if err := checkPaths(graph, output); err != nil {
+		t.Fatalf("valid path over parallel edges rejected: %v", err)
+	}
+}
+
 func TestShortestPathRejectsInvalidGraphWithoutPanicking(t *testing.T) {
 	graph := graphInput{VertexCount: 2, Edges: []edge{{From: 0, To: 2, Weight: 1}}, Queries: []query{{ID: 1, Source: 0, Destination: 1}}}
 	output := pathOutput{Benchmark: "shortest-path", Version: 1, Results: []pathResult{{QueryID: 1}}}

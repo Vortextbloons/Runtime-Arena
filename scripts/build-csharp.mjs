@@ -1,5 +1,5 @@
 import { mkdir, rm, cp, writeFile } from "node:fs/promises";
-import { resolve, dirname } from "node:path";
+import { resolve, dirname, join } from "node:path";
 import { spawn } from "node:child_process";
 import { resolveSpawnCommand, resolveSpawnEnv } from "./spawn-env.mjs";
 
@@ -31,15 +31,17 @@ if (!source) throw new Error("missing source file");
 
 const cwd = process.cwd();
 const arenaDir = resolve(cwd, ".arena");
-const csprojPath = resolve(cwd, "ArenaBenchmark.csproj");
-const publishDir = resolve(arenaDir, "publish");
+const projectDir = join(arenaDir, "csharp-build");
+const csprojPath = join(projectDir, "ArenaBenchmark.csproj");
+const publishDir = join(projectDir, "publish");
 
-const sourceFile = source.replace(/\\/g, "/");
+const sourceFile = resolve(cwd, source).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\\/g, "/");
 const csproj = `<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <Optimize>true</Optimize>
+    <Nullable>enable</Nullable>
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>
@@ -49,12 +51,13 @@ const csproj = `<Project Sdk="Microsoft.NET.Sdk">
 </Project>
 `;
 
-await mkdir(arenaDir, { recursive: true });
+await mkdir(projectDir, { recursive: true });
 await writeFile(csprojPath, csproj, "utf-8");
 
 try {
   await run("dotnet", [
     "publish",
+    csprojPath,
     "-c", "Release",
     "--self-contained", "false",
     "-o", publishDir,
@@ -68,12 +71,7 @@ try {
   await cp(resolve(publishDir, "ArenaBenchmark.dll"), output, { force: true });
   const runtimeConfig = resolve(publishDir, "ArenaBenchmark.runtimeconfig.json");
   const outputBase = output.replace(/\.dll$/i, "");
-  try {
-    await cp(runtimeConfig, outputBase + ".runtimeconfig.json", { force: true });
-  } catch {}
+  await cp(runtimeConfig, outputBase + ".runtimeconfig.json", { force: true });
 } finally {
-  await rm(csprojPath, { force: true });
-  await rm(publishDir, { recursive: true, force: true });
-  await rm(resolve(cwd, "bin"), { recursive: true, force: true });
-  await rm(resolve(cwd, "obj"), { recursive: true, force: true });
+  await rm(projectDir, { recursive: true, force: true });
 }

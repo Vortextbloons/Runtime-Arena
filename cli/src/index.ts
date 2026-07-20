@@ -127,20 +127,31 @@ async function discoverBenchmarks(): Promise<Benchmark[]> {
 }
 
 function parseFlags(args: string[]) {
+  const booleanFlags = new Set(["--no-save", "--quiet", "--preserve-temp", "--force", "--all", "--parallel", "--minimal"]);
+  const valueFlags = new Set([
+    "--language", "--benchmark", "--mutation", "--format", "--size", "--warmup", "--iterations",
+    "--min-iterations", "--max-iterations", "--target-ci", "--output", "--seed", "--input"
+  ]);
   const values = new Map<string, string[]>();
   const bools = new Set<string>();
   for (let i = 0; i < args.length; i++) {
     const key = args[i]!;
-    if (!key.startsWith("-")) continue;
-    if (["--no-save", "--quiet", "--preserve-temp", "--force", "--all", "--parallel", "--minimal"].includes(key)) bools.add(key);
+    if (!key.startsWith("-")) throw new Error(`Unexpected argument: ${key}`);
+    const normalized = key === "-l" || key === "--languages" ? "--language" : key === "-b" || key === "--benchmarks" ? "--benchmark" : key;
+    if (booleanFlags.has(normalized)) bools.add(normalized);
     else {
+      if (!valueFlags.has(normalized)) throw new Error(`Unknown option: ${key}`);
       const value = args[++i];
       if (!value) throw new Error(`Missing value for ${key}`);
-      const normalized = key === "-l" || key === "--languages" ? "--language" : key === "-b" || key === "--benchmarks" ? "--benchmark" : key;
       values.set(normalized, [...(values.get(normalized) ?? []), value]);
     }
   }
   return { get: (k: string) => values.get(k)?.at(-1), all: (k: string) => values.get(k) ?? [], has: (k: string) => bools.has(k) };
+}
+
+function requireKnownIds(requested: string[], known: string[], label: string) {
+  const unknown = requested.filter(id => !known.includes(id));
+  if (unknown.length) throw new Error(`Unknown ${label}${unknown.length === 1 ? "" : "s"}: ${unknown.join(", ")}`);
 }
 
 function versionTuple(text: string): number[] {
@@ -432,14 +443,19 @@ async function checkOutput(benchmark: Benchmark, input: string, output: string) 
 
 async function runCommand(args: string[]) {
   const flags = parseFlags(args);
+  const format = flags.get("--format");
+  if (format !== undefined && format !== "json") throw new Error("--format must be json");
   await ensureChecker();
   const ds = await detections();
   const requestedLanguages = flags.all("--language");
   const requestedBenchmarks = flags.all("--benchmark");
+  requireKnownIds(requestedLanguages, ds.map(d => d.language.id), "language");
   const selectedDetections = ds.filter(d => d.language.enabled && (!requestedLanguages.length || requestedLanguages.includes(d.language.id)));
   const languages = selectedDetections.filter(d => d.available);
   const unavailableToolchains = selectedDetections.filter(d => !d.available).map(d => d.language.id);
-  const benchmarks = (await discoverBenchmarks()).filter(b => !requestedBenchmarks.length || requestedBenchmarks.includes(b.id));
+  const discoveredBenchmarks = await discoverBenchmarks();
+  requireKnownIds(requestedBenchmarks, discoveredBenchmarks.map(benchmark => benchmark.id), "benchmark");
+  const benchmarks = discoveredBenchmarks.filter(b => !requestedBenchmarks.length || requestedBenchmarks.includes(b.id));
   if (!languages.length || !benchmarks.length) throw new Error("No available language/benchmark combinations selected");
   const createdAt = new Date().toISOString();
   const snapshotId = `${createdAt.replaceAll(":", "-").replace(".", "-").replace("Z", "")}-${randomUUID().slice(0, 8)}Z`;
@@ -819,7 +835,10 @@ async function resultsStatus(args: string[]) {
   const requestedLanguages = flags.all("--language");
   const requestedBenchmarks = flags.all("--benchmark");
   const detectionsById = await detections();
-  const benchmarks = (await discoverBenchmarks()).filter(b => !requestedBenchmarks.length || requestedBenchmarks.includes(b.id));
+  requireKnownIds(requestedLanguages, detectionsById.map(detection => detection.language.id), "language");
+  const discoveredBenchmarks = await discoverBenchmarks();
+  requireKnownIds(requestedBenchmarks, discoveredBenchmarks.map(benchmark => benchmark.id), "benchmark");
+  const benchmarks = discoveredBenchmarks.filter(b => !requestedBenchmarks.length || requestedBenchmarks.includes(b.id));
   const mutationFilter = flags.get("--mutation");
   const runnerCache = new RunnerCache(root);
   const rows: Array<{ key: string; status: string; detail: string }> = [];
@@ -917,6 +936,8 @@ async function buildCommand(args: string[]) {
   const f = parseFlags(args);
   const ls = (await discoverLanguages()).map(withLanguageEnvironment);
   const bs = await discoverBenchmarks();
+  requireKnownIds(f.all("--language"), ls.map(language => language.id), "language");
+  requireKnownIds(f.all("--benchmark"), bs.map(benchmark => benchmark.id), "benchmark");
   let failed = false;
   for (const b of bs.filter(x => !f.all("--benchmark").length || f.all("--benchmark").includes(x.id)))
     for (const l of ls.filter(x => !f.all("--language").length || f.all("--language").includes(x.id))) {

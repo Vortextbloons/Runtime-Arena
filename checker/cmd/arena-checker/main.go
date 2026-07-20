@@ -319,7 +319,11 @@ func checkPaths(in graphInput, out pathOutput) error {
 	}
 	edges := map[[2]int]int64{}
 	for _, e := range in.Edges {
-		edges[[2]int{e.From, e.To}] = e.Weight
+		key := [2]int{e.From, e.To}
+		weight, exists := edges[key]
+		if !exists || e.Weight < weight {
+			edges[key] = e.Weight
+		}
 	}
 	for i, q := range in.Queries {
 		r := out.Results[i]
@@ -344,6 +348,9 @@ func checkPaths(in graphInput, out pathOutput) error {
 			w, ok := edges[[2]int{r.Path[j-1], r.Path[j]}]
 			if !ok {
 				return fmt.Errorf("query %d uses missing edge", q.ID)
+			}
+			if w > math.MaxInt64-cost {
+				return fmt.Errorf("query %d path cost overflows int64", q.ID)
 			}
 			cost += w
 		}

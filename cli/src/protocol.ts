@@ -208,6 +208,9 @@ export async function runHarnessProtocol(options: {
   }) as ChildProcessWithoutNullStreams;
 
   const reader = createLineReader(child, options.maxCapturedBytes);
+  child.stdin.on("error", () => {
+    // Individual writes receive the same error through their callbacks.
+  });
   const samples: HarnessSample[] = [];
   let timedOut = false;
   let limitExceeded = false;

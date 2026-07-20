@@ -49,6 +49,24 @@ test("prints metric availability", () => {
   assert.match(result.stdout, /kernelTime/);
 });
 
+test("rejects unknown options and invalid measurement bounds", () => {
+  const unknown = arena("run", "--langauge", "typescript");
+  assert.equal(unknown.status, 1);
+  assert.match(unknown.stderr, /Unknown option: --langauge/);
+
+  const invalidIterations = arena("run", "--language", "typescript", "--benchmark", "aggregation", "--iterations", "0");
+  assert.equal(invalidIterations.status, 1);
+  assert.match(invalidIterations.stderr, /positive integer/);
+
+  const unknownLanguage = arena("build", "--language", "brainfuck", "--benchmark", "aggregation");
+  assert.equal(unknownLanguage.status, 1);
+  assert.match(unknownLanguage.stderr, /Unknown language: brainfuck/);
+
+  const invalidFormat = arena("run", "--format", "yaml");
+  assert.equal(invalidFormat.status, 1);
+  assert.match(invalidFormat.stderr, /--format must be json/);
+});
+
 test("runs a filtered benchmark and emits clean JSON", () => {
   const result = arena("run", "--language", "typescript", "--benchmark", "aggregation", "--size", "small", "--warmup", "0", "--iterations", "1", "--format", "json", "--quiet", "--no-save");
   assert.equal(result.status, 0, result.stderr);
