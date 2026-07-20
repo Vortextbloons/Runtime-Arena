@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-20T00:30:43.447Z",
+  "generatedAt": "2026-07-20T01:02:38.588Z",
   "cells": {
     "aggregation:cpp": {
       "logicalLines": 223,
@@ -37,24 +37,24 @@
       "sha256": "e056dd1640d8935ecaa8bfe7e279cf75949ca9891135402a89c07f384c4a9b20"
     },
     "aggregation:lua": {
-      "logicalLines": 430,
+      "logicalLines": 468,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "37818c68609b99ea5becdf9d1162beba49fb0e3d172d8d73ac0df6046b482002"
+      "sha256": "c27eb0ee8ae4ca4c00fbfab9d6f9ff10b6ff02f77e1c36d4681c24da7f610438"
     },
     "aggregation:lua-interpreted": {
-      "logicalLines": 439,
+      "logicalLines": 481,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "5ae28533beee2f7456a63297ae354c62be4b60df9f0d549d9a4ec8b29005aa0c"
+      "sha256": "282024a7d9d392b419ff2b1b0b11a4c47061b7e1cab408e2f40ea8d078f49d08"
     },
     "aggregation:python": {
       "logicalLines": 41,
@@ -175,24 +175,24 @@
       "sha256": "856ebfe90e97313752d249b37a328371d5f426dfa0c2be8d1fc38c5dacafc391"
     },
     "matrix-multiplication:lua": {
-      "logicalLines": 320,
+      "logicalLines": 370,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "382226f63dbbfcc933f15efc6daa2a95e29b4adb5b5c2dac2fe18873012ad9dd"
+      "sha256": "ce262fb239cc0ae222d4b3b03f247d423f09b5c0134570f391f746ad2ab4c7f9"
     },
     "matrix-multiplication:lua-interpreted": {
-      "logicalLines": 329,
+      "logicalLines": 385,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "a17d8627e836af646a08213524c5333fd4dec64b7097221f18534b053323607e"
+      "sha256": "a9b27b114f5f0d33c4e630bab39bddedaddf13291f0c0d2a71a517b33be37b72"
     },
     "matrix-multiplication:python": {
       "logicalLines": 76,
@@ -253,24 +253,24 @@
       "sha256": "0ae80b33ae2e146020fc1f4a0e0d0755a453a7e2ac4f6524848900f58130b950"
     },
     "nbody:lua": {
-      "logicalLines": 336,
+      "logicalLines": 393,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "fc8ab114df2927bc0723119cf612a1bd14e08f51c2dc94781c6a2b53c509a0ba"
+      "sha256": "8a5fa79e8c7a18be09c50d119b907ef6a96872e8312570d5d6601bcb285a2bf6"
     },
     "nbody:lua-interpreted": {
-      "logicalLines": 345,
+      "logicalLines": 407,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "19b87e19aee93baceb818d6b62fa95e4b16a3f55561b61ac36d99ab7000d7ed6"
+      "sha256": "e14d9c458f2be1eaa7c836417ecdb75e22d1d097b392cb106823d7f04662d3c7"
     },
     "nbody:python": {
       "logicalLines": 135,
@@ -331,24 +331,24 @@
       "sha256": "a72413d6227a03e91b8b3a1effe57a51f37073ff806e9eddef44e76453ba2493"
     },
     "record-sorting:lua": {
-      "logicalLines": 324,
+      "logicalLines": 372,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "9900b56c6d99be60b8b745f89d69fb9ea4271ecb9a612198be52e81a34f38368"
+      "sha256": "afbf53dd2092fb84f86cc7a3e178d1dcc48b7e1fbcb0d0202f9edb2796603f5d"
     },
     "record-sorting:lua-interpreted": {
-      "logicalLines": 333,
+      "logicalLines": 384,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "3a9a369b75b7ceb00056c4becc640815de90e5f9dc4c5f1968ac9d05ed86670b"
+      "sha256": "af5e4ecfd1e629e70e7279a71bcb2ad934ab889ed1a66d112b24b8f90843eb32"
     },
     "record-sorting:python": {
       "logicalLines": 56,
@@ -409,24 +409,24 @@
       "sha256": "090791f48dd746b74740a59cdb008976ed650004e72a97b59df889dcaf189ad8"
     },
     "shortest-path:lua": {
-      "logicalLines": 351,
+      "logicalLines": 401,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "30f504cdc4aef9381352f8e10a461ac5e012c17fe12dfb4968d37de51e0b4d57"
+      "sha256": "4fd6f14960efee88b29d593a8276d0fbc90aa30a7aac0d4ea99b69999cb9fa4a"
     },
     "shortest-path:lua-interpreted": {
-      "logicalLines": 360,
+      "logicalLines": 410,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "5f3a5f305e1e8135a7c23cc07fa5df3a4a499b6055066e91a9e01c7b4a9ca27c"
+      "sha256": "064c66eb4073a4da28991bb82ab27989559bdbf396d4705b8650bf8562c8cdd5"
     },
     "shortest-path:python": {
       "logicalLines": 62,
@@ -487,24 +487,24 @@
       "sha256": "fb8ea96aa387750e719618744260d26a6af9cb386d6f743dea910c06b5f6082c"
     },
     "word-frequency:lua": {
-      "logicalLines": 329,
+      "logicalLines": 378,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "a17d8627e836af646a08213524c5333fd4dec64b7097221f18534b053323607e"
+      "sha256": "a6f54b2e0df34a61f6c01c4f16dd2031f239d16587ae69048e74056b967dbf0c"
     },
     "word-frequency:lua-interpreted": {
-      "logicalLines": 338,
+      "logicalLines": 390,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "b9e7b1c6b691e88834c7b2acbd32a27c308d12be4d8c5a885cc40ebade4c8344"
+      "sha256": "59e9377fc78c174ce242ea3484785fe423e701c1bec58c5cae44a3ee5224dcd5"
     },
     "word-frequency:python": {
       "logicalLines": 53,

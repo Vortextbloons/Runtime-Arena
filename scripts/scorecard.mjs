@@ -859,7 +859,7 @@ for (const bid of benchmarkIds) {
 }
 
 // ── Write output ─────────────────────────────────────
-const outPath = resolve(root, 'scorecard.md');
+const outPath = resolve(root, 'docs', 'scorecard.md');
 writeFileSync(outPath, md, 'utf-8');
 console.log(`Scorecard written to: ${outPath}`);
 console.log(`  Total results: ${total}`);

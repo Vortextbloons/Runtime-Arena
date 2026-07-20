@@ -1,28 +1,29 @@
 # Implementing Shortest-Path in a New Language
 
-## Overview
-
 Weighted shortest-path queries on a directed graph with nonnegative integer
 edge weights. For each query, find the shortest distance and path from source
 to destination.
 
-**Design philosophy:** Implementations must produce output accepted by the
-checker. Use the language's best idioms, types, and data structures — do not
-copy code structure from the reference implementations. The checker is the
-source of truth for correctness.
+## Design philosophy
 
-## CLI Contract
+Implementations must produce output accepted by the checker. Use the
+language's best idioms, types, and data structures — do not copy code
+structure from the reference implementations. The checker is the source of
+truth for correctness.
 
-Your program must:
+## CLI contract
 
-1. Accept `--input <file>` and `--output <file>` arguments.
-2. Read the input JSON file.
-3. Compute shortest paths for all queries.
-4. Write exactly one JSON result file to the output path.
-5. Exit with code `0` on success. Exit nonzero on failure.
-6. Write logs only to stderr. Never print result data to stdout.
+Accept the persistent-worker flags: `--input`, `--output`, `--timing-output`,
+`--warmup`, `--min-iterations`, `--max-iterations`, `--target-relative-ci`.
 
-## Input Format
+Read the input JSON file before timing. For every iteration, compute shortest
+paths for all queries and write the result. Send diagnostics only to stderr.
+
+**Timing boundary**: Time only the shortest-path computation (graph
+construction from pre-parsed input, all queries, path reconstruction).
+Input parsing, JSON serialization, and file I/O are outside the kernel.
+
+## Input format
 
 JSON object:
 
@@ -51,7 +52,7 @@ JSON object:
 | `source`      | integer | Start vertex                        |
 | `destination` | integer | End vertex                          |
 
-## Output Format
+## Output format
 
 ```json
 {
@@ -76,48 +77,24 @@ JSON object:
 | `distance` | integer/null | Shortest distance, or `null` if unreachable    |
 | `path`     | integer[]    | Vertex sequence from source to destination, or `[]` if unreachable |
 
-## Algorithm
+## Checker rules
 
-Use Dijkstra's algorithm with a priority queue (min-heap). Edge weights are
-nonnegative so Dijkstra is correct.
+The checker independently runs Dijkstra's algorithm and verifies:
 
-Pseudocode:
-
-```
-for each query:
-    dist[] = infinity for all vertices
-    prev[] = -1 for all vertices
-    dist[source] = 0
-    heap = [(0, source)]
-
-    while heap not empty:
-        (cost, node) = pop_min(heap)
-        if cost != dist[node]: continue    # stale entry
-        for each edge from node:
-            next_cost = cost + edge.weight
-            if next_cost < dist[edge.to]:
-                dist[edge.to] = next_cost
-                prev[edge.to] = node
-                heap.push((next_cost, edge.to))
-
-    if dist[destination] == infinity:
-        result = { distance: null, path: [] }
-    else:
-        path = trace back from destination using prev[]
-        result = { distance: dist[destination], path: path }
-```
-
-## Checker Rules
-
-- Results array must have the same length as the input queries array.
-- Each `queryId` must match the corresponding input query `id` (order matters).
+- Results array has the same length as the input queries array.
+- Each `queryId` matches the corresponding input query `id` (order matters).
 - **Unreachable**: `distance` must be `null` and `path` must be `[]` (empty).
-- **Reachable**: `distance` must equal the optimal cost. The checker verifies:
+- **Reachable**: `distance` must equal the globally optimal cost. The checker
+  verifies:
   1. Path starts at `source` and ends at `destination`.
   2. Every edge in the path exists in the input graph.
   3. The sum of edge weights along the path equals `distance`.
   4. The distance is globally optimal (not just a valid path).
 - Equal-cost alternate optimal paths are accepted.
+
+Any correct shortest-path algorithm for nonnegative weights is acceptable.
+The checker does not enforce a specific algorithm — only that the reported
+distance is optimal and the path is valid.
 
 ## Gotchas
 
@@ -131,49 +108,15 @@ for each query:
 - **Self-loops and parallel edges**: The graph may contain them. Use the
   edge list as-is.
 
-## Scaffolding
+## Fairness constraints
 
-Each language needs build configuration in `implementations/<language-id>/`:
+**Allowed**: Any correct shortest-path algorithm (Dijkstra, A*, Bellman-Ford,
+etc.), language-native data structures, compiler optimizations, cache-friendly
+algorithms, and idiomatic abstractions.
 
-**Rust** — `Cargo.toml`:
-```toml
-[package]
-name = "shortest-path"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-```
-Source: `src/main.rs`
-
-**Go** — `go.mod`:
-```
-module runtime-arena/shortest-path
-go 1.26
-```
-Source: `main.go` (no external dependencies needed — uses `container/heap`)
-
-**TypeScript** — `package.json`:
-```json
-{"name":"arena-shortest-path-typescript","private":true,"type":"module","scripts":{"build":"tsc"},"devDependencies":{"@types/node":"^26.1.1","typescript":"^7.0.2"}}
-```
-`tsconfig.json`:
-```json
-{"compilerOptions":{"target":"ES2024","module":"NodeNext","moduleResolution":"NodeNext","outDir":"dist","strict":true,"types":["node"]},"include":["index.ts"]}
-```
-Source: `index.ts`
-
-**Python** — No build configuration needed (uses standard library only).
-Source: `main.py`
-
-## Reference Implementations
-
-- Go: `implementations/go/main.go`
-- Python: `implementations/python/main.py`
-- Rust: `implementations/rust/src/main.rs`
-- TypeScript: `implementations/typescript/index.ts`
+**Prohibited**: External compute libraries, GPU offloading, multi-process
+parallelism, precomputation across iterations, and caching results between
+iterations.
 
 ## Verification
 

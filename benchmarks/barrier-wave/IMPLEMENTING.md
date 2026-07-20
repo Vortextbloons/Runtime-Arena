@@ -15,7 +15,9 @@ workload:
 --output <file>
 --timing-output <file>
 --warmup <n>
---iterations <n>
+--min-iterations <n>
+--max-iterations <n>
+--target-relative-ci <float>
 ```
 
 Write exactly one JSON result to the output path, write kernel timing samples
@@ -24,10 +26,13 @@ stderr. Input parsing, worker creation and shutdown, JSON serialization, and
 file I/O are outside the kernel timing boundary.
 
 Create one persistent pool before warmups begin. Every measured or warmup
-iteration must run the full workload without caching. Rust uses native threads,
-Go uses goroutines with `GOMAXPROCS >= workerCount`, TypeScript uses
-`worker_threads`, and Python uses multiprocessing. LuaJIT must be marked
-unavailable unless real native threads or processes are used.
+iteration must run the full workload without caching.
+
+**Parallelism requirement**: Implementations must use true pre-emptive
+parallelism — OS threads, goroutines, worker_threads, or multiprocessing.
+Event-loop tasks, coroutines scheduled on a single OS thread, green threads,
+or a serial loop do not satisfy the benchmark. The number of concurrent
+workers must equal `workerCount`.
 
 ## Input
 
@@ -113,13 +118,24 @@ after reducing the final phase and updating the digest.
 eight and `digest` sixteen lowercase, zero-padded hexadecimal characters.
 Do not include timing data or additional fields.
 
-## Fairness and checking
+## Checker rules
+
+The checker sequentially executes the same algorithm and strictly rejects
+unknown/duplicate fields, trailing JSON, malformed hex, version/count
+mismatches, and incorrect results. Concurrency itself also requires
+implementation review because output checking cannot prove that workers ran
+in parallel.
+
+## Fairness constraints
 
 Do not serialize the workload, reduce worker count, skip barriers, change shard
 sizes, combine phases, precompute answers, cache iterations, use a GPU, or move
-item work outside the timed region. The independent Go checker sequentially
-executes the same algorithm and strictly rejects unknown/duplicate fields,
-trailing JSON, malformed hex, version/count mismatches, and incorrect results.
+item work outside the timed region.
 
-Concurrency itself also requires implementation review because output checking
-cannot prove that workers ran in parallel.
+## Verification
+
+```bash
+arena check --benchmark barrier-wave --input datasets/small.json --output /tmp/barrier-wave-out.json
+```
+
+The checker will output `{"status":"accepted",...}` on success.

@@ -1,9 +1,27 @@
 # Implementing Word Frequency in a New Language
 
-Accept the persistent-worker flags `--input`, `--output`, `--timing-output`,
-`--warmup`, and `--iterations`. Parse input before timing; for every warmup and
-measurement, create a fresh frequency map, count every word, rank every map
-entry, and emit the final result plus timing samples. Logs go to stderr only.
+Count occurrences in a prepared array of normalized words, then rank the
+complete frequency table by count descending and word ascending.
+
+## Design philosophy
+
+Implementations must produce output accepted by the checker. Use the
+language's best idioms, types, and data structures — do not copy code
+structure from other implementations. The checker is the source of truth
+for correctness.
+
+## CLI contract
+
+Accept the persistent-worker flags: `--input`, `--output`, `--timing-output`,
+`--warmup`, `--min-iterations`, `--max-iterations`, `--target-relative-ci`.
+
+Parse input before timing; for every warmup and measurement iteration, create
+a fresh frequency map, count every word, rank every map entry, and emit the
+final result plus timing samples. Logs go to stderr only.
+
+**Timing boundary**: Time only the frequency counting, full sort, and checksum
+computation. Input parsing, JSON serialization, and file I/O are outside the
+kernel.
 
 ## Contract
 
@@ -23,10 +41,30 @@ Build the checksum by UTF-8 encoding one line per complete sorted entry:
 <word>,<count>\n
 ```
 
-Hash these exact bytes with SHA-256 and emit lowercase hexadecimal. Do not
-precompute counts, cache iterations, omit the full ranking, or move counting or
-ranking outside the timed kernel. The checker requires an exact result and
-rejects unknown fields, duplicate JSON fields, wrong ordering, or checksum
-mismatches.
+Hash these exact bytes with SHA-256 and emit lowercase hexadecimal.
 
-Verify with `arena check --benchmark word-frequency --input datasets/small.json --output /tmp/out.json`.
+## Checker rules
+
+The checker independently re-runs the frequency count and sort, then compares
+the output byte-for-byte. It rejects:
+
+- Unknown or duplicate JSON fields
+- Wrong sort order (must be count descending, then word ascending)
+- Checksum mismatches
+- Incorrect `totalWords` or `uniqueWords`
+
+## Fairness constraints
+
+**Allowed**: Language-native data structures, compiler optimizations,
+cache-friendly algorithms, SIMD intrinsics (single-threaded), idiomatic
+abstractions.
+
+**Prohibited**: External compute libraries, GPU offloading, multi-process
+parallelism, precomputation across iterations, caching results between
+iterations.
+
+## Verification
+
+```bash
+arena check --benchmark word-frequency --input datasets/small.json --output /tmp/out.json
+```

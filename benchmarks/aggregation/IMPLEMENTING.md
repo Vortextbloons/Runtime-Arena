@@ -1,28 +1,28 @@
 # Implementing Aggregation in a New Language
 
-## Overview
+Aggregate CSV transaction records using integer minor currency units.
 
-Aggregate CSV transaction records. **Read and parse the CSV once before timing**;
-the timed kernel aggregates already-parsed rows. Compute totals, group by
-category, rank accounts, and produce a deterministic checksum.
+## Design philosophy
 
-**Design philosophy:** Implementations must produce output accepted by the
-checker. Use the language's best idioms, types, and data structures — do not
-copy code structure from the reference implementations. The checker is the
-source of truth for correctness.
+Implementations must produce output accepted by the checker. Use the
+language's best idioms, types, and data structures — do not copy code
+structure from other implementations. The checker is the source of truth
+for correctness.
 
-## CLI Contract
+## CLI contract
 
-Your program must:
+Accept the persistent-worker flags: `--input`, `--output`, `--timing-output`,
+`--warmup`, `--min-iterations`, `--max-iterations`, `--target-relative-ci`.
 
-1. Accept `--input <file>` and `--output <file>` arguments.
-2. Read and parse the input CSV file **before** warmup and measurement.
-3. Compute all aggregations inside the timed kernel over parsed rows.
-4. Write exactly one JSON result file to the output path.
-5. Exit with code `0` on success. Exit nonzero on failure.
-6. Write logs only to stderr. Never print result data to stdout.
+Read and parse the input CSV file **before** warmup and measurement. Compute
+all aggregations inside the timed kernel over already-parsed rows. Write the
+final result and timing samples; send diagnostics only to stderr.
 
-## Input Format
+**Timing boundary**: Time only the aggregation (totals, category grouping,
+account ranking, checksum computation) over pre-parsed rows. Input parsing,
+JSON serialization, and file I/O are outside the kernel.
+
+## Input format
 
 CSV with a header row:
 
@@ -42,7 +42,7 @@ timestamp,account_id,category,quantity,unit_price
 
 **Transaction value** = `quantity * unit_price` (integer arithmetic, no floats).
 
-## Output Format
+## Output format
 
 ```json
 {
@@ -51,6 +51,8 @@ timestamp,account_id,category,quantity,unit_price
   "recordCount": 10000000,
   "totalQuantity": 48199291,
   "totalValueMinorUnits": 9581294421,
+  "minimumTransactionMinorUnits": 1499,
+  "maximumTransactionMinorUnits": 9995000,
   "categories": [
     {
       "category": "books",
@@ -75,50 +77,49 @@ timestamp,account_id,category,quantity,unit_price
 | `recordCount`            | integer | Total number of data rows (excluding header) |
 | `totalQuantity`          | integer | Sum of all quantities                    |
 | `totalValueMinorUnits`   | integer | Sum of all transaction values            |
-| `categories`             | array   | Per-category aggregates                  |
-| `category`               | string  | Category name                            |
-| `quantity`               | integer | Total quantity for this category         |
-| `valueMinorUnits`        | integer | Total value for this category            |
-| `topAccounts`            | array   | Top 10 accounts by total value           |
-| `accountId`              | string  | Account identifier                       |
-| `valueMinorUnits`        | integer | Total value for this account             |
+| `minimumTransactionMinorUnits` | integer | Minimum transaction value across all rows |
+| `maximumTransactionMinorUnits` | integer | Maximum transaction value across all rows |
+| `categories`             | array   | Per-category aggregates (see below)      |
+| `categories[].category`  | string  | Category name                            |
+| `categories[].quantity`  | integer | Total quantity for this category         |
+| `categories[].valueMinorUnits` | integer | Total value for this category      |
+| `topAccounts`            | array   | Top 10 accounts by total value (see below) |
+| `topAccounts[].accountId` | string | Account identifier                       |
+| `topAccounts[].valueMinorUnits` | integer | Total value for this account      |
 | `checksum`               | string  | SHA-256 hex digest (see below)           |
+
+## Checker rules
+
+The checker re-computes the entire aggregation from the input CSV and compares
+the output byte-for-byte (JSON serialization). Every field must match exactly:
+
+- `recordCount`, `totalQuantity`, `totalValueMinorUnits`
+- `minimumTransactionMinorUnits`, `maximumTransactionMinorUnits`
+- `categories` array (order and contents)
+- `topAccounts` array (order and contents)
+- `checksum`
+
+There is no floating-point tolerance — all values are integers.
 
 ## Algorithm
 
-```
-recordCount = 0
-totalQuantity = 0
-totalValueMinorUnits = 0
-minimumTransaction = +infinity
-maximumTransaction = 0
-categories = map<string, {quantity, value}>
-accounts = map<string, value>
+The checker verifies that:
 
-for each row (skip header):
-    qty = parseInt(row.quantity)
-    price = parseInt(row.unit_price)
-    value = qty * price
+1. `recordCount` equals the number of data rows (excluding the header).
+2. `totalQuantity` is the sum of all `quantity` values.
+3. `totalValueMinorUnits` is the sum of all `quantity * unit_price` products.
+4. `minimumTransactionMinorUnits` is the minimum `quantity * unit_price` across
+   all rows. Initialize to a very large value (e.g., `i64::MAX` or
+   `Number.MAX_SAFE_INTEGER`), not `0`.
+5. `maximumTransactionMinorUnits` is the maximum `quantity * unit_price` across
+   all rows.
+6. `categories` contains one entry per unique category, each with the sum of
+   quantities and sum of values for that category. Sorted alphabetically by
+   category name (ascending).
+7. `topAccounts` contains the top 10 accounts by total value (descending). If
+   values are equal, sort by account ID ascending (lexicographic).
 
-    recordCount++
-    totalQuantity += qty
-    totalValueMinorUnits += value
-    minimumTransaction = min(minimumTransaction, value)
-    maximumTransaction = max(maximumTransaction, value)
-
-    categories[row.category].quantity += qty
-    categories[row.category].value += value
-    accounts[row.account_id] += value
-```
-
-### Sorting Rules
-
-**Categories**: Sort alphabetically by category name (ascending).
-
-**Top accounts**: Sort by value descending. If values are equal, sort by
-account ID ascending (lexicographic). Take only the first 10.
-
-## Checksum Calculation
+### Checksum calculation
 
 This is the most error-prone part. Follow exactly:
 
@@ -133,17 +134,6 @@ This is the most error-prone part. Follow exactly:
 4. Compute SHA-256 of the resulting bytes.
 5. Output as lowercase hex string.
 
-In pseudocode:
-
-```
-checksum_input = json_encode({
-    "Categories": sorted_categories,
-    "TopAccounts": sorted_top_accounts
-}) + "\n"
-
-checksum = hex(sha256(checksum_input))
-```
-
 ### Why the keys differ
 
 The output JSON uses camelCase (`categories`, `topAccounts`) because that's
@@ -151,26 +141,21 @@ what the result schema expects. But the checksum uses PascalCase (`Categories`,
 `TopAccounts`) because that's what the checker computes. This is intentional —
 the checksum validates the exact byte sequence.
 
-## Checker Rules
+## Fairness constraints
 
-The checker re-computes the entire aggregation from the input CSV and compares
-the output byte-for-byte (JSON serialization). Every field must match exactly:
+**Allowed**: Language-native data structures, compiler optimizations,
+cache-friendly algorithms, SIMD intrinsics (single-threaded), idiomatic
+abstractions.
 
-- `recordCount`, `totalQuantity`, `totalValueMinorUnits`
-- `minimumTransactionMinorUnits`, `maximumTransactionMinorUnits`
-- `categories` array (order and contents)
-- `topAccounts` array (order and contents)
-- `checksum`
-
-There is no floating-point tolerance — all values are integers.
+**Prohibited**: External compute libraries, GPU offloading, multi-process
+parallelism, precomputation across iterations, caching results between
+iterations.
 
 ## Gotchas
 
 - **Integer arithmetic only**: `quantity * unit_price` must use integer math.
   Do not use floats for currency.
-- **minimumTransactionMinorUnits**: Initialize to a very large value (e.g.,
-  `i64::MAX` or `Number.MAX_SAFE_INTEGER`), not `0`. If all transactions are
-  positive, the minimum will be set from the data.
+- **minimumTransactionMinorUnits**: Initialize to a very large value, not `0`.
 - **Sort stability for accounts**: When two accounts have the same value,
   sort by account ID ascending. This must be deterministic.
 - **Checksum keys are PascalCase**: `Categories` and `TopAccounts`, not
@@ -179,52 +164,6 @@ There is no floating-point tolerance — all values are integers.
 - **No rounding**: All values are exact integers. Do not round anything.
 - **Header row**: Skip the first line of the CSV. `recordCount` should not
   include it.
-
-## Scaffolding
-
-Each language needs build configuration in `implementations/<language-id>/`:
-
-**Rust** — `Cargo.toml`:
-```toml
-[package]
-name = "aggregation"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-sha2 = "0.10"
-csv = "1"
-```
-Source: `src/main.rs`
-
-**Go** — `go.mod`:
-```
-module runtime-arena/aggregation
-go 1.26
-```
-Source: `main.go` (no external dependencies needed — uses `encoding/csv`)
-
-**TypeScript** — `package.json`:
-```json
-{"name":"arena-aggregation-typescript","private":true,"type":"module","scripts":{"build":"tsc"},"devDependencies":{"@types/node":"^26.1.1","typescript":"^7.0.2"}}
-```
-`tsconfig.json`:
-```json
-{"compilerOptions":{"target":"ES2024","module":"NodeNext","moduleResolution":"NodeNext","outDir":"dist","strict":true,"types":["node"]},"include":["index.ts"]}
-```
-Source: `index.ts`
-
-**Python** — No build configuration needed (uses standard library only).
-Source: `main.py`
-
-## Reference Implementations
-
-- Go: `implementations/go/main.go`
-- Python: `implementations/python/main.py`
-- Rust: `implementations/rust/src/main.rs`
-- TypeScript: `implementations/typescript/index.ts`
 
 ## Verification
 

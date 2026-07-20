@@ -1,28 +1,29 @@
 # Implementing N-body in a New Language
 
-## Overview
-
 Deterministic gravitational n-body simulation. Computes pairwise gravitational
 interactions over a fixed number of timesteps and reports final energy and
 position/velocity checksums.
 
-**Design philosophy:** Implementations must produce output accepted by the
-checker. Use the language's best idioms, types, and data structures — do not
-copy code structure from the reference implementations. The checker is the
-source of truth for correctness.
+## Design philosophy
 
-## CLI Contract
+Implementations must produce output accepted by the checker. Use the
+language's best idioms, types, and data structures — do not copy code
+structure from the reference implementations. The checker is the source of
+truth for correctness.
 
-Your program must:
+## CLI contract
 
-1. Accept `--input <file>` and `--output <file>` arguments.
-2. Read the input JSON file.
-3. Compute the simulation.
-4. Write exactly one JSON result file to the output path.
-5. Exit with code `0` on success. Exit nonzero on failure.
-6. Write logs only to stderr. Never print result data to stdout.
+Accept the persistent-worker flags: `--input`, `--output`, `--timing-output`,
+`--warmup`, `--min-iterations`, `--max-iterations`, `--target-relative-ci`.
 
-## Input Format
+Read the input JSON file before timing. For every iteration, run the full
+simulation and write the result. Send diagnostics only to stderr.
+
+**Timing boundary**: Time only the simulation loop and energy/checksum
+computation. Input parsing, JSON serialization, and file I/O are outside
+the kernel.
+
+## Input format
 
 JSON object:
 
@@ -49,7 +50,7 @@ JSON object:
 | `position`  | float[3]   | `[x, y, z]` position coordinates  |
 | `velocity`  | float[3]   | `[x, y, z]` velocity components   |
 
-## Output Format
+## Output format
 
 ```json
 {
@@ -73,32 +74,16 @@ JSON object:
 
 ## Algorithm
 
-### Simulation Loop
+The simulation uses a leapfrog integration scheme. For each timestep:
 
-For each step:
-
-1. **Velocity update** (must happen first): For every pair `(i, j)` where
-   `i < j`, compute the gravitational interaction and update both velocities.
+1. **Velocity update** (must happen before position update): For every pair
+   `(i, j)` where `i < j`, compute the gravitational interaction and update
+   both velocities.
 2. **Position update**: For every body, update position using the new velocity.
 
-Pseudocode:
-
-```
-for step in 0..steps:
-    for i in 0..bodyCount:
-        for j in i+1..bodyCount:
-            d = bodies[j].position - bodies[i].position    # component-wise
-            r2 = d[0]^2 + d[1]^2 + d[2]^2
-            magnitude = deltaTime / (r2 * sqrt(r2))
-            for k in 0..3:
-                bodies[i].velocity[k] += d[k] * bodies[j].mass * magnitude
-                bodies[j].velocity[k] -= d[k] * bodies[i].mass * magnitude
-    for each body:
-        for k in 0..3:
-            body.position[k] += deltaTime * body.velocity[k]
-```
-
-### Energy Calculation
+The velocity-before-position ordering and the `(i, j)` pair iteration order
+(`j > i`) are part of the physics definition and affect the numerical result.
+The checker re-runs the same simulation and compares output.
 
 After all steps, compute total energy:
 
@@ -112,7 +97,7 @@ for i in 0..bodyCount:
         energy -= mass[i] * mass[j] / sqrt(r2)
 ```
 
-### Checksum Calculation
+### Checksum calculation
 
 SHA-256 hash of all coordinates formatted as strings:
 
@@ -132,57 +117,24 @@ velocityChecksum = hex(sha256(velocity_data))
 (`%.9f`), followed by a comma. No trailing newline. The order must match the
 input body order.
 
-## Checker Rules
+## Checker rules
 
 - Energy tolerance: `|your_energy - expected_energy| <= 1e-8`
 - Checksums must match exactly (deterministic).
 - Body count must match input length.
 - The checker independently re-simulates using the same algorithm and compares.
 
-## Scaffolding
+## Fairness constraints
 
-Each language needs build configuration in `implementations/<language-id>/`:
+**Allowed**: Any correct gravitational n-body implementation, including
+ blocked or pipelined loop structures, SIMD intrinsics, compiler
+auto-vectorization, and idiomatic language abstractions. The integration
+scheme (leapfrog with velocity-before-position) and pair iteration order
+(`i < j`) must be preserved.
 
-**Rust** — `Cargo.toml`:
-```toml
-[package]
-name = "nbody"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-sha2 = "0.10"
-```
-Source: `src/main.rs`
-
-**Go** — `go.mod`:
-```
-module runtime-arena/nbody
-go 1.26
-```
-Source: `main.go` (no external dependencies needed)
-
-**TypeScript** — `package.json`:
-```json
-{"name":"arena-nbody-typescript","private":true,"type":"module","scripts":{"build":"tsc"},"devDependencies":{"@types/node":"^26.1.1","typescript":"^7.0.2"}}
-```
-`tsconfig.json`:
-```json
-{"compilerOptions":{"target":"ES2024","module":"NodeNext","moduleResolution":"NodeNext","outDir":"dist","strict":true,"types":["node"]},"include":["index.ts"]}
-```
-Source: `index.ts`
-
-**Python** — No build configuration needed (uses standard library only).
-Source: `main.py`
-
-## Reference Implementations
-
-- Go: `implementations/go/main.go`
-- Python: `implementations/python/main.py`
-- Rust: `implementations/rust/src/main.rs`
-- TypeScript: `implementations/typescript/index.ts`
+**Prohibited**: External physics libraries, GPU offloading, multi-process
+parallelism, precomputation across iterations, and caching results between
+iterations.
 
 ## Verification
 

@@ -77,7 +77,9 @@ Each language has a manifest defining detection, build, and run commands. The pr
       "--output", "{outputFile}",
       "--timing-output", "{timingOutputFile}",
       "--warmup", "{warmupIterations}",
-      "--iterations", "{measuredIterations}"
+      "--min-iterations", "{minMeasuredIterations}",
+      "--max-iterations", "{maxMeasuredIterations}",
+      "--target-relative-ci", "{targetRelativeConfidenceInterval}"
     ]
   },
   "environment": {},

@@ -29,7 +29,7 @@ const outputPath = process.argv[2]
   : DEFAULT_OUTPUT;
 
 // Files excluded from the combined output (meta/instructions, not project docs)
-const EXCLUDED = new Set(["Clean.md", "Update.md"]);
+const EXCLUDED = new Set(["Clean.md", "Update.md", "scorecard.md"]);
 
 function extractDocPaths(indexContent) {
   const paths = [];

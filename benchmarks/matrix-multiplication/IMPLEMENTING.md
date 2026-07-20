@@ -1,23 +1,33 @@
 # Implementing Matrix Multiplication in a New Language
 
-Accept `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations`.
-Parse the input before timing. For every iteration, allocate/reset a fresh
-product matrix and time the complete multiplication. Write the final result and
-timing samples; send diagnostics only to stderr.
+Multiply two dense square, row-major integer matrices and produce a checksum
+of the full product matrix.
+
+## Design philosophy
+
+Implementations must produce output accepted by the checker. Use the
+language's best idioms, types, and data structures — do not copy code
+structure from other implementations. The checker is the source of truth
+for correctness.
+
+## CLI contract
+
+Accept the persistent-worker flags: `--input`, `--output`, `--timing-output`,
+`--warmup`, `--min-iterations`, `--max-iterations`, `--target-relative-ci`.
+
+Parse the input before timing. For every iteration, allocate a fresh product
+matrix and time the complete multiplication. Write the final result and timing
+samples; send diagnostics only to stderr.
+
+**Timing boundary**: Time only the matrix multiplication (computing the product
+matrix, sums, and checksum). Input parsing, JSON serialization, and file I/O
+are outside the kernel.
 
 ## Contract
 
 Input is `{ "dimension": N, "left": int[], "right": int[] }`; each matrix
 has exactly `N*N` signed integer values in row-major order. Compute `C=A×B`
-with the fixed loop nesting `i`, then `j`, then `k`:
-
-```text
-for i in 0..N:
-  for j in 0..N:
-    C[i,j] = 0
-    for k in 0..N:
-      C[i,j] += A[i,k] * B[k,j]
-```
+using integer arithmetic.
 
 Output is:
 
@@ -30,8 +40,29 @@ Output is:
 element in row-major order as `<value>,`, then one final newline. SHA-256 these
 exact bytes and emit lowercase hexadecimal.
 
-Do not use BLAS, third-party numeric libraries, GPUs, parallel execution,
-tiling, vectorized replacement kernels, precomputed products, or cached
-iterations. The checker independently recomputes the specified loop algorithm.
+## Checker rules
 
-Verify with `arena check --benchmark matrix-multiplication --input datasets/small.json --output /tmp/out.json`.
+The checker independently re-computes the matrix product using integer
+arithmetic and compares every output field byte-for-byte. Since all values are
+integers, there is exactly one correct product matrix regardless of the
+multiplication algorithm used. The checker rejects:
+
+- Incorrect `valueSum` or `diagonalSum`
+- Checksum mismatches (the checksum covers every element of the product)
+- Unknown or duplicate JSON fields
+
+## Fairness constraints
+
+**Allowed**: Any single-threaded integer matrix multiplication algorithm,
+including loop reordering for cache locality, register blocking, SIMD
+intrinsics, compiler auto-vectorization, and idiomatic language abstractions.
+
+**Prohibited**: External compute libraries (BLAS, cuBLAS, MKL, etc.), GPU
+offloading, multi-process or multi-threaded parallelism, precomputed products,
+and caching results between iterations.
+
+## Verification
+
+```bash
+arena check --benchmark matrix-multiplication --input datasets/small.json --output /tmp/out.json
+```

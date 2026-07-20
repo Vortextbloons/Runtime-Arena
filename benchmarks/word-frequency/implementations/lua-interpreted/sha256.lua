@@ -1,7 +1,7 @@
-local function rrotate(x, n)
-	n = n % 32
-	return ((x >> n) | (x << (32 - n))) & 0xffffffff
-end
+local byte = string.byte
+local char = string.char
+local fmt = string.format
+local rep = string.rep
 
 local K = {
 	0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -14,49 +14,56 @@ local K = {
 	0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 }
 
-local function bytes_to_uint32_be(data, offset)
-	local b1, b2, b3, b4 = string.byte(data, offset, offset + 3)
-	return ((b1 << 24) | (b2 << 16) | (b3 << 8) | b4) & 0xffffffff
-end
-
-local function uint32_to_bytes_be(value)
-	return string.char(
-		(value >> 24) & 0xff,
-		(value >> 16) & 0xff,
-		(value >> 8) & 0xff,
-		value & 0xff
-	)
-end
-
-local function preprocess(message)
-	local bit_len = #message * 8
-	local padding = 64 - ((#message + 9) % 64)
-	if padding == 64 then padding = 0 end
-	return message .. "\128" .. string.rep("\0", padding) .. uint32_to_bytes_be(0) .. uint32_to_bytes_be(bit_len)
-end
-
 local function sha256(message)
 	local h0, h1, h2, h3 = 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a
 	local h4, h5, h6, h7 = 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
-	local data = preprocess(message)
 
-	for chunk = 1, #data, 64 do
-		local w = {}
-		for i = 0, 15 do
-			w[i] = bytes_to_uint32_be(data, chunk + i * 4)
-		end
+	local msg_len = #message
+	local bit_len = msg_len * 8
+	local pad_len = 64 - ((msg_len + 9) % 64)
+	if pad_len == 64 then pad_len = 0 end
+	local total_len = msg_len + 1 + pad_len + 8
+
+	local data = message .. "\128" .. rep("\0", pad_len) ..
+		char(0, 0, 0, 0) ..
+		char((bit_len >> 24) & 0xff, (bit_len >> 16) & 0xff, (bit_len >> 8) & 0xff, bit_len & 0xff)
+
+	local w = {}
+
+	for chunk = 1, total_len, 64 do
+		local a, b, c, d, e, f, g, h = h0, h1, h2, h3, h4, h5, h6, h7
+
+		local base = chunk
+		w[0]  = byte(data, base) << 24 | byte(data, base+1) << 16 | byte(data, base+2) << 8 | byte(data, base+3)
+		w[1]  = byte(data, base+4) << 24 | byte(data, base+5) << 16 | byte(data, base+6) << 8 | byte(data, base+7)
+		w[2]  = byte(data, base+8) << 24 | byte(data, base+9) << 16 | byte(data, base+10) << 8 | byte(data, base+11)
+		w[3]  = byte(data, base+12) << 24 | byte(data, base+13) << 16 | byte(data, base+14) << 8 | byte(data, base+15)
+		w[4]  = byte(data, base+16) << 24 | byte(data, base+17) << 16 | byte(data, base+18) << 8 | byte(data, base+19)
+		w[5]  = byte(data, base+20) << 24 | byte(data, base+21) << 16 | byte(data, base+22) << 8 | byte(data, base+23)
+		w[6]  = byte(data, base+24) << 24 | byte(data, base+25) << 16 | byte(data, base+26) << 8 | byte(data, base+27)
+		w[7]  = byte(data, base+28) << 24 | byte(data, base+29) << 16 | byte(data, base+30) << 8 | byte(data, base+31)
+		w[8]  = byte(data, base+32) << 24 | byte(data, base+33) << 16 | byte(data, base+34) << 8 | byte(data, base+35)
+		w[9]  = byte(data, base+36) << 24 | byte(data, base+37) << 16 | byte(data, base+38) << 8 | byte(data, base+39)
+		w[10] = byte(data, base+40) << 24 | byte(data, base+41) << 16 | byte(data, base+42) << 8 | byte(data, base+43)
+		w[11] = byte(data, base+44) << 24 | byte(data, base+45) << 16 | byte(data, base+46) << 8 | byte(data, base+47)
+		w[12] = byte(data, base+48) << 24 | byte(data, base+49) << 16 | byte(data, base+50) << 8 | byte(data, base+51)
+		w[13] = byte(data, base+52) << 24 | byte(data, base+53) << 16 | byte(data, base+54) << 8 | byte(data, base+55)
+		w[14] = byte(data, base+56) << 24 | byte(data, base+57) << 16 | byte(data, base+58) << 8 | byte(data, base+59)
+		w[15] = byte(data, base+60) << 24 | byte(data, base+61) << 16 | byte(data, base+62) << 8 | byte(data, base+63)
+
 		for i = 16, 63 do
-			local s0 = rrotate(w[i - 15], 7) ~ rrotate(w[i - 15], 18) ~ (w[i - 15] >> 3)
-			local s1 = rrotate(w[i - 2], 17) ~ rrotate(w[i - 2], 19) ~ (w[i - 2] >> 10)
+			local x = w[i - 15]
+			local s0 = ((x >> 7) | (x << 25)) ~ ((x >> 18) | (x << 14)) ~ (x >> 3)
+			local y = w[i - 2]
+			local s1 = ((y >> 17) | (y << 15)) ~ ((y >> 19) | (y << 13)) ~ (y >> 10)
 			w[i] = (w[i - 16] + s0 + w[i - 7] + s1) & 0xffffffff
 		end
 
-		local a, b, c, d, e, f, g, h = h0, h1, h2, h3, h4, h5, h6, h7
 		for i = 0, 63 do
-			local S1 = rrotate(e, 6) ~ rrotate(e, 11) ~ rrotate(e, 25)
+			local S1 = ((e >> 6) | (e << 26)) ~ ((e >> 11) | (e << 21)) ~ ((e >> 25) | (e << 7))
 			local ch = (e & f) ~ ((~e) & g)
 			local temp1 = (h + S1 + ch + K[i + 1] + w[i]) & 0xffffffff
-			local S0 = rrotate(a, 2) ~ rrotate(a, 13) ~ rrotate(a, 22)
+			local S0 = ((a >> 2) | (a << 30)) ~ ((a >> 13) | (a << 19)) ~ ((a >> 22) | (a << 10))
 			local maj = (a & b) ~ (a & c) ~ (b & c)
 			local temp2 = (S0 + maj) & 0xffffffff
 			h = g
@@ -79,10 +86,8 @@ local function sha256(message)
 		h7 = (h7 + h) & 0xffffffff
 	end
 
-	return string.format(
-		"%08x%08x%08x%08x%08x%08x%08x%08x",
-		h0, h1, h2, h3, h4, h5, h6, h7
-	)
+	return fmt("%08x%08x%08x%08x%08x%08x%08x%08x",
+		h0, h1, h2, h3, h4, h5, h6, h7)
 end
 
 return sha256

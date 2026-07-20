@@ -32,7 +32,7 @@ Each has `small`, `medium`, and `large` datasets with per-size warmup/iteration 
 
 ## Languages (`languages/`)
 
-JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `java.json`, `typescript.json`, `python.json`, `lua.json`, `cpp.json`, and `javascript.json`. Run argument templates must include `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations` (persistent-worker contract).
+JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `java.json`, `typescript.json`, `python.json`, `lua.json`, `cpp.json`, and `javascript.json`. Run argument templates must include `--input`, `--output`, `--timing-output`, `--warmup`, `--min-iterations`, `--max-iterations`, and `--target-relative-ci` (persistent-worker contract).
 
 Detect/build/run commands may use machine-local absolute paths (the LuaJIT manifest often does on Windows). Prefer portable commands when possible; absolute paths are valid when the toolchain is not on `PATH`.
 
