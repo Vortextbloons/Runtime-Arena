@@ -18,20 +18,21 @@ npm run arena -- results current
 <!-- RESULTS START -->
 ## Latest Results
 
-_324/324 cells validated ✓ · Updated 2026-07-20_  
+_357/357 cells validated ✓ · Updated 2026-07-20_  
 
 | # | Language | Overall | Perf | Versatility | Fastest |
 |---|----------|---------|------|-------------|---------|
-| 1 | C++ | 82.4 | 85.8 | 72.1 | 11 |
-| 2 | c | 73.7 | 77.8 | 61.4 | 11 |
-| 3 | Rust | 72.6 | 77.1 | 59.2 | 10 |
-| 4 | Go | 59.6 | 61.5 | 53.9 | 1 |
-| 5 | java | 54.1 | 55.5 | 49.9 | 0 |
-| 6 | TS | 46.9 | 48.7 | 41.6 | 0 |
-| 7 | JS | 44.7 | 46.6 | 39.0 | 0 |
-| 8 | LuaJIT | 38.3 | 40.9 | 30.3 | 0 |
-| 9 | lua-interpreted | 11.6 | 12.3 | 9.4 | 0 |
-| 10 | Python | 9.6 | 10.0 | 8.5 | 0 |
+| 1 | C++ | 81.4 | 84.7 | 71.6 | 8 |
+| 2 | Go | 73.4 | 77.2 | 62.1 | 6 |
+| 3 | c | 72.8 | 76.7 | 61.1 | 9 |
+| 4 | Rust | 71.7 | 76.0 | 58.8 | 9 |
+| 5 | c-sharp | 56.4 | 58.4 | 50.4 | 1 |
+| 6 | java | 53.1 | 54.7 | 48.2 | 0 |
+| 7 | TS | 48.8 | 51.2 | 41.4 | 0 |
+| 8 | JS | 48.0 | 50.8 | 39.9 | 0 |
+| 9 | LuaJIT | 38.0 | 40.7 | 30.1 | 0 |
+| 10 | lua-interpreted | 11.1 | 11.8 | 9.2 | 0 |
+| 11 | Python | 9.5 | 9.9 | 8.2 | 0 |
 
 _Overall = 75% performance × 25% versatility (0–100). "Fastest" = benchmark×mutation cells where language had lowest median time. Tested on AMD Ryzen 5 9600X 6-Core Processor (12 cores) · win32 · 33.4 GB RAM._
 <!-- RESULTS END -->

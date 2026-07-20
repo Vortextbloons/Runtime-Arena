@@ -58,7 +58,7 @@
 				<span>Language</span><span>Measured kernel time</span><span>Median</span>
 			</div>
 			<div class="chart-rows">
-				{#each rowsFor(size) as result (`${result.language.id}-${size}`)}
+				{#each rowsFor(size) as result (`${result.language.id}-${size}-${result.benchmark.mutation ?? ''}`)}
 					{@const median = result.execution.summary.medianKernelTimeNanoseconds}
 					{@const acceptedResult = result.checker.status === 'accepted'}
 					<article class:invalid={!acceptedResult}>
