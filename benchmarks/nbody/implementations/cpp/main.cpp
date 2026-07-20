@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <iostream>
 #include <fstream>
@@ -56,65 +57,64 @@ Input parseInput(const json& j) {
     return in;
 }
 
-Output kernel(const Input& in, std::vector<Body> bodies) {
-    int n = static_cast<int>(bodies.size());
-    double dt = in.deltaTime;
+Output kernel(const Input& in, std::vector<Body>& bodies) {
+    const int n = static_cast<int>(bodies.size());
+    const double dt = in.deltaTime;
 
     for (int s = 0; s < in.steps; s++) {
         for (int i = 0; i < n; i++) {
             for (int j = i + 1; j < n; j++) {
-                std::array<double, 3> d;
-                double r2 = 0.0;
-                for (int k = 0; k < 3; k++) {
-                    d[k] = bodies[j].position[k] - bodies[i].position[k];
-                    r2 += d[k] * d[k];
-                }
+                double dx = bodies[j].position[0] - bodies[i].position[0];
+                double dy = bodies[j].position[1] - bodies[i].position[1];
+                double dz = bodies[j].position[2] - bodies[i].position[2];
+                double r2 = dx * dx + dy * dy + dz * dz;
                 double magnitude = dt / (r2 * std::sqrt(r2));
-                for (int k = 0; k < 3; k++) {
-                    bodies[i].velocity[k] += d[k] * bodies[j].mass * magnitude;
-                    bodies[j].velocity[k] -= d[k] * bodies[i].mass * magnitude;
-                }
+                double jmi = bodies[j].mass * magnitude;
+                double imj = bodies[i].mass * magnitude;
+                bodies[i].velocity[0] += dx * jmi;
+                bodies[i].velocity[1] += dy * jmi;
+                bodies[i].velocity[2] += dz * jmi;
+                bodies[j].velocity[0] -= dx * imj;
+                bodies[j].velocity[1] -= dy * imj;
+                bodies[j].velocity[2] -= dz * imj;
             }
         }
         for (int i = 0; i < n; i++) {
-            for (int k = 0; k < 3; k++) {
-                bodies[i].position[k] += dt * bodies[i].velocity[k];
-            }
+            bodies[i].position[0] += dt * bodies[i].velocity[0];
+            bodies[i].position[1] += dt * bodies[i].velocity[1];
+            bodies[i].position[2] += dt * bodies[i].velocity[2];
         }
     }
 
     double energy = 0.0;
     for (int i = 0; i < n; i++) {
-        double v2 = 0.0;
-        for (int k = 0; k < 3; k++) {
-            v2 += bodies[i].velocity[k] * bodies[i].velocity[k];
-        }
+        double v2 = bodies[i].velocity[0] * bodies[i].velocity[0]
+                  + bodies[i].velocity[1] * bodies[i].velocity[1]
+                  + bodies[i].velocity[2] * bodies[i].velocity[2];
         energy += 0.5 * bodies[i].mass * v2;
         for (int j = i + 1; j < n; j++) {
-            double r2 = 0.0;
-            for (int k = 0; k < 3; k++) {
-                double diff = bodies[i].position[k] - bodies[j].position[k];
-                r2 += diff * diff;
-            }
+            double dx = bodies[i].position[0] - bodies[j].position[0];
+            double dy = bodies[i].position[1] - bodies[j].position[1];
+            double dz = bodies[i].position[2] - bodies[j].position[2];
+            double r2 = dx * dx + dy * dy + dz * dz;
             energy -= bodies[i].mass * bodies[j].mass / std::sqrt(r2);
         }
     }
 
-    std::string positionData;
-    std::string velocityData;
-    for (auto& b : bodies) {
+    char posData[8192];
+    char velData[8192];
+    int posLen = 0;
+    int velLen = 0;
+    for (int i = 0; i < n; i++) {
         for (int k = 0; k < 3; k++) {
-            char buf[32];
-            std::snprintf(buf, sizeof(buf), "%.9f,", b.position[k]);
-            positionData += buf;
-            std::snprintf(buf, sizeof(buf), "%.9f,", b.velocity[k]);
-            velocityData += buf;
+            posLen += std::snprintf(posData + posLen, sizeof(posData) - posLen, "%.9f,", bodies[i].position[k]);
+            velLen += std::snprintf(velData + velLen, sizeof(velData) - velLen, "%.9f,", bodies[i].velocity[k]);
         }
     }
 
     SHA256 ph, vh;
-    ph.update(positionData);
-    vh.update(velocityData);
+    ph.update(reinterpret_cast<const uint8_t*>(posData), posLen);
+    vh.update(reinterpret_cast<const uint8_t*>(velData), velLen);
 
     Output out;
     out.benchmark = "nbody";

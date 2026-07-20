@@ -1,5 +1,6 @@
 #include <chrono>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -41,29 +42,43 @@ Input parseInput(const json& j) {
     return in;
 }
 
-Output kernel(const Input& in) {
-    int n = in.dimension;
-    std::vector<int64_t> c(n * n);
+Output kernel(const Input& in, std::vector<int64_t>& c) {
+    const int n = in.dimension;
+    const int64_t* a = in.left.data();
+    const int64_t* b = in.right.data();
     int64_t valueSum = 0;
     int64_t diagonalSum = 0;
+
+    std::memset(c.data(), 0, n * n * sizeof(int64_t));
+
     for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            int64_t sum = 0;
-            for (int k = 0; k < n; k++) {
-                sum += in.left[i * n + k] * in.right[k * n + j];
+        for (int k = 0; k < n; k++) {
+            int64_t aik = a[i * n + k];
+            for (int j = 0; j < n; j++) {
+                c[i * n + j] += aik * b[k * n + j];
             }
-            c[i * n + j] = sum;
-            valueSum += sum;
-            if (i == j) diagonalSum += sum;
         }
     }
-    std::string data = "dimension=" + std::to_string(n) + "\n";
-    for (int i = 0; i < n * n; i++) {
-        data += std::to_string(c[i]) + ",";
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            valueSum += c[i * n + j];
+            if (i == j) diagonalSum += c[i * n + j];
+        }
     }
-    data += "\n";
+
+    size_t bufCap = static_cast<size_t>(n) * n * 21 + 256;
+    char* buf = static_cast<char*>(std::malloc(bufCap));
+    int bufLen = std::snprintf(buf, bufCap, "dimension=%d\n", n);
+    for (int i = 0; i < n * n; i++) {
+        bufLen += std::snprintf(buf + bufLen, bufCap - bufLen, "%lld,", static_cast<long long>(c[i]));
+    }
+    bufLen += std::snprintf(buf + bufLen, bufCap - bufLen, "\n");
+
     SHA256 hasher;
-    hasher.update(data);
+    hasher.update(reinterpret_cast<const uint8_t*>(buf), bufLen);
+    std::free(buf);
+
     Output out;
     out.benchmark = "matrix-multiplication";
     out.version = 1;
@@ -127,11 +142,12 @@ int main(int argc, char* argv[]) {
 
     std::vector<Sample> samples;
     Output out;
+    std::vector<int64_t> c(in.dimension * in.dimension);
 
     std::vector<long long> kernelTimes;
     for (int i = -warmup; ; i++) {
         auto start = std::chrono::high_resolution_clock::now();
-        out = kernel(in);
+        out = kernel(in, c);
         auto end = std::chrono::high_resolution_clock::now();
 
         int64_t elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();

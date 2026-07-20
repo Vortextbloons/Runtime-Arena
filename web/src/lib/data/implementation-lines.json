@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-20T02:06:03.266Z",
+  "generatedAt": "2026-07-20T04:37:42.216Z",
   "cells": {
     "aggregation:c": {
       "logicalLines": 301,
@@ -11,22 +11,22 @@
       "sha256": "4e79242cf9ffc16c48573a7fa243a9066aa29c10a8596e2744f5c83edcbc03f4"
     },
     "aggregation:cpp": {
-      "logicalLines": 223,
+      "logicalLines": 224,
       "fileCount": 1,
       "files": [
         "main.cpp"
       ],
-      "sha256": "b5ce6f8118fd2db0683e4fda41d2485c3ff64979e6f2761a0f3704e226998cdc"
+      "sha256": "1bb8d36dde593741f6b2ad5ceee23ad17be33cd25bd8143b3bdb121999d2efff"
     },
     "aggregation:go": {
-      "logicalLines": 217,
+      "logicalLines": 218,
       "fileCount": 3,
       "files": [
         "main.go",
         "timer_other.go",
         "timer_windows.go"
       ],
-      "sha256": "bec07d784d32b9043d2316edfd2645966cae727bcc6399f834f36fd01fc41684"
+      "sha256": "26dce245d9393ecd4750b71b5953322cdc71fce2131d3f4d55d30494778ca21a"
     },
     "aggregation:java": {
       "logicalLines": 248,
@@ -97,22 +97,22 @@
       "sha256": "068a2977c58730102f28e768efa0ec8a70b7eb6704238ae026abf1f2c5149402"
     },
     "barrier-wave:cpp": {
-      "logicalLines": 349,
+      "logicalLines": 357,
       "fileCount": 1,
       "files": [
         "main.cpp"
       ],
-      "sha256": "28e7a5c3a740b02edb7bfeb9423308fb39901cf4290fd71629436c5c72529a01"
+      "sha256": "f7f61b8fc964a4c87296dedf19ad44892b76237073f3da42dbeffff16a35a0c5"
     },
     "barrier-wave:go": {
-      "logicalLines": 208,
+      "logicalLines": 209,
       "fileCount": 3,
       "files": [
         "main.go",
         "timer_other.go",
         "timer_windows.go"
       ],
-      "sha256": "cd876e6f2618d4504d834a83bb13f7ef66d6656dc5fdd8edd2486c190260c695"
+      "sha256": "ae7badc69827059ca3838fa5ef7628c743d8dd3529fc049f0b3eec5d755472e1"
     },
     "barrier-wave:java": {
       "logicalLines": 197,
@@ -165,12 +165,12 @@
       "sha256": "3eb28617047cea23b16d0a3d5c19776d705f0ab2784df2213f670faf1a6ad02f"
     },
     "matrix-multiplication:cpp": {
-      "logicalLines": 157,
+      "logicalLines": 167,
       "fileCount": 1,
       "files": [
         "main.cpp"
       ],
-      "sha256": "5f401a164cccd59a8c0542792c5263b1b117dace6f26f346e4ca26076f7d3070"
+      "sha256": "13b2aa800e427e2034332076facb093d360823824810622253cc13bed9d59489"
     },
     "matrix-multiplication:go": {
       "logicalLines": 138,
@@ -259,14 +259,14 @@
       "sha256": "6b0db5c66a4e3a181b7274efd0def07ba63ddf617f772f515a58893a31879f55"
     },
     "nbody:go": {
-      "logicalLines": 162,
+      "logicalLines": 223,
       "fileCount": 3,
       "files": [
         "main.go",
         "timer_other.go",
         "timer_windows.go"
       ],
-      "sha256": "c8165d1683f50e673acf782c68ef1fd23110d0d12d2a84696dda5589f42cf976"
+      "sha256": "22b2b44ae9c0ddface30c7b29e0f6a79efc7ab4df6a1516e4d8b146c8207efa0"
     },
     "nbody:java": {
       "logicalLines": 70,
@@ -345,14 +345,14 @@
       "sha256": "111bcc346861aed43a119c35b34ad4c1ed0a492ffb3afc39e8be281ed8d9b7ae"
     },
     "record-sorting:go": {
-      "logicalLines": 150,
+      "logicalLines": 151,
       "fileCount": 3,
       "files": [
         "main.go",
         "timer_other.go",
         "timer_windows.go"
       ],
-      "sha256": "2769f432e5c34ddec48ea1a057cd93aa34a33a3bcaf579bdf14107e56bebaf69"
+      "sha256": "fbec26d6a141bb82fe3d7177d0f7192edf0e6afc480cd734e61e4a2fe3691e8d"
     },
     "record-sorting:java": {
       "logicalLines": 275,
@@ -423,12 +423,12 @@
       "sha256": "aded9d018130b099ff2c80d06377a4dd29fd5848a2d1c0189975119b65223e5d"
     },
     "shortest-path:cpp": {
-      "logicalLines": 169,
+      "logicalLines": 174,
       "fileCount": 1,
       "files": [
         "main.cpp"
       ],
-      "sha256": "ceaca068da4ed27c06d0259f4911b7c8a854ffe73d0f57bdc3b2d8d1fe6decdf"
+      "sha256": "9dfc0b704dc2f0c58bf5fac418c0ac5a18621b86f01061ccb440c8b99514b175"
     },
     "shortest-path:go": {
       "logicalLines": 212,
@@ -509,22 +509,22 @@
       "sha256": "629a2378929388a7451783a9a098beffc614d60a28322132fc69effb3ed481e7"
     },
     "word-frequency:cpp": {
-      "logicalLines": 153,
+      "logicalLines": 167,
       "fileCount": 1,
       "files": [
         "main.cpp"
       ],
-      "sha256": "04bf6e9d76406eca531eacb276988160cab44def76b8e57c8b16c1e4937e08ae"
+      "sha256": "13b2aa800e427e2034332076facb093d360823824810622253cc13bed9d59489"
     },
     "word-frequency:go": {
-      "logicalLines": 146,
+      "logicalLines": 154,
       "fileCount": 3,
       "files": [
         "main.go",
         "timer_other.go",
         "timer_windows.go"
       ],
-      "sha256": "f3f0ef4a31ff78d2ee572db4bee8e0cbc5cd234446c5622da492e3a01bbc3198"
+      "sha256": "23474f9f5e792799415711dc3dc0a778ebc6503a1041987f1547184a374f7814"
     },
     "word-frequency:java": {
       "logicalLines": 192,

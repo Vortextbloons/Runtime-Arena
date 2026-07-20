@@ -1,5 +1,6 @@
 #include <chrono>
 #include <cstdint>
+#include <cstring>
 #include <fstream>
 #include <functional>
 #include <limits>
@@ -69,12 +70,16 @@ std::vector<Result> kernel(const std::vector<std::vector<Edge>>& adj, const Inpu
     std::vector<Result> results;
     results.reserve(input.queries.size());
 
-    for (const auto& q : input.queries) {
-        std::vector<int64_t> dist(input.vertexCount, INF);
-        std::vector<int> prev(input.vertexCount, -1);
-        std::priority_queue<PQItem, std::vector<PQItem>, std::greater<PQItem>> pq;
+    const int V = input.vertexCount;
+    std::vector<int64_t> dist(V);
+    std::vector<int> prev(V);
 
+    for (const auto& q : input.queries) {
+        std::fill(dist.begin(), dist.end(), INF);
+        std::fill(prev.begin(), prev.end(), -1);
         dist[q.source] = 0;
+
+        std::priority_queue<PQItem, std::vector<PQItem>, std::greater<PQItem>> pq;
         pq.push({0, q.source});
 
         while (!pq.empty()) {
@@ -82,6 +87,8 @@ std::vector<Result> kernel(const std::vector<std::vector<Edge>>& adj, const Inpu
             pq.pop();
 
             if (cost != dist[node]) continue;
+
+            if (node == q.destination) break;
 
             for (const auto& edge : adj[node]) {
                 int64_t nextCost = cost + edge.weight;
@@ -101,7 +108,7 @@ std::vector<Result> kernel(const std::vector<std::vector<Edge>>& adj, const Inpu
                 path.push_back(v);
             }
             std::reverse(path.begin(), path.end());
-            results.push_back({q.id, dist[q.destination], path});
+            results.push_back({q.id, dist[q.destination], std::move(path)});
         }
     }
     return results;

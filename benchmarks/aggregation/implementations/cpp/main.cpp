@@ -149,7 +149,8 @@ json computeAggregation(const std::vector<Row>& rows) {
     }
 
     json checksumInput = {{"Categories", catsArray}, {"TopAccounts", topArray}};
-    std::string checksumStr = checksumInput.dump() + "\n";
+    std::string checksumStr = checksumInput.dump();
+    checksumStr.push_back('\n');
     SHA256 sha;
     sha.update(checksumStr);
     std::string checksum = sha.hex();
@@ -162,9 +163,9 @@ json computeAggregation(const std::vector<Row>& rows) {
     result["totalValueMinorUnits"] = totalValueMinorUnits;
     result["minimumTransactionMinorUnits"] = minTransaction;
     result["maximumTransactionMinorUnits"] = maxTransaction;
-    result["categories"] = catsArray;
-    result["topAccounts"] = topArray;
-    result["checksum"] = checksum;
+    result["categories"] = std::move(catsArray);
+    result["topAccounts"] = std::move(topArray);
+    result["checksum"] = std::move(checksum);
 
     return result;
 }

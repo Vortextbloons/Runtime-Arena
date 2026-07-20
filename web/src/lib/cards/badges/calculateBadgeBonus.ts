@@ -4,11 +4,11 @@ import { clampScore, normalizeScore } from '../util.ts';
 import { selectFeaturedBadgeIds } from './awardBadges.ts';
 
 export const BADGE_OVR_BONUS: Record<BadgeTier, number> = {
-	bronze: 0.5,
-	silver: 1.0,
-	gold: 1.5,
-	'hall-of-fame': 2.0,
-	legend: 2.5
+	bronze: 0.70,
+	silver: 1.15,
+	gold: 1.75,
+	'hall-of-fame': 2.25,
+	legend: 2.75
 };
 
 export function applyFinalOverall(baseOverall: number, badgeBonus: number): number {

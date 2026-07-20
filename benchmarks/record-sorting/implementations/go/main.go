@@ -5,11 +5,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"flag"
+	"math"
 	"os"
 	"slices"
 	"strconv"
-
-	"math")
+)
 
 type Record struct {
 	Id        int `json:"id"`

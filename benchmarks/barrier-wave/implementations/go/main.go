@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"math"
 	"os"
 	"runtime"
 	"strconv"
-
-	"math")
+)
 
 type Input struct {
 	SchemaVersion  string `json:"schemaVersion"`

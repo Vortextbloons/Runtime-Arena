@@ -27,17 +27,18 @@ type Sample struct {
 	Duration  int64 `json:"kernelTimeNanoseconds"`
 }
 
+type minHeap []heapItem
+
 type heapItem struct {
 	node int
 	dist int64
 }
-type minHeap []heapItem
 
 func (h *minHeap) push(x heapItem) {
 	*h = append(*h, x)
 	i := len(*h) - 1
 	for i > 0 {
-		p := (i - 1) / 2
+		p := (i - 1) >> 1
 		if (*h)[p].dist <= (*h)[i].dist {
 			break
 		}

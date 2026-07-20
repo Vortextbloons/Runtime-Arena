@@ -5,10 +5,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"flag"
+	"math"
 	"os"
 	"strconv"
-
-	"math")
+)
 
 type Input struct {
 	Dimension int   `json:"dimension"`
@@ -37,17 +37,16 @@ func kernel(in Input) Output {
 	var valueSum int64
 	var diagonalSum int64
 	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
-			var sum int64
-			for k := 0; k < n; k++ {
-				sum += int64(a[i*n+k]) * int64(b[k*n+j])
-			}
-			c[i*n+j] = sum
-			valueSum += sum
-			if i == j {
-				diagonalSum += sum
+		for k := 0; k < n; k++ {
+			ai := int64(a[i*n+k])
+			for j := 0; j < n; j++ {
+				c[i*n+j] += ai * int64(b[k*n+j])
 			}
 		}
+		for j := 0; j < n; j++ {
+			valueSum += c[i*n+j]
+		}
+		diagonalSum += c[i*n+i]
 	}
 	h := sha256.New()
 	h.Write([]byte("dimension=" + strconv.Itoa(n) + "\n"))

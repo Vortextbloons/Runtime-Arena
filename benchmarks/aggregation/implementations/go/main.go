@@ -7,11 +7,11 @@ import (
 	"encoding/json"
 	"flag"
 	"io"
+	"math"
 	"os"
 	"sort"
 	"strconv"
-
-	"math")
+)
 
 type Row struct {
 	Account, Category string

@@ -184,24 +184,28 @@ struct Worker {
     int id;
     int itemsPerWorker;
     int roundsPerItem;
-    std::mutex mtx;
-    std::condition_variable cv;
-    bool hasWork = false;
-    bool isDone = false;
-    bool shouldStop = false;
+    std::atomic<uint32_t> generation{0};
+    std::atomic<uint32_t> doneGen{0};
+    std::atomic<uint32_t> shouldStop{0};
     uint32_t seed = 0;
     uint32_t localXor;
     uint64_t localSum;
+    alignas(64) char _pad[0];
 };
 
 static void workerFn(Worker* w) {
+    uint32_t seen = 0;
     while (true) {
-        std::unique_lock lock(w->mtx);
-        w->cv.wait(lock, [&] { return w->hasWork || w->shouldStop; });
-        if (w->shouldStop) break;
+        uint32_t cur = w->generation.load(std::memory_order_acquire);
+        while (cur == seen) {
+            if (w->shouldStop.load(std::memory_order_acquire)) return;
+            w->generation.wait(seen);
+            cur = w->generation.load(std::memory_order_acquire);
+        }
+        seen = cur;
+        if (w->shouldStop.load(std::memory_order_acquire)) return;
+
         uint32_t phaseSeed = w->seed;
-        w->hasWork = false;
-        lock.unlock();
 
         uint32_t workerMul = (uint32_t)w->id * 0x9e3779b9u;
         uint32_t localXor = 0;
@@ -220,11 +224,11 @@ static void workerFn(Worker* w) {
             localSum += x;
         }
 
-        lock.lock();
         w->localXor = localXor;
         w->localSum = localSum;
-        w->isDone = true;
-        w->cv.notify_one();
+
+        w->doneGen.fetch_add(1, std::memory_order_release);
+        w->doneGen.notify_one();
     }
 }
 
@@ -232,20 +236,29 @@ static Output kernel(const Input& in, std::vector<Worker>& workers) {
     uint32_t phaseSeed = in.initialSeed;
     uint64_t digest = 0x6a09e667f3bcc909ULL;
     const int wc = in.workerCount;
+    std::vector<uint32_t> targets(wc);
 
     for (int phase = 0; phase < in.phaseCount; phase++) {
-        for (auto& w : workers) {
-            std::lock_guard lock(w.mtx);
-            w.seed = phaseSeed;
-            w.hasWork = true;
-            w.isDone = false;
-        }
-        for (auto& w : workers)
-            w.cv.notify_one();
+        for (int w = 0; w < wc; w++)
+            targets[w] = workers[w].doneGen.load(std::memory_order_relaxed);
 
         for (auto& w : workers) {
-            std::unique_lock lock(w.mtx);
-            w.cv.wait(lock, [&] { return w.isDone; });
+            w.seed = phaseSeed;
+        }
+        std::atomic_thread_fence(std::memory_order_release);
+
+        for (auto& w : workers) {
+            w.generation.fetch_add(1, std::memory_order_release);
+            w.generation.notify_one();
+        }
+
+        for (int w = 0; w < wc; w++) {
+            uint32_t target = targets[w] + 1;
+            uint32_t cur = workers[w].doneGen.load(std::memory_order_acquire);
+            while (cur < target) {
+                workers[w].doneGen.wait(cur);
+                cur = workers[w].doneGen.load(std::memory_order_acquire);
+            }
         }
 
         uint32_t nextSeed = phaseSeed ^ (uint32_t)phase;
@@ -360,11 +373,10 @@ int main(int argc, char* argv[]) {
     }
 #else
     for (auto& w : workers) {
-        std::lock_guard lock(w.mtx);
-        w.shouldStop = true;
+        w.shouldStop.store(1, std::memory_order_release);
+        w.generation.fetch_add(1, std::memory_order_release);
+        w.generation.notify_one();
     }
-    for (auto& w : workers)
-        w.cv.notify_one();
 #endif
     for (auto& t : threads)
         t.join();

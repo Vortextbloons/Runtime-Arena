@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <chrono>
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -35,6 +37,7 @@ struct Sample {
 
 Output kernel(const std::vector<std::string>& words) {
     std::unordered_map<std::string, int> freq;
+    freq.reserve(words.size() / 4);
     for (const auto& w : words) {
         freq[w]++;
     }
@@ -50,22 +53,34 @@ Output kernel(const std::vector<std::string>& words) {
         return a.word < b.word;
     });
 
-    SHA256 hasher;
+    size_t bufCap = 0;
     for (const auto& e : entries) {
-        hasher.update(e.word + "," + std::to_string(e.count) + "\n");
+        bufCap += e.word.size() + 24;
+    }
+    bufCap += 32;
+    std::string buf;
+    buf.reserve(bufCap);
+    for (const auto& e : entries) {
+        buf.append(e.word);
+        buf.push_back(',');
+        char numbuf[16];
+        int len = std::snprintf(numbuf, sizeof(numbuf), "%d", e.count);
+        buf.append(numbuf, len);
+        buf.push_back('\n');
     }
 
-    std::vector<Entry> top;
-    for (int i = 0; i < std::min(10, (int)entries.size()); i++) {
-        top.push_back(entries[i]);
-    }
+    SHA256 hasher;
+    hasher.update(buf);
+
+    int topCount = std::min(10, static_cast<int>(entries.size()));
+    std::vector<Entry> top(entries.begin(), entries.begin() + topCount);
 
     Output out;
     out.benchmark = "word-frequency";
     out.version = 1;
-    out.totalWords = words.size();
-    out.uniqueWords = entries.size();
-    out.topWords = top;
+    out.totalWords = static_cast<int>(words.size());
+    out.uniqueWords = static_cast<int>(entries.size());
+    out.topWords = std::move(top);
     out.checksum = hasher.hex();
     return out;
 }

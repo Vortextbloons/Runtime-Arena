@@ -5,11 +5,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"flag"
-	"fmt"
+	"math"
 	"os"
-	"sort"
-
-	"math")
+	"slices"
+	"strconv"
+)
 
 type Entry struct {
 	Word  string
@@ -17,12 +17,12 @@ type Entry struct {
 }
 
 type Output struct {
-	Benchmark  string  `json:"benchmark"`
-	Version    int     `json:"version"`
-	TotalWords int     `json:"totalWords"`
-	UniqueWords int    `json:"uniqueWords"`
-	TopWords   []Entry `json:"topWords"`
-	Checksum   string  `json:"checksum"`
+	Benchmark   string  `json:"benchmark"`
+	Version     int     `json:"version"`
+	TotalWords  int     `json:"totalWords"`
+	UniqueWords int     `json:"uniqueWords"`
+	TopWords    []Entry `json:"topWords"`
+	Checksum    string  `json:"checksum"`
 }
 
 type Sample struct {
@@ -38,7 +38,7 @@ func (e Entry) MarshalJSON() ([]byte, error) {
 }
 
 func kernel(words []string) Output {
-	freq := make(map[string]int)
+	freq := make(map[string]int, len(words)/2)
 	for _, w := range words {
 		freq[w]++
 	}
@@ -48,16 +48,23 @@ func kernel(words []string) Output {
 		entries = append(entries, Entry{w, c})
 	}
 
-	sort.Slice(entries, func(i, j int) bool {
-		if entries[i].Count != entries[j].Count {
-			return entries[i].Count > entries[j].Count
+	slices.SortFunc(entries, func(a, b Entry) int {
+		if a.Count != b.Count {
+			return b.Count - a.Count
 		}
-		return entries[i].Word < entries[j].Word
+		return slices.Compare([]byte(a.Word), []byte(b.Word))
 	})
 
 	h := sha256.New()
+	var buf [32]byte
 	for _, e := range entries {
-		fmt.Fprintf(h, "%s,%d\n", e.Word, e.Count)
+		tmp := strconv.AppendInt(buf[:0], int64(e.Count), 10)
+		wb := make([]byte, 0, len(e.Word)+len(tmp)+2)
+		wb = append(wb, e.Word...)
+		wb = append(wb, ',')
+		wb = append(wb, tmp...)
+		wb = append(wb, '\n')
+		h.Write(wb)
 	}
 
 	top := entries
