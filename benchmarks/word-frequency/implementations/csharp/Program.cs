@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,7 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-string? input = null, output = null, timingOutput = null;
+string input = null!, output = null!, timingOutput = null!;
 int warmup = 0, minIterations = 1, maxIterations = 1;
 double targetRelativeCi = 0.05;
 
@@ -34,10 +35,10 @@ using (var doc = JsonDocument.Parse(inputJson))
     int totalWords = words.GetArrayLength();
     string[] wordArray = new string[totalWords];
     int idx = 0;
-    foreach (var w in words)
+    foreach (var w in words.EnumerateArray())
         wordArray[idx++] = w.GetString()!;
 
-    string? result = null;
+    string result = null!;
     var samplesBuilder = new StringBuilder("{\"samples\":[");
     long[] kernelTimes = new long[maxIterations];
     int kernelCount = 0;
@@ -97,8 +98,8 @@ static string Kernel(string[] words)
     for (int i = 0; i < take; i++)
     {
         if (i != 0) output.Append(',');
-        output.Append("{\"word\":").Append(JsonEncodedText.Encode(entries[i].Key).ToString())
-            .Append(",\"count\":").Append(entries[i].Value).Append('}');
+        output.Append("{\"word\":\"").Append(JsonEncodedText.Encode(entries[i].Key))
+            .Append("\",\"count\":").Append(entries[i].Value).Append('}');
     }
     return output.Append("],\"checksum\":\"").Append(checksum).Append("\"}").ToString();
 }

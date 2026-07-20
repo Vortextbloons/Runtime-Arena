@@ -21,6 +21,7 @@
 		lua: '#2554C7',
 		'lua-interpreted': '#3d8b37',
 		python: '#f0c040',
+		'c-sharp': '#68217a',
 		cpp: '#6366f1',
 		c: '#555555'
 	};

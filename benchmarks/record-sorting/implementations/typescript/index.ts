@@ -6,20 +6,36 @@ const warmups=Number(arg("--warmup")),minIt=Number(arg("--min-iterations")),maxI
 interface Record{id:number;score:number;timestamp:number}
 interface Input{records:Record[]}
 const input=JSON.parse(await readFile(arg("--input"),"utf8"))as Input;
-const records=input.records;
-function kernel(recs:Record[]){
-  recs.sort((a,b)=>b.score-a.score||a.timestamp-b.timestamp||a.id-b.id);
-  const n=recs.length;const take=Math.min(n,10);
-  const first=recs.slice(0,take);const last=recs.slice(n-take);
-  let data="";for(const r of recs)data+=r.id+","+r.score+","+r.timestamp+"\n";
+const inputRecords=input.records;
+const rc=inputRecords.length;
+const ids=new Int32Array(rc);
+const scores=new Int32Array(rc);
+const timestamps=new Float64Array(rc);
+for(let i=0;i<rc;i++){ids[i]=inputRecords[i].id;scores[i]=inputRecords[i].score;timestamps[i]=inputRecords[i].timestamp}
+const idx=new Array<number>(rc);
+function kernel(){
+  for(let i=0;i<rc;i++)idx[i]=i;
+  idx.sort((a,b)=>{
+    const d=scores[b]-scores[a];
+    if(d!==0)return d;
+    const t=timestamps[a]-timestamps[b];
+    if(t!==0)return t;
+    return ids[a]-ids[b];
+  });
+  const take=Math.min(rc,10);
+  const firstRecords:{id:number;score:number;timestamp:number}[]=[];
+  const lastRecords:{id:number;score:number;timestamp:number}[]=[];
+  for(let i=0;i<take;i++){const k=idx[i]!;firstRecords.push({id:ids[k],score:scores[k],timestamp:timestamps[k]})}
+  for(let i=rc-take;i<rc;i++){const k=idx[i]!;lastRecords.push({id:ids[k],score:scores[k],timestamp:timestamps[k]})}
+  let data="";
+  for(let i=0;i<rc;i++){const k=idx[i]!;data+=ids[k]+","+scores[k]+","+timestamps[k]+"\n"}
   const checksum=createHash("sha256").update(data).digest("hex");
-  return{benchmark:"record-sorting"as const,version:1 as const,recordCount:n,firstRecords:first,lastRecords:last,checksum};
+  return{benchmark:"record-sorting"as const,version:1 as const,recordCount:rc,firstRecords,lastRecords,checksum};
 }
 let output;const samples:Array<{iteration:number;kernelTimeNanoseconds:number}>=[];
 const _ts:number[]=[];for(let i=-warmups;;i++){
-  const state=records.map(r=>({...r}));
   const start=process.hrtime.bigint();
-  output=kernel(state);
+  output=kernel();
   const elapsed=process.hrtime.bigint()-start;
   if(i>=0){const ns=Number(elapsed);samples.push({iteration:samples.length+1,kernelTimeNanoseconds:ns});_ts.push(ns);if(_ts.length>=maxIt||(_ts.length>=minIt&&_ciW(_ts)<=targetCi))break};
 }

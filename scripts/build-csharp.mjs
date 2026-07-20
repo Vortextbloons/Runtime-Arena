@@ -28,6 +28,7 @@ const arenaDir = resolve(cwd, ".arena");
 const csprojPath = resolve(cwd, "ArenaBenchmark.csproj");
 const publishDir = resolve(arenaDir, "publish");
 
+const sourceFile = source.replace(/\\/g, "/");
 const csproj = `<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -35,6 +36,10 @@ const csproj = `<Project Sdk="Microsoft.NET.Sdk">
     <Optimize>true</Optimize>
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="**/*.cs" />
+    <Compile Include="${sourceFile}" />
+  </ItemGroup>
 </Project>
 `;
 
@@ -50,8 +55,13 @@ try {
   ], cwd);
 
   await mkdir(dirname(output), { recursive: true });
-  const dllName = source.replace(/\.cs$/i, ".dll");
-  await cp(resolve(publishDir, dllName), output, { force: true });
+  await cp(resolve(publishDir, "ArenaBenchmark.dll"), output, { force: true });
+  const runtimeConfig = resolve(publishDir, "ArenaBenchmark.runtimeconfig.json");
+  const outputDir = dirname(output);
+  const outputBase = output.replace(/\.dll$/i, "");
+  try {
+    await cp(runtimeConfig, outputBase + ".runtimeconfig.json", { force: true });
+  } catch {}
 } finally {
   await rm(csprojPath, { force: true });
   await rm(publishDir, { recursive: true, force: true });

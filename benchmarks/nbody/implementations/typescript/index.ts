@@ -28,8 +28,11 @@ function kernel(buf:Float64Array){
     energy+=.5*mx*(vx*vx+vy*vy+vz*vz);
     for(let j=i+1;j<n;j++){const bj=j*7;const dx=px-buf[bj+1]!,dy=py-buf[bj+2]!,dz=pz-buf[bj+3]!;energy-=mx*buf[bj]!/Math.sqrt(dx*dx+dy*dy+dz*dz)}
   }
-  let ps="",vs="";
-  for(let i=0;i<n;i++){const o=i*7;ps+=buf[o+1]!.toFixed(9)+",";ps+=buf[o+2]!.toFixed(9)+",";ps+=buf[o+3]!.toFixed(9)+",";vs+=buf[o+4]!.toFixed(9)+",";vs+=buf[o+5]!.toFixed(9)+",";vs+=buf[o+6]!.toFixed(9)+","}
+  const psArr=new Array<string>(n*3);
+  const vsArr=new Array<string>(n*3);
+  for(let i=0;i<n;i++){const o=i*7;const j=i*3;psArr[j]=buf[o+1]!.toFixed(9);psArr[j+1]=buf[o+2]!.toFixed(9);psArr[j+2]=buf[o+3]!.toFixed(9);vsArr[j]=buf[o+4]!.toFixed(9);vsArr[j+1]=buf[o+5]!.toFixed(9);vsArr[j+2]=buf[o+6]!.toFixed(9)}
+  const ps=psArr.join(",")+",";
+  const vs=vsArr.join(",")+",";
   const hash=(s:string)=>createHash("sha256").update(s).digest("hex");
   return{benchmark:"nbody"as const,version:1 as const,bodyCount:n,finalEnergy:energy,positionChecksum:hash(ps),velocityChecksum:hash(vs)};
 }

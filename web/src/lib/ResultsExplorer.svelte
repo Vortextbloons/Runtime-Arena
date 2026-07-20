@@ -641,11 +641,11 @@
 	}
 	.run-details { margin-top: 1rem; border: 1px solid var(--rule); border-radius: .7rem; background: var(--panel); }
 	.run-details summary { padding: 1rem 1.2rem; color: var(--muted); cursor: pointer; font: 650 .68rem var(--mono); text-transform: uppercase; letter-spacing: .06em; }
-	dl { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0; border-top: 1px solid var(--rule); }
-	dl div { min-width: 0; padding: 1rem 1.2rem; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
-	dt { color: var(--muted); font-size: .65rem; }
-	dd { overflow-wrap: anywhere; margin: .35rem 0 0; font-size: .8rem; }
-	dd code { font-family: var(--mono); }
+	.run-details dl { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0; border-top: 1px solid var(--rule); }
+	.run-details dl div { min-width: 0; padding: 1rem 1.2rem; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+	.run-details dt { color: var(--muted); font-size: .65rem; }
+	.run-details dd { overflow-wrap: anywhere; margin: .35rem 0 0; font-size: .8rem; }
+	.run-details dd code { font-family: var(--mono); }
 	@media (max-width: 700px) {
 		.page-head { grid-template-columns: 1fr; }
 		.run-tag { justify-items: start; border-right: 0; border-left: 2px solid var(--accent); padding: 0 0 0 1rem; text-align: left; }
@@ -653,9 +653,9 @@
 		.view-toggle { display: grid; grid-template-columns: 1fr 1fr; }
 		.profile-strip { grid-template-columns: 1fr; }
 		.profile-strip button { border-right: 0; border-bottom: 1px solid var(--rule); }
-		dl { grid-template-columns: 1fr 1fr; }
+		.run-details dl { grid-template-columns: 1fr 1fr; }
 	}
-	@media (max-width: 430px) { dl { grid-template-columns: 1fr; } }
+	@media (max-width: 430px) { .run-details dl { grid-template-columns: 1fr; } }
 
 	.card-grid {
 		display: grid;
@@ -945,26 +945,34 @@
 
 	.badge-measurement-grid {
 		display: grid;
+		grid-template-columns: 1fr;
 		gap: 0.35rem;
 		margin: 0;
+		border-top: 0;
 	}
 
 	.badge-measurement-grid div {
 		display: flex;
 		justify-content: space-between;
+		align-items: center;
 		gap: 0.75rem;
+		min-width: 0;
 		padding: 0.35rem 0.45rem;
+		border: 0;
 		border-radius: 0.3rem;
 		background: color-mix(in srgb, var(--panel) 70%, transparent);
 	}
 
 	.badge-measurement-grid dt {
+		flex: 1;
+		min-width: 0;
 		margin: 0;
 		color: var(--muted);
 		font-size: 0.72rem;
 	}
 
 	.badge-measurement-grid dd {
+		flex-shrink: 0;
 		margin: 0;
 		color: var(--text);
 		font: 650 0.72rem var(--mono);

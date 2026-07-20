@@ -6,27 +6,31 @@ const warmups=Number(arg("--warmup")),minIt=Number(arg("--min-iterations")),maxI
 interface Input{dimension:number;left:number[];right:number[]}
 const input=JSON.parse(await readFile(arg("--input"),"utf8"))as Input;
 const n=input.dimension;
+const nn=n*n;
 const a=input.left;
 const b=input.right;
+const c=new Array<number>(nn);
 function kernel(){
-  const c=new Array<number>(n*n);
-  let valueSum=0,diagonalSum=0;
+  for(let i=0;i<nn;i++)c[i]=0;
   for(let i=0;i<n;i++){
-    for(let j=0;j<n;j++){
-      let sum=0;
-      for(let k=0;k<n;k++){
-        sum+=a[i*n+k]!*b[k*n+j]!;
+    const ci=i*n;
+    for(let k=0;k<n;k++){
+      const aik=a[i*n+k];
+      const bk=k*n;
+      for(let j=0;j<n;j++){
+        c[ci+j]+=aik*b[bk+j];
       }
-      c[i*n+j]=sum;
-      valueSum+=sum;
-      if(i===j)diagonalSum+=sum;
     }
   }
+  let valueSum=0;
+  for(let i=0;i<nn;i++)valueSum+=c[i];
+  let diagonalSum=0;
+  for(let i=0;i<n;i++)diagonalSum+=c[i*n+i];
   let s=`dimension=${n}\n`;
-  for(let i=0;i<n*n;i++)s+=c[i]!.toString()+",";
+  for(let i=0;i<nn;i++)s+=c[i]!.toString()+",";
   s+="\n";
   const checksum=createHash("sha256").update(s).digest("hex");
-  return{benchmark:"matrix-multiplication"as const,version:1 as const,dimension:n,elementCount:n*n,valueSum,diagonalSum,checksum};
+  return{benchmark:"matrix-multiplication"as const,version:1 as const,dimension:n,elementCount:nn,valueSum,diagonalSum,checksum};
 }
 let output;const samples:Array<{iteration:number;kernelTimeNanoseconds:number}>=[];
 const _ts:number[]=[];for(let i=-warmups;;i++){
