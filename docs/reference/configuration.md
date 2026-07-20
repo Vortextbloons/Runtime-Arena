@@ -48,7 +48,7 @@ Root runner configuration at the repository root.
 | `measurement.maxMeasuredIterations` | Maximum iterations for adaptive measurement (default 30) |
 | `measurement.targetRelativeConfidenceInterval` | Target CI width (default 0.05). Set to 0 for fixed-iteration mode |
 | `warmupOverrides` | Optional per-language minimum warmup iteration floors (applied with `max(benchmark warmup, override)` unless `--warmup` is set explicitly) |
-| `execution.parallelism` | Number of cells to run concurrently (default: `1`). Override with `--parallel` flag |
+| `execution.parallelism` | Number of cells to run concurrently (default: `2`, from `arena.config.json`). Override with `--parallel` flag |
 | `execution.preserveTemporaryFiles` | **Present in config but unused** — use CLI flag `--preserve-temp` instead |
 
 Temp run directories live under `.arena/runs/` and are deleted after each run unless `--preserve-temp` is set. Build artifacts are cached in `.arena/build-cache/<fingerprint>/` (keyed on language manifest and implementation source). Go builds also use `.arena/go-build-cache` via `GOCACHE`.
@@ -56,7 +56,7 @@ Temp run directories live under `.arena/runs/` and are deleted after each run un
 
 ## Language Manifests (`languages/*.json`)
 
-Each language has a manifest defining detection, build, and run commands. The project ships nine manifests: `cpp.json`, `go.json`, `java.json`, `javascript.json`, `lua-interpreted.json`, `lua.json`, `python.json`, `rust.json`, and `typescript.json`.
+Each language has a manifest defining detection, build, and run commands. The project ships eleven manifests: `c-sharp.json`, `c.json`, `cpp.json`, `go.json`, `java.json`, `javascript.json`, `lua-interpreted.json`, `lua.json`, `python.json`, `rust.json`, and `typescript.json`.
 
 ```json
 {

@@ -1,16 +1,16 @@
 # Benchmarks Reference
 
-Runtime Arena currently defines seven benchmark workloads, each with implementations in all nine supported languages (Rust, C++, Go, Java, TypeScript, JavaScript, LuaJIT, Lua Interpreted, and Python). The sole exception is barrier-wave, where neither Lua runtime is included — both LuaJIT and lua-interpreted lack native threading. All workloads have contracts, fixtures, dataset generation, checker support, and complete benchmark results.
+Runtime Arena currently defines seven benchmark workloads, each with implementations across eleven supported languages (C, C#, C++, Go, Java, JavaScript, LuaJIT, Lua Interpreted, Python, Rust, and TypeScript). The sole exception is barrier-wave, where neither Lua runtime is included — both LuaJIT and lua-interpreted lack native threading. All workloads have contracts, fixtures, dataset generation, checker support, and complete benchmark results.
 
 | Benchmark | Status | Stresses |
 |-----------|--------|----------|
-| `nbody` | Complete (9 languages) | Numeric computation, tight loops |
-| `shortest-path` | Complete (9 languages) | Priority queues, graph traversal |
-| `aggregation` | Complete (9 languages) | In-memory hash map aggregation, sorting, checksum |
-| `barrier-wave` | Complete (7 languages; LuaJIT and lua-interpreted excluded) | Structured parallel concurrency, barriers |
-| `word-frequency` | Complete (9 languages) | String hashing, hash maps, ranking |
-| `record-sorting` | Complete (9 languages) | Multi-field sorting, comparator and struct access |
-| `matrix-multiplication` | Complete (9 languages) | Numeric loops, memory layout, cache locality |
+| `nbody` | Complete (11 languages) | Numeric computation, tight loops |
+| `shortest-path` | Complete (11 languages) | Priority queues, graph traversal |
+| `aggregation` | Complete (11 languages) | In-memory hash map aggregation, sorting, checksum |
+| `barrier-wave` | Complete (9 languages; LuaJIT and lua-interpreted excluded) | Structured parallel concurrency, barriers |
+| `word-frequency` | Complete (11 languages) | String hashing, hash maps, ranking |
+| `record-sorting` | Complete (11 languages) | Multi-field sorting, comparator and struct access |
+| `matrix-multiplication` | Complete (11 languages) | Numeric loops, memory layout, cache locality |
 
 Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md`.
 
@@ -65,7 +65,7 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 **Status notes:**
 - Checker task `barrier-wave` is implemented and tested.
 - Datasets are committed fixtures. `arena dataset generate --benchmark barrier-wave` works with the same `--size` and `--seed` flags as other benchmarks.
-- Seven of nine languages are implemented: Rust, Go, TypeScript, Python, JavaScript, C++, and Java. LuaJIT and lua-interpreted are excluded (no native threading). See the tree under `benchmarks/barrier-wave/implementations/`.
+- Nine of eleven languages are implemented: C, C#, C++, Go, Java, JavaScript, Python, Rust, and TypeScript. LuaJIT and lua-interpreted are excluded (no native threading). See the tree under `benchmarks/barrier-wave/implementations/`.
 - `schemas/implementation-output.schema.json` does not yet include a barrier-wave branch; correctness is enforced by the Go checker.
 
 ## word-frequency
@@ -115,7 +115,7 @@ Four benchmarks use **mutations** — multiple dataset variants per size that st
 | record-sorting | `random`, `mostly-sorted` | 20k/100k/500k records, sorting difficulty varies |
 | matrix-multiplication | `row-major`, `column-major` | 128×128 / 256×256 / 512×512 dimensions |
 
-Mutation generators use `generatorVersion "2.2.0"` and produce a `mutation` field in the result's `benchmark` and `dataset` objects. Non-mutation benchmarks use `generatorVersion "committed-fixture-1.0.0"` in result records (the datasets are pre-committed fixtures). When regenerating a dataset via `arena dataset generate`, non-mutation benchmarks write `generatorVersion "2.0.0"` in the dataset metadata. The cell key format for mutation cells is `benchmark/size/mutation/language`.
+Mutation generators use `generatorVersion "2.2.0"` and produce a `mutation` field in the result's `benchmark` and `dataset` objects. Non-mutation benchmarks use `generatorVersion "committed-fixture-1.0.0"` in result records (the datasets are pre-committed fixtures). When regenerating a dataset via `arena dataset generate`, all benchmarks write `generatorVersion "2.2.0"` in the dataset metadata. The cell key format for mutation cells is `benchmark/size/mutation/language`.
 
 ## Dataset Sizes
 

@@ -15,7 +15,7 @@ npm run arena -- run
 npm run arena -- run --language rust --benchmark nbody --size small
 
 # Force re-run
-npm run arena -- run --force --all
+npm run arena -- run --force
 ```
 
 ## Building the Web UI

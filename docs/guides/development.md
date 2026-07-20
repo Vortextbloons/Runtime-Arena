@@ -77,11 +77,11 @@ benchmarks/             # Workloads, datasets, implementations
   nbody/
   shortest-path/
   aggregation/
-  barrier-wave/         # Rust/Go/TS/Python/JS/C++/Java (Lua unavailable — no pre-emptive threads)
+  barrier-wave/         # Rust/Go/TS/Python/JS/C++/Java/C/C# (LuaJIT and lua-interpreted unavailable — no native threading)
   word-frequency/
   record-sorting/
   matrix-multiplication/
-languages/              # Language manifests (rust, go, typescript, python, lua, lua-interpreted, cpp, javascript, java)
+languages/              # Language manifests (c, c-sharp, cpp, go, java, javascript, lua, lua-interpreted, python, rust, typescript)
 schemas/                # JSON Schema definitions
 results/                # Canonical result snapshots
 web/                    # SvelteKit dashboard

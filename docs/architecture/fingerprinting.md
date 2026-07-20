@@ -4,7 +4,7 @@ The fingerprinting system determines whether a benchmark cell needs re-execution
 
 ## What is a Fingerprint?
 
-A fingerprint is a SHA-256 hash that captures the complete state of a (benchmark, size, language) cell. If any input to the cell changes, the fingerprint changes, and the cell is marked stale.
+A fingerprint is a SHA-256 hash that captures the complete state of a (benchmark, size, mutation, language) cell. If any input to the cell changes, the fingerprint changes, and the cell is marked stale.
 
 There are two separate fingerprint systems: one for **execution staleness** (`fingerprintCell`) and one for **build caching** (`buildFingerprint`).
 
@@ -87,11 +87,8 @@ Accepted **and** failed/invalid results are retained with their fingerprint. A w
 # Run only stale/missing cells
 npm run arena -- run
 
-# Force re-run even if current
+# Force re-run even if current (ignores fingerprint match)
 npm run arena -- run --force
-
-# Force re-run everything
-npm run arena -- run --force --all
 ```
 
 Java toolchains are discovered via `JAVA_HOME`, `PATH`, or common install locations (Adoptium, Oracle/OpenJDK, Microsoft JDK) so JDK installs that are not on `PATH` still run.

@@ -1,6 +1,6 @@
 # Execution Model
 
-Runtime Arena measures **steady-state workload kernel execution**. One process is launched for each benchmark, size, and language cell. That process loads and parses its dataset once, performs warmups, and then records every measured kernel run with a monotonic high-resolution clock.
+Runtime Arena measures **steady-state workload kernel execution**. One process is launched for each benchmark, size, mutation, and language cell. That process loads and parses its dataset once, performs warmups, and then records every measured kernel run with a monotonic high-resolution clock.
 
 ## Persistent Worker Contract
 

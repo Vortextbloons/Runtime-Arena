@@ -40,8 +40,7 @@ Run benchmarks and record results. Only re-executes cells whose fingerprint has 
 ```bash
 npm run arena -- run
 npm run arena -- run --language rust --benchmark nbody --size small
-npm run arena -- run --force          # Force re-run even if current
-npm run arena -- run --force --all    # Force re-run everything
+npm run arena -- run --force          # Force re-run even if fingerprint matches
 npm run arena -- run --quiet          # Suppress output
 npm run arena -- run --no-save        # Don't write results
 npm run arena -- run --format json    # Output JSON snapshot
@@ -59,7 +58,7 @@ npm run arena -- run --output out.json
 - `--max-iterations` — Maximum measured iterations for adaptive measurement (default from `measurement.maxMeasuredIterations`)
 - `--target-ci` — Target relative confidence interval width (default from `measurement.targetRelativeConfidenceInterval`; set to `0` for fixed-iteration mode)
 - `--force` — Force re-run even if fingerprint matches
-- `--all` — With `--force`, re-run all cells
+- `--all` — Parsed as a boolean flag but currently has no effect on `run` (only `--force` gates re-execution)
 - `--parallel` — Use all CPU cores (overrides `execution.parallelism` in config)
 - `--quiet` — Suppress console output
 - `--no-save` — Don't write to results file

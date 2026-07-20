@@ -73,7 +73,7 @@ npm run arena -- run --language rust --benchmark nbody --size small
 npm run arena -- run --force --language go --benchmark barrier-wave --size small
 
 # Force every selected cell
-npm run arena -- run --force --all
+npm run arena -- run --force
 ```
 
 `run` prints a plan summary (`current` skipped, `stale/missing` to execute, unavailable toolchains/implementations). When implementations are missing, the plan names the benchmark/language pair and how many cells were skipped (for example `missing: barrier-wave/lua (3 cells)`). Failed builds and invalid checker results are saved and skipped on later runs until the fingerprint changes or you pass `--force`. A single build failure does not abort the rest of the run.

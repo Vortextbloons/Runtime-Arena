@@ -1,6 +1,6 @@
 # Architecture Overview
 
-Runtime Arena is a cross-language benchmarking system that runs equivalent workloads in Rust, Go, TypeScript, Python, Lua (LuaJIT), C++, Java, and JavaScript (Node.js), validates their output, records metrics, and stores immutable JSON results.
+Runtime Arena is a cross-language benchmarking system that runs equivalent workloads in Rust, Go, TypeScript, Java, Python, LuaJIT, Lua 5.4 (Interpreted), C++, C, C#, and JavaScript (Node.js), validates their output, records metrics, and stores immutable JSON results.
 
 ## System Components
 
@@ -24,7 +24,7 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 ## Execution Model
 
-**Persistent-worker mode**: Each (benchmark, size, language) cell runs in one process. The CLI passes `--input`, `--output`, `--timing-output`, `--warmup`, `--min-iterations`, `--max-iterations`, and `--target-relative-ci`; the implementation discards warmup work and records only measured kernel samples via `--timing-output`. Full contract: [execution-model.md](execution-model.md).
+**Persistent-worker mode**: Each (benchmark, size, mutation, language) cell runs in one process. The CLI passes `--input`, `--output`, `--timing-output`, `--warmup`, `--min-iterations`, `--max-iterations`, and `--target-relative-ci`; the implementation discards warmup work and records only measured kernel samples via `--timing-output`. Full contract: [execution-model.md](execution-model.md).
 
 **Fingerprinting**: A SHA-256 hash of all source files, manifests, datasets, checker code, toolchain version, and compiler version determines if a cell is "current" or "stale". `arena run` only re-executes cells whose fingerprint has changed.
 
@@ -36,7 +36,7 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 1. CLI discovers language manifests from `languages/*.json`
 2. CLI discovers benchmark manifests from `benchmarks/*/benchmark.json`
-3. For each (benchmark, size, language) cell:
+3. For each (benchmark, size, mutation, language) cell:
    - Build the implementation using language-specific commands (cached via `.arena/build-cache/<buildFingerprint>/`)
    - Copy the dataset input to an isolated directory under `.arena/runs/` and make it read-only (`chmod 0o444`)
    - Spawn one persistent worker with `--input`, `--output`, `--timing-output`, `--warmup`, `--min-iterations`, `--max-iterations`, and `--target-relative-ci`

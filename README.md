@@ -5,7 +5,7 @@
 
 # Runtime Arena
 
-Cross-language benchmark system — runs identical workloads across Rust, Go, TypeScript, Java, Python, LuaJIT, Lua Interpreted, C++, and JavaScript, validates output, and records metrics.
+Cross-language benchmark system — runs identical workloads across C, C++, C#, Go, Java, JavaScript, LuaJIT, Lua 5.4 (Interpreted), Python, Rust, and TypeScript, validates output, and records metrics.
 
 ```bash
 npm install

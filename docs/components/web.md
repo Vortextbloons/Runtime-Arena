@@ -99,7 +99,7 @@ The scoring system (`src/lib/scoring.ts`) computes a 0-100 weighted overall scor
 npm run build:web
 ```
 
-This runs `sync-defs` (regenerates `web/src/lib/cards/shared.ts` from `shared/badge-definitions.json`), then `prepare-results.ts` (copies `results/current.json` into `web/static/results/`), then builds the SvelteKit static site to `web/build/`.
+This runs `sync-defs` (regenerates `web/src/lib/cards/shared.ts` from `shared/badge-definitions.json`), then `prepare-results.ts` (filters `results/current.json` by contract version and execution mode, keeps the newest supported contract per cell, prunes obsolete mutation-less cells, and writes to `web/static/results/`; also overwrites the canonical `results/current.json` to prevent resurrecting stale rows), then builds the SvelteKit static site to `web/build/`.
 
 ## Local Preview
 
