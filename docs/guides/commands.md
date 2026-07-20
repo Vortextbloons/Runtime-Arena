@@ -13,6 +13,9 @@ npm run build:cli
 npm run build:checker
 ```
 
+`arena run` and `arena check` fail immediately if the checker binary is missing.
+`npm run arena -- doctor` reports checker status.
+
 Invoke the CLI with:
 
 ```bash
@@ -52,6 +55,8 @@ npm run arena -- list languages
 npm run arena -- list benchmarks
 ```
 
+Confirm **Checker** shows `ok` before a large run.
+
 ### 2. Build (optional)
 
 `run` builds as needed. Use `build` when you only want compile checks:
@@ -78,13 +83,15 @@ npm run arena -- run --force
 
 `run` prints a plan summary (`current` skipped, `stale/missing` to execute, unavailable toolchains/implementations). When implementations are missing, the plan names the benchmark/language pair and how many cells were skipped (for example `missing: barrier-wave/lua (3 cells)`). Failed builds and invalid checker results are saved and skipped on later runs until the fingerprint changes or you pass `--force`. A single build failure does not abort the rest of the run.
 
+**Startup delay:** After `Plan:` appears, there can be another quiet period while builds complete and the first cells finish. Per-cell lines appear only as each run completes. Use `--parallel` to increase throughput after builds.
+
 ### Adaptive measurement
 
-By default, each cell runs between `measurement.minMeasuredIterations` and `measurement.maxMeasuredIterations` kernel samples (configured in `arena.config.json`, currently 10–30) and stops early once the 95% relative confidence interval of the mean kernel time is at or below `measurement.targetRelativeConfidenceInterval` (currently 5%). Implementations receive `--min-iterations`, `--max-iterations`, and `--target-relative-ci` instead of a fixed `--iterations` count.
+By default, each cell runs between `measurement.minMeasuredIterations` and `measurement.maxMeasuredIterations` measured iterations (configured in `arena.config.json`, currently 10–30). The harness stops early once the bootstrap 95% relative confidence interval for the **median** iteration time is at or below `measurement.targetRelativeConfidenceInterval` (currently 5%).
 
 Pass `--iterations <n>` to force a fixed sample count (disables early stopping). The CLI uses this mode in tests.
 
-Results are tagged with measurement contract **`1.1.0`**. Older `1.0.0` rows remain in `results/current.json` until the same cell is re-measured; they are not deleted by partial runs.
+Results are tagged with measurement contract **`2.0.0`** (`harness-timed-persistent-worker`). Older `1.0.0` / `1.1.0` rows may remain in `results/current.json` for history; they are not ranked in the web UI or scorecards until the same cell is re-measured under 2.0.0.
 
 Java is detected from `JAVA_HOME`, `PATH`, or common JDK install paths when `javac` is not already on `PATH`.
 
@@ -185,6 +192,7 @@ intentionally refreshing datasets (and update metadata / hashes accordingly).
 | Cell freshness | `npm run arena -- results status` |
 | Raw JSON | `npm run arena -- results current` |
 | Checker on a file | `npm run arena -- check --benchmark <id> --input ... --output ...` |
+| Protocol conformance | `npm run arena -- protocol test --language rust --minimal` |
 | Refresh web dev data | `npm run prepare-results` |
 | Web preview | `npm run build:web` then `npm run arena -- web` |
 

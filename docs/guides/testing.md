@@ -17,7 +17,9 @@ This command:
 | Component | Test File | Framework |
 |-----------|-----------|-----------|
 | CLI integration | `cli/test/cli.test.ts` | Node test runner |
+| CLI protocol | `cli/test/protocol.test.ts` | Node test runner |
 | CLI timing helpers | `cli/src/timing.test.ts` | Node test runner |
+| CLI provenance / cache | `cli/src/provenance.test.ts` | Node test runner |
 | Web scoring | `web/src/lib/scoring.test.ts` | Node test runner |
 | Web tiers | `web/src/lib/tiers.test.ts` | Node test runner |
 | Web card data | `web/src/lib/cards.test.ts` | Node test runner |
@@ -30,12 +32,16 @@ Integration tests in `cli/test/cli.test.ts` verify:
 - `doctor` command runs successfully
 - `list` commands return expected output
 - `build` command compiles implementations
-- `run` command executes benchmarks and produces valid results
+- `run` command executes benchmarks and produces valid results (contract 2.0.0)
 - `check` command validates output files
 - `dataset generate` creates deterministic datasets
 - `results` command reads snapshots
 
-Timing unit tests in `cli/src/timing.test.ts` cover reading/parsing timing sample files and adaptive measurement policy (min/max bounds, confidence-interval early stopping).
+Protocol tests in `cli/test/protocol.test.ts` cover the harness stdin/stdout contract: `ready` / `run` / `result` / `finish` sequencing, digest validation, and timeouts.
+
+Timing unit tests in `cli/src/timing.test.ts` cover adaptive median bootstrap confidence intervals and fixed-count policy bounds.
+
+Provenance tests in `cli/src/provenance.test.ts` cover source-as-artifact cache behavior (interpreted languages must not be overwritten on cache restore).
 
 ## Checker Tests
 
@@ -52,6 +58,7 @@ Unit tests in `checker/cmd/arena-checker/main_test.go` verify:
 Run checker tests manually:
 
 ```bash
+npm run build:checker
 node scripts/test-checker.mjs
 ```
 
@@ -75,6 +82,6 @@ Runs TypeScript type checking on the web workspace.
 
 When adding a new benchmark:
 1. Add checker unit tests in `checker/cmd/arena-checker/main_test.go`
-2. Verify the CLI can discover, build, and run the benchmark
+2. Verify the CLI can discover, build, and run the benchmark under contract 2.0.0
 3. Verify the checker accepts correct output and rejects incorrect output
 4. If you add `arena dataset generate` support, cover deterministic regeneration

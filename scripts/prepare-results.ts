@@ -13,9 +13,10 @@ type ArenaResult = {
   provenance?: { measurementContractVersion?: string };
 };
 
-const SUPPORTED_CONTRACT_VERSIONS = new Set(["1.0.0", "1.1.0"]);
+const SUPPORTED_CONTRACT_VERSIONS = new Set(["2.0.0"]);
 
 function contractRank(version?: string): number {
+  if (version === "2.0.0") return 3;
   if (version === "1.1.0") return 2;
   if (version === "1.0.0") return 1;
   return 0;
@@ -30,7 +31,7 @@ function resultCellKey(result: ArenaResult): string {
 export function pickDisplayResults<T extends ArenaResult>(results: T[]): T[] {
   const byKey = new Map<string, T>();
   for (const result of results) {
-    if (result.execution?.mode !== "persistent-worker") continue;
+    if (result.execution?.mode !== "harness-timed-persistent-worker" && result.execution?.mode !== "persistent-worker") continue;
     const version = result.provenance?.measurementContractVersion;
     if (!version || !SUPPORTED_CONTRACT_VERSIONS.has(version)) continue;
     const key = resultCellKey(result);

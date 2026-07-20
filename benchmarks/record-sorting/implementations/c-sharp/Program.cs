@@ -1,13 +1,11 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-static double[] GetT_CRITICAL() => new[] { 0.0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045 };
+const string ProtocolVersion = "2.0.0";
 char[] HexChars = "0123456789abcdef".ToCharArray();
-double[] T_CRITICAL = GetT_CRITICAL();
 
 static int Compare(long scoreA, long timestampA, long idA, long scoreB, long timestampB, long idB)
 {
@@ -17,23 +15,30 @@ static int Compare(long scoreA, long timestampA, long idA, long scoreB, long tim
     return timestamp != 0 ? timestamp : idA.CompareTo(idB);
 }
 
-double CiWidth(long[] samples)
+static string DigestHex(byte[] bytes) =>
+    Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+
+static void EmitLine(string json)
 {
-    int n = samples.Length;
-    if (n < 2) return double.PositiveInfinity;
-    double mean = 0;
-    for (int i = 0; i < n; i++) mean += samples[i];
-    mean /= n;
-    if (mean <= 0) return double.PositiveInfinity;
-    double variance = 0;
-    for (int i = 0; i < n; i++)
+    Console.WriteLine(json);
+    Console.Out.Flush();
+}
+
+static string ProtocolField(string line, string field)
+{
+    string key = "\"" + field + "\":";
+    int start = line.IndexOf(key, StringComparison.Ordinal);
+    if (start < 0) return "";
+    start += key.Length;
+    while (start < line.Length && line[start] == ' ') start++;
+    if (line[start] == '"')
     {
-        double delta = samples[i] - mean;
-        variance += delta * delta;
+        int end = line.IndexOf('"', start + 1);
+        return line[(start + 1)..end];
     }
-    variance /= (n - 1);
-    double t = n < T_CRITICAL.Length ? T_CRITICAL[n] : 2.0;
-    return (2 * t * Math.Sqrt(variance / n)) / mean;
+    int endIdx = start;
+    while (endIdx < line.Length && ",} ".IndexOf(line[endIdx]) < 0) endIdx++;
+    return line[start..endIdx];
 }
 
 static void BottomUpMergeSort(long[] ids, long[] scores, long[] timestamps, int count)
@@ -212,18 +217,14 @@ string? GetArg(string[] args, string name)
 
 // --- Main entry ---
 string[] cliArgs = args;
-string? inputFile = GetArg(cliArgs, "--input");
-string? outputFile = GetArg(cliArgs, "--output");
-string? timingFile = GetArg(cliArgs, "--timing-output");
-int warmup = int.Parse(GetArg(cliArgs, "--warmup") ?? "0");
-int minIterations = int.Parse(GetArg(cliArgs, "--min-iterations") ?? "1");
-int maxIterations = int.Parse(GetArg(cliArgs, "--max-iterations") ?? "1");
-double targetCi = double.Parse(GetArg(cliArgs, "--target-relative-ci") ?? "0.05", System.Globalization.CultureInfo.InvariantCulture);
+if ((GetArg(cliArgs, "--protocol-version") ?? "") != ProtocolVersion)
+    throw new ArgumentException("unsupported protocol version");
 
-if (inputFile == null || outputFile == null || timingFile == null)
+string? outputFile = GetArg(cliArgs, "--output");
+if (outputFile == null)
     throw new ArgumentException("missing required arguments");
 
-string jsonText = File.ReadAllText(inputFile);
+string jsonText = File.ReadAllText(GetArg(cliArgs, "--input")!);
 using (var doc = JsonDocument.Parse(jsonText))
 {
     var root = doc.RootElement;
@@ -243,36 +244,26 @@ using (var doc = JsonDocument.Parse(jsonText))
         idx++;
     }
 
-    string? result = null;
-    var sw = new Stopwatch();
-    var kernelTimes = new long[maxIterations];
-    int kernelCount = 0;
-    var samplesBuilder = new StringBuilder("{\"samples\":[");
+    var encoding = new UTF8Encoding(false);
+    byte[] lastOutput = Array.Empty<byte>();
 
-    for (int run = -warmup; ; run++)
+    EmitLine("{\"type\":\"ready\",\"protocolVersion\":\"" + ProtocolVersion + "\"}");
+    string? line;
+    while ((line = Console.ReadLine()) != null)
     {
-        sw.Restart();
-        result = Kernel(ids, scores, timestamps, count);
-        sw.Stop();
-
-        long elapsed = Math.Max(1L, sw.ElapsedTicks * 1_000_000_000L / Stopwatch.Frequency);
-
-        if (run >= 0)
+        if (line.Length == 0) continue;
+        string type = ProtocolField(line, "type");
+        if (type == "run")
         {
-            kernelTimes[kernelCount++] = elapsed;
-            if (kernelCount > 1) samplesBuilder.Append(',');
-            samplesBuilder.Append("{\"iteration\":").Append(kernelCount)
-                .Append(",\"kernelTimeNanoseconds\":").Append(elapsed).Append('}');
-
-            long[] slice = new long[kernelCount];
-            Array.Copy(kernelTimes, slice, kernelCount);
-            if (kernelCount >= maxIterations || (kernelCount >= minIterations && CiWidth(slice) <= targetCi))
-                break;
+            long requestId = long.Parse(ProtocolField(line, "requestId"));
+            lastOutput = encoding.GetBytes(Kernel(ids, scores, timestamps, count));
+            EmitLine("{\"type\":\"result\",\"requestId\":" + requestId + ",\"digest\":\"" + DigestHex(lastOutput) + "\"}");
+        }
+        else if (type == "finish")
+        {
+            File.WriteAllBytes(outputFile, lastOutput);
+            EmitLine("{\"type\":\"finish\",\"digest\":\"" + DigestHex(lastOutput) + "\"}");
+            break;
         }
     }
-
-    samplesBuilder.Append("]}");
-
-    File.WriteAllText(outputFile, result);
-    File.WriteAllText(timingFile, samplesBuilder.ToString());
 }

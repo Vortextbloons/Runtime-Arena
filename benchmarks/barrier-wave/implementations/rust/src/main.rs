@@ -1,5 +1,9 @@
 use serde::{Deserialize, Serialize};
-use std::{env, fs, sync::mpsc, thread, time::Instant};
+use sha2::{Digest, Sha256};
+use std::io::{BufRead, BufReader, Write};
+use std::{env, fs, sync::mpsc, thread};
+
+const PROTOCOL_VERSION: &str = "2.0.0";
 
 struct WorkerResult {
     worker_id: usize,
@@ -30,13 +34,6 @@ struct Output {
     digest: String,
 }
 
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct Sample {
-    iteration: usize,
-    kernel_time_nanoseconds: u64,
-}
-
 fn argument(name: &str) -> String {
     let args: Vec<String> = env::args().collect();
     args.get(
@@ -47,6 +44,17 @@ fn argument(name: &str) -> String {
     )
     .expect("missing value")
     .clone()
+}
+
+fn digest_bytes(bytes: &[u8]) -> String {
+    format!("{:x}", Sha256::digest(bytes))
+}
+
+fn emit_line(value: &serde_json::Value) {
+    let mut stdout = std::io::stdout().lock();
+    serde_json::to_writer(&mut stdout, value).unwrap();
+    stdout.write_all(b"\n").unwrap();
+    stdout.flush().unwrap();
 }
 
 fn mix32(mut x: u32) -> u32 {
@@ -83,9 +91,7 @@ fn spawn_workers(
             let mut local_sum: u64 = 0;
             for local_item in 0..items_per_worker {
                 let global_item_id = (w * items_per_worker + local_item) as u32;
-                let mut x = phase_seed
-                    ^ global_item_id
-                    ^ (w as u32).wrapping_mul(0x9e3779b9);
+                let mut x = phase_seed ^ global_item_id ^ (w as u32).wrapping_mul(0x9e3779b9);
                 for _ in 0..rounds_per_item {
                     x ^= x << 13;
                     x ^= x >> 17;
@@ -123,8 +129,7 @@ fn kernel(
             work_txs[w].send(phase_seed).unwrap();
         }
 
-        let mut results: Vec<Option<WorkerResult>> =
-            (0..input.worker_count).map(|_| None).collect();
+        let mut results: Vec<Option<WorkerResult>> = (0..input.worker_count).map(|_| None).collect();
         for _ in 0..input.worker_count {
             let r = result_rx.recv().unwrap();
             let wid = r.worker_id;
@@ -161,24 +166,11 @@ fn kernel(
     }
 }
 
-const T: [f64; 30] = [0., 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045];
-fn ci_width(samples: &[u64]) -> f64 {
-    let n = samples.len();
-    if n < 2 { return f64::INFINITY; }
-    let mean = samples.iter().map(|v| *v as f64).sum::<f64>() / n as f64;
-    if mean <= 0.0 { return f64::INFINITY; }
-    let var = samples.iter().map(|v| { let d = *v as f64 - mean; d * d }).sum::<f64>() / (n as f64 - 1.0);
-    let t = if n < T.len() { T[n] } else { 2.0 };
-    (2.0 * t * (var / n as f64).sqrt()) / mean
-}
-
 fn main() {
+    assert_eq!(argument("--protocol-version"), PROTOCOL_VERSION);
+    let output_path = argument("--output");
     let input: Input =
         serde_json::from_str(&fs::read_to_string(argument("--input")).unwrap()).unwrap();
-    let warmups: isize = argument("--warmup").parse().unwrap();
-    let min_iterations: isize = argument("--min-iterations").parse().unwrap();
-    let max_iterations: isize = argument("--max-iterations").parse().unwrap();
-    let target_ci: f64 = argument("--target-relative-ci").parse().unwrap();
     let seed_value = u32::from_str_radix(&input.initial_seed, 16).unwrap();
 
     let (result_tx, result_rx) = mpsc::channel::<WorkerResult>();
@@ -189,29 +181,41 @@ fn main() {
         input.rounds_per_item,
     );
 
-    let mut samples = vec![];
-    let mut output = None;
-    let mut kernel_times = vec![];
-    let mut i = -warmups;
-    loop {
-        let start = Instant::now();
-        output = Some(kernel(&work_txs, &result_rx, &input, seed_value));
-        let elapsed = start.elapsed().as_nanos() as u64;
-        if i >= 0 {
-            kernel_times.push(elapsed);
-            samples.push(Sample { iteration: samples.len() + 1, kernel_time_nanoseconds: elapsed });
-            if kernel_times.len() as isize >= max_iterations || (kernel_times.len() as isize >= min_iterations && ci_width(&kernel_times) <= target_ci) {
+    emit_line(&serde_json::json!({
+        "type": "ready",
+        "protocolVersion": PROTOCOL_VERSION
+    }));
+
+    let stdin = BufReader::new(std::io::stdin().lock());
+    let mut last_output_bytes = Vec::new();
+
+    for line in stdin.lines() {
+        let line = line.unwrap();
+        if line.is_empty() {
+            continue;
+        }
+        let msg: serde_json::Value = serde_json::from_str(&line).unwrap();
+        match msg["type"].as_str() {
+            Some("run") => {
+                let request_id = msg["requestId"].as_u64().unwrap();
+                let output = kernel(&work_txs, &result_rx, &input, seed_value);
+                last_output_bytes = serde_json::to_vec(&output).unwrap();
+                emit_line(&serde_json::json!({
+                    "type": "result",
+                    "requestId": request_id,
+                    "digest": digest_bytes(&last_output_bytes)
+                }));
+            }
+            Some("finish") => {
+                let digest = digest_bytes(&last_output_bytes);
+                fs::write(&output_path, &last_output_bytes).unwrap();
+                emit_line(&serde_json::json!({
+                    "type": "finish",
+                    "digest": digest
+                }));
                 break;
             }
+            _ => panic!("unknown protocol message"),
         }
-        i += 1;
     }
-
-    let output = output.unwrap();
-    fs::write(argument("--output"), serde_json::to_vec(&output).unwrap()).unwrap();
-    fs::write(
-        argument("--timing-output"),
-        serde_json::to_vec(&serde_json::json!({"samples": samples})).unwrap(),
-    )
-    .unwrap();
 }

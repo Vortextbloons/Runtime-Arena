@@ -1,9 +1,10 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+
+const string ProtocolVersion = "2.0.0";
 
 var cliArgs = Environment.GetCommandLineArgs();
 static string Arg(string[] a, string name)
@@ -13,15 +14,37 @@ static string Arg(string[] a, string name)
     throw new ArgumentException("missing argument " + name);
 }
 
-string inputPath = Arg(cliArgs, "--input");
-string outputPath = Arg(cliArgs, "--output");
-string timingPath = Arg(cliArgs, "--timing-output");
-int warmup = int.Parse(Arg(cliArgs, "--warmup"));
-int minIterations = int.Parse(Arg(cliArgs, "--min-iterations"));
-int maxIterations = int.Parse(Arg(cliArgs, "--max-iterations"));
-double targetCi = double.Parse(Arg(cliArgs, "--target-relative-ci"));
+static string DigestHex(byte[] bytes) =>
+    Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
 
-string jsonText = File.ReadAllText(inputPath);
+static void EmitLine(string json)
+{
+    Console.WriteLine(json);
+    Console.Out.Flush();
+}
+
+static string ProtocolField(string line, string field)
+{
+    string key = "\"" + field + "\":";
+    int start = line.IndexOf(key, StringComparison.Ordinal);
+    if (start < 0) return "";
+    start += key.Length;
+    while (start < line.Length && line[start] == ' ') start++;
+    if (line[start] == '"')
+    {
+        int end = line.IndexOf('"', start + 1);
+        return line[(start + 1)..end];
+    }
+    int endIdx = start;
+    while (endIdx < line.Length && ",} ".IndexOf(line[endIdx]) < 0) endIdx++;
+    return line[start..endIdx];
+}
+
+if (Arg(cliArgs, "--protocol-version") != ProtocolVersion)
+    throw new ArgumentException("unsupported protocol version");
+
+string outputPath = Arg(cliArgs, "--output");
+string jsonText = File.ReadAllText(Arg(cliArgs, "--input"));
 using JsonDocument doc = JsonDocument.Parse(jsonText);
 JsonElement root = doc.RootElement;
 int n = root.GetProperty("dimension").GetInt32();
@@ -93,55 +116,27 @@ static string OutputJson(int n, int elements, long valueSum, long diagonalSum, s
         + checksum + "\"}";
 }
 
-double[] T_CRITICAL = [0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045];
+var encoding = new UTF8Encoding(false);
+byte[] lastOutput = Array.Empty<byte>();
 
-double CiWidth(long[] samples, int count)
+EmitLine("{\"type\":\"ready\",\"protocolVersion\":\"" + ProtocolVersion + "\"}");
+string? line;
+while ((line = Console.ReadLine()) != null)
 {
-    if (count < 2) return double.PositiveInfinity;
-    double mean = 0;
-    for (int i = 0; i < count; i++) mean += samples[i];
-    mean /= count;
-    if (mean <= 0) return double.PositiveInfinity;
-    double variance = 0;
-    for (int i = 0; i < count; i++)
+    if (line.Length == 0) continue;
+    string type = ProtocolField(line, "type");
+    if (type == "run")
     {
-        double delta = samples[i] - mean;
-        variance += delta * delta;
+        long requestId = long.Parse(ProtocolField(line, "requestId"));
+        Multiply(n, left, right, product, out valueSum, out diagonalSum);
+        string cs = Checksum(n, product);
+        lastOutput = encoding.GetBytes(OutputJson(n, elements, valueSum, diagonalSum, cs));
+        EmitLine("{\"type\":\"result\",\"requestId\":" + requestId + ",\"digest\":\"" + DigestHex(lastOutput) + "\"}");
     }
-    variance /= (count - 1);
-    double t = count < T_CRITICAL.Length ? T_CRITICAL[count] : 2.0;
-    return (2 * t * Math.Sqrt(variance / count)) / mean;
-}
-
-string resultJson = null;
-var samplesSb = new StringBuilder("{\"samples\":[");
-long[] kernelTimes = new long[maxIterations];
-int kernelCount = 0;
-int measured = 0;
-var sw = new Stopwatch();
-
-for (int iteration = -warmup; ; iteration++)
-{
-    sw.Restart();
-    Multiply(n, left, right, product, out valueSum, out diagonalSum);
-    string cs = Checksum(n, product);
-    sw.Stop();
-    long elapsed = Math.Max(1L, sw.ElapsedTicks * 1000000000L / Stopwatch.Frequency);
-    resultJson = OutputJson(n, elements, valueSum, diagonalSum, cs);
-
-    if (iteration >= 0)
+    else if (type == "finish")
     {
-        kernelTimes[kernelCount++] = elapsed;
-        if (measured > 0) samplesSb.Append(',');
-        measured++;
-        samplesSb.Append("{\"iteration\":").Append(measured)
-            .Append(",\"kernelTimeNanoseconds\":").Append(elapsed).Append('}');
-        if (kernelCount >= maxIterations || (kernelCount >= minIterations && CiWidth(kernelTimes, kernelCount) <= targetCi))
-            break;
+        File.WriteAllBytes(outputPath, lastOutput);
+        EmitLine("{\"type\":\"finish\",\"digest\":\"" + DigestHex(lastOutput) + "\"}");
+        break;
     }
 }
-
-samplesSb.Append("]}");
-
-File.WriteAllText(outputPath, resultJson);
-File.WriteAllText(timingPath, samplesSb.ToString());

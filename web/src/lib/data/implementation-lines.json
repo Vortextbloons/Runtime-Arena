@@ -1,376 +1,208 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-20T05:53:53.370Z",
+  "generatedAt": "2026-07-20T23:14:57.662Z",
   "cells": {
     "aggregation:c": {
-      "logicalLines": 333,
+      "logicalLines": 336,
       "fileCount": 1,
       "files": [
         "main.c"
       ],
-      "sha256": "b62ceb3e9f58d6392e9129977a8577d28388adc0c93d68c39247b1f641f11581"
+      "sha256": "fe6f3375bb1b16354f7838391ab9c52534967c97a939c2fb9b88c5f16e0a07d7"
     },
     "aggregation:cpp": {
-      "logicalLines": 224,
+      "logicalLines": 199,
       "fileCount": 1,
       "files": [
         "main.cpp"
       ],
-      "sha256": "1bb8d36dde593741f6b2ad5ceee23ad17be33cd25bd8143b3bdb121999d2efff"
+      "sha256": "58fe6c62e9b21728b5807e8d38dd9d2e49329efa045d00f9d4e7c9da42aaeff9"
     },
     "aggregation:go": {
-      "logicalLines": 263,
-      "fileCount": 3,
+      "logicalLines": 218,
+      "fileCount": 1,
       "files": [
-        "main.go",
-        "timer_other.go",
-        "timer_windows.go"
+        "main.go"
       ],
-      "sha256": "a34b643b2bd78d84bd3af877866c2fc6e84cfac68af9cb8ea5c539d77fc9fdb1"
+      "sha256": "9f4458fca2a5bf962741822d01dbe762fc28a7248bf7ec5f9b09295dc187aa32"
     },
     "aggregation:java": {
-      "logicalLines": 248,
+      "logicalLines": 251,
       "fileCount": 1,
       "files": [
         "Main.java"
       ],
-      "sha256": "2b060fc6af762ac47608ccf1ac76b7cf53169e69cb79cd3e7949cd7614a4e326"
+      "sha256": "739dd15d9d227b55911943a102a76e994fa396047f056b9b6a75c75b3259fe93"
     },
     "aggregation:javascript": {
-      "logicalLines": 8,
+      "logicalLines": 81,
       "fileCount": 1,
       "files": [
         "index.mjs"
       ],
-      "sha256": "e056dd1640d8935ecaa8bfe7e279cf75949ca9891135402a89c07f384c4a9b20"
+      "sha256": "fb947f07a60a32bfb2d3f087b7d65d2e0f75b0a755d960ddd457d7f8ce5d9bb2"
     },
     "aggregation:lua": {
-      "logicalLines": 468,
+      "logicalLines": 429,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "c27eb0ee8ae4ca4c00fbfab9d6f9ff10b6ff02f77e1c36d4681c24da7f610438"
+      "sha256": "0a2ac3a9ad6f2451355c394d184a6e9c22d07a41d38b8a297352aef51c6d641d"
     },
     "aggregation:lua-interpreted": {
-      "logicalLines": 481,
+      "logicalLines": 443,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "282024a7d9d392b419ff2b1b0b11a4c47061b7e1cab408e2f40ea8d078f49d08"
+      "sha256": "1b924b2f83683a711dd953db1bcddd05ff0ff1d9ed3d3b63798d7786bde5cdf0"
     },
     "aggregation:python": {
-      "logicalLines": 41,
+      "logicalLines": 59,
       "fileCount": 1,
       "files": [
         "main.py"
       ],
-      "sha256": "1f0f1ca137aae29248f77e2758e8deae93719558781869ed9deb18f89a2e69ef"
+      "sha256": "1b5a6cd5d2c1c9d61547050602aa0f904da69e64c102ebcd77a572c891287ee4"
     },
     "aggregation:rust": {
-      "logicalLines": 139,
+      "logicalLines": 224,
       "fileCount": 1,
       "files": [
         "src/main.rs"
       ],
-      "sha256": "2b4a816ac941b926b1f2d3ad054de23845104ce66921386a142f309bf1b7e952"
+      "sha256": "ceaf8b45a56325046922d4e7606851cd849807aece47d8ca370fc270bf550e4c"
     },
     "aggregation:typescript": {
-      "logicalLines": 9,
+      "logicalLines": 82,
       "fileCount": 1,
       "files": [
         "index.ts"
       ],
-      "sha256": "8f94c09333899d1c5d9b9a93a471d12d7ec8b1c5528c16b88c8d4dde08bf6325"
+      "sha256": "c603a7cfd88cf44be3147b7c40a7e73bdae7d1c435d3d34ea6b15a7f1d220dbb"
     },
     "barrier-wave:c": {
-      "logicalLines": 245,
+      "logicalLines": 259,
       "fileCount": 1,
       "files": [
         "main.c"
       ],
-      "sha256": "c6a5dc8836fc56f5d594e920c3dfb59394fd5c2a75e0388ed9a5f410978c3bf4"
+      "sha256": "b42b977d8c0d622d55c470f24b6dd21e44ebe7386173b6176a21825d63cefb35"
     },
     "barrier-wave:cpp": {
-      "logicalLines": 357,
+      "logicalLines": 340,
       "fileCount": 1,
       "files": [
         "main.cpp"
       ],
-      "sha256": "f7f61b8fc964a4c87296dedf19ad44892b76237073f3da42dbeffff16a35a0c5"
+      "sha256": "8b749f11783f01fc665e056772bf6cd5c5296ce2dbabfe4e5569e9ef8b5c5654"
     },
     "barrier-wave:go": {
-      "logicalLines": 254,
-      "fileCount": 3,
+      "logicalLines": 211,
+      "fileCount": 1,
       "files": [
-        "main.go",
-        "timer_other.go",
-        "timer_windows.go"
+        "main.go"
       ],
-      "sha256": "91ba56f837e583894dcc23cdd3854d2d1fde137554ddf01e087284be551beff2"
+      "sha256": "fc595ad5d5138861399b16337988ff7dc6ac24b3751bf658a3f99cab50996b6d"
     },
     "barrier-wave:java": {
-      "logicalLines": 197,
+      "logicalLines": 210,
       "fileCount": 1,
       "files": [
         "Main.java"
       ],
-      "sha256": "d8cc993594b91afa1ce7e9b04e8745cb34bb3439aad6390c5f75b13b212b2780"
+      "sha256": "fa9107262f58dabd758c788cedd66cf41a88c4321e950b03aa3a0a2f810df60f"
     },
     "barrier-wave:javascript": {
-      "logicalLines": 40,
+      "logicalLines": 78,
       "fileCount": 2,
       "files": [
         "index.mjs",
         "worker.mjs"
       ],
-      "sha256": "d5826e304cb2e1ac06930537f24bffa180895b0361e2c50418467d36bafe2306"
+      "sha256": "d90574afecbee89432e26cca4931cdf314db82c4719f72125f76fd4a6d47c97d"
     },
     "barrier-wave:python": {
-      "logicalLines": 126,
+      "logicalLines": 114,
       "fileCount": 1,
       "files": [
         "main.py"
       ],
-      "sha256": "e2b69842ada786b039c0714e1b15ab9e136a46c40aae35b349712a1883ee4cc7"
+      "sha256": "fbeea8a5298053e8324303fe94ce5bc5ba8fe0688b37d316e5480cbd6b7b5328"
     },
     "barrier-wave:rust": {
-      "logicalLines": 197,
+      "logicalLines": 199,
       "fileCount": 1,
       "files": [
         "src/main.rs"
       ],
-      "sha256": "3ba9749b8ef1e05aa2602d532765166c876dcba93aa6fdd49fe5e9ae37dbbdda"
+      "sha256": "4460ce4856e43f8de18a62db0fc0270f59fd3f5e6b5c454774444440ae0e2c30"
     },
     "barrier-wave:typescript": {
-      "logicalLines": 41,
+      "logicalLines": 79,
       "fileCount": 2,
       "files": [
         "index.ts",
         "worker.ts"
       ],
-      "sha256": "6d069d9ff7345d34098e3fa7355f67a77eff37a68035eda44313e08a9b6cdea0"
+      "sha256": "0b3ff07d9dbf80b469d5d8503e27507fb3df0e37e02444d7755db5636809ddf5"
     },
     "matrix-multiplication:c": {
-      "logicalLines": 162,
+      "logicalLines": 179,
       "fileCount": 1,
       "files": [
         "main.c"
       ],
-      "sha256": "ecb188ebeeec950433e8157d6f8fe402185a812caba8727109ebe1f6060c10b3"
+      "sha256": "9f2e0adffb362f4411b23ceb2f8a6970671fb334baa52142f58263041e3c97c2"
     },
     "matrix-multiplication:cpp": {
-      "logicalLines": 167,
+      "logicalLines": 146,
       "fileCount": 1,
       "files": [
         "main.cpp"
       ],
-      "sha256": "13b2aa800e427e2034332076facb093d360823824810622253cc13bed9d59489"
+      "sha256": "743523f2b4ddb674b39729e011b38112caf05adf484fd0c9151eec79ad7a1d6d"
     },
     "matrix-multiplication:go": {
-      "logicalLines": 139,
-      "fileCount": 3,
+      "logicalLines": 94,
+      "fileCount": 1,
       "files": [
-        "main.go",
-        "timer_other.go",
-        "timer_windows.go"
+        "main.go"
       ],
-      "sha256": "fe1c0f721d87a6450f48adb260e248e128f0d49cc992fa295f5e4c13fb1f98b3"
+      "sha256": "c992a8d3a9eb0d35b589437af7e1f98f643d34fb18970c65599700713da3deec"
     },
     "matrix-multiplication:java": {
-      "logicalLines": 267,
+      "logicalLines": 270,
       "fileCount": 1,
       "files": [
         "Main.java"
       ],
-      "sha256": "a768ae12864ea6c2342f0545e9838173a9de4de14563fa4a612c1bcc10855989"
+      "sha256": "de0c0178548ef4f99c5747ea38858a65fdd1ad58149a6bb53f8a278646fc7646"
     },
     "matrix-multiplication:javascript": {
-      "logicalLines": 41,
+      "logicalLines": 49,
       "fileCount": 1,
       "files": [
         "index.mjs"
       ],
-      "sha256": "98f58ea68983f200dd3d393b8c465de05a447a43e381ecfc530a331853b20085"
+      "sha256": "866365a41f4233a94c418ff8b93d2478978ff09ab7f150e3093c059b61902377"
     },
     "matrix-multiplication:lua": {
-      "logicalLines": 370,
+      "logicalLines": 358,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "ce262fb239cc0ae222d4b3b03f247d423f09b5c0134570f391f746ad2ab4c7f9"
+      "sha256": "afacaa47168cdeba5f7ef7aed23e2bff9594f9e4414b3d29c19d55d307339005"
     },
     "matrix-multiplication:lua-interpreted": {
-      "logicalLines": 385,
-      "fileCount": 3,
-      "files": [
-        "json.lua",
-        "main.lua",
-        "sha256.lua"
-      ],
-      "sha256": "a9b27b114f5f0d33c4e630bab39bddedaddf13291f0c0d2a71a517b33be37b72"
-    },
-    "matrix-multiplication:python": {
-      "logicalLines": 76,
-      "fileCount": 1,
-      "files": [
-        "main.py"
-      ],
-      "sha256": "688b11526fe0f813e3ec471aa3ae3881ade96dc433a391204020873945c066c5"
-    },
-    "matrix-multiplication:rust": {
-      "logicalLines": 104,
-      "fileCount": 1,
-      "files": [
-        "src/main.rs"
-      ],
-      "sha256": "5d376397f83671c2f54cbb1131387d43b07457f8703a834e96fbd958ef5927ca"
-    },
-    "matrix-multiplication:typescript": {
-      "logicalLines": 42,
-      "fileCount": 1,
-      "files": [
-        "index.ts"
-      ],
-      "sha256": "71d5bda052de8551005e8f5e9292deaac9fc9c4107410d769b512f3242b43133"
-    },
-    "nbody:c": {
-      "logicalLines": 202,
-      "fileCount": 1,
-      "files": [
-        "main.c"
-      ],
-      "sha256": "ac3036bf0c526fd0092fd3f36955a295c5ba043b3a6a02273b7ffef37d49589d"
-    },
-    "nbody:cpp": {
-      "logicalLines": 202,
-      "fileCount": 1,
-      "files": [
-        "main.cpp"
-      ],
-      "sha256": "6b0db5c66a4e3a181b7274efd0def07ba63ddf617f772f515a58893a31879f55"
-    },
-    "nbody:go": {
-      "logicalLines": 209,
-      "fileCount": 3,
-      "files": [
-        "main.go",
-        "timer_other.go",
-        "timer_windows.go"
-      ],
-      "sha256": "ae7badc69827059ca3838fa5ef7628c743d8dd3529fc049f0b3eec5d755472e1"
-    },
-    "nbody:java": {
-      "logicalLines": 70,
-      "fileCount": 1,
-      "files": [
-        "Main.java"
-      ],
-      "sha256": "bea8591233d849350ef5fc2bdff96e10da396f48cb216b2be9bb16cb73415131"
-    },
-    "nbody:javascript": {
-      "logicalLines": 45,
-      "fileCount": 1,
-      "files": [
-        "index.mjs"
-      ],
-      "sha256": "1bc0957dcb4fdb9aa3d1489c953ae7eedee8b6239f858730a5c0c45ba0c2f587"
-    },
-    "nbody:lua": {
-      "logicalLines": 393,
-      "fileCount": 3,
-      "files": [
-        "json.lua",
-        "main.lua",
-        "sha256.lua"
-      ],
-      "sha256": "8a5fa79e8c7a18be09c50d119b907ef6a96872e8312570d5d6601bcb285a2bf6"
-    },
-    "nbody:lua-interpreted": {
-      "logicalLines": 407,
-      "fileCount": 3,
-      "files": [
-        "json.lua",
-        "main.lua",
-        "sha256.lua"
-      ],
-      "sha256": "e14d9c458f2be1eaa7c836417ecdb75e22d1d097b392cb106823d7f04662d3c7"
-    },
-    "nbody:python": {
-      "logicalLines": 135,
-      "fileCount": 1,
-      "files": [
-        "main.py"
-      ],
-      "sha256": "9b969b648ca28e36686904233ec08548fd4215b8cc27eebedf80c0169d2a6d9b"
-    },
-    "nbody:rust": {
-      "logicalLines": 111,
-      "fileCount": 1,
-      "files": [
-        "src/main.rs"
-      ],
-      "sha256": "09971abd76e013be1a0c910761feb6e51663347c704afe19757e221347a8e5e5"
-    },
-    "nbody:typescript": {
-      "logicalLines": 47,
-      "fileCount": 1,
-      "files": [
-        "index.ts"
-      ],
-      "sha256": "e9ff34f5d82aa3654f1af78a1db1e6305e9b3c3a65872326076d68c92aeb58c1"
-    },
-    "record-sorting:c": {
-      "logicalLines": 160,
-      "fileCount": 1,
-      "files": [
-        "main.c"
-      ],
-      "sha256": "3eb28617047cea23b16d0a3d5c19776d705f0ab2784df2213f670faf1a6ad02f"
-    },
-    "record-sorting:cpp": {
-      "logicalLines": 132,
-      "fileCount": 1,
-      "files": [
-        "main.cpp"
-      ],
-      "sha256": "111bcc346861aed43a119c35b34ad4c1ed0a492ffb3afc39e8be281ed8d9b7ae"
-    },
-    "record-sorting:go": {
-      "logicalLines": 151,
-      "fileCount": 3,
-      "files": [
-        "main.go",
-        "timer_other.go",
-        "timer_windows.go"
-      ],
-      "sha256": "fbec26d6a141bb82fe3d7177d0f7192edf0e6afc480cd734e61e4a2fe3691e8d"
-    },
-    "record-sorting:java": {
-      "logicalLines": 275,
-      "fileCount": 1,
-      "files": [
-        "Main.java"
-      ],
-      "sha256": "bfe12ce21a87bd82418b735d6d9491b55fbd523c0d2d08bc5bf18126ae1c841e"
-    },
-    "record-sorting:javascript": {
-      "logicalLines": 40,
-      "fileCount": 1,
-      "files": [
-        "index.mjs"
-      ],
-      "sha256": "3b0dcceae886c9f0491be75928c8e8aaee345b2edf6a702be782447662165386"
-    },
-    "record-sorting:lua": {
       "logicalLines": 372,
       "fileCount": 3,
       "files": [
@@ -380,211 +212,365 @@
       ],
       "sha256": "afbf53dd2092fb84f86cc7a3e178d1dcc48b7e1fbcb0d0202f9edb2796603f5d"
     },
-    "record-sorting:lua-interpreted": {
-      "logicalLines": 384,
+    "matrix-multiplication:python": {
+      "logicalLines": 63,
+      "fileCount": 1,
+      "files": [
+        "main.py"
+      ],
+      "sha256": "efb29c4b5f779c94ea9b09dc85aa88531b071826927b01cc4e16fc065dc674af"
+    },
+    "matrix-multiplication:rust": {
+      "logicalLines": 115,
+      "fileCount": 1,
+      "files": [
+        "src/main.rs"
+      ],
+      "sha256": "b1d4be56a88c2c095d8b030027c955cb0bac508a1122db9726dd0e94a3bc0372"
+    },
+    "matrix-multiplication:typescript": {
+      "logicalLines": 50,
+      "fileCount": 1,
+      "files": [
+        "index.ts"
+      ],
+      "sha256": "c275b80b289fcfaeba4fad19b742d1a066cff74e11355a379c04fbb800ecb7d1"
+    },
+    "nbody:c": {
+      "logicalLines": 208,
+      "fileCount": 1,
+      "files": [
+        "main.c"
+      ],
+      "sha256": "b1def19ecf83aa80f5b32f62a2c7aeb99392696f7610f932f7900a7314a23303"
+    },
+    "nbody:cpp": {
+      "logicalLines": 181,
+      "fileCount": 1,
+      "files": [
+        "main.cpp"
+      ],
+      "sha256": "6dea8449323c514d1e2460e4998fe5786fdfefa0f04c20816ba9466ab764c400"
+    },
+    "nbody:go": {
+      "logicalLines": 165,
+      "fileCount": 1,
+      "files": [
+        "main.go"
+      ],
+      "sha256": "659a5355f0544bc3facd176df5c46b60d05240db97db21133b3ec6830c0f223f"
+    },
+    "nbody:java": {
+      "logicalLines": 103,
+      "fileCount": 1,
+      "files": [
+        "Main.java"
+      ],
+      "sha256": "e16483901b4936d9c0a87e9835caca35107967a029f112d9c0648cc714c2b391"
+    },
+    "nbody:javascript": {
+      "logicalLines": 90,
+      "fileCount": 1,
+      "files": [
+        "index.mjs"
+      ],
+      "sha256": "4162eb29aee2aecab5199d00bfea830d09ceb294f0afd23fd2d9edcd807e0951"
+    },
+    "nbody:lua": {
+      "logicalLines": 388,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "af5e4ecfd1e629e70e7279a71bcb2ad934ab889ed1a66d112b24b8f90843eb32"
+      "sha256": "883cd2112dd8f915c1af45a55dd9422482e16d603d574553efa591d8da505d6d"
     },
-    "record-sorting:python": {
-      "logicalLines": 56,
+    "nbody:lua-interpreted": {
+      "logicalLines": 402,
+      "fileCount": 3,
+      "files": [
+        "json.lua",
+        "main.lua",
+        "sha256.lua"
+      ],
+      "sha256": "aeaa9542c47defdc091ce98a5b36891caedf837c936f068363aa15085a593200"
+    },
+    "nbody:python": {
+      "logicalLines": 123,
       "fileCount": 1,
       "files": [
         "main.py"
       ],
-      "sha256": "64e88f5ed369aa3a32576aa2d5cbc087fae2c5437ec96c6aa17d82a4b86b49e1"
+      "sha256": "649ff2ddc4d61ef6f774f1a90c1c686979777569745ade63356841b19eb8dc26"
     },
-    "record-sorting:rust": {
-      "logicalLines": 141,
+    "nbody:rust": {
+      "logicalLines": 133,
       "fileCount": 1,
       "files": [
         "src/main.rs"
       ],
-      "sha256": "6453a448d110f4e776edcffe016c523514e28477796e20da12ca3f6fa294a0df"
+      "sha256": "66451df21f506037abecdd25b62475445b74de6e979ba0f2b9db3c71c3b2f176"
     },
-    "record-sorting:typescript": {
-      "logicalLines": 42,
+    "nbody:typescript": {
+      "logicalLines": 92,
       "fileCount": 1,
       "files": [
         "index.ts"
       ],
-      "sha256": "71d5bda052de8551005e8f5e9292deaac9fc9c4107410d769b512f3242b43133"
+      "sha256": "b5e14d6a4f3504fa4c03582bfde71758bd1a0dd4e070b685b0dfde9b6ea532ae"
     },
-    "shortest-path:c": {
-      "logicalLines": 272,
+    "record-sorting:c": {
+      "logicalLines": 180,
       "fileCount": 1,
       "files": [
         "main.c"
       ],
-      "sha256": "58b5b283ce5a07e7acbd69d3900b022fe3e1251562a5bf03495a2e1fd88e1904"
+      "sha256": "a6d87dd60b68129dca948744164f0547d7026873e0dc4ecba92c1ccd41b87ff7"
+    },
+    "record-sorting:cpp": {
+      "logicalLines": 113,
+      "fileCount": 1,
+      "files": [
+        "main.cpp"
+      ],
+      "sha256": "9ba0271ef662fd4f069464779a8f0388307a915cfe5f58817e7f37723ddab67d"
+    },
+    "record-sorting:go": {
+      "logicalLines": 106,
+      "fileCount": 1,
+      "files": [
+        "main.go"
+      ],
+      "sha256": "d6791916d58fad399cb1c3491b5cab1e3559ee503ed9f0fb8a9571b6946d5895"
+    },
+    "record-sorting:java": {
+      "logicalLines": 277,
+      "fileCount": 1,
+      "files": [
+        "Main.java"
+      ],
+      "sha256": "ceda15e2a7b843f1410288a7cb78ce574e06bd39c2d9f28f056f709a93b48dbc"
+    },
+    "record-sorting:javascript": {
+      "logicalLines": 63,
+      "fileCount": 1,
+      "files": [
+        "index.mjs"
+      ],
+      "sha256": "26098d8424c1bfccb95e49b083b438d020d8acc77503745e2752c584b8962bc6"
+    },
+    "record-sorting:lua": {
+      "logicalLines": 363,
+      "fileCount": 3,
+      "files": [
+        "json.lua",
+        "main.lua",
+        "sha256.lua"
+      ],
+      "sha256": "765d970ba912a05cb5eb82fd127d6526a2c1340a9d9a44b8284a3a25c11cba75"
+    },
+    "record-sorting:lua-interpreted": {
+      "logicalLines": 377,
+      "fileCount": 3,
+      "files": [
+        "json.lua",
+        "main.lua",
+        "sha256.lua"
+      ],
+      "sha256": "8ce82089405872559e108cb65a41ff0ddacaaa8c4b05ea86ed476290d1b7d210"
+    },
+    "record-sorting:python": {
+      "logicalLines": 43,
+      "fileCount": 1,
+      "files": [
+        "main.py"
+      ],
+      "sha256": "a3f6bd710c2d9a218428d82b4eca980f5aceaeac19f646805e18350a1ffd08bc"
+    },
+    "record-sorting:rust": {
+      "logicalLines": 146,
+      "fileCount": 1,
+      "files": [
+        "src/main.rs"
+      ],
+      "sha256": "5f46ee68ebb5dcf3c1955e71de5705bb9bd2a6e3120e968271be0ba12b3fcb92"
+    },
+    "record-sorting:typescript": {
+      "logicalLines": 65,
+      "fileCount": 1,
+      "files": [
+        "index.ts"
+      ],
+      "sha256": "1f1c263c0d878ebf1986e90cb0dc7dee7d16284bae42606f7714858a8357a10d"
+    },
+    "shortest-path:c": {
+      "logicalLines": 280,
+      "fileCount": 1,
+      "files": [
+        "main.c"
+      ],
+      "sha256": "6447863a2a0b6b5df82a293794fd7addf10a5b1c69986de4cb8c7258f65ca9d1"
     },
     "shortest-path:cpp": {
+      "logicalLines": 162,
+      "fileCount": 1,
+      "files": [
+        "main.cpp"
+      ],
+      "sha256": "b24f15033b2b14c56b96cb7a2e49d43bd4a047e464c5b401d5bf22ba8585b6de"
+    },
+    "shortest-path:go": {
       "logicalLines": 174,
       "fileCount": 1,
       "files": [
-        "main.cpp"
+        "main.go"
       ],
-      "sha256": "9dfc0b704dc2f0c58bf5fac418c0ac5a18621b86f01061ccb440c8b99514b175"
-    },
-    "shortest-path:go": {
-      "logicalLines": 215,
-      "fileCount": 3,
-      "files": [
-        "main.go",
-        "timer_other.go",
-        "timer_windows.go"
-      ],
-      "sha256": "dcc36c12c4b8869ce536fcd21e789f80cd99f05b7445bb1abf914b1c712c6b04"
+      "sha256": "57c86eec3378cf93e6cdca344618df46cb0b66e6dcb9d7ee6240b831b409070a"
     },
     "shortest-path:java": {
-      "logicalLines": 231,
+      "logicalLines": 238,
       "fileCount": 1,
       "files": [
         "Main.java"
       ],
-      "sha256": "e6f7654e0a5c9ec8fe18f2b5825bfbbb7be731227cfee5a4c321f376835aa139"
+      "sha256": "cf93d75eadda1a6468bdc154636ebde7d7685464270e99774a602676bce8362b"
     },
     "shortest-path:javascript": {
-      "logicalLines": 105,
+      "logicalLines": 104,
       "fileCount": 1,
       "files": [
         "index.mjs"
       ],
-      "sha256": "090791f48dd746b74740a59cdb008976ed650004e72a97b59df889dcaf189ad8"
+      "sha256": "1a9b035b2c481dddc54956fbbbc3817e73be5676cc5167d6299e3b55d7b01ce9"
     },
     "shortest-path:lua": {
-      "logicalLines": 401,
+      "logicalLines": 392,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "4fd6f14960efee88b29d593a8276d0fbc90aa30a7aac0d4ea99b69999cb9fa4a"
+      "sha256": "5cbd78734852e5bc8d5c1ffa39ac1b4daa4be054200beaefbf607dd4a0594679"
     },
     "shortest-path:lua-interpreted": {
-      "logicalLines": 410,
+      "logicalLines": 402,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "064c66eb4073a4da28991bb82ab27989559bdbf396d4705b8650bf8562c8cdd5"
+      "sha256": "aeaa9542c47defdc091ce98a5b36891caedf837c936f068363aa15085a593200"
     },
     "shortest-path:python": {
-      "logicalLines": 62,
+      "logicalLines": 63,
       "fileCount": 1,
       "files": [
         "main.py"
       ],
-      "sha256": "98411317c46e2eedd9203f2db29fc3e08921ff2a7a9934f6ebeaf76756d704d5"
+      "sha256": "efb29c4b5f779c94ea9b09dc85aa88531b071826927b01cc4e16fc065dc674af"
     },
     "shortest-path:rust": {
-      "logicalLines": 86,
+      "logicalLines": 155,
       "fileCount": 1,
       "files": [
         "src/main.rs"
       ],
-      "sha256": "9d0e49aafb6d12b9a797ce49c489cacdcb6282f04e78290c7de00befb1a795b6"
+      "sha256": "daafe96da4db69c887f5a71c636d54cb78d853befd14953faefbc3e56eab0d9d"
     },
     "shortest-path:typescript": {
-      "logicalLines": 108,
+      "logicalLines": 107,
       "fileCount": 1,
       "files": [
         "index.ts"
       ],
-      "sha256": "93f34c16d239dceebdef8afe0cac28aca79f7291e5153f6252063f2c474c91e0"
+      "sha256": "2f57680422ebbc5438b130cf06aa5651ab77b72189fe71320b2d0f7ab0232d04"
     },
     "word-frequency:c": {
-      "logicalLines": 175,
+      "logicalLines": 195,
       "fileCount": 1,
       "files": [
         "main.c"
       ],
-      "sha256": "82a984418a84197b336e5517ad276a24019e1102c87412a5d62d99e147589ae3"
+      "sha256": "0cf3c45b2a7a6503c2526ee8f0db3c66f4b3874a6a829407c0996d6faa9991b3"
     },
     "word-frequency:cpp": {
-      "logicalLines": 167,
+      "logicalLines": 146,
       "fileCount": 1,
       "files": [
         "main.cpp"
       ],
-      "sha256": "13b2aa800e427e2034332076facb093d360823824810622253cc13bed9d59489"
+      "sha256": "743523f2b4ddb674b39729e011b38112caf05adf484fd0c9151eec79ad7a1d6d"
     },
     "word-frequency:go": {
-      "logicalLines": 154,
-      "fileCount": 3,
+      "logicalLines": 109,
+      "fileCount": 1,
       "files": [
-        "main.go",
-        "timer_other.go",
-        "timer_windows.go"
+        "main.go"
       ],
-      "sha256": "23474f9f5e792799415711dc3dc0a778ebc6503a1041987f1547184a374f7814"
+      "sha256": "4f10bd1bb050cdde69be2ea5b18f1a81144128800d4aa9588620fa49f7ed75ab"
     },
     "word-frequency:java": {
-      "logicalLines": 192,
+      "logicalLines": 194,
       "fileCount": 1,
       "files": [
         "Main.java"
       ],
-      "sha256": "1a24b72cd13380d3ad196996a13346576d6f87e97ee4af3a6564cc51411f9fd8"
+      "sha256": "3244415be163803eac2105ecfae327276ce27a199064bf89b5649d251397b275"
     },
     "word-frequency:javascript": {
-      "logicalLines": 26,
+      "logicalLines": 39,
       "fileCount": 1,
       "files": [
         "index.mjs"
       ],
-      "sha256": "fb8ea96aa387750e719618744260d26a6af9cb386d6f743dea910c06b5f6082c"
+      "sha256": "e2814207dcfc8a1eca9dfa09979cdcda2845de9360a4c9946dda2d7a9e6ffbea"
     },
     "word-frequency:lua": {
-      "logicalLines": 378,
+      "logicalLines": 365,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "a6f54b2e0df34a61f6c01c4f16dd2031f239d16587ae69048e74056b967dbf0c"
+      "sha256": "7e56772eb7949df78077abf532c7f9fa5c34dd915559f94d59b77c568813271e"
     },
     "word-frequency:lua-interpreted": {
-      "logicalLines": 390,
+      "logicalLines": 379,
       "fileCount": 3,
       "files": [
         "json.lua",
         "main.lua",
         "sha256.lua"
       ],
-      "sha256": "59e9377fc78c174ce242ea3484785fe423e701c1bec58c5cae44a3ee5224dcd5"
+      "sha256": "5c60ed84844675166d8b63a3b8843ea83a8475220c0cd26730771bf8f8ac7066"
     },
     "word-frequency:python": {
-      "logicalLines": 53,
+      "logicalLines": 40,
       "fileCount": 1,
       "files": [
         "main.py"
       ],
-      "sha256": "f5330f6341043013f36a8e43b1475142099e96d067581cadee1441f66a0896d4"
+      "sha256": "87a60ebc41a4ccfc75236a3e25f7143511428bd5b1c3bd594a0fb4ff014da4d1"
     },
     "word-frequency:rust": {
-      "logicalLines": 100,
+      "logicalLines": 109,
       "fileCount": 1,
       "files": [
         "src/main.rs"
       ],
-      "sha256": "b0bb89b1b5613671ebf0ef9aa6546352f5efe46713bd417e2e85d9b09a3e0b5d"
+      "sha256": "b5058fd8832a23ff170b7e8ee5c2a78ecd774edb997278d5fc87f0330eac1410"
     },
     "word-frequency:typescript": {
-      "logicalLines": 26,
+      "logicalLines": 39,
       "fileCount": 1,
       "files": [
         "index.ts"
       ],
-      "sha256": "85e54f7ff9ac2d400fbd5ccf957ae6ebe896a287d3633e810b5a3614dfd96c16"
+      "sha256": "b0748dae1d125a1fe301b475480b6a0dd382eceaa2941724479953055d9c3d66"
     }
   }
 }

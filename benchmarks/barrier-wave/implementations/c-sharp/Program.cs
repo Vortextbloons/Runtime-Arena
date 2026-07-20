@@ -1,11 +1,12 @@
 using System;
-using System.Diagnostics;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Collections.Generic;
 
+const string ProtocolVersion = "2.0.0";
 const long INITIAL_DIGEST = unchecked((long)0x6a09e667f3bcc909);
 
 static int Mix32(int x)
@@ -32,24 +33,30 @@ static string Hex(long value, int digits)
     return new string(result);
 }
 
-static double CiWidth(long[] samples, int count)
+static string DigestHex(byte[] bytes) =>
+    Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+
+static void EmitLine(string json)
 {
-    double[] tCritical = { 0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045 };
-    int n = count;
-    if (n < 2) return double.PositiveInfinity;
-    double mean = 0;
-    for (int i = 0; i < n; i++) mean += samples[i];
-    mean /= n;
-    if (mean <= 0) return double.PositiveInfinity;
-    double variance = 0;
-    for (int i = 0; i < n; i++)
+    Console.WriteLine(json);
+    Console.Out.Flush();
+}
+
+static string ProtocolField(string line, string field)
+{
+    string key = "\"" + field + "\":";
+    int start = line.IndexOf(key, StringComparison.Ordinal);
+    if (start < 0) return "";
+    start += key.Length;
+    while (start < line.Length && line[start] == ' ') start++;
+    if (line[start] == '"')
     {
-        double delta = samples[i] - mean;
-        variance += delta * delta;
+        int end = line.IndexOf('"', start + 1);
+        return line[(start + 1)..end];
     }
-    variance /= (n - 1);
-    double t = n < tCritical.Length ? tCritical[n] : 2.0;
-    return (2 * t * Math.Sqrt(variance / n)) / mean;
+    int endIdx = start;
+    while (endIdx < line.Length && ",} ".IndexOf(line[endIdx]) < 0) endIdx++;
+    return line[start..endIdx];
 }
 
 static string[] Kernel(WorkerPool pool, int workerCount, int phaseCount, long initialSeed)
@@ -111,38 +118,40 @@ static string GetArg(string[] args, string name, string fallback)
 }
 
 // --- Main ---
-string inputPath = GetArg(args, "--input", "");
-string outputPath = GetArg(args, "--output", "");
-string timingPath = GetArg(args, "--timing-output", "");
-int warmup = int.Parse(GetArg(args, "--warmup", "0"));
-int minIterations = int.Parse(GetArg(args, "--min-iterations", "1"));
-int maxIterations = int.Parse(GetArg(args, "--max-iterations", "1"));
-double targetCi = double.Parse(GetArg(args, "--target-relative-ci", "0.05"));
+if (GetArg(args, "--protocol-version", "") != ProtocolVersion)
+    throw new ArgumentException("unsupported protocol version");
 
-var (workerCount, phaseCount, itemsPerWorker, roundsPerItem, initialSeed) = ReadInput(inputPath);
+string outputPath = GetArg(args, "--output", "");
+if (string.IsNullOrEmpty(outputPath))
+    throw new ArgumentException("missing required arguments");
+
+var (workerCount, phaseCount, itemsPerWorker, roundsPerItem, initialSeed) = ReadInput(GetArg(args, "--input", ""));
 
 var pool = new WorkerPool(workerCount, itemsPerWorker, roundsPerItem);
-string[] result = null;
-var samplesList = new List<(int iter, long nanos)>();
+var encoding = new UTF8Encoding(false);
+byte[] lastOutput = Array.Empty<byte>();
 
 try
 {
-    var kernelTimes = new long[maxIterations];
-    int kernelCount = 0;
-    int measured = 0;
-
-    for (int run = -warmup; ; run++)
+    EmitLine("{\"type\":\"ready\",\"protocolVersion\":\"" + ProtocolVersion + "\"}");
+    string? line;
+    while ((line = Console.ReadLine()) != null)
     {
-        long start = Stopwatch.GetTimestamp();
-        result = Kernel(pool, workerCount, phaseCount, initialSeed);
-        long elapsedNs = Math.Max(1L, (long)((Stopwatch.GetTimestamp() - start) * 1_000_000_000.0 / Stopwatch.Frequency));
-        if (run >= 0)
+        if (line.Length == 0) continue;
+        string type = ProtocolField(line, "type");
+        if (type == "run")
         {
-            kernelTimes[kernelCount++] = elapsedNs;
-            measured++;
-            samplesList.Add((measured, elapsedNs));
-            if (kernelCount >= maxIterations || (kernelCount >= minIterations && CiWidth(kernelTimes, kernelCount) <= targetCi))
-                break;
+            long requestId = long.Parse(ProtocolField(line, "requestId"));
+            string[] result = Kernel(pool, workerCount, phaseCount, initialSeed);
+            string outputJson = $"{{\"schemaVersion\":\"1.0.0\",\"benchmark\":\"barrier-wave\",\"workerCount\":{workerCount},\"phaseCount\":{phaseCount},\"itemsProcessed\":{(long)workerCount * phaseCount * itemsPerWorker},\"finalSeed\":\"{result[0]}\",\"digest\":\"{result[1]}\"}}";
+            lastOutput = encoding.GetBytes(outputJson);
+            EmitLine("{\"type\":\"result\",\"requestId\":" + requestId + ",\"digest\":\"" + DigestHex(lastOutput) + "\"}");
+        }
+        else if (type == "finish")
+        {
+            File.WriteAllBytes(outputPath, lastOutput);
+            EmitLine("{\"type\":\"finish\",\"digest\":\"" + DigestHex(lastOutput) + "\"}");
+            break;
         }
     }
 }
@@ -150,18 +159,6 @@ finally
 {
     pool.Close();
 }
-
-var outputJson = $"{{\"schemaVersion\":\"1.0.0\",\"benchmark\":\"barrier-wave\",\"workerCount\":{workerCount},\"phaseCount\":{phaseCount},\"itemsProcessed\":{(long)workerCount * phaseCount * itemsPerWorker},\"finalSeed\":\"{result![0]}\",\"digest\":\"{result[1]}\"}}";
-File.WriteAllText(outputPath, outputJson);
-
-var sb = new StringBuilder("{\"samples\":[");
-for (int i = 0; i < samplesList.Count; i++)
-{
-    if (i > 0) sb.Append(',');
-    sb.Append($"{{\"iteration\":{samplesList[i].iter},\"kernelTimeNanoseconds\":{samplesList[i].nanos}}}");
-}
-sb.Append("]}");
-File.WriteAllText(timingPath, sb.ToString());
 
 // --- WorkerPool ---
 class WorkerPool

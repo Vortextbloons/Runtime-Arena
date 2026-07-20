@@ -1,8 +1,8 @@
-#include <chrono>
 #include <cstdint>
 #include <cstring>
 #include <fstream>
 #include <functional>
+#include <iostream>
 #include <limits>
 #include <optional>
 #include <queue>
@@ -11,8 +11,11 @@
 #include <vector>
 
 #include "json.hpp"
+#include "sha256.hpp"
 
 using json = nlohmann::json;
+
+static const char* PROTOCOL_VERSION = "2.0.0";
 
 struct Edge {
     int from;
@@ -36,11 +39,6 @@ struct Result {
     int id;
     std::optional<int64_t> distance;
     std::vector<int> path;
-};
-
-struct Sample {
-    int iteration;
-    int64_t kernelTimeNanoseconds;
 };
 
 using PQItem = std::pair<int64_t, int>;
@@ -114,68 +112,28 @@ std::vector<Result> kernel(const std::vector<std::vector<Edge>>& adj, const Inpu
     return results;
 }
 
-static const double T_CRITICAL[30] = {0,12.706,4.303,3.182,2.776,2.571,2.447,2.365,2.306,2.262,2.228,2.201,2.179,2.16,2.145,2.131,2.12,2.11,2.101,2.093,2.086,2.08,2.074,2.069,2.064,2.06,2.056,2.052,2.048,2.045};
-double ciWidth(const std::vector<long long>& samples) {
-    const size_t n = samples.size();
-    if (n < 2) return std::numeric_limits<double>::infinity();
-    double mean = 0;
-    for (long long value : samples) mean += static_cast<double>(value);
-    mean /= static_cast<double>(n);
-    if (mean <= 0) return std::numeric_limits<double>::infinity();
-    double variance = 0;
-    for (long long value : samples) { const double delta = static_cast<double>(value) - mean; variance += delta * delta; }
-    variance /= static_cast<double>(n - 1);
-    const double t = n < 30 ? T_CRITICAL[n] : 2.0;
-    return (2.0 * t * std::sqrt(variance / static_cast<double>(n))) / mean;
+static std::string getArg(int argc, char* argv[], const char* name) {
+    for (int i = 1; i < argc - 1; i++)
+        if (std::strcmp(argv[i], name) == 0) return argv[i + 1];
+    return "";
 }
 
-int main(int argc, char* argv[]) {
-    std::string inputFile;
-    std::string outputFile;
-    std::string timingFile;
-    int warmup = 0;
-    int minIterations = 1;
-    int maxIterations = 1;
-    double targetCi = 0.05;
+static void emitLine(const json& value) {
+    std::cout << value.dump() << std::endl;
+    std::cout.flush();
+}
 
-    for (int i = 1; i < argc; ++i) {
-        std::string arg = argv[i];
-        if (arg == "--input" && i + 1 < argc) inputFile = argv[++i];
-        else if (arg == "--output" && i + 1 < argc) outputFile = argv[++i];
-        else if (arg == "--timing-output" && i + 1 < argc) timingFile = argv[++i];
-        else if (arg == "--warmup" && i + 1 < argc) warmup = std::stoi(argv[++i]);
-        else if (arg == "--min-iterations" && i + 1 < argc) minIterations = std::stoi(argv[++i]);
-        else if (arg == "--max-iterations" && i + 1 < argc) maxIterations = std::stoi(argv[++i]);
-        else if (arg == "--target-relative-ci" && i + 1 < argc) targetCi = std::stod(argv[++i]);
-    }
+static std::string digestBytes(const std::string& bytes) {
+    SHA256 sha;
+    sha.update(bytes);
+    return sha.hex();
+}
 
-    std::ifstream in(inputFile);
-    json inputJson;
-    in >> inputJson;
-    Input input = parseInput(inputJson);
-    auto adjacency = buildAdjacency(input);
-
-    std::vector<Sample> samples;
-    std::vector<Result> results;
-
-    std::vector<long long> kernelTimes;
-    for (int i = -warmup; ; i++) {
-        auto start = std::chrono::high_resolution_clock::now();
-        results = kernel(adjacency, input);
-        auto end = std::chrono::high_resolution_clock::now();
-        int64_t elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-        if (elapsed < 1) elapsed = 1;
-        if (i >= 0) {
-            kernelTimes.push_back(elapsed);
-            samples.push_back({static_cast<int>(samples.size()) + 1, elapsed});
-            if (static_cast<int>(kernelTimes.size()) >= maxIterations || (static_cast<int>(kernelTimes.size()) >= minIterations && ciWidth(kernelTimes) <= targetCi)) break;
-        }
-    }
-
-    json outputJson;
-    outputJson["benchmark"] = "shortest-path";
-    outputJson["version"] = 1;
-    outputJson["results"] = json::array();
+static json outputJson(const std::vector<Result>& results) {
+    json output;
+    output["benchmark"] = "shortest-path";
+    output["version"] = 1;
+    output["results"] = json::array();
     for (const auto& r : results) {
         json entry;
         entry["queryId"] = r.id;
@@ -185,20 +143,49 @@ int main(int argc, char* argv[]) {
             entry["distance"] = nullptr;
         }
         entry["path"] = r.path;
-        outputJson["results"].push_back(entry);
+        output["results"].push_back(entry);
+    }
+    return output;
+}
+
+int main(int argc, char* argv[]) {
+    if (getArg(argc, argv, "--protocol-version") != PROTOCOL_VERSION) {
+        std::cerr << "unsupported protocol version" << std::endl;
+        return 1;
     }
 
-    std::ofstream out(outputFile);
-    out << outputJson.dump();
-
-    json timingJson;
-    timingJson["samples"] = json::array();
-    for (const auto& s : samples) {
-        timingJson["samples"].push_back({{"iteration", s.iteration}, {"kernelTimeNanoseconds", s.kernelTimeNanoseconds}});
+    std::string inputPath = getArg(argc, argv, "--input");
+    std::string outputPath = getArg(argc, argv, "--output");
+    if (inputPath.empty() || outputPath.empty()) {
+        std::cerr << "Usage: shortest-path --input <file> --output <file> --protocol-version 2.0.0" << std::endl;
+        return 1;
     }
 
-    std::ofstream timingOut(timingFile);
-    timingOut << timingJson.dump();
+    std::ifstream in(inputPath);
+    json inputJson;
+    in >> inputJson;
+    Input input = parseInput(inputJson);
+    auto adjacency = buildAdjacency(input);
+
+    emitLine({{"type", "ready"}, {"protocolVersion", PROTOCOL_VERSION}});
+
+    std::string lastOutput;
+    std::string line;
+    while (std::getline(std::cin, line)) {
+        if (line.empty()) continue;
+        auto msg = json::parse(line);
+        const std::string& type = msg["type"].get<std::string>();
+        if (type == "run") {
+            int64_t requestId = msg["requestId"].get<int64_t>();
+            lastOutput = outputJson(kernel(adjacency, input)).dump();
+            emitLine({{"type", "result"}, {"requestId", requestId}, {"digest", digestBytes(lastOutput)}});
+        } else if (type == "finish") {
+            std::ofstream out(outputPath);
+            out << lastOutput;
+            emitLine({{"type", "finish"}, {"digest", digestBytes(lastOutput)}});
+            break;
+        }
+    }
 
     return 0;
 }

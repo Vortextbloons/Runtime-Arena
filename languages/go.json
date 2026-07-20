@@ -26,18 +26,20 @@
       "{inputFile}",
       "--output",
       "{outputFile}",
-      "--timing-output",
-      "{timingOutputFile}",
-      "--warmup",
-      "{warmupIterations}",
-      "--min-iterations",
-      "{minMeasuredIterations}",
-      "--max-iterations",
-      "{maxMeasuredIterations}",
-      "--target-relative-ci",
-      "{targetRelativeConfidenceInterval}"
+      "--protocol-version",
+      "{protocolVersion}"
     ]
   },
   "environment": {},
-  "sourceExtensions": [".go"]
+  "sourceExtensions": [".go"],
+  "provenance": {
+    "environmentAllowlist": ["GOCACHE", "GOOS", "GOARCH"],
+    "externalInputs": [
+      { "path": "{implementationDir}/go.mod" },
+      { "path": "{implementationDir}/go.sum" }
+    ],
+    "probes": [
+      { "id": "compiler", "command": "go", "arguments": ["version"] }
+    ]
+  }
 }

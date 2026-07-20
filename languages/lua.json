@@ -21,18 +21,15 @@
       "{inputFile}",
       "--output",
       "{outputFile}",
-      "--timing-output",
-      "{timingOutputFile}",
-      "--warmup",
-      "{warmupIterations}",
-      "--min-iterations",
-      "{minMeasuredIterations}",
-      "--max-iterations",
-      "{maxMeasuredIterations}",
-      "--target-relative-ci",
-      "{targetRelativeConfidenceInterval}"
+      "--protocol-version",
+      "{protocolVersion}"
     ]
   },
   "environment": {},
-  "sourceExtensions": [".lua"]
+  "sourceExtensions": [".lua"],
+  "provenance": {
+    "probes": [
+      { "id": "runtime", "command": "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe", "arguments": ["-v"] }
+    ]
+  }
 }

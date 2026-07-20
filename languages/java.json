@@ -30,18 +30,20 @@
       "{inputFile}",
       "--output",
       "{outputFile}",
-      "--timing-output",
-      "{timingOutputFile}",
-      "--warmup",
-      "{warmupIterations}",
-      "--min-iterations",
-      "{minMeasuredIterations}",
-      "--max-iterations",
-      "{maxMeasuredIterations}",
-      "--target-relative-ci",
-      "{targetRelativeConfidenceInterval}"
+      "--protocol-version",
+      "{protocolVersion}"
     ]
   },
   "environment": {},
-  "sourceExtensions": [".java"]
+  "sourceExtensions": [".java"],
+  "provenance": {
+    "environmentAllowlist": ["JAVA_HOME"],
+    "externalInputs": [
+      { "path": "{projectRoot}/scripts/build-java.mjs" }
+    ],
+    "probes": [
+      { "id": "javac", "command": "javac", "arguments": ["--version"] },
+      { "id": "java", "command": "java", "arguments": ["--version"] }
+    ]
+  }
 }

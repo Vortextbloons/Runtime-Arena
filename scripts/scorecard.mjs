@@ -25,6 +25,7 @@ const geometricMean = (values) =>
     ? Math.exp(values.reduce((s, v) => s + Math.log(v), 0) / values.length)
     : 0;
 const average = (values) => values.reduce((s, v) => s + v, 0) / values.length;
+const medianNs = (summary) => summary.medianIterationTimeNanoseconds ?? summary.medianKernelTimeNanoseconds ?? 0;
 const clampScore = (v) => Math.max(0, Math.min(100, v));
 const normalizeScore = (v) => Math.round(clampScore(v) * 1e9) / 1e9;
 const performanceScore = (fastest, median) =>
@@ -157,7 +158,7 @@ function scoreBenchmark(benchmarkId) {
       const key = variantKey(size, mut || undefined);
       const medians = cohort
         .filter(r => r.benchmark.size === size && (r.benchmark.mutation || '') === mut && completeResult(r))
-        .map(r => r.execution.summary.medianKernelTimeNanoseconds)
+        .map(r => medianNs(r.execution.summary))
         .filter(m => Number.isFinite(m) && m > 0);
       const fastest = medians.length ? Math.min(...medians) : 0;
       if (fastest > 0) fastestByVariant[key] = fastest;
@@ -192,7 +193,7 @@ function scoreBenchmark(benchmarkId) {
     const sizeScores = rankedSizes.map(size => {
       const mutScores = (mutationsBySize[size] || ['']).map(mut => {
         const r = langResults[variantKey(size, mut || undefined)];
-        const med = r.execution.summary.medianKernelTimeNanoseconds;
+        const med = medianNs(r.execution.summary);
         const fastest = fastestByVariant[variantKey(size, mut || undefined)];
         const perf = performanceScore(fastest, med);
         const dev = r.execution.summary.standardDeviationKernelTimeNanoseconds || 0;
@@ -607,7 +608,7 @@ for (const r of results) {
   let min = Infinity, best = null;
   for (const c of cohort) {
     if (!completeResult(c)) continue;
-    const t = c.execution.summary.medianKernelTimeNanoseconds;
+    const t = medianNs(c.execution.summary);
     if (t < min) { min = t; best = c.language.id; }
   }
   if (best) { wins[best]++; winDetails[best].push({ benchmarkId: r.benchmark.id, size: r.benchmark.size, mutation: r.benchmark.mutation || null, medianNs: min }); }

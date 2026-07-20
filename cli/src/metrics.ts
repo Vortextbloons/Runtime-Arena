@@ -27,3 +27,8 @@ registerMetric({
   id: "kernelTime",
   availability: () => ({ status: "available", unit: "nanoseconds" })
 });
+
+registerMetric({
+  id: "iterationTime",
+  availability: () => ({ status: "available", unit: "nanoseconds" })
+});

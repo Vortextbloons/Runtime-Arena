@@ -52,6 +52,7 @@ COPY web/build/ /usr/share/nginx/html/
 When new benchmark results are available:
 
 ```bash
+npm run build:checker
 npm run arena -- run          # Run benchmarks
 npm run prepare-results       # Copy into web/static/results/ (required for npm run dev)
 # or
@@ -59,6 +60,10 @@ npm run build:web             # prepare-results + production build
 ```
 
 The `prepare-results.ts` script copies the canonical snapshot into `web/static/results/`,
-keeping `persistent-worker` entries with measurement contract `1.0.0` or `1.1.0`.
-When both exist for the same cell, `1.1.0` wins. Obsolete mutation-less rows are
+keeping only rows with measurement contract **`2.0.0`** for rankings. Legacy `1.0.0` /
+`1.1.0` rows are dropped from the prepared file. When multiple contract versions exist
+for the same cell in `current.json`, `2.0.0` wins. Obsolete mutation-less rows are
 pruned when mutation variants exist for the same benchmark/size.
+
+After a partial run, re-run `prepare-results` (or `build:web`) so the dev server and
+static build reflect the latest ranked data.

@@ -1,39 +1,35 @@
 # Execution Model
 
-Runtime Arena measures **steady-state workload kernel execution**. One process is launched for each benchmark, size, mutation, and language cell. That process loads and parses its dataset once, performs warmups, and then records every measured kernel run with a monotonic high-resolution clock.
+Runtime Arena measures **steady-state workload kernel execution** under measurement contract **2.0.0**. One persistent worker process is launched for each benchmark, size, mutation, and language cell. The harness owns the clock, drives iterations over stdin/stdout, and verifies deterministic digests before invoking the checker.
 
-## Persistent Worker Contract
+## Harness-Timed Persistent Worker Contract
 
-The CLI supplies `--input`, `--output`, `--timing-output`, `--warmup`, `--min-iterations`, `--max-iterations`, and `--target-relative-ci`. Implementations:
+The CLI supplies `--input`, `--output`, and `--protocol-version 2.0.0`. Implementations:
 
-1. Read and parse input before timing.
-2. Prepare fresh mutable state before each iteration.
-3. Run warmups and measurements in the same process.
-4. Time the complete workload kernel.
-5. Write the final deterministic result and a separate timing sidecar.
+1. Read and parse permitted input state before emitting `ready`.
+2. Emit `{"type":"ready","protocolVersion":"2.0.0"}` on stdout.
+3. For each harness `run` request, prepare fresh mutable state and execute the complete workload kernel.
+4. Return `{"type":"result","requestId":n,"digest":"<sha256>"}` where the digest is SHA-256 of the compact JSON result bytes for that iteration.
+5. On `finish`, write the last deterministic result to `--output` and acknowledge the same digest.
 
-```json
-{"samples":[{"iteration":1,"kernelTimeNanoseconds":12345}]}
-```
+The CLI measures wall time from immediately before writing each request through receipt and strict validation of its complete response line. Warmup durations are discarded. Adaptive stopping uses a deterministic 10,000-resample percentile bootstrap 95% confidence interval for the median, seeded from the ordered sample sequence. `--iterations` selects fixed-count mode.
 
-The CLI validates timing sidecars via `readTimingSamples()`:
-- Iterations must be **1-indexed and sequential** (sample N must have `iteration: N`)
-- All `kernelTimeNanoseconds` values must be **non-negative safe integers**
-- Between `minMeasuredIterations` and `maxMeasuredIterations` samples are required
-- After each measured iteration, implementations stop early when the 95% relative confidence interval of the mean kernel time is at or below `--target-relative-ci`
-- Extra or missing fields on the top-level object or on individual samples are **rejected**
-- Timing sidecars exceeding `maxOutputBytes` are also rejected
+Malformed or extra stdout, skipped request IDs, digest mismatch, timeout, early exit, or oversized output rejects the cell. The benchmark timeout applies independently to readiness, each iteration, and finalization. Total process duration is retained only as a diagnostic.
 
-Runtime startup, input parsing, state cloning, output encoding, file I/O, process shutdown, build time, and checker time are excluded from ranking. Total process duration is retained only as a diagnostic.
+## Legacy Contracts (Read-Only)
+
+Contracts `1.0.0` and `1.1.0` remain readable for historical snapshots. Legacy cells are excluded from rankings and marked stale in `arena results status` until rerun under 2.0.0.
 
 ## Isolation and Correctness
 
-Each cell runs in an isolated working directory under `.arena/runs/<snapshotId>/<benchmark>/<language>/<size>/<mutation>/`. Its input dataset is copied to a separate read-only location under `.arena/runs/<snapshotId>/datasets/` (`chmod 0o444`). Before the checker is invoked, output size is checked against the benchmark's `maxOutputBytes` limit; oversized output is rejected without invoking the checker. The independent checker validates the final output once; a rejected output invalidates every timing sample. Missing, malformed, oversized, or incorrectly numbered timing samples also reject the cell.
+Each cell runs in an isolated working directory under `.arena/runs/<snapshotId>/<benchmark>/<language>/<size>/<mutation>/`. Its input dataset is copied to a separate read-only location under `.arena/runs/<snapshotId>/datasets/` (`chmod 0o444`). Before the checker is invoked, output size is checked against the benchmark's `maxOutputBytes` limit. The independent checker validates the final output once.
 
-## Limits and Summary
+## Trust Boundary
 
-The per-iteration benchmark timeout is multiplied by the requested warmup and maximum measured iteration count to bound the persistent process. Output and captured-stream limits remain enforced.
+The harness owns the clock and verifies per-request deterministic digests, preventing implementation-selected samples and common timing leakage. Workload-boundary compliance and the absence of deliberately precomputed digest responses still require trusted or reviewed implementations.
 
-**Build caching**: A separate `buildFingerprint()` (distinct from the execution `fingerprintCell`) hashes the language manifest, implementation source tree, benchmark ID, and build config. Compiled artifacts are stored in `.arena/build-cache/<buildFingerprint>/` and restored via `copyFile` on cache hits, skipping recompilation.
+## Build Caching
 
-The CLI preserves raw kernel samples and calculates minimum, maximum, median, mean, standard deviation, p95, and interquartile range in nanoseconds. Median kernel time is the primary ranking metric.
+Build provenance captures resolved executables, compiler/runtime versions, target triple, flags, allowlisted environment values, shared language trees, and declared external inputs. Cache entries store an atomic manifest beside each artifact. Execution fingerprints include the build fingerprint so artifact-affecting changes invalidate saved measurements.
+
+The CLI preserves measured iteration samples and calculates minimum, maximum, median, mean, standard deviation, p95, and interquartile range in nanoseconds. Median iteration time is the primary ranking metric.

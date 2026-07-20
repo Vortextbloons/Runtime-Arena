@@ -2,7 +2,10 @@
 
 1. Add `languages/<language-id>.json` using an existing manifest as a template.
 2. Configure toolchain detection, release build commands, the artifact path,
-   run arguments, environment variables, and source extensions.
+   run arguments, environment variables, and source extensions. A `provenance`
+   block is optional — the CLI merges defaults from
+   [`languages/protocol/provenance.defaults.json`](../../languages/protocol/provenance.defaults.json)
+   and always adds a `runtime` probe from `detect` when none is declared.
 3. Ensure the manifest matches `schemas/language.schema.json`.
 4. Add `benchmarks/<benchmark-id>/implementations/<language-id>/` for every
    benchmark: nbody, shortest-path, aggregation, barrier-wave, word-frequency,
@@ -22,37 +25,64 @@
    - `benchmarks/record-sorting/IMPLEMENTING.md`
    - `benchmarks/matrix-multiplication/IMPLEMENTING.md`
 
-6. Each implementation must accept the persistent-worker CLI contract:
+6. Each implementation must honor the **harness-timed persistent worker**
+   contract (measurement 2.0.0):
 
    ```text
    --input <input-file>
    --output <output-file>
-   --timing-output <timing-file>
-   --warmup <n>
-   --min-iterations <n>
-   --max-iterations <n>
-   --target-relative-ci <ratio>
+   --protocol-version 2.0.0
    ```
 
-   Language manifests must pass these through the `run.arguments` template
-   (see `languages/rust.json` and `docs/architecture/execution-model.md`).
-   Implementations collect kernel timing samples adaptively: run at least
-   `--min-iterations` measured iterations, stop early when the 95% relative
-   confidence interval is narrow enough, and never exceed `--max-iterations`.
+   Language manifests pass these through `run.arguments` (see `languages/rust.json`).
+   After parsing input, the worker emits `ready` on stdout, then responds to
+   harness `run` / `finish` messages over stdin. The harness owns iteration
+   timing; implementations do not write timing sidecars. See
+   [execution model](../architecture/execution-model.md) for the full protocol.
+
+   **Protocol helpers:** Start from [`languages/protocol/README.md`](../../languages/protocol/README.md).
+   Each language family has a small helper (`worker.mjs`, `worker.py`, `go/worker.go`,
+   `rust/lib.rs`, `c/include/protocol.h`, `Worker.cs`, `Protocol.java`, `worker.lua`).
+   Copy or import the helper, implement only the benchmark kernel, and wire
+   `run_worker` / `RunWorker` around it.
+
+   **Minimal worker:** Before tackling a full benchmark, copy an example from
+   [`examples/minimal-workers/`](../../examples/minimal-workers/) and run:
+
+   ```bash
+   npm run arena -- protocol test --language <language-id> --minimal
+   ```
+
+   **Conformance test:** Diagnoses protocol mistakes (missing `ready`, digest
+   mismatches, manifest gaps):
+
+   ```bash
+   npm run arena -- protocol test --language <language-id> --benchmark nbody
+   ```
 
 7. Use optimized release builds. Produce output that passes the checker —
    the internal approach can differ from other language implementations.
    Use the language's best idioms, data structures, and patterns.
+
+   **Artifact paths:** Compiled outputs should live under `.arena/`, `target/`,
+   `dist/`, or similar — not beside source with the default `ArenaBenchmark`
+   assembly name. For interpreted languages (JavaScript, Python, Lua), the
+   artifact may be the source file itself; the build cache verifies hashes
+   without copying over live source.
+
 8. For barrier-wave, use true pre-emptive parallelism — OS threads,
    goroutines, worker_threads, or multiprocessing. The number of concurrent
    workers must equal `workerCount`. Event-loop tasks, coroutines scheduled
    on a single OS thread, green threads, or a serial loop do not satisfy the
    benchmark.
+
 9. Verify the integration:
 
    ```bash
+   npm run build:checker
    npm run arena -- doctor
    npm run arena -- list languages
+   npm run arena -- protocol test --language <language-id> --minimal
    npm run arena -- run --language <language-id> --size small
    npm test
    ```

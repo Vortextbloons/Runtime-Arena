@@ -1,30 +1,52 @@
 using System;
-using System.Diagnostics;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
+const string ProtocolVersion = "2.0.0";
 const long INF = long.MaxValue;
 
-string? inputFile = null, outputFile = null, timingOutput = null;
-int warmup = 0, minIterations = 1, maxIterations = 1;
-double targetRelativeCi = 0.05;
+static string DigestHex(byte[] bytes) =>
+    Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
 
+static void EmitLine(string json)
+{
+    Console.WriteLine(json);
+    Console.Out.Flush();
+}
+
+static string ProtocolField(string line, string field)
+{
+    string key = "\"" + field + "\":";
+    int start = line.IndexOf(key, StringComparison.Ordinal);
+    if (start < 0) return "";
+    start += key.Length;
+    while (start < line.Length && line[start] == ' ') start++;
+    if (line[start] == '"')
+    {
+        int end = line.IndexOf('"', start + 1);
+        return line[(start + 1)..end];
+    }
+    int endIdx = start;
+    while (endIdx < line.Length && ",} ".IndexOf(line[endIdx]) < 0) endIdx++;
+    return line[start..endIdx];
+}
+
+string? inputFile = null, outputFile = null;
 for (int i = 0; i < args.Length - 1; i++)
 {
     switch (args[i])
     {
         case "--input": inputFile = args[++i]; break;
         case "--output": outputFile = args[++i]; break;
-        case "--timing-output": timingOutput = args[++i]; break;
-        case "--warmup": warmup = int.Parse(args[++i]); break;
-        case "--min-iterations": minIterations = int.Parse(args[++i]); break;
-        case "--max-iterations": maxIterations = int.Parse(args[++i]); break;
-        case "--target-relative-ci": targetRelativeCi = double.Parse(args[++i]); break;
+        case "--protocol-version":
+            if (args[++i] != ProtocolVersion) throw new ArgumentException("unsupported protocol version");
+            break;
     }
 }
 
-if (inputFile is null || outputFile is null || timingOutput is null)
+if (inputFile is null || outputFile is null)
     throw new ArgumentException("missing required arguments");
 
 using (var doc = JsonDocument.Parse(File.ReadAllText(inputFile)))
@@ -75,34 +97,31 @@ using (var doc = JsonDocument.Parse(File.ReadAllText(inputFile)))
     int[] previous = new int[vertexCount];
     int[] path = new int[vertexCount];
 
-    string? result = null;
-    var samplesBuilder = new StringBuilder("{\"samples\":[");
-    long[] kernelTimes = new long[maxIterations];
-    int kernelCount = 0;
-    bool firstSample = true;
+    var encoding = new UTF8Encoding(false);
+    byte[] lastOutput = Array.Empty<byte>();
 
-    for (int run = -warmup; ; run++)
+    EmitLine("{\"type\":\"ready\",\"protocolVersion\":\"" + ProtocolVersion + "\"}");
+    string? line;
+    while ((line = Console.ReadLine()) != null)
     {
-        var sw = Stopwatch.StartNew();
-        result = Kernel(vertexCount, offsets, destinations, weights,
-            queryCount, queryId, querySource, queryDestination,
-            heapDist, heapNode, distances, previous, path);
-        sw.Stop();
-        long elapsed = Math.Max(1L, (long)((double)sw.ElapsedTicks * 1_000_000_000L / Stopwatch.Frequency));
-        if (run >= 0)
+        if (line.Length == 0) continue;
+        string type = ProtocolField(line, "type");
+        if (type == "run")
         {
-            kernelTimes[kernelCount++] = elapsed;
-            if (!firstSample) samplesBuilder.Append(',');
-            firstSample = false;
-            samplesBuilder.Append("{\"iteration\":").Append(kernelCount)
-                .Append(",\"kernelTimeNanoseconds\":").Append(elapsed).Append('}');
-            if (kernelCount >= maxIterations || (kernelCount >= minIterations && CiWidth(kernelTimes, kernelCount) <= targetRelativeCi))
-                break;
+            long requestId = long.Parse(ProtocolField(line, "requestId"));
+            string result = Kernel(vertexCount, offsets, destinations, weights,
+                queryCount, queryId, querySource, queryDestination,
+                heapDist, heapNode, distances, previous, path);
+            lastOutput = encoding.GetBytes(result);
+            EmitLine("{\"type\":\"result\",\"requestId\":" + requestId + ",\"digest\":\"" + DigestHex(lastOutput) + "\"}");
+        }
+        else if (type == "finish")
+        {
+            File.WriteAllBytes(outputFile, lastOutput);
+            EmitLine("{\"type\":\"finish\",\"digest\":\"" + DigestHex(lastOutput) + "\"}");
+            break;
         }
     }
-
-    File.WriteAllText(outputFile, result!);
-    File.WriteAllText(timingOutput, samplesBuilder.Append("]}").ToString());
 }
 
 static string Kernel(int vertexCount, int[] offsets, int[] destinations, long[] weights,
@@ -201,23 +220,4 @@ static long PopDistance(long[] heapDist, int[] heapNode, ref int size)
     heapDist[index] = distance;
     heapNode[index] = node;
     return result;
-}
-
-static double CiWidth(long[] samples, int n)
-{
-    if (n < 2) return double.PositiveInfinity;
-    double mean = 0;
-    for (int i = 0; i < n; i++) mean += samples[i];
-    mean /= n;
-    if (mean <= 0) return double.PositiveInfinity;
-    double variance = 0;
-    for (int i = 0; i < n; i++)
-    {
-        double delta = samples[i] - mean;
-        variance += delta * delta;
-    }
-    variance /= (n - 1);
-    double[] tCritical = [0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045];
-    double t = n < tCritical.Length ? tCritical[n] : 2.0;
-    return (2 * t * Math.Sqrt(variance / n)) / mean;
 }

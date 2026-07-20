@@ -25,20 +25,25 @@
       "{inputFile}",
       "--output",
       "{outputFile}",
-      "--timing-output",
-      "{timingOutputFile}",
-      "--warmup",
-      "{warmupIterations}",
-      "--min-iterations",
-      "{minMeasuredIterations}",
-      "--max-iterations",
-      "{maxMeasuredIterations}",
-      "--target-relative-ci",
-      "{targetRelativeConfidenceInterval}"
+      "--protocol-version",
+      "{protocolVersion}"
     ]
   },
   "environment": {
     "NODE_ENV": "production"
   },
-  "sourceExtensions": [".ts"]
+  "sourceExtensions": [".ts"],
+  "provenance": {
+    "environmentAllowlist": ["NODE_ENV"],
+    "externalInputs": [
+      { "path": "{implementationDir}/package.json" },
+      { "path": "{implementationDir}/package-lock.json" },
+      { "path": "{implementationDir}/tsconfig.json" },
+      { "path": "{projectRoot}/node_modules/typescript/package.json" }
+    ],
+    "probes": [
+      { "id": "node", "command": "node", "arguments": ["--version"] },
+      { "id": "typescript", "command": "node", "arguments": ["{projectRoot}/node_modules/typescript/bin/tsc", "--version"] }
+    ]
+  }
 }

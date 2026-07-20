@@ -1,69 +1,43 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-string input = null!, output = null!, timingOutput = null!;
-int warmup = 0, minIterations = 1, maxIterations = 1;
-double targetRelativeCi = 0.05;
+const string ProtocolVersion = "2.0.0";
 
-for (int i = 0; i < args.Length - 1; i++)
+static string DigestHex(byte[] bytes) =>
+    Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+
+static void EmitLine(string json)
 {
-    switch (args[i])
-    {
-        case "--input": input = args[++i]; break;
-        case "--output": output = args[++i]; break;
-        case "--timing-output": timingOutput = args[++i]; break;
-        case "--warmup": warmup = int.Parse(args[++i]); break;
-        case "--min-iterations": minIterations = int.Parse(args[++i]); break;
-        case "--max-iterations": maxIterations = int.Parse(args[++i]); break;
-        case "--target-relative-ci": targetRelativeCi = double.Parse(args[++i]); break;
-    }
+    Console.WriteLine(json);
+    Console.Out.Flush();
 }
 
-if (input is null || output is null || timingOutput is null)
-    throw new ArgumentException("missing required arguments");
-
-string inputJson = File.ReadAllText(input);
-using (var doc = JsonDocument.Parse(inputJson))
+static string ProtocolField(string line, string field)
 {
-    var words = doc.RootElement.GetProperty("words");
-    int totalWords = words.GetArrayLength();
-    string[] wordArray = new string[totalWords];
-    int idx = 0;
-    foreach (var w in words.EnumerateArray())
-        wordArray[idx++] = w.GetString()!;
-
-    string result = null!;
-    var samplesBuilder = new StringBuilder("{\"samples\":[");
-    long[] kernelTimes = new long[maxIterations];
-    int kernelCount = 0;
-    bool first = true;
-
-    for (int run = -warmup; ; run++)
+    string key = "\"" + field + "\":";
+    int start = line.IndexOf(key, StringComparison.Ordinal);
+    if (start < 0) return "";
+    start += key.Length;
+    while (start < line.Length && line[start] == ' ') start++;
+    if (line[start] == '"')
     {
-        var sw = Stopwatch.StartNew();
-        result = Kernel(wordArray);
-        sw.Stop();
-        long elapsed = Math.Max(1L, (long)((double)sw.ElapsedTicks * 1_000_000_000L / Stopwatch.Frequency));
-        if (run >= 0)
-        {
-            kernelTimes[kernelCount++] = elapsed;
-            if (!first) samplesBuilder.Append(',');
-            first = false;
-            samplesBuilder.Append("{\"iteration\":").Append(kernelCount)
-                .Append(",\"kernelTimeNanoseconds\":").Append(elapsed).Append('}');
-            if (kernelCount >= maxIterations || (kernelCount >= minIterations && CiWidth(kernelTimes, kernelCount) <= targetRelativeCi))
-                break;
-        }
+        int end = line.IndexOf('"', start + 1);
+        return line[(start + 1)..end];
     }
+    int endIdx = start;
+    while (endIdx < line.Length && ",} ".IndexOf(line[endIdx]) < 0) endIdx++;
+    return line[start..endIdx];
+}
 
-    File.WriteAllText(output, result!);
-    File.WriteAllText(timingOutput, samplesBuilder.Append("]}").ToString());
+static string GetArg(string[] cliArgs, string name)
+{
+    for (int i = 0; i + 1 < cliArgs.Length; i++)
+        if (cliArgs[i] == name) return cliArgs[i + 1];
+    throw new ArgumentException("missing " + name);
 }
 
 static string Kernel(string[] words)
@@ -98,27 +72,48 @@ static string Kernel(string[] words)
     for (int i = 0; i < take; i++)
     {
         if (i != 0) output.Append(',');
-        output.Append("{\"word\":\"").Append(JsonEncodedText.Encode(entries[i].Key))
-            .Append("\",\"count\":").Append(entries[i].Value).Append('}');
+        output.Append("{\"word\":").Append(JsonSerializer.Serialize(entries[i].Key))
+            .Append(",\"count\":").Append(entries[i].Value).Append('}');
     }
     return output.Append("],\"checksum\":\"").Append(checksum).Append("\"}").ToString();
 }
 
-static double CiWidth(long[] samples, int n)
+string[] cliArgs = args;
+if (GetArg(cliArgs, "--protocol-version") != ProtocolVersion)
+    throw new ArgumentException("unsupported protocol version");
+
+string outputFile = GetArg(cliArgs, "--output");
+string inputFile = GetArg(cliArgs, "--input");
+
+using (var doc = JsonDocument.Parse(File.ReadAllText(inputFile)))
 {
-    if (n < 2) return double.PositiveInfinity;
-    double mean = 0;
-    for (int i = 0; i < n; i++) mean += samples[i];
-    mean /= n;
-    if (mean <= 0) return double.PositiveInfinity;
-    double variance = 0;
-    for (int i = 0; i < n; i++)
+    var words = doc.RootElement.GetProperty("words");
+    int totalWords = words.GetArrayLength();
+    string[] wordArray = new string[totalWords];
+    int idx = 0;
+    foreach (var w in words.EnumerateArray())
+        wordArray[idx++] = w.GetString()!;
+
+    var encoding = new UTF8Encoding(false);
+    byte[] lastOutput = Array.Empty<byte>();
+
+    EmitLine("{\"type\":\"ready\",\"protocolVersion\":\"" + ProtocolVersion + "\"}");
+    string? line;
+    while ((line = Console.ReadLine()) != null)
     {
-        double delta = samples[i] - mean;
-        variance += delta * delta;
+        if (line.Length == 0) continue;
+        string type = ProtocolField(line, "type");
+        if (type == "run")
+        {
+            long requestId = long.Parse(ProtocolField(line, "requestId"));
+            lastOutput = encoding.GetBytes(Kernel(wordArray));
+            EmitLine("{\"type\":\"result\",\"requestId\":" + requestId + ",\"digest\":\"" + DigestHex(lastOutput) + "\"}");
+        }
+        else if (type == "finish")
+        {
+            File.WriteAllBytes(outputFile, lastOutput);
+            EmitLine("{\"type\":\"finish\",\"digest\":\"" + DigestHex(lastOutput) + "\"}");
+            break;
+        }
     }
-    variance /= (n - 1);
-    double[] tCritical = [0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045];
-    double t = n < tCritical.Length ? tCritical[n] : 2.0;
-    return (2 * t * Math.Sqrt(variance / n)) / mean;
 }

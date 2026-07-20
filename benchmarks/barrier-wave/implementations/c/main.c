@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <time.h>
 #include <pthread.h>
 #include "json.h"
+#include "sha256.h"
+
+#define PROTOCOL_VERSION "2.0.0"
 
 typedef struct {
     char schemaVersion[16];
@@ -31,27 +33,10 @@ typedef struct {
 } Worker;
 
 typedef struct {
-    int iteration;
-    int64_t kernelTimeNanoseconds;
-} Sample;
-
-static double T_CRITICAL[30] = {0,12.706,4.303,3.182,2.776,2.571,2.447,2.365,2.306,2.262,2.228,2.201,2.179,2.16,2.145,2.131,2.12,2.11,2.101,2.093,2.086,2.08,2.074,2.069,2.064,2.06,2.056,2.052,2.048,2.045};
-
-static double ciWidth(int64_t *samples, int n) {
-    if (n < 2) return 1e308;
-    double mean = 0;
-    for (int i = 0; i < n; i++) mean += (double)samples[i];
-    mean /= n;
-    if (mean <= 0) return 1e308;
-    double variance = 0;
-    for (int i = 0; i < n; i++) {
-        double delta = (double)samples[i] - mean;
-        variance += delta * delta;
-    }
-    variance /= (n - 1);
-    double t = n < 30 ? T_CRITICAL[n] : 2.0;
-    return (2.0 * t * sqrt(variance / n)) / mean;
-}
+    Input in;
+    Worker *workers;
+    int workerCount;
+} BwCtx;
 
 static uint32_t mix32(uint32_t x) {
     x ^= x >> 16; x *= 0x21f0aaad;
@@ -79,6 +64,52 @@ static char *readFile(const char *path) {
     buf[sz] = '\0';
     fclose(f);
     return buf;
+}
+
+static char *read_stdin_line(char *buf, size_t cap) {
+    if (!fgets(buf, (int)cap, stdin)) return NULL;
+    size_t len = strlen(buf);
+    while (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r')) buf[--len] = '\0';
+    return buf;
+}
+
+static const char *protocol_field(const char *line, const char *field, char *out, size_t out_cap) {
+    char key[64];
+    snprintf(key, sizeof(key), "\"%s\":", field);
+    const char *start = strstr(line, key);
+    if (!start) return NULL;
+    start += strlen(key);
+    while (*start == ' ') start++;
+    if (*start == '"') {
+        start++;
+        const char *end = strchr(start, '"');
+        if (!end) return NULL;
+        size_t len = (size_t)(end - start);
+        if (len >= out_cap) len = out_cap - 1;
+        memcpy(out, start, len);
+        out[len] = '\0';
+        return out;
+    }
+    size_t i = 0;
+    while (start[i] && strchr(",} ", start[i]) == NULL && i + 1 < out_cap) {
+        out[i] = start[i];
+        i++;
+    }
+    out[i] = '\0';
+    return out;
+}
+
+static void emit_line(const char *json) {
+    fputs(json, stdout);
+    fputc('\n', stdout);
+    fflush(stdout);
+}
+
+static void digest_hex_bytes(const uint8_t *data, size_t len, char out[65]) {
+    SHA256 sha;
+    sha256_init(&sha);
+    sha256_update(&sha, data, len);
+    sha256_hex(&sha, out);
 }
 
 static void *workerFn(void *arg) {
@@ -119,19 +150,78 @@ static void *workerFn(void *arg) {
     return NULL;
 }
 
+static char *produce_output(void *ctx, size_t *out_len) {
+    BwCtx *c = (BwCtx *)ctx;
+    Input *in = &c->in;
+    Worker *workers = c->workers;
+    int workerCount = c->workerCount;
+
+    uint32_t phaseSeed = in->initialSeed;
+    uint64_t digest = 0x6a09e667f3bcc909ULL;
+
+    for (int phase = 0; phase < in->phaseCount; phase++) {
+        for (int w = 0; w < workerCount; w++) {
+            pthread_mutex_lock(&workers[w].mtx);
+            workers[w].seed = phaseSeed;
+            workers[w].hasWork = 1;
+            workers[w].isDone = 0;
+            pthread_cond_signal(&workers[w].cond);
+            pthread_mutex_unlock(&workers[w].mtx);
+        }
+
+        for (int w = 0; w < workerCount; w++) {
+            pthread_mutex_lock(&workers[w].mtx);
+            while (!workers[w].isDone)
+                pthread_cond_wait(&workers[w].cond, &workers[w].mtx);
+            pthread_mutex_unlock(&workers[w].mtx);
+        }
+
+        uint32_t nextSeed = phaseSeed ^ (uint32_t)phase;
+        uint64_t phaseSum = 0;
+        for (int w = 0; w < workerCount; w++) {
+            nextSeed = mix32(nextSeed ^ workers[w].localXor
+                ^ (uint32_t)workers[w].localSum
+                ^ (uint32_t)(workers[w].localSum >> 32)
+                ^ (uint32_t)w);
+            phaseSum += workers[w].localSum;
+        }
+        phaseSeed = nextSeed;
+        digest = rotateLeft64(digest, 7);
+        digest ^= (uint64_t)phaseSeed;
+        digest += phaseSum;
+    }
+
+    char finalSeed[9], digestStr[17];
+    snprintf(finalSeed, sizeof(finalSeed), "%08x", phaseSeed);
+    snprintf(digestStr, sizeof(digestStr), "%016llx", (unsigned long long)digest);
+
+    JsonValue out = json_object();
+    json_object_set(&out, "schemaVersion", json_string("1.0.0"));
+    json_object_set(&out, "benchmark", json_string("barrier-wave"));
+    json_object_set(&out, "workerCount", json_number(in->workerCount));
+    json_object_set(&out, "phaseCount", json_number(in->phaseCount));
+    json_object_set(&out, "itemsProcessed", json_number((double)in->workerCount * in->phaseCount * in->itemsPerWorker));
+    json_object_set(&out, "finalSeed", json_string(finalSeed));
+    json_object_set(&out, "digest", json_string(digestStr));
+    char *dumped = json_dump(&out);
+    json_free(&out);
+    *out_len = strlen(dumped);
+    return dumped;
+}
+
 int main(int argc, char *argv[]) {
-    char *inputPath = NULL, *outputPath = NULL, *timingPath = NULL;
-    int warmup = 0, minIter = 1, maxIter = 1;
-    double targetCi = 0.05;
+    char *inputPath = NULL, *outputPath = NULL;
+    int protocol_ok = 0;
 
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--input") == 0 && i+1 < argc) inputPath = argv[++i];
-        else if (strcmp(argv[i], "--output") == 0 && i+1 < argc) outputPath = argv[++i];
-        else if (strcmp(argv[i], "--timing-output") == 0 && i+1 < argc) timingPath = argv[++i];
-        else if (strcmp(argv[i], "--warmup") == 0 && i+1 < argc) warmup = atoi(argv[++i]);
-        else if (strcmp(argv[i], "--min-iterations") == 0 && i+1 < argc) minIter = atoi(argv[++i]);
-        else if (strcmp(argv[i], "--max-iterations") == 0 && i+1 < argc) maxIter = atoi(argv[++i]);
-        else if (strcmp(argv[i], "--target-relative-ci") == 0 && i+1 < argc) targetCi = atof(argv[++i]);
+        if (strcmp(argv[i], "--input") == 0 && i + 1 < argc) inputPath = argv[++i];
+        else if (strcmp(argv[i], "--output") == 0 && i + 1 < argc) outputPath = argv[++i];
+        else if (strcmp(argv[i], "--protocol-version") == 0 && i + 1 < argc)
+            protocol_ok = strcmp(argv[++i], PROTOCOL_VERSION) == 0;
+    }
+    if (!inputPath || !outputPath || !protocol_ok) {
+        fprintf(stderr, "missing required arguments\n");
+        return 1;
     }
 
     char *inputJson = readFile(inputPath);
@@ -159,66 +249,29 @@ int main(int argc, char *argv[]) {
         pthread_create(&threads[i], NULL, workerFn, &workers[i]);
     }
 
-    Sample samples[1024];
-    int sampleCount = 0;
-    int64_t kernelTimes[1024];
-    int ktCount = 0;
-    uint32_t finalPhaseSeed = 0;
-    uint64_t finalDigest = 0;
+    BwCtx ctx = { .in = in, .workers = workers, .workerCount = in.workerCount };
 
-    for (int iter = -warmup; ; iter++) {
-        uint32_t phaseSeed = in.initialSeed;
-        uint64_t digest = 0x6a09e667f3bcc909ULL;
-
-        struct timespec t1, t2;
-        clock_gettime(CLOCK_MONOTONIC, &t1);
-
-        for (int phase = 0; phase < in.phaseCount; phase++) {
-            for (int w = 0; w < in.workerCount; w++) {
-                pthread_mutex_lock(&workers[w].mtx);
-                workers[w].seed = phaseSeed;
-                workers[w].hasWork = 1;
-                workers[w].isDone = 0;
-                pthread_cond_signal(&workers[w].cond);
-                pthread_mutex_unlock(&workers[w].mtx);
-            }
-
-            for (int w = 0; w < in.workerCount; w++) {
-                pthread_mutex_lock(&workers[w].mtx);
-                while (!workers[w].isDone)
-                    pthread_cond_wait(&workers[w].cond, &workers[w].mtx);
-                pthread_mutex_unlock(&workers[w].mtx);
-            }
-
-            uint32_t nextSeed = phaseSeed ^ (uint32_t)phase;
-            uint64_t phaseSum = 0;
-            for (int w = 0; w < in.workerCount; w++) {
-                nextSeed = mix32(nextSeed ^ workers[w].localXor
-                    ^ (uint32_t)workers[w].localSum
-                    ^ (uint32_t)(workers[w].localSum >> 32)
-                    ^ (uint32_t)w);
-                phaseSum += workers[w].localSum;
-            }
-            phaseSeed = nextSeed;
-            digest = rotateLeft64(digest, 7);
-            digest ^= (uint64_t)phaseSeed;
-            digest += phaseSum;
-        }
-
-        clock_gettime(CLOCK_MONOTONIC, &t2);
-        int64_t elapsed = (int64_t)(t2.tv_sec - t1.tv_sec) * 1000000000LL + (t2.tv_nsec - t1.tv_nsec);
-        if (elapsed < 1) elapsed = 1;
-
-        if (iter >= 0) {
-            kernelTimes[ktCount++] = elapsed;
-            samples[sampleCount].iteration = sampleCount + 1;
-            samples[sampleCount].kernelTimeNanoseconds = elapsed;
-            sampleCount++;
-            if (ktCount >= maxIter || (ktCount >= minIter && ciWidth(kernelTimes, ktCount) <= targetCi)) {
-                finalPhaseSeed = phaseSeed;
-                finalDigest = digest;
-                break;
-            }
+    char line[4096], field[256], digest[65];
+    char *lastOutput = NULL;
+    size_t lastLen = 0;
+    emit_line("{\"type\":\"ready\",\"protocolVersion\":\"" PROTOCOL_VERSION "\"}");
+    while (read_stdin_line(line, sizeof(line))) {
+        if (!line[0]) continue;
+        if (protocol_field(line, "type", field, sizeof(field)) && strcmp(field, "run") == 0) {
+            long requestId = atol(protocol_field(line, "requestId", field, sizeof(field)));
+            free(lastOutput);
+            lastOutput = produce_output(&ctx, &lastLen);
+            digest_hex_bytes((const uint8_t *)lastOutput, lastLen, digest);
+            printf("{\"type\":\"result\",\"requestId\":%ld,\"digest\":\"%s\"}\n", requestId, digest);
+            fflush(stdout);
+        } else if (protocol_field(line, "type", field, sizeof(field)) && strcmp(field, "finish") == 0) {
+            digest_hex_bytes((const uint8_t *)lastOutput, lastLen, digest);
+            FILE *f = fopen(outputPath, "wb");
+            fwrite(lastOutput, 1, lastLen, f);
+            fclose(f);
+            printf("{\"type\":\"finish\",\"digest\":\"%s\"}\n", digest);
+            fflush(stdout);
+            break;
         }
     }
 
@@ -232,45 +285,7 @@ int main(int argc, char *argv[]) {
         pthread_cond_destroy(&workers[i].cond);
     }
 
-    {
-        char finalSeed[9], digestStr[17];
-        snprintf(finalSeed, sizeof(finalSeed), "%08x", finalPhaseSeed);
-        snprintf(digestStr, sizeof(digestStr), "%016llx", (unsigned long long)finalDigest);
-
-        JsonValue out = json_object();
-        json_object_set(&out, "schemaVersion", json_string("1.0.0"));
-        json_object_set(&out, "benchmark", json_string("barrier-wave"));
-        json_object_set(&out, "workerCount", json_number(in.workerCount));
-        json_object_set(&out, "phaseCount", json_number(in.phaseCount));
-        json_object_set(&out, "itemsProcessed", json_number((double)in.workerCount * in.phaseCount * in.itemsPerWorker));
-        json_object_set(&out, "finalSeed", json_string(finalSeed));
-        json_object_set(&out, "digest", json_string(digestStr));
-        char *dumped = json_dump(&out);
-        FILE *f = fopen(outputPath, "wb");
-        fwrite(dumped, 1, strlen(dumped), f);
-        fclose(f);
-        free(dumped);
-        json_free(&out);
-    }
-
-    {
-        JsonValue timing = json_object();
-        JsonValue arr = json_array();
-        for (int i = 0; i < sampleCount; i++) {
-            JsonValue s = json_object();
-            json_object_set(&s, "iteration", json_number(samples[i].iteration));
-            json_object_set(&s, "kernelTimeNanoseconds", json_number(samples[i].kernelTimeNanoseconds));
-            json_array_push(&arr, s);
-        }
-        json_object_set(&timing, "samples", arr);
-        char *dumped = json_dump(&timing);
-        FILE *f = fopen(timingPath, "wb");
-        fwrite(dumped, 1, strlen(dumped), f);
-        fclose(f);
-        free(dumped);
-        json_free(&timing);
-    }
-
+    free(lastOutput);
     free(workers);
     free(threads);
     return 0;

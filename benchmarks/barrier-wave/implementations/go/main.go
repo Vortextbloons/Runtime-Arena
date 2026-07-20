@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"flag"
-	"math"
+	"fmt"
 	"os"
 	"runtime"
 	"strconv"
@@ -28,11 +31,6 @@ type Output struct {
 	ItemsProcessed int64  `json:"itemsProcessed"`
 	FinalSeed      string `json:"finalSeed"`
 	Digest         string `json:"digest"`
-}
-
-type Sample struct {
-	Iteration int   `json:"iteration"`
-	Duration  int64 `json:"kernelTimeNanoseconds"`
 }
 
 type pool struct {
@@ -188,42 +186,21 @@ func kernel(in Input, p *pool, phaseSeed uint32) Output {
 	}
 }
 
-var tCritical = [...]float64{0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045}
+func outputDigest(v any) string {
+	raw, _ := json.Marshal(v)
+	sum := sha256.Sum256(raw)
+	return hex.EncodeToString(sum[:])
+}
 
-func ciWidth(samples []int64) float64 {
-	n := len(samples)
-	if n < 2 {
-		return math.Inf(1)
-	}
-	var sum float64
-	for _, value := range samples {
-		sum += float64(value)
-	}
-	mean := sum / float64(n)
-	if mean <= 0 {
-		return math.Inf(1)
-	}
-	var variance float64
-	for _, value := range samples {
-		delta := float64(value) - mean
-		variance += delta * delta
-	}
-	variance /= float64(n - 1)
-	t := 2.0
-	if n < len(tCritical) {
-		t = tCritical[n]
-	}
-	return (2 * t * math.Sqrt(variance/float64(n))) / mean
+func respond(v any) {
+	raw, _ := json.Marshal(v)
+	fmt.Println(string(raw))
 }
 
 func main() {
 	ip := flag.String("input", "", "")
 	op := flag.String("output", "", "")
-	tp := flag.String("timing-output", "", "")
-	w := flag.Int("warmup", 0, "")
-	minIt := flag.Int("min-iterations", 1, "")
-	maxIt := flag.Int("max-iterations", 1, "")
-	targetCi := flag.Float64("target-relative-ci", 0.05, "")
+	flag.String("protocol-version", "2.0.0", "")
 	flag.Parse()
 
 	raw, _ := os.ReadFile(*ip)
@@ -232,31 +209,28 @@ func main() {
 
 	runtime.GOMAXPROCS(in.WorkerCount)
 	p := newPool(in.WorkerCount, in.ItemsPerWorker, in.RoundsPerItem)
+	defer p.close()
 	seedVal, _ := strconv.ParseUint(in.InitialSeed, 16, 32)
 	phaseSeed := uint32(seedVal)
 
-	samples := []Sample{}
-	var out Output
-	kernelTimes := []int64{}
-	for i := -*w; ; i++ {
-		start := nowNanoseconds()
-		out = kernel(in, p, phaseSeed)
-		elapsed := max(int64(1), nowNanoseconds()-start)
-		if i >= 0 {
-			kernelTimes = append(kernelTimes, elapsed)
-			samples = append(samples, Sample{len(samples) + 1, elapsed})
-			if len(kernelTimes) >= *maxIt || (len(kernelTimes) >= *minIt && ciWidth(kernelTimes) <= *targetCi) {
-				break
-			}
+	respond(map[string]string{"type": "ready", "protocolVersion": "2.0.0"})
+	scanner := bufio.NewScanner(os.Stdin)
+	var last Output
+	for scanner.Scan() {
+		var req struct {
+			Type      string `json:"type"`
+			RequestId int    `json:"requestId"`
+		}
+		json.Unmarshal(scanner.Bytes(), &req)
+		if req.Type == "finish" {
+			raw, _ := json.Marshal(last)
+			os.WriteFile(*op, raw, 0644)
+			respond(map[string]string{"type": "finish", "digest": outputDigest(last)})
+			return
+		}
+		if req.Type == "run" {
+			last = kernel(in, p, phaseSeed)
+			respond(map[string]any{"type": "result", "requestId": req.RequestId, "digest": outputDigest(last)})
 		}
 	}
-
-	p.close()
-
-	raw, _ = json.Marshal(out)
-	os.WriteFile(*op, raw, 0644)
-	raw, _ = json.Marshal(struct {
-		Samples []Sample `json:"samples"`
-	}{samples})
-	os.WriteFile(*tp, raw, 0644)
 }

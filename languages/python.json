@@ -21,18 +21,16 @@
       "{inputFile}",
       "--output",
       "{outputFile}",
-      "--timing-output",
-      "{timingOutputFile}",
-      "--warmup",
-      "{warmupIterations}",
-      "--min-iterations",
-      "{minMeasuredIterations}",
-      "--max-iterations",
-      "{maxMeasuredIterations}",
-      "--target-relative-ci",
-      "{targetRelativeConfidenceInterval}"
+      "--protocol-version",
+      "{protocolVersion}"
     ]
   },
   "environment": {},
-  "sourceExtensions": [".py"]
+  "sourceExtensions": [".py"],
+  "provenance": {
+    "environmentAllowlist": ["PYTHONHASHSEED"],
+    "probes": [
+      { "id": "runtime", "command": "python", "arguments": ["--version"] }
+    ]
+  }
 }

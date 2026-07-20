@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { formatDuration } from './scoring';
+	import { formatDuration, medianNanoseconds, sampleNanoseconds } from './scoring';
 	import type { ArenaResult } from './types';
 
 	let {
@@ -31,7 +31,7 @@
 			.filter((result) => result.benchmark.size === size)
 			.toSorted((a, b) => {
 				if (a.checker.status !== b.checker.status) return a.checker.status === 'accepted' ? -1 : 1;
-				return a.execution.summary.medianKernelTimeNanoseconds - b.execution.summary.medianKernelTimeNanoseconds;
+				return medianNanoseconds(a.execution.summary) - medianNanoseconds(b.execution.summary);
 			});
 		return languageId ? rows.filter((result) => result.language.id === languageId) : rows;
 	};
@@ -43,8 +43,8 @@
 	{#each sizes as size (size)}
 		{@const cohort = cohortFor(size)}
 		{@const accepted = cohort.filter((result) => result.checker.status === 'accepted')}
-		{@const fastest = Math.min(...accepted.map((result) => result.execution.summary.medianKernelTimeNanoseconds))}
-		{@const maximum = Math.max(1, ...cohort.map((result) => result.execution.summary.maximumKernelTimeNanoseconds ?? result.execution.summary.medianKernelTimeNanoseconds))}
+		{@const fastest = Math.min(...accepted.map((result) => medianNanoseconds(result.execution.summary)))}
+		{@const maximum = Math.max(1, ...cohort.map((result) => result.execution.summary.maximumKernelTimeNanoseconds ?? result.execution.summary.maximumIterationTimeNanoseconds ?? medianNanoseconds(result.execution.summary)))}
 		<section class="size-group" aria-labelledby={`size-${size}`}>
 			<header class="size-header">
 				<div>
@@ -59,7 +59,7 @@
 			</div>
 			<div class="chart-rows">
 				{#each rowsFor(size) as result (`${result.language.id}-${size}-${result.benchmark.mutation ?? ''}`)}
-					{@const median = result.execution.summary.medianKernelTimeNanoseconds}
+					{@const median = medianNanoseconds(result.execution.summary)}
 					{@const acceptedResult = result.checker.status === 'accepted'}
 					<article class:invalid={!acceptedResult}>
 						<div class="language">
@@ -83,7 +83,7 @@
 								<span
 									class="sample"
 									aria-hidden="true"
-									style:--sample-position={`${Math.min(100, (sample.kernelTimeNanoseconds / maximum) * 100)}%`}
+									style:--sample-position={`${Math.min(100, (sampleNanoseconds(sample) / maximum) * 100)}%`}
 									style:--sample-color={languageColors[result.language.id] ?? '#8c9aa5'}
 								></span>
 							{/each}

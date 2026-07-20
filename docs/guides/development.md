@@ -10,6 +10,7 @@
 - LuaJIT and Lua 5.4 (for Lua implementations: `lua` and `lua-interpreted` manifests)
 - g++ (with C++23 support, for C++ implementations)
 - JDK 17+ with `javac`/`jar`/`java` (for Java implementations; discovered via `JAVA_HOME`, `PATH`, or common install paths)
+- .NET SDK 10+ (for C# implementations)
 - Node.js (for JavaScript implementations, see workspace Node requirement)
 
 ## Setup
@@ -19,6 +20,8 @@ npm install
 npm run build:cli
 npm run build:checker
 ```
+
+`arena run` and `arena check` require the checker binary at `bin/arena-checker[.exe]`. `npm test` builds it automatically; for manual runs, use `npm run build:checker` or confirm with `npm run arena -- doctor`.
 
 ## Common Commands
 
@@ -58,18 +61,34 @@ Adaptive measurement is configured in `arena.config.json`:
 }
 ```
 
-The CLI passes `--min-iterations`, `--max-iterations`, and `--target-relative-ci` to each implementation. Implementations run warmups, then collect kernel samples until the confidence interval is narrow enough or the maximum is reached. See [execution model](../architecture/execution-model.md) for the worker contract.
+Under measurement contract **2.0.0**, the harness owns the clock. It launches one persistent worker per cell, drives warmup and measured iterations over stdin/stdout, and records **median iteration time** (nanoseconds). Adaptive stopping uses a deterministic bootstrap 95% confidence interval for the median; pass `--iterations <n>` for fixed-count mode (used in tests).
 
-After `arena run`, refresh the web UI with `npm run prepare-results` (or `npm run build:web`, which runs it automatically).
+Language manifests pass `--input`, `--output`, and `--protocol-version` to implementations — not timing flags. See [execution model](../architecture/execution-model.md) for the protocol.
+
+After `arena run`, refresh the web UI with `npm run prepare-results` (or `npm run build:web`, which runs it automatically). Only rows with measurement contract **2.0.0** are ranked in the web UI and scorecards.
+
+## First full run
+
+A full `arena run --force` can sit quiet for a while before per-cell lines appear:
+
+1. **Planning** — fingerprints and build provenance for every selected cell (no progress output until the `Plan:` line).
+2. **Building** — compiles each benchmark/language pair (only failures are logged).
+3. **Running** — one line per cell as it completes (default parallelism is `2` in `arena.config.json`; use `--parallel` for more).
+
+This is expected on a cold run with hundreds of cells.
 
 ## Project Structure
 
 ```
 cli/                    # TypeScript CLI (arena command)
-  src/index.ts          # Main CLI logic (monolithic today)
+  src/index.ts          # Main CLI logic
+  src/protocol.ts       # Harness protocol runner (contract 2.0.0)
+  src/provenance.ts     # Build provenance and artifact cache
+  src/timing.ts         # Adaptive median CI helpers
+  src/process.ts        # Child process spawning
+  src/env.ts            # Windows-safe spawn env/command resolution
   src/metrics.ts        # Metric registry
-  src/timing.ts         # Timing sample reader
-  src/timing.test.ts    # Timing unit tests
+  test/protocol.test.ts # Protocol contract tests
   test/cli.test.ts      # Integration tests
 checker/                # Independent Go checker
   cmd/arena-checker/main.go
@@ -85,7 +104,7 @@ languages/              # Language manifests (c, c-sharp, cpp, go, java, javascr
 schemas/                # JSON Schema definitions
 results/                # Canonical result snapshots
 web/                    # SvelteKit dashboard
-scripts/                # Build and utility scripts
+scripts/                # Build and utility scripts (build-csharp.mjs, build-java.mjs, build-checker.mjs, …)
 docs/                   # Canonical project documentation
 ```
 
@@ -107,4 +126,10 @@ See [guides/adding-a-language.md](adding-a-language.md).
 - Keep datasets deterministic (committed fixtures with SHA-256 hashes)
 - Do not manually edit generated result files (`results/current.json`)
 - The checker must be independent from the CLI (no shared code)
-- All implementations must accept the persistent-worker flags: `--input`, `--output`, `--timing-output`, `--warmup`, `--min-iterations`, `--max-iterations`, and `--target-relative-ci` (see [execution model](../architecture/execution-model.md))
+- Implementations must honor the harness-timed persistent worker contract:
+  `--input`, `--output`, `--protocol-version 2.0.0`, and the stdin/stdout
+  protocol described in [execution model](../architecture/execution-model.md)
+- Compiled artifacts belong under `.arena/`, `target/`, `dist/`, or similar —
+  not over source files. Interpreted languages (JavaScript, Python, Lua) use
+  source paths as artifacts; the build cache verifies hashes without copying
+  over live source.

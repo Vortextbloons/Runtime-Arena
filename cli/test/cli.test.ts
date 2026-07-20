@@ -59,8 +59,8 @@ test("runs a filtered benchmark and emits clean JSON", () => {
   );
   assert.equal(measured?.checker.status, "accepted");
   assert.equal(measured?.execution.samples.length, 1);
-  assert.equal(measured?.execution.mode, "persistent-worker");
-  assert.ok(Number.isSafeInteger(measured?.execution.samples[0]?.kernelTimeNanoseconds));
+  assert.equal(measured?.execution.mode, "harness-timed-persistent-worker");
+  assert.ok(Number.isSafeInteger(measured?.execution.samples[0]?.iterationTimeNanoseconds));
 });
 
 test("reports canonical cell freshness without running benchmarks", () => {
@@ -76,6 +76,12 @@ test("summarizes canonical results with filters", () => {
   assert.match(result.stdout, /Relative/);
   assert.match(result.stdout, /aggregation\/small/);
   assert.match(result.stdout, /★ = fastest in group/);
+});
+
+test("protocol conformance passes for minimal javascript worker", () => {
+  const result = arena("protocol", "test", "--language", "javascript", "--minimal");
+  assert.equal(result.status, 0, result.stderr + result.stdout);
+  assert.match(result.stdout, /protocol conformance: passed/);
 });
 
 test("doctor reports repository health", () => {

@@ -57,56 +57,34 @@
           "type": "object",
           "required": ["id", "version", "size"],
           "properties": {
-            "id": {
-              "type": "string"
-            },
-            "version": {
-              "type": "integer"
-            },
-            "size": {
-              "type": "string"
-            },
-            "mutation": {
-              "type": "string"
-            }
+            "id": { "type": "string" },
+            "version": { "type": "integer" },
+            "size": { "type": "string" },
+            "mutation": { "type": "string" }
           }
         },
         "dataset": {
           "type": "object",
           "required": ["id", "sha256"],
           "properties": {
-            "id": {
-              "type": "string"
-            },
-            "sha256": {
-              "type": "string"
-            },
-            "seed": {
-              "type": "integer"
-            },
-            "mutation": {
-              "type": "string"
-            },
-            "generatorVersion": {
-              "type": "string"
-            }
+            "id": { "type": "string" },
+            "sha256": { "type": "string" },
+            "seed": { "type": "integer" },
+            "mutation": { "type": "string" },
+            "generatorVersion": { "type": "string" }
           }
         },
         "language": {
           "type": "object",
           "required": ["id", "name", "version"],
           "properties": {
-            "id": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string"
-            },
-            "version": {
-              "type": "string"
-            },
-            "compilerVersion": {
-              "type": "string"
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "version": { "type": "string" },
+            "compilerVersion": { "type": "string" },
+            "compilerFlags": {
+              "type": "array",
+              "items": { "type": "string" }
             }
           }
         },
@@ -118,157 +96,26 @@
               "type": "string",
               "enum": ["success", "cached", "failed", "skipped"]
             },
-            "durationNanoseconds": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "artifactSizeBytes": {
-              "type": "integer",
-              "minimum": 0
-            },
+            "durationNanoseconds": { "type": "integer", "minimum": 0 },
+            "artifactSizeBytes": { "type": "integer", "minimum": 0 },
             "command": {
               "type": "array",
-              "items": {
-                "type": "string"
-              }
+              "items": { "type": "string" }
             }
           }
         },
         "execution": {
-          "type": "object",
-          "required": [
-            "mode",
-            "measurementContractVersion",
-            "totalProcessDurationNanoseconds",
-            "warmupIterations",
-            "measuredIterations",
-            "samples",
-            "summary"
-          ],
-          "properties": {
-            "mode": {
-              "type": "string",
-              "const": "persistent-worker"
-            },
-            "measurementContractVersion": {
-              "type": "string",
-              "enum": ["1.0.0", "1.1.0"]
-            },
-            "totalProcessDurationNanoseconds": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "warmupIterations": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "measuredIterations": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "measurement": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "mode",
-                "minMeasuredIterations",
-                "maxMeasuredIterations",
-                "targetRelativeConfidenceInterval"
-              ],
-              "properties": {
-                "mode": {
-                  "type": "string",
-                  "enum": ["adaptive-confidence-interval", "fixed"]
-                },
-                "minMeasuredIterations": {
-                  "type": "integer",
-                  "minimum": 1
-                },
-                "maxMeasuredIterations": {
-                  "type": "integer",
-                  "minimum": 1
-                },
-                "targetRelativeConfidenceInterval": {
-                  "type": "number",
-                  "minimum": 0
-                }
-              }
-            },
-            "samples": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/sample"
-              }
-            },
-            "summary": {
-              "type": "object",
-              "required": ["validSamples"],
-              "properties": {
-                "validSamples": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "medianKernelTimeNanoseconds": {
-                  "type": "integer"
-                },
-                "minimumKernelTimeNanoseconds": {
-                  "type": "integer"
-                },
-                "maximumKernelTimeNanoseconds": {
-                  "type": "integer"
-                },
-                "p95KernelTimeNanoseconds": {
-                  "type": "integer"
-                }
-              }
-            },
-            "startup": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["durationNanoseconds", "mode"],
-              "description": "Explicit process/runtime startup, separate from kernel workload time.",
-              "properties": {
-                "durationNanoseconds": { "type": "integer", "minimum": 0 },
-                "mode": { "type": "string", "minLength": 1 }
-              }
-            },
-            "memory": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["peakResidentBytes", "collector"],
-              "description": "Peak resident memory with collector identity for cross-language comparison.",
-              "properties": {
-                "peakResidentBytes": { "type": "integer", "minimum": 0 },
-                "collector": { "type": "string", "minLength": 1 }
-              }
-            },
-            "memoryCollector": {
-              "type": "string",
-              "description": "Legacy alias for memory.collector when sample peakMemoryBytes is used."
-            },
-            "parallel": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["workerCount", "singleWorkerBaselineNanoseconds", "multiWorkerNanoseconds"],
-              "description": "Parallel scaling samples for the Parallelism card attribute.",
-              "properties": {
-                "workerCount": { "type": "integer", "minimum": 1 },
-                "singleWorkerBaselineNanoseconds": { "type": "integer", "minimum": 0 },
-                "multiWorkerNanoseconds": { "type": "integer", "minimum": 0 }
-              }
-            }
-          }
+          "oneOf": [
+            { "$ref": "#/$defs/harnessExecution" },
+            { "$ref": "#/$defs/legacyExecution" }
+          ]
         },
         "checker": {
           "type": "object",
           "required": ["language", "version", "status"],
           "properties": {
-            "language": {
-              "type": "string"
-            },
-            "version": {
-              "type": "string"
-            },
+            "language": { "type": "string" },
+            "version": { "type": "string" },
             "status": {
               "type": "string",
               "enum": [
@@ -281,81 +128,193 @@
             },
             "diagnostics": {
               "type": "array",
-              "items": {
-                "type": "string"
-              }
+              "items": { "type": "string" }
             }
           }
         },
         "provenance": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["fingerprint", "measurementContractVersion", "measuredAt", "machine"],
-          "properties": {
-            "fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-            "measurementContractVersion": { "type": "string", "enum": ["1.0.0", "1.1.0"] },
-            "measuredAt": { "type": "string", "format": "date-time" },
-            "machine": {
-              "type": "object",
-              "required": ["operatingSystem", "cpu", "memoryBytes"],
-              "properties": {
-                "operatingSystem": {
-                  "type": "object",
-                  "required": ["platform", "release"],
-                  "properties": {
-                    "platform": { "type": "string" },
-                    "release": { "type": "string" }
-                  }
-                },
-                "cpu": {
-                  "type": "object",
-                  "required": ["model", "architecture", "logicalCores"],
-                  "properties": {
-                    "model": { "type": "string" },
-                    "architecture": { "type": "string" },
-                    "logicalCores": { "type": "integer", "minimum": 1 }
-                  }
-                },
-                "memoryBytes": { "type": "integer", "minimum": 0 }
-              }
-            }
-          }
+          "oneOf": [
+            { "$ref": "#/$defs/harnessProvenance" },
+            { "$ref": "#/$defs/legacyProvenance" }
+          ]
         }
       }
     },
-    "sample": {
+    "harnessExecution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "measurementContractVersion",
+        "totalProcessDurationNanoseconds",
+        "warmupIterations",
+        "measuredIterations",
+        "samples",
+        "summary"
+      ],
+      "properties": {
+        "mode": { "type": "string", "const": "harness-timed-persistent-worker" },
+        "measurementContractVersion": { "type": "string", "const": "2.0.0" },
+        "totalProcessDurationNanoseconds": { "type": "integer", "minimum": 0 },
+        "warmupIterations": { "type": "integer", "minimum": 0 },
+        "measuredIterations": { "type": "integer", "minimum": 0 },
+        "measurement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "minMeasuredIterations",
+            "maxMeasuredIterations",
+            "targetRelativeConfidenceInterval"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["adaptive-median-confidence-interval", "fixed"]
+            },
+            "minMeasuredIterations": { "type": "integer", "minimum": 1 },
+            "maxMeasuredIterations": { "type": "integer", "minimum": 1 },
+            "targetRelativeConfidenceInterval": { "type": "number", "minimum": 0 }
+          }
+        },
+        "samples": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/harnessSample" }
+        },
+        "summary": { "$ref": "#/$defs/harnessSummary" },
+        "metrics": { "type": "object" }
+      }
+    },
+    "legacyExecution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "measurementContractVersion",
+        "totalProcessDurationNanoseconds",
+        "warmupIterations",
+        "measuredIterations",
+        "samples",
+        "summary"
+      ],
+      "properties": {
+        "mode": { "type": "string", "const": "persistent-worker" },
+        "measurementContractVersion": { "type": "string", "enum": ["1.0.0", "1.1.0"] },
+        "totalProcessDurationNanoseconds": { "type": "integer", "minimum": 0 },
+        "warmupIterations": { "type": "integer", "minimum": 0 },
+        "measuredIterations": { "type": "integer", "minimum": 0 },
+        "measurement": { "type": "object" },
+        "samples": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/legacySample" }
+        },
+        "summary": { "$ref": "#/$defs/legacySummary" },
+        "metrics": { "type": "object" }
+      }
+    },
+    "harnessSample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["iteration", "valid", "iterationTimeNanoseconds", "exitCode"],
+      "properties": {
+        "iteration": { "type": "integer", "minimum": 1 },
+        "valid": { "type": "boolean" },
+        "iterationTimeNanoseconds": { "type": "integer", "minimum": 0 },
+        "exitCode": { "type": "integer" },
+        "outputSizeBytes": { "type": "integer", "minimum": 0 },
+        "timedOut": { "type": "boolean" },
+        "outputLimitExceeded": { "type": "boolean" }
+      }
+    },
+    "legacySample": {
       "type": "object",
       "additionalProperties": false,
       "required": ["iteration", "valid", "kernelTimeNanoseconds", "exitCode"],
       "properties": {
-        "iteration": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "valid": {
-          "type": "boolean"
-        },
-        "kernelTimeNanoseconds": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "cpuTimeNanoseconds": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "peakMemoryBytes": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "exitCode": {
-          "type": "integer"
-        },
-        "outputSizeBytes": {
-          "type": "integer",
-          "minimum": 0
-        },
+        "iteration": { "type": "integer", "minimum": 1 },
+        "valid": { "type": "boolean" },
+        "kernelTimeNanoseconds": { "type": "integer", "minimum": 0 },
+        "cpuTimeNanoseconds": { "type": "integer", "minimum": 0 },
+        "peakMemoryBytes": { "type": "integer", "minimum": 0 },
+        "exitCode": { "type": "integer" },
+        "outputSizeBytes": { "type": "integer", "minimum": 0 },
         "timedOut": { "type": "boolean" },
         "outputLimitExceeded": { "type": "boolean" }
+      }
+    },
+    "harnessSummary": {
+      "type": "object",
+      "required": ["validSamples"],
+      "properties": {
+        "validSamples": { "type": "integer", "minimum": 0 },
+        "rejectedSamples": { "type": "integer", "minimum": 0 },
+        "medianIterationTimeNanoseconds": { "type": "integer" },
+        "meanIterationTimeNanoseconds": { "type": "number" },
+        "minimumIterationTimeNanoseconds": { "type": "integer" },
+        "maximumIterationTimeNanoseconds": { "type": "integer" },
+        "standardDeviationIterationTimeNanoseconds": { "type": "number" },
+        "p95IterationTimeNanoseconds": { "type": "integer" },
+        "interquartileRangeIterationTimeNanoseconds": { "type": "integer" }
+      }
+    },
+    "legacySummary": {
+      "type": "object",
+      "required": ["validSamples"],
+      "properties": {
+        "validSamples": { "type": "integer", "minimum": 0 },
+        "medianKernelTimeNanoseconds": { "type": "integer" },
+        "minimumKernelTimeNanoseconds": { "type": "integer" },
+        "maximumKernelTimeNanoseconds": { "type": "integer" },
+        "p95KernelTimeNanoseconds": { "type": "integer" }
+      }
+    },
+    "harnessProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fingerprint", "measurementContractVersion", "measuredAt", "machine"],
+      "properties": {
+        "fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "measurementContractVersion": { "type": "string", "const": "2.0.0" },
+        "measuredAt": { "type": "string", "format": "date-time" },
+        "buildFingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "artifactSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "toolchain": { "type": "object" },
+        "machine": { "$ref": "#/$defs/machine" }
+      }
+    },
+    "legacyProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fingerprint", "measurementContractVersion", "measuredAt", "machine"],
+      "properties": {
+        "fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "measurementContractVersion": { "type": "string", "enum": ["1.0.0", "1.1.0"] },
+        "measuredAt": { "type": "string", "format": "date-time" },
+        "machine": { "$ref": "#/$defs/machine" }
+      }
+    },
+    "machine": {
+      "type": "object",
+      "required": ["operatingSystem", "cpu", "memoryBytes"],
+      "properties": {
+        "operatingSystem": {
+          "type": "object",
+          "required": ["platform", "release"],
+          "properties": {
+            "platform": { "type": "string" },
+            "release": { "type": "string" }
+          }
+        },
+        "cpu": {
+          "type": "object",
+          "required": ["model", "architecture", "logicalCores"],
+          "properties": {
+            "model": { "type": "string" },
+            "architecture": { "type": "string" },
+            "logicalCores": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "memoryBytes": { "type": "integer", "minimum": 0 }
       }
     }
   }

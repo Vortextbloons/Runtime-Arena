@@ -2,37 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <time.h>
 #include "json.h"
 #include "sha256.h"
+
+#define PROTOCOL_VERSION "2.0.0"
 
 typedef struct {
     char word[64];
     int count;
 } Entry;
-
-typedef struct {
-    int iteration;
-    int64_t kernelTimeNanoseconds;
-} Sample;
-
-static double T_CRITICAL[30] = {0,12.706,4.303,3.182,2.776,2.571,2.447,2.365,2.306,2.262,2.228,2.201,2.179,2.16,2.145,2.131,2.12,2.11,2.101,2.093,2.086,2.08,2.074,2.069,2.064,2.06,2.056,2.052,2.048,2.045};
-
-static double ciWidth(int64_t *samples, int n) {
-    if (n < 2) return 1e308;
-    double mean = 0;
-    for (int i = 0; i < n; i++) mean += (double)samples[i];
-    mean /= n;
-    if (mean <= 0) return 1e308;
-    double variance = 0;
-    for (int i = 0; i < n; i++) {
-        double delta = (double)samples[i] - mean;
-        variance += delta * delta;
-    }
-    variance /= (n - 1);
-    double t = n < 30 ? T_CRITICAL[n] : 2.0;
-    return (2.0 * t * sqrt(variance / n)) / mean;
-}
 
 static char *readFile(const char *path) {
     FILE *f = fopen(path, "rb");
@@ -63,19 +41,130 @@ static uint32_t hashStr(const char *s) {
     return h;
 }
 
+static char *read_stdin_line(char *buf, size_t cap) {
+    if (!fgets(buf, (int)cap, stdin)) return NULL;
+    size_t len = strlen(buf);
+    while (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r')) buf[--len] = '\0';
+    return buf;
+}
+
+static const char *protocol_field(const char *line, const char *field, char *out, size_t out_cap) {
+    char key[64];
+    snprintf(key, sizeof(key), "\"%s\":", field);
+    const char *start = strstr(line, key);
+    if (!start) return NULL;
+    start += strlen(key);
+    while (*start == ' ') start++;
+    if (*start == '"') {
+        start++;
+        const char *end = strchr(start, '"');
+        if (!end) return NULL;
+        size_t len = (size_t)(end - start);
+        if (len >= out_cap) len = out_cap - 1;
+        memcpy(out, start, len);
+        out[len] = '\0';
+        return out;
+    }
+    size_t i = 0;
+    while (start[i] && strchr(",} ", start[i]) == NULL && i + 1 < out_cap) {
+        out[i] = start[i];
+        i++;
+    }
+    out[i] = '\0';
+    return out;
+}
+
+static void emit_line(const char *json) {
+    fputs(json, stdout);
+    fputc('\n', stdout);
+    fflush(stdout);
+}
+
+static void digest_hex_bytes(const uint8_t *data, size_t len, char out[65]) {
+    SHA256 sha;
+    sha256_init(&sha);
+    sha256_update(&sha, data, len);
+    sha256_hex(&sha, out);
+}
+
+typedef struct {
+    char **words;
+    int totalWords;
+    MapEntry *map;
+    Entry *entries;
+} WfCtx;
+
+static char *produce_output(void *ctx, size_t *out_len) {
+    WfCtx *c = (WfCtx *)ctx;
+    memset(c->map, 0, MAP_CAP * sizeof(MapEntry));
+    int mapUsed = 0;
+
+    for (int i = 0; i < c->totalWords; i++) {
+        uint32_t h = hashStr(c->words[i]);
+        int idx = h & MAP_MASK;
+        while (c->map[idx].word[0] != '\0' && strcmp(c->map[idx].word, c->words[i]) != 0)
+            idx = (idx + 1) & MAP_MASK;
+        if (c->map[idx].word[0] == '\0') {
+            strcpy(c->map[idx].word, c->words[i]);
+            mapUsed++;
+        }
+        c->map[idx].count++;
+    }
+
+    int eIdx = 0;
+    for (int i = 0; i < MAP_CAP; i++) {
+        if (c->map[i].word[0] != '\0') {
+            strcpy(c->entries[eIdx].word, c->map[i].word);
+            c->entries[eIdx].count = c->map[i].count;
+            eIdx++;
+        }
+    }
+    qsort(c->entries, mapUsed, sizeof(Entry), entryCmp);
+
+    SHA256 hasher;
+    sha256_init(&hasher);
+    for (int i = 0; i < mapUsed; i++) {
+        char line[128];
+        int len = snprintf(line, sizeof(line), "%s,%d\n", c->entries[i].word, c->entries[i].count);
+        sha256_update(&hasher, (uint8_t *)line, len);
+    }
+    char checksumHex[65];
+    sha256_hex(&hasher, checksumHex);
+
+    int topCount = mapUsed < 10 ? mapUsed : 10;
+    JsonValue out = json_object();
+    json_object_set(&out, "benchmark", json_string("word-frequency"));
+    json_object_set(&out, "version", json_number(1));
+    json_object_set(&out, "totalWords", json_number(c->totalWords));
+    json_object_set(&out, "uniqueWords", json_number(mapUsed));
+    JsonValue topArr = json_array();
+    for (int i = 0; i < topCount; i++) {
+        JsonValue e = json_object();
+        json_object_set(&e, "word", json_string(c->entries[i].word));
+        json_object_set(&e, "count", json_number(c->entries[i].count));
+        json_array_push(&topArr, e);
+    }
+    json_object_set(&out, "topWords", topArr);
+    json_object_set(&out, "checksum", json_string(checksumHex));
+    char *dumped = json_dump(&out);
+    json_free(&out);
+    *out_len = strlen(dumped);
+    return dumped;
+}
+
 int main(int argc, char *argv[]) {
-    char *inputPath = NULL, *outputPath = NULL, *timingPath = NULL;
-    int warmup = 0, minIter = 1, maxIter = 1;
-    double targetCi = 0.05;
+    char *inputPath = NULL, *outputPath = NULL;
+    int protocol_ok = 0;
 
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--input") == 0 && i+1 < argc) inputPath = argv[++i];
-        else if (strcmp(argv[i], "--output") == 0 && i+1 < argc) outputPath = argv[++i];
-        else if (strcmp(argv[i], "--timing-output") == 0 && i+1 < argc) timingPath = argv[++i];
-        else if (strcmp(argv[i], "--warmup") == 0 && i+1 < argc) warmup = atoi(argv[++i]);
-        else if (strcmp(argv[i], "--min-iterations") == 0 && i+1 < argc) minIter = atoi(argv[++i]);
-        else if (strcmp(argv[i], "--max-iterations") == 0 && i+1 < argc) maxIter = atoi(argv[++i]);
-        else if (strcmp(argv[i], "--target-relative-ci") == 0 && i+1 < argc) targetCi = atof(argv[++i]);
+        if (strcmp(argv[i], "--input") == 0 && i + 1 < argc) inputPath = argv[++i];
+        else if (strcmp(argv[i], "--output") == 0 && i + 1 < argc) outputPath = argv[++i];
+        else if (strcmp(argv[i], "--protocol-version") == 0 && i + 1 < argc)
+            protocol_ok = strcmp(argv[++i], PROTOCOL_VERSION) == 0;
+    }
+    if (!inputPath || !outputPath || !protocol_ok) {
+        fprintf(stderr, "missing required arguments\n");
+        return 1;
     }
 
     char *inputJson = readFile(inputPath);
@@ -83,117 +172,46 @@ int main(int argc, char *argv[]) {
     free(inputJson);
     JsonValue *wordsArr = json_object_get(&root, "words");
     int totalWords = (int)wordsArr->as.array.count;
-    char **words = malloc(totalWords * sizeof(char*));
+    char **words = malloc(totalWords * sizeof(char *));
     for (int i = 0; i < totalWords; i++)
         words[i] = strdup(json_as_string(json_array_get(wordsArr, i)));
     json_free(&root);
 
-    MapEntry *map = malloc(MAP_CAP * sizeof(MapEntry));
-    Entry *entries = malloc(totalWords * sizeof(Entry));
+    WfCtx ctx = {
+        .words = words,
+        .totalWords = totalWords,
+        .map = malloc(MAP_CAP * sizeof(MapEntry)),
+        .entries = malloc(totalWords * sizeof(Entry))
+    };
 
-    Sample samples[1024];
-    int sampleCount = 0;
-    int64_t kernelTimes[1024];
-    int ktCount = 0;
-
-    for (int iter = -warmup; ; iter++) {
-        memset(map, 0, MAP_CAP * sizeof(MapEntry));
-        int mapUsed = 0;
-
-        struct timespec t1, t2;
-        clock_gettime(CLOCK_MONOTONIC, &t1);
-
-        for (int i = 0; i < totalWords; i++) {
-            uint32_t h = hashStr(words[i]);
-            int idx = h & MAP_MASK;
-            while (map[idx].word[0] != '\0' && strcmp(map[idx].word, words[i]) != 0)
-                idx = (idx + 1) & MAP_MASK;
-            if (map[idx].word[0] == '\0') {
-                strcpy(map[idx].word, words[i]);
-                mapUsed++;
-            }
-            map[idx].count++;
-        }
-
-        int eIdx = 0;
-        for (int i = 0; i < MAP_CAP; i++) {
-            if (map[i].word[0] != '\0') {
-                strcpy(entries[eIdx].word, map[i].word);
-                entries[eIdx].count = map[i].count;
-                eIdx++;
-            }
-        }
-        qsort(entries, mapUsed, sizeof(Entry), entryCmp);
-
-        SHA256 hasher;
-        sha256_init(&hasher);
-        for (int i = 0; i < mapUsed; i++) {
-            char line[128];
-            int len = snprintf(line, sizeof(line), "%s,%d\n", entries[i].word, entries[i].count);
-            sha256_update(&hasher, (uint8_t *)line, len);
-        }
-        char checksumHex[65];
-        sha256_hex(&hasher, checksumHex);
-
-        int topCount = mapUsed < 10 ? mapUsed : 10;
-
-        clock_gettime(CLOCK_MONOTONIC, &t2);
-        int64_t elapsed = (int64_t)(t2.tv_sec - t1.tv_sec) * 1000000000LL + (t2.tv_nsec - t1.tv_nsec);
-        if (elapsed < 1) elapsed = 1;
-
-        if (iter >= 0) {
-            kernelTimes[ktCount++] = elapsed;
-            samples[sampleCount].iteration = sampleCount + 1;
-            samples[sampleCount].kernelTimeNanoseconds = elapsed;
-            sampleCount++;
-
-            if (ktCount >= maxIter || (ktCount >= minIter && ciWidth(kernelTimes, ktCount) <= targetCi)) {
-                JsonValue out = json_object();
-                json_object_set(&out, "benchmark", json_string("word-frequency"));
-                json_object_set(&out, "version", json_number(1));
-                json_object_set(&out, "totalWords", json_number(totalWords));
-                json_object_set(&out, "uniqueWords", json_number(mapUsed));
-                JsonValue topArr = json_array();
-                for (int i = 0; i < topCount; i++) {
-                    JsonValue e = json_object();
-                    json_object_set(&e, "word", json_string(entries[i].word));
-                    json_object_set(&e, "count", json_number(entries[i].count));
-                    json_array_push(&topArr, e);
-                }
-                json_object_set(&out, "topWords", topArr);
-                json_object_set(&out, "checksum", json_string(checksumHex));
-                char *dumped = json_dump(&out);
-                FILE *f = fopen(outputPath, "wb");
-                fwrite(dumped, 1, strlen(dumped), f);
-                fclose(f);
-                free(dumped);
-                json_free(&out);
-                break;
-            }
+    char line[4096], field[256], digest[65];
+    char *lastOutput = NULL;
+    size_t lastLen = 0;
+    emit_line("{\"type\":\"ready\",\"protocolVersion\":\"" PROTOCOL_VERSION "\"}");
+    while (read_stdin_line(line, sizeof(line))) {
+        if (!line[0]) continue;
+        if (protocol_field(line, "type", field, sizeof(field)) && strcmp(field, "run") == 0) {
+            long requestId = atol(protocol_field(line, "requestId", field, sizeof(field)));
+            free(lastOutput);
+            lastOutput = produce_output(&ctx, &lastLen);
+            digest_hex_bytes((const uint8_t *)lastOutput, lastLen, digest);
+            printf("{\"type\":\"result\",\"requestId\":%ld,\"digest\":\"%s\"}\n", requestId, digest);
+            fflush(stdout);
+        } else if (protocol_field(line, "type", field, sizeof(field)) && strcmp(field, "finish") == 0) {
+            digest_hex_bytes((const uint8_t *)lastOutput, lastLen, digest);
+            FILE *f = fopen(outputPath, "wb");
+            fwrite(lastOutput, 1, lastLen, f);
+            fclose(f);
+            printf("{\"type\":\"finish\",\"digest\":\"%s\"}\n", digest);
+            fflush(stdout);
+            break;
         }
     }
 
-    {
-        JsonValue timing = json_object();
-        JsonValue arr = json_array();
-        for (int i = 0; i < sampleCount; i++) {
-            JsonValue s = json_object();
-            json_object_set(&s, "iteration", json_number(samples[i].iteration));
-            json_object_set(&s, "kernelTimeNanoseconds", json_number(samples[i].kernelTimeNanoseconds));
-            json_array_push(&arr, s);
-        }
-        json_object_set(&timing, "samples", arr);
-        char *dumped = json_dump(&timing);
-        FILE *f = fopen(timingPath, "wb");
-        fwrite(dumped, 1, strlen(dumped), f);
-        fclose(f);
-        free(dumped);
-        json_free(&timing);
-    }
-
+    free(lastOutput);
     for (int i = 0; i < totalWords; i++) free(words[i]);
     free(words);
-    free(map);
-    free(entries);
+    free(ctx.map);
+    free(ctx.entries);
     return 0;
 }

@@ -1,10 +1,16 @@
 import { mkdir, rm, cp, writeFile } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 import { spawn } from "node:child_process";
+import { resolveSpawnCommand, resolveSpawnEnv } from "./spawn-env.mjs";
 
 function run(command, args, cwd) {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn(command, args, { cwd, stdio: "inherit", shell: false });
+    const child = spawn(resolveSpawnCommand(command), args, {
+      cwd,
+      env: resolveSpawnEnv(),
+      stdio: "inherit",
+      shell: false
+    });
     child.on("error", reject);
     child.on("close", (code) =>
       code === 0 ? resolvePromise() : reject(new Error(`${command} exited with ${code}`))
@@ -55,9 +61,12 @@ try {
   ], cwd);
 
   await mkdir(dirname(output), { recursive: true });
+  const outputDir = dirname(output);
+  for (const stale of ["ArenaBenchmark.dll", "ArenaBenchmark.runtimeconfig.json", "ArenaBenchmark.pdb"]) {
+    await rm(resolve(outputDir, stale), { force: true });
+  }
   await cp(resolve(publishDir, "ArenaBenchmark.dll"), output, { force: true });
   const runtimeConfig = resolve(publishDir, "ArenaBenchmark.runtimeconfig.json");
-  const outputDir = dirname(output);
   const outputBase = output.replace(/\.dll$/i, "");
   try {
     await cp(runtimeConfig, outputBase + ".runtimeconfig.json", { force: true });

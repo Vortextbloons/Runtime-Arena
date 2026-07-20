@@ -1,0 +1,59 @@
+{
+  "c": {
+    "environmentAllowlist": [],
+    "probes": [{ "id": "compiler", "command": "gcc", "arguments": ["--version"] }]
+  },
+  "cpp": {
+    "environmentAllowlist": [],
+    "probes": [{ "id": "compiler", "command": "g++", "arguments": ["--version"] }]
+  },
+  "c-sharp": {
+    "environmentAllowlist": [],
+    "probes": [{ "id": "sdk", "command": "dotnet", "arguments": ["--version"] }]
+  },
+  "go": {
+    "environmentAllowlist": ["GOCACHE", "GOOS", "GOARCH"],
+    "externalInputs": [
+      { "path": "{implementationDir}/go.mod" },
+      { "path": "{implementationDir}/go.sum" }
+    ],
+    "probes": [{ "id": "compiler", "command": "go", "arguments": ["version"] }]
+  },
+  "java": {
+    "environmentAllowlist": ["JAVA_HOME"],
+    "probes": [{ "id": "runtime", "command": "java", "arguments": ["-version"] }]
+  },
+  "javascript": {
+    "environmentAllowlist": ["NODE_ENV"],
+    "probes": [{ "id": "node", "command": "node", "arguments": ["--version"] }]
+  },
+  "typescript": {
+    "environmentAllowlist": ["NODE_ENV"],
+    "externalInputs": [
+      { "path": "{implementationDir}/package.json" },
+      { "path": "{implementationDir}/package-lock.json" }
+    ],
+    "probes": [{ "id": "node", "command": "node", "arguments": ["--version"] }]
+  },
+  "python": {
+    "environmentAllowlist": ["PYTHONHASHSEED"],
+    "probes": [{ "id": "runtime", "command": "python", "arguments": ["--version"] }]
+  },
+  "rust": {
+    "environmentAllowlist": [],
+    "externalInputs": [
+      { "path": "{implementationDir}/Cargo.toml" },
+      { "path": "{implementationDir}/Cargo.lock" }
+    ],
+    "probes": [
+      { "id": "compiler", "command": "rustc", "arguments": ["--version"] },
+      { "id": "cargo", "command": "cargo", "arguments": ["--version"] }
+    ]
+  },
+  "lua": {
+    "probes": [{ "id": "runtime", "command": "luajit", "arguments": ["-v"] }]
+  },
+  "lua-interpreted": {
+    "probes": [{ "id": "runtime", "command": "lua", "arguments": ["-v"] }]
+  }
+}

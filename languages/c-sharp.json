@@ -24,16 +24,21 @@
       "{artifact}",
       "--input", "{inputFile}",
       "--output", "{outputFile}",
-      "--timing-output", "{timingOutputFile}",
-      "--warmup", "{warmupIterations}",
-      "--min-iterations", "{minMeasuredIterations}",
-      "--max-iterations", "{maxMeasuredIterations}",
-      "--target-relative-ci", "{targetRelativeConfidenceInterval}"
+      "--protocol-version", "{protocolVersion}"
     ]
   },
   "environment": {
     "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
     "DOTNET_NOLOGO": "1"
   },
-  "sourceExtensions": [".cs"]
+  "sourceExtensions": [".cs"],
+  "provenance": {
+    "environmentAllowlist": ["DOTNET_CLI_TELEMETRY_OPTOUT", "DOTNET_NOLOGO", "DOTNET_ROOT"],
+    "externalInputs": [
+      { "path": "{projectRoot}/scripts/build-csharp.mjs" }
+    ],
+    "probes": [
+      { "id": "dotnet", "command": "dotnet", "arguments": ["--version"] }
+    ]
+  }
 }

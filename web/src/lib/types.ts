@@ -1,7 +1,8 @@
 export type Sample = {
 	iteration: number;
 	valid: boolean;
-	kernelTimeNanoseconds: number;
+	kernelTimeNanoseconds?: number;
+	iterationTimeNanoseconds?: number;
 	exitCode: number;
 	outputSizeBytes: number;
 	peakMemoryBytes?: number;
@@ -35,7 +36,7 @@ export type ArenaResult = {
 		command: string[];
 	};
 	execution: {
-		mode: 'persistent-worker';
+		mode: 'harness-timed-persistent-worker' | 'persistent-worker';
 		measurementContractVersion?: string;
 		totalProcessDurationNanoseconds?: number;
 		warmupIterations?: number;
@@ -44,12 +45,16 @@ export type ArenaResult = {
 		summary: {
 			validSamples: number;
 			rejectedSamples?: number;
-			medianKernelTimeNanoseconds: number;
+			medianKernelTimeNanoseconds?: number;
+			medianIterationTimeNanoseconds?: number;
 			minimumKernelTimeNanoseconds?: number;
 			maximumKernelTimeNanoseconds?: number;
 			meanKernelTimeNanoseconds?: number;
+			meanIterationTimeNanoseconds?: number;
 			standardDeviationKernelTimeNanoseconds?: number;
-			p95KernelTimeNanoseconds: number;
+			standardDeviationIterationTimeNanoseconds?: number;
+			p95KernelTimeNanoseconds?: number;
+			p95IterationTimeNanoseconds?: number;
 		};
 		metrics?: Record<string, { status: string; reason?: string }>;
 		/** Explicit process/runtime startup, separate from kernel workload time. */

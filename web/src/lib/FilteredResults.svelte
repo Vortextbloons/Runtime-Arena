@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { medianNanoseconds } from './scoring';
 	import type { ArenaResult, ArenaRun } from './types';
 	let { title, subtitle, run, results }: { title: string; subtitle: string; run: ArenaRun; results: ArenaResult[] } = $props();
-	const fastest = $derived(Math.min(...results.filter((r) => r.checker.status === 'accepted').map((r) => r.execution.summary.medianKernelTimeNanoseconds)));
+	const fastest = $derived(Math.min(...results.filter((r) => r.checker.status === 'accepted').map((r) => medianNanoseconds(r.execution.summary))));
 	const format = (ns: number) => `${(ns / 1e6).toFixed(2)} ms`;
 </script>
 
@@ -12,7 +13,7 @@
 	<div class="table">
 		<div class="head"><span>Benchmark</span><span>Language</span><span>Median</span><span>Relative</span><span>Correctness</span></div>
 		{#each results as result (`${result.benchmark.id}-${result.benchmark.size}-${result.benchmark.mutation ?? ''}-${result.language.id}`)}
-			{@const median = result.execution.summary.medianKernelTimeNanoseconds}
+			{@const median = medianNanoseconds(result.execution.summary)}
 			<article>
 				<strong>{result.benchmark.id} / {result.benchmark.size}{result.benchmark.mutation ? ` / ${result.benchmark.mutation}` : ''}</strong>
 				<span>{result.language.name}</span>

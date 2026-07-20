@@ -21,20 +21,18 @@
       "{inputFile}",
       "--output",
       "{outputFile}",
-      "--timing-output",
-      "{timingOutputFile}",
-      "--warmup",
-      "{warmupIterations}",
-      "--min-iterations",
-      "{minMeasuredIterations}",
-      "--max-iterations",
-      "{maxMeasuredIterations}",
-      "--target-relative-ci",
-      "{targetRelativeConfidenceInterval}"
+      "--protocol-version",
+      "{protocolVersion}"
     ]
   },
   "environment": {
     "NODE_ENV": "production"
   },
-  "sourceExtensions": [".mjs"]
+  "sourceExtensions": [".mjs"],
+  "provenance": {
+    "environmentAllowlist": ["NODE_ENV"],
+    "probes": [
+      { "id": "node", "command": "node", "arguments": ["--version"] }
+    ]
+  }
 }

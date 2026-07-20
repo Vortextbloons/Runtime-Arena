@@ -1,29 +1,36 @@
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-double[] T_CRITICAL = [0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045];
+const string ProtocolVersion = "2.0.0";
 
-double CiWidth(long[] samples, int count)
+static string DigestHex(byte[] bytes) =>
+    Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+
+static void EmitLine(string json)
 {
-    if (count < 2) return double.PositiveInfinity;
-    double mean = 0;
-    for (int i = 0; i < count; i++) mean += samples[i];
-    mean /= count;
-    if (mean <= 0) return double.PositiveInfinity;
-    double variance = 0;
-    for (int i = 0; i < count; i++)
+    Console.WriteLine(json);
+    Console.Out.Flush();
+}
+
+static string ProtocolField(string line, string field)
+{
+    string key = "\"" + field + "\":";
+    int start = line.IndexOf(key, StringComparison.Ordinal);
+    if (start < 0) return "";
+    start += key.Length;
+    while (start < line.Length && line[start] == ' ') start++;
+    if (line[start] == '"')
     {
-        double delta = samples[i] - mean;
-        variance += delta * delta;
+        int end = line.IndexOf('"', start + 1);
+        return line[(start + 1)..end];
     }
-    variance /= (count - 1);
-    double t = count < T_CRITICAL.Length ? T_CRITICAL[count] : 2.0;
-    return (2 * t * Math.Sqrt(variance / count)) / mean;
+    int endIdx = start;
+    while (endIdx < line.Length && ",} ".IndexOf(line[endIdx]) < 0) endIdx++;
+    return line[start..endIdx];
 }
 
 static string Hash(string s)
@@ -122,57 +129,40 @@ string Arg(string name)
     throw new ArgumentException("missing " + name);
 }
 
-string inputFile = Arg("--input");
+if (Arg("--protocol-version") != ProtocolVersion)
+    throw new ArgumentException("unsupported protocol version");
+
 string outputFile = Arg("--output");
-string timingFile = Arg("--timing-output");
-int warmup = int.Parse(Arg("--warmup"));
-int minIterations = int.Parse(Arg("--min-iterations"));
-int maxIterations = int.Parse(Arg("--max-iterations"));
-double targetRelativeCi = double.Parse(Arg("--target-relative-ci"), CultureInfo.InvariantCulture);
+Body[] initial = ReadInput(Arg("--input"), out int steps, out double dt);
+var encoding = new UTF8Encoding(false);
+byte[] lastOutput = Array.Empty<byte>();
 
-Body[] initial = ReadInput(inputFile, out int steps, out double dt);
-
-long[] kernelTimes = new long[maxIterations];
-int kernelCount = 0;
-int measured = 0;
-double finalEnergy = 0;
-string posChecksum = "", velChecksum = "";
-int bodyCount = initial.Length;
-var samples = new StringBuilder("{\"samples\":[");
-
-for (int run = -warmup; ; run++)
+EmitLine("{\"type\":\"ready\",\"protocolVersion\":\"" + ProtocolVersion + "\"}");
+string? line;
+while ((line = Console.ReadLine()) != null)
 {
-    var b = new Body[initial.Length];
-    Array.Copy(initial, b, initial.Length);
-
-    var sw = Stopwatch.StartNew();
-    var result = Kernel(b, steps, dt);
-    sw.Stop();
-    long elapsed = Math.Max(1L, sw.ElapsedTicks * (1000000000L / Stopwatch.Frequency));
-
-    finalEnergy = result.energy;
-    posChecksum = result.posChecksum;
-    velChecksum = result.velChecksum;
-
-    if (run >= 0)
+    if (line.Length == 0) continue;
+    string type = ProtocolField(line, "type");
+    if (type == "run")
     {
-        kernelTimes[kernelCount++] = elapsed;
-        if (measured++ != 0) samples.Append(',');
-        samples.Append("{\"iteration\":").Append(measured)
-               .Append(",\"kernelTimeNanoseconds\":").Append(elapsed).Append('}');
-        if (kernelCount >= maxIterations || (kernelCount >= minIterations && CiWidth(kernelTimes, kernelCount) <= targetRelativeCi))
-            break;
+        long requestId = long.Parse(ProtocolField(line, "requestId"));
+        var b = new Body[initial.Length];
+        Array.Copy(initial, b, initial.Length);
+        var result = Kernel(b, steps, dt);
+        string resultJson = "{\"benchmark\":\"nbody\",\"version\":1,\"bodyCount\":" + b.Length
+            + ",\"finalEnergy\":" + result.energy.ToString(CultureInfo.InvariantCulture)
+            + ",\"positionChecksum\":\"" + result.posChecksum
+            + "\",\"velocityChecksum\":\"" + result.velChecksum + "\"}";
+        lastOutput = encoding.GetBytes(resultJson);
+        EmitLine("{\"type\":\"result\",\"requestId\":" + requestId + ",\"digest\":\"" + DigestHex(lastOutput) + "\"}");
+    }
+    else if (type == "finish")
+    {
+        File.WriteAllBytes(outputFile, lastOutput);
+        EmitLine("{\"type\":\"finish\",\"digest\":\"" + DigestHex(lastOutput) + "\"}");
+        break;
     }
 }
-
-samples.Append("]}");
-
-string resultJson = "{\"benchmark\":\"nbody\",\"version\":1,\"bodyCount\":" + bodyCount
-    + ",\"finalEnergy\":" + finalEnergy.ToString(CultureInfo.InvariantCulture)
-    + ",\"positionChecksum\":\"" + posChecksum
-    + "\",\"velocityChecksum\":\"" + velChecksum + "\"}";
-File.WriteAllText(outputFile, resultJson, new UTF8Encoding(false));
-File.WriteAllText(timingFile, samples.ToString(), new UTF8Encoding(false));
 
 struct Body
 {

@@ -4,8 +4,9 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import {
+  bootstrapMedianConfidenceInterval,
   readTimingSamples,
-  relativeMeanConfidenceIntervalWidth,
+  relativeMedianConfidenceIntervalWidth,
   shouldStopMeasuring,
   type MeasurementPolicy
 } from "./timing.js";
@@ -13,7 +14,8 @@ import {
 const policy: MeasurementPolicy = {
   minMeasuredIterations: 2,
   maxMeasuredIterations: 5,
-  targetRelativeConfidenceInterval: 0.05
+  targetRelativeConfidenceInterval: 0.05,
+  mode: "adaptive-median-confidence-interval"
 };
 
 async function sidecar(value: unknown) {
@@ -23,7 +25,7 @@ async function sidecar(value: unknown) {
   return { file, cleanup: () => rm(directory, { recursive: true, force: true }) };
 }
 
-test("accepts adaptive kernel timing samples within policy bounds", async () => {
+test("accepts legacy kernel timing samples within policy bounds", async () => {
   const fixture = await sidecar({ samples: [{ iteration: 1, kernelTimeNanoseconds: 0 }, { iteration: 2, kernelTimeNanoseconds: 1 }] });
   try {
     assert.deepEqual(await readTimingSamples(fixture.file, policy), [
@@ -54,13 +56,18 @@ for (const [name, value] of [
   });
 }
 
-test("stops once the confidence interval is narrow enough", () => {
+test("bootstrap median CI is deterministic", () => {
+  const samples = [1_000_000, 1_050_000, 990_000, 1_020_000, 1_010_000];
+  assert.deepEqual(bootstrapMedianConfidenceInterval(samples), bootstrapMedianConfidenceInterval(samples));
+});
+
+test("stops once the median confidence interval is narrow enough", () => {
   const stable = Array.from({ length: 10 }, () => 1_000_000);
   assert.equal(shouldStopMeasuring(stable, { minMeasuredIterations: 10, maxMeasuredIterations: 30, targetRelativeConfidenceInterval: 0.05 }), true);
 });
 
 test("keeps measuring noisy samples until max iterations", () => {
   const noisy = [1_000_000, 2_000_000, 500_000, 1_500_000, 1_200_000, 800_000, 1_100_000, 900_000, 1_050_000, 950_000];
-  assert.equal(relativeMeanConfidenceIntervalWidth(noisy) > 0.05, true);
+  assert.equal(relativeMedianConfidenceIntervalWidth(noisy) > 0.05, true);
   assert.equal(shouldStopMeasuring(noisy, { minMeasuredIterations: 10, maxMeasuredIterations: 10, targetRelativeConfidenceInterval: 0.05 }), true);
 });

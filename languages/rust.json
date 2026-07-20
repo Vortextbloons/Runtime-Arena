@@ -20,18 +20,21 @@
       "{inputFile}",
       "--output",
       "{outputFile}",
-      "--timing-output",
-      "{timingOutputFile}",
-      "--warmup",
-      "{warmupIterations}",
-      "--min-iterations",
-      "{minMeasuredIterations}",
-      "--max-iterations",
-      "{maxMeasuredIterations}",
-      "--target-relative-ci",
-      "{targetRelativeConfidenceInterval}"
+      "--protocol-version",
+      "{protocolVersion}"
     ]
   },
   "environment": {},
-  "sourceExtensions": [".rs"]
+  "sourceExtensions": [".rs"],
+  "provenance": {
+    "environmentAllowlist": [],
+    "externalInputs": [
+      { "path": "{implementationDir}/Cargo.toml" },
+      { "path": "{implementationDir}/Cargo.lock" }
+    ],
+    "probes": [
+      { "id": "compiler", "command": "rustc", "arguments": ["--version"] },
+      { "id": "cargo", "command": "cargo", "arguments": ["--version"] }
+    ]
+  }
 }

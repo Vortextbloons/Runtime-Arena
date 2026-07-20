@@ -19,6 +19,26 @@ const weightedOverall = (performance: number, versatility: number) =>
 
 const variantKey = (size: string, mutation?: string) => (mutation ? `${size}/${mutation}` : size);
 
+export function sampleNanoseconds(sample: ArenaResult['execution']['samples'][number]) {
+	return sample.iterationTimeNanoseconds ?? sample.kernelTimeNanoseconds ?? 0;
+}
+
+export function medianNanoseconds(summary: ArenaResult['execution']['summary']) {
+	return summary.medianIterationTimeNanoseconds ?? summary.medianKernelTimeNanoseconds ?? 0;
+}
+
+export function p95Nanoseconds(summary: ArenaResult['execution']['summary']) {
+	return summary.p95IterationTimeNanoseconds ?? summary.p95KernelTimeNanoseconds ?? medianNanoseconds(summary);
+}
+
+export function meanNanoseconds(summary: ArenaResult['execution']['summary']) {
+	return summary.meanIterationTimeNanoseconds ?? summary.meanKernelTimeNanoseconds ?? medianNanoseconds(summary);
+}
+
+export function deviationNanoseconds(summary: ArenaResult['execution']['summary']) {
+	return summary.standardDeviationIterationTimeNanoseconds ?? summary.standardDeviationKernelTimeNanoseconds ?? 0;
+}
+
 export function formatDuration(nanoseconds: number): string {
 	if (nanoseconds < 1e6) return `${(nanoseconds / 1e3).toFixed(1)} µs`;
 	if (nanoseconds < 1e9) return `${(nanoseconds / 1e6).toFixed(2)} ms`;
@@ -39,17 +59,18 @@ function completeResult(result: ArenaResult | undefined) {
 
 function mutationScore(result: ArenaResult, fastest: number): MutationScore {
 	const summary = result.execution.summary;
-	const mean = summary.meanKernelTimeNanoseconds ?? summary.medianKernelTimeNanoseconds;
-	const deviation = summary.standardDeviationKernelTimeNanoseconds ?? 0;
+	const mean = meanNanoseconds(summary);
+	const deviation = deviationNanoseconds(summary);
 	const variation = mean > 0 ? deviation / mean : 0;
+	const median = medianNanoseconds(summary);
 	return {
 		mutation: result.benchmark.mutation,
 		result,
-		medianNanoseconds: summary.medianKernelTimeNanoseconds,
+		medianNanoseconds: median,
 		fastestMedianNanoseconds: fastest,
-		p95Nanoseconds: summary.p95KernelTimeNanoseconds,
+		p95Nanoseconds: p95Nanoseconds(summary),
 		variation,
-		performance: performanceScore(fastest, summary.medianKernelTimeNanoseconds),
+		performance: performanceScore(fastest, median),
 		consistency: clampScore(100 - variation * 400)
 	};
 }
@@ -87,7 +108,7 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 						(result.benchmark.mutation ?? '') === mutation &&
 						completeResult(result)
 				)
-				.map((result) => result.execution.summary.medianKernelTimeNanoseconds)
+				.map((result) => medianNanoseconds(result.execution.summary))
 				.filter((median) => Number.isFinite(median) && median > 0);
 			const fastest = medians.length ? Math.min(...medians) : 0;
 			if (fastest > 0) fastestByVariant.set(key, fastest);

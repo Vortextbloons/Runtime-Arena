@@ -1,4 +1,6 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class Main {
+  private static final String PROTOCOL_VERSION = "2.0.0";
   private static final char[] HEX = "0123456789abcdef".toCharArray();
 
   private static final class Json {
@@ -155,58 +158,58 @@ public final class Main {
     return output.append("],\"checksum\":\"").append(checksum).append("\"}").toString();
   }
 
-  @SuppressWarnings("unchecked")
-  private static final double[] T_CRITICAL = {0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045};
+  private static String digestHex(byte[] bytes) throws Exception {
+    return hex(MessageDigest.getInstance("SHA-256").digest(bytes));
+  }
 
-  private static double ciWidth(long[] samples) {
-    int n = samples.length;
-    if (n < 2) return Double.POSITIVE_INFINITY;
-    double mean = 0;
-    for (long value : samples) mean += value;
-    mean /= n;
-    if (mean <= 0) return Double.POSITIVE_INFINITY;
-    double variance = 0;
-    for (long value : samples) {
-      double delta = value - mean;
-      variance += delta * delta;
+  private static void emitLine(String json) {
+    System.out.println(json);
+    System.out.flush();
+  }
+
+  private static String protocolField(String line, String field) {
+    String key = "\"" + field + "\":";
+    int start = line.indexOf(key);
+    if (start < 0) return null;
+    start += key.length();
+    while (start < line.length() && line.charAt(start) == ' ') start++;
+    if (line.charAt(start) == '"') {
+      int end = line.indexOf('"', start + 1);
+      return line.substring(start + 1, end);
     }
-    variance /= (n - 1);
-    double t = n < T_CRITICAL.length ? T_CRITICAL[n] : 2.0;
-    return (2 * t * Math.sqrt(variance / n)) / mean;
+    int end = start;
+    while (end < line.length() && ",} ".indexOf(line.charAt(end)) < 0) end++;
+    return line.substring(start, end);
   }
 
   public static void main(String[] args) throws Exception {
-    String input = argument(args, "--input", null);
+    if (!PROTOCOL_VERSION.equals(argument(args, "--protocol-version", ""))) {
+      throw new IllegalArgumentException("unsupported protocol version");
+    }
     String output = argument(args, "--output", null);
-    String timing = argument(args, "--timing-output", null);
-    int warmup = Integer.parseInt(argument(args, "--warmup", "0"));
-    int minIterations = Integer.parseInt(argument(args, "--min-iterations", "1"));
-    int maxIterations = Integer.parseInt(argument(args, "--max-iterations", "1"));
-    double targetCi = Double.parseDouble(argument(args, "--target-relative-ci", "0.05"));
-    if (input == null || output == null || timing == null) throw new IllegalArgumentException("missing required arguments");
+    if (output == null) throw new IllegalArgumentException("missing required arguments");
 
-    Map<String, Object> parsed = (Map<String, Object>) new Json(Files.readString(Path.of(input), StandardCharsets.UTF_8)).value();
+    Map<String, Object> parsed = (Map<String, Object>) new Json(Files.readString(Path.of(argument(args, "--input", null)), StandardCharsets.UTF_8)).value();
     List<Object> rawWords = (List<Object>) parsed.get("words");
     String[] words = new String[rawWords.size()];
     for (int i = 0; i < words.length; i++) words[i] = (String) rawWords.get(i);
 
-    String result = null;
-    StringBuilder samples = new StringBuilder("{\"samples\":[");
-    long[] kernelTimes = new long[maxIterations];
-    int kernelCount = 0;
-    for (int run = -warmup; ; run++) {
-      long start = System.nanoTime();
-      result = kernel(words);
-      long elapsed = Math.max(1L, System.nanoTime() - start);
-      if (run >= 0) {
-        kernelTimes[kernelCount++] = elapsed;
-        if (run > 0) samples.append(',');
-        samples.append("{\"iteration\":").append(kernelCount)
-            .append(",\"kernelTimeNanoseconds\":").append(elapsed).append('}');
-        if (kernelCount >= maxIterations || (kernelCount >= minIterations && ciWidth(java.util.Arrays.copyOf(kernelTimes, kernelCount)) <= targetCi)) break;
+    emitLine("{\"type\":\"ready\",\"protocolVersion\":\"" + PROTOCOL_VERSION + "\"}");
+    BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+    byte[] lastOutput = new byte[0];
+    String line;
+    while ((line = stdin.readLine()) != null) {
+      if (line.isEmpty()) continue;
+      String type = protocolField(line, "type");
+      if ("run".equals(type)) {
+        long requestId = Long.parseLong(protocolField(line, "requestId"));
+        lastOutput = kernel(words).getBytes(StandardCharsets.UTF_8);
+        emitLine("{\"type\":\"result\",\"requestId\":" + requestId + ",\"digest\":\"" + digestHex(lastOutput) + "\"}");
+      } else if ("finish".equals(type)) {
+        Files.write(Path.of(output), lastOutput);
+        emitLine("{\"type\":\"finish\",\"digest\":\"" + digestHex(lastOutput) + "\"}");
+        break;
       }
     }
-    Files.writeString(Path.of(output), result, StandardCharsets.UTF_8);
-    Files.writeString(Path.of(timing), samples.append("]}").toString(), StandardCharsets.UTF_8);
   }
 }

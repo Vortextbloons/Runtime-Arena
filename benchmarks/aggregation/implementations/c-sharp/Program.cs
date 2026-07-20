@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
 static class Program
 {
-    static readonly double[] T_CRITICAL = [0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045];
+    const string ProtocolVersion = "2.0.0";
 
     static readonly Comparison<Account> AccountOrder = (a, b) =>
     {
@@ -216,23 +215,30 @@ static class Program
             + ",\"checksum\":\"" + r.Checksum + "\"}";
     }
 
-    static double CiWidth(long[] samples)
+    static string DigestHex(byte[] bytes) =>
+        Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+
+    static void EmitLine(string json)
     {
-        int n = samples.Length;
-        if (n < 2) return double.PositiveInfinity;
-        double mean = 0;
-        foreach (long v in samples) mean += v;
-        mean /= n;
-        if (mean <= 0) return double.PositiveInfinity;
-        double variance = 0;
-        foreach (long v in samples)
+        Console.WriteLine(json);
+        Console.Out.Flush();
+    }
+
+    static string ProtocolField(string line, string field)
+    {
+        string key = "\"" + field + "\":";
+        int start = line.IndexOf(key, StringComparison.Ordinal);
+        if (start < 0) return "";
+        start += key.Length;
+        while (start < line.Length && line[start] == ' ') start++;
+        if (line[start] == '"')
         {
-            double delta = v - mean;
-            variance += delta * delta;
+            int end = line.IndexOf('"', start + 1);
+            return line[(start + 1)..end];
         }
-        variance /= (n - 1);
-        double t = n < T_CRITICAL.Length ? T_CRITICAL[n] : 2.0;
-        return (2 * t * Math.Sqrt(variance / n)) / mean;
+        int endIdx = start;
+        while (endIdx < line.Length && ",} ".IndexOf(line[endIdx]) < 0) endIdx++;
+        return line[start..endIdx];
     }
 
     static string Arg(string[] args, string name, string fallback)
@@ -244,46 +250,36 @@ static class Program
 
     static void Main(string[] args)
     {
-        string input = Arg(args, "--input", "");
-        string output = Arg(args, "--output", "");
-        string timing = Arg(args, "--timing-output", "");
-        int warmup = int.Parse(Arg(args, "--warmup", "0"));
-        int minIterations = int.Parse(Arg(args, "--min-iterations", "1"));
-        int maxIterations = int.Parse(Arg(args, "--max-iterations", "1"));
-        double targetCi = double.Parse(Arg(args, "--target-relative-ci", "0.05"));
+        if (Arg(args, "--protocol-version", "") != ProtocolVersion)
+            throw new ArgumentException("unsupported protocol version");
 
-        if (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(output) || string.IsNullOrEmpty(timing))
+        string output = Arg(args, "--output", "");
+        if (string.IsNullOrEmpty(output))
             throw new ArgumentException("missing required arguments");
 
-        var rows = ReadRows(input);
+        var rows = ReadRows(Arg(args, "--input", ""));
+        var encoding = new UTF8Encoding(false);
+        byte[] lastOutput = Array.Empty<byte>();
 
-        Result last = null!;
-        var sw = new Stopwatch();
-        var sb = new StringBuilder("{\"samples\":[");
-        int measured = 0;
-        var kernelTimes = new long[maxIterations];
-        int kernelCount = 0;
-
-        for (int run = -warmup; ; run++)
+        EmitLine("{\"type\":\"ready\",\"protocolVersion\":\"" + ProtocolVersion + "\"}");
+        string? line;
+        while ((line = Console.ReadLine()) != null)
         {
-            sw.Restart();
-            last = Kernel(rows);
-            sw.Stop();
-            long elapsed = Math.Max(1L, sw.ElapsedTicks * (1000000000L / Stopwatch.Frequency));
-
-            if (run >= 0)
+            if (line.Length == 0) continue;
+            string type = ProtocolField(line, "type");
+            if (type == "run")
             {
-                kernelTimes[kernelCount++] = elapsed;
-                if (measured++ != 0) sb.Append(',');
-                sb.Append("{\"iteration\":").Append(measured)
-                  .Append(",\"kernelTimeNanoseconds\":").Append(elapsed).Append('}');
-                if (kernelCount >= maxIterations || (kernelCount >= minIterations && CiWidth(kernelTimes[..kernelCount]) <= targetCi))
-                    break;
+                long requestId = long.Parse(ProtocolField(line, "requestId"));
+                lastOutput = encoding.GetBytes(Output(Kernel(rows)));
+                EmitLine("{\"type\":\"result\",\"requestId\":" + requestId + ",\"digest\":\"" + DigestHex(lastOutput) + "\"}");
+            }
+            else if (type == "finish")
+            {
+                File.WriteAllBytes(output, lastOutput);
+                EmitLine("{\"type\":\"finish\",\"digest\":\"" + DigestHex(lastOutput) + "\"}");
+                break;
             }
         }
-
-        File.WriteAllText(output, Output(last), new System.Text.UTF8Encoding(false));
-        File.WriteAllText(timing, sb.Append("]}").ToString(), new System.Text.UTF8Encoding(false));
     }
 }
 

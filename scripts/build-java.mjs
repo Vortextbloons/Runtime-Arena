@@ -2,14 +2,16 @@ import { mkdir, rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { spawn } from "node:child_process";
 import { jdkPathEnvironment, resolveJdkTool } from "./resolve-jdk.mjs";
+import { resolveSpawnCommand, resolveSpawnEnv } from "./spawn-env.mjs";
 
 function run(command, args, cwd, env = {}) {
   return new Promise((resolvePromise, reject) => {
-    const resolvedEnv = { ...process.env };
-    for (const [key, value] of Object.entries(env)) {
-      resolvedEnv[key] = String(value).replaceAll("{PATH}", process.env[key] ?? process.env.Path ?? "");
-    }
-    const child = spawn(command, args, { cwd, env: resolvedEnv, stdio: "inherit", shell: false });
+    const child = spawn(resolveSpawnCommand(command), args, {
+      cwd,
+      env: resolveSpawnEnv(env),
+      stdio: "inherit",
+      shell: false
+    });
     child.on("error", reject);
     child.on("close", code => code === 0 ? resolvePromise() : reject(new Error(`${command} exited with ${code}`)));
   });

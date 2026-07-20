@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bufio"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"math"
 	"os"
 )
@@ -22,9 +26,10 @@ type Result struct {
 	Distance *int64 `json:"distance"`
 	Path     []int  `json:"path"`
 }
-type Sample struct {
-	Iteration int   `json:"iteration"`
-	Duration  int64 `json:"kernelTimeNanoseconds"`
+type Output struct {
+	Benchmark string   `json:"benchmark"`
+	Version   int      `json:"version"`
+	Results   []Result `json:"results"`
 }
 
 type minHeap []heapItem
@@ -137,70 +142,44 @@ func kernel(adj [][]Edge, queries []Query) []Result {
 	return rs
 }
 
-var tCritical = [...]float64{0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045}
+func outputDigest(v any) string {
+	raw, _ := json.Marshal(v)
+	sum := sha256.Sum256(raw)
+	return hex.EncodeToString(sum[:])
+}
 
-func ciWidth(samples []int64) float64 {
-	n := len(samples)
-	if n < 2 {
-		return math.Inf(1)
-	}
-	var sum float64
-	for _, value := range samples {
-		sum += float64(value)
-	}
-	mean := sum / float64(n)
-	if mean <= 0 {
-		return math.Inf(1)
-	}
-	var variance float64
-	for _, value := range samples {
-		delta := float64(value) - mean
-		variance += delta * delta
-	}
-	variance /= float64(n - 1)
-	t := 2.0
-	if n < len(tCritical) {
-		t = tCritical[n]
-	}
-	return (2 * t * math.Sqrt(variance/float64(n))) / mean
+func respond(v any) {
+	raw, _ := json.Marshal(v)
+	fmt.Println(string(raw))
 }
 
 func main() {
 	ip := flag.String("input", "", "")
 	op := flag.String("output", "", "")
-	tp := flag.String("timing-output", "", "")
-	w := flag.Int("warmup", 0, "")
-	minIt := flag.Int("min-iterations", 1, "")
-	maxIt := flag.Int("max-iterations", 1, "")
-	targetCi := flag.Float64("target-relative-ci", 0.05, "")
+	flag.String("protocol-version", "2.0.0", "")
 	flag.Parse()
 	raw, _ := os.ReadFile(*ip)
 	var in Input
 	json.Unmarshal(raw, &in)
 	adj := buildAdjacency(in.N, in.Edges)
-	samples := []Sample{}
-	var results []Result
-	kernelTimes := []int64{}
-	for i := -*w; ; i++ {
-		start := nowNanoseconds()
-		results = kernel(adj, in.Queries)
-		elapsed := max(int64(1), nowNanoseconds()-start)
-		if i >= 0 {
-			kernelTimes = append(kernelTimes, elapsed)
-			samples = append(samples, Sample{len(samples) + 1, elapsed})
-			if len(kernelTimes) >= *maxIt || (len(kernelTimes) >= *minIt && ciWidth(kernelTimes) <= *targetCi) {
-				break
-			}
+	respond(map[string]string{"type": "ready", "protocolVersion": "2.0.0"})
+	scanner := bufio.NewScanner(os.Stdin)
+	var last Output
+	for scanner.Scan() {
+		var req struct {
+			Type      string `json:"type"`
+			RequestId int    `json:"requestId"`
+		}
+		json.Unmarshal(scanner.Bytes(), &req)
+		if req.Type == "finish" {
+			raw, _ := json.Marshal(last)
+			os.WriteFile(*op, raw, 0644)
+			respond(map[string]string{"type": "finish", "digest": outputDigest(last)})
+			return
+		}
+		if req.Type == "run" {
+			last = Output{"shortest-path", 1, kernel(adj, in.Queries)}
+			respond(map[string]any{"type": "result", "requestId": req.RequestId, "digest": outputDigest(last)})
 		}
 	}
-	raw, _ = json.Marshal(struct {
-		Benchmark string   `json:"benchmark"`
-		Version   int      `json:"version"`
-		Results   []Result `json:"results"`
-	}{"shortest-path", 1, results})
-	os.WriteFile(*op, raw, 0644)
-	raw, _ = json.Marshal(struct {
-		Samples []Sample `json:"samples"`
-	}{samples})
-	os.WriteFile(*tp, raw, 0644)
 }

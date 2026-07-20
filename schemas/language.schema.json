@@ -97,6 +97,44 @@
         "pattern": "^\\.[a-z0-9]+$"
       },
       "uniqueItems": true
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "environmentAllowlist": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "externalInputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path"],
+            "properties": {
+              "path": { "type": "string" },
+              "recursive": { "type": "boolean" }
+            }
+          }
+        },
+        "probes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "command"],
+            "properties": {
+              "id": { "type": "string" },
+              "command": { "type": "string" },
+              "arguments": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

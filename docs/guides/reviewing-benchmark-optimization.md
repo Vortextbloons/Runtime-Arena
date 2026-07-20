@@ -6,6 +6,7 @@
    implementation you intend to optimize:
 
    ```bash
+   npm run build:checker
    npm run arena -- run --language rust --benchmark nbody
    ```
 
@@ -49,8 +50,8 @@
    npm run arena -- results summary --benchmark nbody --language rust
    ```
 
-   Or diff the two JSON snapshots. Key metrics:
-   - **Median kernel time** — primary ranking metric (nanoseconds)
+   Or diff the two JSON snapshots. Key metrics (contract 2.0.0):
+   - **Median iteration time** — primary ranking metric (nanoseconds)
    - **Standard deviation / IQR** — variability (high variance may mask
      regressions)
    - **Build time** and **artifact size** — secondary, but worth noting
@@ -72,8 +73,8 @@
 - Do not manually edit generated result files (`results/current.json`).
 - Use each language's best idioms — no need to mirror code structure from
   other implementations.
-- Avoid including setup, compilation, or validation work in the timed
-  workload (warmup iterations are separate from measured iterations).
+- The harness times each iteration request/response round-trip; keep kernel
+  work inside the timed path but do not precompute digests across iterations.
 
 ## Noise Considerations
 
@@ -82,7 +83,7 @@ Single runs can be noisy. For precise comparisons:
 - Run several times and observe the median across runs.
 - Ensure no other CPU-intensive processes are running.
 - The adaptive measurement system (configured in `arena.config.json`) collects
-  enough samples for a tight confidence interval; keep the default 10-30
+  enough samples for a tight median confidence interval; keep the default 10–30
   range and 5% target CI unless you have a reason to change it.
 - Consider pinning CPU frequency or using performance governors if
   benchmarking on bare metal.

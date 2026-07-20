@@ -1,20 +1,21 @@
 #include <algorithm>
-#include <chrono>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <limits>
 
 #include "json.hpp"
 #include "sha256.hpp"
 
 using json = nlohmann::json;
+
+static const char* PROTOCOL_VERSION = "2.0.0";
 
 struct Row {
     std::string accountId;
@@ -31,11 +32,6 @@ struct CategoryAgg {
 struct AccountAgg {
     std::string accountId;
     int64_t valueMinorUnits = 0;
-};
-
-struct Sample {
-    int iteration;
-    int64_t kernelTimeNanoseconds;
 };
 
 static int64_t parseI64(const char* p, const char* end) {
@@ -170,39 +166,33 @@ json computeAggregation(const std::vector<Row>& rows) {
     return result;
 }
 
-static const double T_CRITICAL[30] = {0,12.706,4.303,3.182,2.776,2.571,2.447,2.365,2.306,2.262,2.228,2.201,2.179,2.16,2.145,2.131,2.12,2.11,2.101,2.093,2.086,2.08,2.074,2.069,2.064,2.06,2.056,2.052,2.048,2.045};
-double ciWidth(const std::vector<long long>& samples) {
-    const size_t n = samples.size();
-    if (n < 2) return std::numeric_limits<double>::infinity();
-    double mean = 0;
-    for (long long value : samples) mean += static_cast<double>(value);
-    mean /= static_cast<double>(n);
-    if (mean <= 0) return std::numeric_limits<double>::infinity();
-    double variance = 0;
-    for (long long value : samples) { const double delta = static_cast<double>(value) - mean; variance += delta * delta; }
-    variance /= static_cast<double>(n - 1);
-    const double t = n < 30 ? T_CRITICAL[n] : 2.0;
-    return (2.0 * t * std::sqrt(variance / static_cast<double>(n))) / mean;
+static std::string getArg(int argc, char* argv[], const char* name) {
+    for (int i = 1; i < argc - 1; i++)
+        if (std::strcmp(argv[i], name) == 0) return argv[i + 1];
+    return "";
+}
+
+static void emitLine(const json& value) {
+    std::cout << value.dump() << std::endl;
+    std::cout.flush();
+}
+
+static std::string digestBytes(const std::string& bytes) {
+    SHA256 sha;
+    sha.update(bytes);
+    return sha.hex();
 }
 
 int main(int argc, char* argv[]) {
-    std::string inputPath, outputPath, timingPath;
-    int warmup = 0, minIterations = 1, maxIterations = 1;
-    double targetCi = 0.05;
-
-    for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
-        if (arg == "--input" && i + 1 < argc) inputPath = argv[++i];
-        else if (arg == "--output" && i + 1 < argc) outputPath = argv[++i];
-        else if (arg == "--timing-output" && i + 1 < argc) timingPath = argv[++i];
-        else if (arg == "--warmup" && i + 1 < argc) warmup = std::atoi(argv[++i]);
-        else if (arg == "--min-iterations" && i + 1 < argc) minIterations = std::atoi(argv[++i]);
-        else if (arg == "--max-iterations" && i + 1 < argc) maxIterations = std::atoi(argv[++i]);
-        else if (arg == "--target-relative-ci" && i + 1 < argc) targetCi = std::stod(argv[++i]);
+    if (getArg(argc, argv, "--protocol-version") != PROTOCOL_VERSION) {
+        std::cerr << "unsupported protocol version" << std::endl;
+        return 1;
     }
 
-    if (inputPath.empty() || outputPath.empty() || timingPath.empty()) {
-        std::cerr << "Usage: aggregation --input <file> --output <file> --timing-output <file> [--warmup <n>] [--iterations <n>]" << std::endl;
+    std::string inputPath = getArg(argc, argv, "--input");
+    std::string outputPath = getArg(argc, argv, "--output");
+    if (inputPath.empty() || outputPath.empty()) {
+        std::cerr << "Usage: aggregation --input <file> --output <file> --protocol-version 2.0.0" << std::endl;
         return 1;
     }
 
@@ -211,7 +201,7 @@ int main(int argc, char* argv[]) {
         std::ifstream f(inputPath);
         if (!f.is_open()) {
             std::cerr << "Failed to open input file: " << inputPath << std::endl;
-            std::exit(1);
+            return 1;
         }
         std::ostringstream ss;
         ss << f.rdbuf();
@@ -220,47 +210,28 @@ int main(int argc, char* argv[]) {
 
     std::vector<Row> rows = parseCSV(csvContent);
 
-    std::vector<Sample> samples;
-    json outputJson;
+    emitLine({{"type", "ready"}, {"protocolVersion", PROTOCOL_VERSION}});
 
-    std::vector<long long> kernelTimes;
-    for (int i = -warmup; ; i++) {
-        auto start = std::chrono::high_resolution_clock::now();
-        outputJson = computeAggregation(rows);
-        auto end = std::chrono::high_resolution_clock::now();
-
-        int64_t elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-        if (elapsed < 1) elapsed = 1;
-
-        if (i >= 0) {
-            kernelTimes.push_back(elapsed);
-            samples.push_back({static_cast<int>(samples.size()) + 1, elapsed});
-            if (static_cast<int>(kernelTimes.size()) >= maxIterations || (static_cast<int>(kernelTimes.size()) >= minIterations && ciWidth(kernelTimes) <= targetCi)) break;
+    std::string lastOutput;
+    std::string line;
+    while (std::getline(std::cin, line)) {
+        if (line.empty()) continue;
+        auto msg = json::parse(line);
+        const std::string& type = msg["type"].get<std::string>();
+        if (type == "run") {
+            int64_t requestId = msg["requestId"].get<int64_t>();
+            lastOutput = computeAggregation(rows).dump();
+            emitLine({{"type", "result"}, {"requestId", requestId}, {"digest", digestBytes(lastOutput)}});
+        } else if (type == "finish") {
+            std::ofstream outFile(outputPath);
+            if (!outFile.is_open()) {
+                std::cerr << "Failed to open output file: " << outputPath << std::endl;
+                return 1;
+            }
+            outFile << lastOutput;
+            emitLine({{"type", "finish"}, {"digest", digestBytes(lastOutput)}});
+            break;
         }
-    }
-
-    {
-        std::ofstream outFile(outputPath);
-        if (!outFile.is_open()) {
-            std::cerr << "Failed to open output file: " << outputPath << std::endl;
-            return 1;
-        }
-        outFile << outputJson.dump();
-    }
-
-    json timingJson;
-    timingJson["samples"] = json::array();
-    for (auto& s : samples) {
-        timingJson["samples"].push_back({{"iteration", s.iteration}, {"kernelTimeNanoseconds", s.kernelTimeNanoseconds}});
-    }
-
-    {
-        std::ofstream timingFile(timingPath);
-        if (!timingFile.is_open()) {
-            std::cerr << "Failed to open timing output file: " << timingPath << std::endl;
-            return 1;
-        }
-        timingFile << timingJson.dump();
     }
 
     return 0;

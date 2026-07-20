@@ -18,15 +18,20 @@
     "arguments": [
       "--input", "{inputFile}",
       "--output", "{outputFile}",
-      "--timing-output", "{timingOutputFile}",
-      "--warmup", "{warmupIterations}",
-      "--min-iterations", "{minMeasuredIterations}",
-      "--max-iterations", "{maxMeasuredIterations}",
-      "--target-relative-ci", "{targetRelativeConfidenceInterval}"
+      "--protocol-version", "{protocolVersion}"
     ]
   },
   "environment": {
     "PATH": "C:\\msys64\\ucrt64\\bin;{PATH}"
   },
-  "sourceExtensions": [".c", ".h"]
+  "sourceExtensions": [".c", ".h"],
+  "provenance": {
+    "environmentAllowlist": ["PATH"],
+    "externalInputs": [
+      { "path": "{projectRoot}/languages/c/include", "recursive": true }
+    ],
+    "probes": [
+      { "id": "compiler", "command": "C:\\msys64\\ucrt64\\bin\\gcc.exe", "arguments": ["--version"] }
+    ]
+  }
 }
