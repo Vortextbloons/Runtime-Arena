@@ -101,7 +101,6 @@ static Input parseInput(const char *jsonStr) {
     return in;
 }
 
-/* Simple min-heap priority queue */
 typedef struct {
     PQItem *data;
     int size;
@@ -135,81 +134,6 @@ static PQItem heapPop(MinHeap *h) {
     return top;
 }
 
-static Result *kernel(const Input *in, int *outCount) {
-    /* Build adjacency list */
-    int **adj = calloc(in->vertexCount, sizeof(int*));
-    int *adjCount = calloc(in->vertexCount, sizeof(int));
-    int *adjCap = calloc(in->vertexCount, sizeof(int));
-    for (int i = 0; i < in->edgeCount; i++) {
-        int from = in->edges[i].from;
-        if (adjCount[from] >= adjCap[from]) {
-            adjCap[from] = adjCap[from] ? adjCap[from] * 2 : 4;
-            adj[from] = realloc(adj[from], adjCap[from] * sizeof(int));
-        }
-        adj[from][adjCount[from]++] = i;
-    }
-
-    Result *results = malloc(in->queryCount * sizeof(Result));
-    *outCount = in->queryCount;
-
-    for (int qi = 0; qi < in->queryCount; qi++) {
-        Query *q = &in->queries[qi];
-        int64_t *dist = malloc(in->vertexCount * sizeof(int64_t));
-        int *prev = malloc(in->vertexCount * sizeof(int));
-        for (int i = 0; i < in->vertexCount; i++) { dist[i] = INT64_MAX; prev[i] = -1; }
-
-        MinHeap pq = {0};
-        dist[q->source] = 0;
-        heapPush(&pq, 0, q->source);
-
-        while (pq.size > 0) {
-            PQItem item = heapPop(&pq);
-            if (item.dist != dist[item.prev]) continue;
-            for (int ei = 0; ei < adjCount[item.prev]; ei++) {
-                Edge *e = &in->edges[adj[item.prev][ei]];
-                int64_t nextCost = item.dist + e->weight;
-                if (nextCost < dist[e->to]) {
-                    dist[e->to] = nextCost;
-                    prev[e->to] = item.prev;
-                    heapPush(&pq, nextCost, e->to);
-                }
-            }
-        }
-
-        results[qi].id = q->id;
-        if (dist[q->destination] == INT64_MAX) {
-            results[qi].hasDistance = 0;
-            results[qi].distance = 0;
-            results[qi].path = NULL;
-            results[qi].pathLen = 0;
-        } else {
-            results[qi].hasDistance = 1;
-            results[qi].distance = dist[q->destination];
-            /* Reconstruct path */
-            int pathCap = 16;
-            int *path = malloc(pathCap * sizeof(int));
-            int pathLen = 0;
-            for (int v = q->destination; v != -1; v = prev[v]) {
-                if (pathLen >= pathCap) { pathCap *= 2; path = realloc(path, pathCap * sizeof(int)); }
-                path[pathLen++] = v;
-            }
-            /* Reverse */
-            for (int i = 0; i < pathLen / 2; i++) {
-                int tmp = path[i]; path[i] = path[pathLen-1-i]; path[pathLen-1-i] = tmp;
-            }
-            results[qi].path = path;
-            results[qi].pathLen = pathLen;
-        }
-
-        free(dist); free(prev); free(pq.data);
-    }
-
-    for (int i = 0; i < in->vertexCount; i++) free(adj[i]);
-    free(adj); free(adjCount); free(adjCap);
-
-    return results;
-}
-
 int main(int argc, char *argv[]) {
     char *inputPath = NULL, *outputPath = NULL, *timingPath = NULL;
     int warmup = 0, minIter = 1, maxIter = 1;
@@ -229,6 +153,18 @@ int main(int argc, char *argv[]) {
     Input in = parseInput(inputJson);
     free(inputJson);
 
+    int **adj = calloc(in.vertexCount, sizeof(int*));
+    int *adjCount = calloc(in.vertexCount, sizeof(int));
+    int *adjCap = calloc(in.vertexCount, sizeof(int));
+    for (int i = 0; i < in.edgeCount; i++) {
+        int from = in.edges[i].from;
+        if (adjCount[from] >= adjCap[from]) {
+            adjCap[from] = adjCap[from] ? adjCap[from] * 2 : 4;
+            adj[from] = realloc(adj[from], adjCap[from] * sizeof(int));
+        }
+        adj[from][adjCount[from]++] = i;
+    }
+
     Sample samples[1024];
     int sampleCount = 0;
     int64_t kernelTimes[1024];
@@ -236,17 +172,70 @@ int main(int argc, char *argv[]) {
     Result *lastResults = NULL;
     int lastResultCount = 0;
 
+    int64_t *dist = malloc(in.vertexCount * sizeof(int64_t));
+    int *prev = malloc(in.vertexCount * sizeof(int));
+    MinHeap pq = {0};
+
     for (int i = -warmup; ; i++) {
         if (lastResults) {
             for (int j = 0; j < lastResultCount; j++) free(lastResults[j].path);
             free(lastResults);
         }
 
+        lastResults = malloc(in.queryCount * sizeof(Result));
+        lastResultCount = in.queryCount;
+
         struct timespec t1, t2;
         clock_gettime(CLOCK_MONOTONIC, &t1);
-        lastResults = kernel(&in, &lastResultCount);
-        clock_gettime(CLOCK_MONOTONIC, &t2);
 
+        for (int qi = 0; qi < in.queryCount; qi++) {
+            Query *q = &in.queries[qi];
+            for (int v = 0; v < in.vertexCount; v++) { dist[v] = INT64_MAX; prev[v] = -1; }
+
+            pq.size = 0;
+            dist[q->source] = 0;
+            heapPush(&pq, 0, q->source);
+
+            while (pq.size > 0) {
+                PQItem item = heapPop(&pq);
+                if (item.dist != dist[item.prev]) continue;
+                if (item.prev == q->destination) break;
+                for (int ei = 0; ei < adjCount[item.prev]; ei++) {
+                    Edge *e = &in.edges[adj[item.prev][ei]];
+                    int64_t nextCost = item.dist + e->weight;
+                    if (nextCost < dist[e->to]) {
+                        dist[e->to] = nextCost;
+                        prev[e->to] = item.prev;
+                        heapPush(&pq, nextCost, e->to);
+                    }
+                }
+            }
+
+            lastResults[qi].id = q->id;
+            if (dist[q->destination] == INT64_MAX) {
+                lastResults[qi].hasDistance = 0;
+                lastResults[qi].distance = 0;
+                lastResults[qi].path = NULL;
+                lastResults[qi].pathLen = 0;
+            } else {
+                lastResults[qi].hasDistance = 1;
+                lastResults[qi].distance = dist[q->destination];
+                int pathCap = 16;
+                int *path = malloc(pathCap * sizeof(int));
+                int pathLen = 0;
+                for (int v = q->destination; v != -1; v = prev[v]) {
+                    if (pathLen >= pathCap) { pathCap *= 2; path = realloc(path, pathCap * sizeof(int)); }
+                    path[pathLen++] = v;
+                }
+                for (int j = 0; j < pathLen / 2; j++) {
+                    int tmp = path[j]; path[j] = path[pathLen-1-j]; path[pathLen-1-j] = tmp;
+                }
+                lastResults[qi].path = path;
+                lastResults[qi].pathLen = pathLen;
+            }
+        }
+
+        clock_gettime(CLOCK_MONOTONIC, &t2);
         int64_t elapsed = (int64_t)(t2.tv_sec - t1.tv_sec) * 1000000000LL + (t2.tv_nsec - t1.tv_nsec);
         if (elapsed < 1) elapsed = 1;
 
@@ -260,7 +249,6 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    /* Write output JSON */
     {
         JsonValue out = json_object();
         json_object_set(&out, "benchmark", json_string("shortest-path"));
@@ -289,7 +277,6 @@ int main(int argc, char *argv[]) {
         json_free(&out);
     }
 
-    /* Write timing JSON */
     {
         JsonValue timing = json_object();
         JsonValue arr = json_array();
@@ -310,6 +297,9 @@ int main(int argc, char *argv[]) {
 
     for (int i = 0; i < lastResultCount; i++) free(lastResults[i].path);
     free(lastResults);
+    free(dist); free(prev); free(pq.data);
+    for (int i = 0; i < in.vertexCount; i++) free(adj[i]);
+    free(adj); free(adjCount); free(adjCap);
     free(in.edges);
     free(in.queries);
     return 0;

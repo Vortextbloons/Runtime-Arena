@@ -86,33 +86,36 @@ int main(int argc, char *argv[]) {
     int n = in.dimension;
     int nn = n * n;
 
+    int64_t *c = malloc(nn * sizeof(int64_t));
+    int bufCap = nn * 20 + 256;
+    char *buf = malloc(bufCap);
+
     Sample samples[1024];
     int sampleCount = 0;
     int64_t kernelTimes[1024];
     int ktCount = 0;
 
     for (int iter = -warmup; ; iter++) {
-        int64_t *c = malloc(nn * sizeof(int64_t));
         int64_t valueSum = 0, diagonalSum = 0;
 
         struct timespec t1, t2;
         clock_gettime(CLOCK_MONOTONIC, &t1);
 
+        memset(c, 0, nn * sizeof(int64_t));
         for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                int64_t sum = 0;
-                for (int k = 0; k < n; k++) {
-                    sum += in.left[i * n + k] * in.right[k * n + j];
+            for (int k = 0; k < n; k++) {
+                int64_t aik = in.left[i * n + k];
+                for (int j = 0; j < n; j++) {
+                    c[i * n + j] += aik * in.right[k * n + j];
                 }
-                c[i * n + j] = sum;
-                valueSum += sum;
-                if (i == j) diagonalSum += sum;
             }
         }
 
-        /* Build checksum string */
-        int bufCap = nn * 20 + 256;
-        char *buf = malloc(bufCap);
+        for (int i = 0; i < nn; i++) {
+            valueSum += c[i];
+            if (i % (n + 1) == 0) diagonalSum += c[i];
+        }
+
         int bufLen = snprintf(buf, bufCap, "dimension=%d\n", n);
         for (int i = 0; i < nn; i++) {
             bufLen += snprintf(buf + bufLen, bufCap - bufLen, "%lld,", (long long)c[i]);
@@ -124,13 +127,10 @@ int main(int argc, char *argv[]) {
         sha256_update(&hasher, (uint8_t *)buf, bufLen);
         char checksumHex[65];
         sha256_hex(&hasher, checksumHex);
-        free(buf);
 
         clock_gettime(CLOCK_MONOTONIC, &t2);
         int64_t elapsed = (int64_t)(t2.tv_sec - t1.tv_sec) * 1000000000LL + (t2.tv_nsec - t1.tv_nsec);
         if (elapsed < 1) elapsed = 1;
-
-        free(c);
 
         if (iter >= 0) {
             kernelTimes[ktCount++] = elapsed;
@@ -139,7 +139,6 @@ int main(int argc, char *argv[]) {
             sampleCount++;
 
             if (ktCount >= maxIter || (ktCount >= minIter && ciWidth(kernelTimes, ktCount) <= targetCi)) {
-                /* Write output JSON */
                 JsonValue out = json_object();
                 json_object_set(&out, "benchmark", json_string("matrix-multiplication"));
                 json_object_set(&out, "version", json_number(1));
@@ -159,7 +158,6 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    /* Write timing JSON */
     {
         JsonValue timing = json_object();
         JsonValue arr = json_array();
@@ -178,6 +176,8 @@ int main(int argc, char *argv[]) {
         json_free(&timing);
     }
 
+    free(c);
+    free(buf);
     free(in.left);
     free(in.right);
     return 0;

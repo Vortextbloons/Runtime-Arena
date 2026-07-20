@@ -89,8 +89,9 @@ int main(int argc, char *argv[]) {
     int64_t kernelTimes[1024];
     int ktCount = 0;
 
+    Record *recs = malloc(recCount * sizeof(Record));
+
     for (int iter = -warmup; ; iter++) {
-        Record *recs = malloc(recCount * sizeof(Record));
         memcpy(recs, inputRecs, recCount * sizeof(Record));
 
         struct timespec t1, t2;
@@ -156,11 +157,9 @@ int main(int argc, char *argv[]) {
                 fclose(f);
                 free(dumped);
                 json_free(&out);
-                free(recs);
                 break;
             }
         }
-        free(recs);
     }
 
     /* Write timing JSON */
@@ -183,5 +182,6 @@ int main(int argc, char *argv[]) {
     }
 
     free(inputRecs);
+    free(recs);
     return 0;
 }

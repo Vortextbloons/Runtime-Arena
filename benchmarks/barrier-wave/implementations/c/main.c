@@ -27,6 +27,7 @@ typedef struct {
     uint32_t seed;
     uint32_t localXor;
     uint64_t localSum;
+    char _pad[64];
 } Worker;
 
 typedef struct {
@@ -173,7 +174,6 @@ int main(int argc, char *argv[]) {
         clock_gettime(CLOCK_MONOTONIC, &t1);
 
         for (int phase = 0; phase < in.phaseCount; phase++) {
-            /* Dispatch work */
             for (int w = 0; w < in.workerCount; w++) {
                 pthread_mutex_lock(&workers[w].mtx);
                 workers[w].seed = phaseSeed;
@@ -183,7 +183,6 @@ int main(int argc, char *argv[]) {
                 pthread_mutex_unlock(&workers[w].mtx);
             }
 
-            /* Wait for all workers */
             for (int w = 0; w < in.workerCount; w++) {
                 pthread_mutex_lock(&workers[w].mtx);
                 while (!workers[w].isDone)
@@ -191,7 +190,6 @@ int main(int argc, char *argv[]) {
                 pthread_mutex_unlock(&workers[w].mtx);
             }
 
-            /* Reduce */
             uint32_t nextSeed = phaseSeed ^ (uint32_t)phase;
             uint64_t phaseSum = 0;
             for (int w = 0; w < in.workerCount; w++) {
@@ -224,7 +222,6 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    /* Stop workers */
     for (int i = 0; i < in.workerCount; i++) {
         pthread_mutex_lock(&workers[i].mtx);
         workers[i].shouldStop = 1;
@@ -235,7 +232,6 @@ int main(int argc, char *argv[]) {
         pthread_cond_destroy(&workers[i].cond);
     }
 
-    /* Write output JSON */
     {
         char finalSeed[9], digestStr[17];
         snprintf(finalSeed, sizeof(finalSeed), "%08x", finalPhaseSeed);
@@ -257,7 +253,6 @@ int main(int argc, char *argv[]) {
         json_free(&out);
     }
 
-    /* Write timing JSON */
     {
         JsonValue timing = json_object();
         JsonValue arr = json_array();

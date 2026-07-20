@@ -7,7 +7,7 @@
 #include "sha256.h"
 
 typedef struct {
-    char word[256];
+    char word[64];
     int count;
 } Entry;
 
@@ -53,9 +53,9 @@ static int entryCmp(const void *a, const void *b) {
     return strcmp(ea->word, eb->word);
 }
 
-/* Simple hash map for word counting */
-#define MAP_CAP 65536
-typedef struct { char word[256]; int count; } MapEntry;
+#define MAP_CAP 16384
+#define MAP_MASK (MAP_CAP - 1)
+typedef struct { char word[64]; int count; } MapEntry;
 
 static uint32_t hashStr(const char *s) {
     uint32_t h = 2166136261u;
@@ -88,24 +88,26 @@ int main(int argc, char *argv[]) {
         words[i] = strdup(json_as_string(json_array_get(wordsArr, i)));
     json_free(&root);
 
+    MapEntry *map = malloc(MAP_CAP * sizeof(MapEntry));
+    Entry *entries = malloc(totalWords * sizeof(Entry));
+
     Sample samples[1024];
     int sampleCount = 0;
     int64_t kernelTimes[1024];
     int ktCount = 0;
 
     for (int iter = -warmup; ; iter++) {
-        MapEntry *map = calloc(MAP_CAP, sizeof(MapEntry));
+        memset(map, 0, MAP_CAP * sizeof(MapEntry));
         int mapUsed = 0;
 
         struct timespec t1, t2;
         clock_gettime(CLOCK_MONOTONIC, &t1);
 
-        /* Count words */
         for (int i = 0; i < totalWords; i++) {
             uint32_t h = hashStr(words[i]);
-            int idx = h % MAP_CAP;
+            int idx = h & MAP_MASK;
             while (map[idx].word[0] != '\0' && strcmp(map[idx].word, words[i]) != 0)
-                idx = (idx + 1) % MAP_CAP;
+                idx = (idx + 1) & MAP_MASK;
             if (map[idx].word[0] == '\0') {
                 strcpy(map[idx].word, words[i]);
                 mapUsed++;
@@ -113,8 +115,6 @@ int main(int argc, char *argv[]) {
             map[idx].count++;
         }
 
-        /* Collect into array and sort */
-        Entry *entries = malloc(mapUsed * sizeof(Entry));
         int eIdx = 0;
         for (int i = 0; i < MAP_CAP; i++) {
             if (map[i].word[0] != '\0') {
@@ -125,11 +125,10 @@ int main(int argc, char *argv[]) {
         }
         qsort(entries, mapUsed, sizeof(Entry), entryCmp);
 
-        /* Compute checksum */
         SHA256 hasher;
         sha256_init(&hasher);
         for (int i = 0; i < mapUsed; i++) {
-            char line[320];
+            char line[128];
             int len = snprintf(line, sizeof(line), "%s,%d\n", entries[i].word, entries[i].count);
             sha256_update(&hasher, (uint8_t *)line, len);
         }
@@ -142,8 +141,6 @@ int main(int argc, char *argv[]) {
         int64_t elapsed = (int64_t)(t2.tv_sec - t1.tv_sec) * 1000000000LL + (t2.tv_nsec - t1.tv_nsec);
         if (elapsed < 1) elapsed = 1;
 
-        free(map);
-
         if (iter >= 0) {
             kernelTimes[ktCount++] = elapsed;
             samples[sampleCount].iteration = sampleCount + 1;
@@ -151,7 +148,6 @@ int main(int argc, char *argv[]) {
             sampleCount++;
 
             if (ktCount >= maxIter || (ktCount >= minIter && ciWidth(kernelTimes, ktCount) <= targetCi)) {
-                /* Write output JSON */
                 JsonValue out = json_object();
                 json_object_set(&out, "benchmark", json_string("word-frequency"));
                 json_object_set(&out, "version", json_number(1));
@@ -172,14 +168,11 @@ int main(int argc, char *argv[]) {
                 fclose(f);
                 free(dumped);
                 json_free(&out);
-                free(entries);
                 break;
             }
         }
-        free(entries);
     }
 
-    /* Write timing JSON */
     {
         JsonValue timing = json_object();
         JsonValue arr = json_array();
@@ -200,5 +193,7 @@ int main(int argc, char *argv[]) {
 
     for (int i = 0; i < totalWords; i++) free(words[i]);
     free(words);
+    free(map);
+    free(entries);
     return 0;
 }

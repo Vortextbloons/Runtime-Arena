@@ -101,6 +101,9 @@ func kernel(adj [][]Edge, queries []Query) []Result {
 			if x.dist != d[x.node] {
 				continue
 			}
+			if x.node == q.Destination {
+				break
+			}
 			for _, e := range adj[x.node] {
 				nd := x.dist + e.Weight
 				if nd < d[e.To] {

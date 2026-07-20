@@ -9,7 +9,7 @@ import (
 	"io"
 	"math"
 	"os"
-	"sort"
+	"slices"
 	"strconv"
 )
 
@@ -77,16 +77,61 @@ func kernel(rows []Row) Output {
 	for k, v := range cm {
 		cats = append(cats, Category{k, v[0], v[1]})
 	}
-	sort.Slice(cats, func(i, j int) bool { return cats[i].Category < cats[j].Category })
+	slices.SortFunc(cats, func(a, b Category) int {
+		if a.Category < b.Category {
+			return -1
+		}
+		if a.Category > b.Category {
+			return 1
+		}
+		return 0
+	})
 	accounts := make([]Account, 0, len(am))
 	for k, v := range am {
 		accounts = append(accounts, Account{k, *v})
 	}
-	sort.Slice(accounts, func(i, j int) bool {
-		return accounts[i].Value > accounts[j].Value || accounts[i].Value == accounts[j].Value && accounts[i].Account < accounts[j].Account
-	})
 	if len(accounts) > 10 {
-		accounts = accounts[:10]
+		var top10 [10]Account
+		n := 0
+		for _, a := range accounts {
+			if n < 10 {
+				top10[n] = a
+				n++
+				for i := n - 1; i > 0; i-- {
+					if top10[i].Value > top10[i-1].Value || (top10[i].Value == top10[i-1].Value && top10[i].Account < top10[i-1].Account) {
+						top10[i], top10[i-1] = top10[i-1], top10[i]
+					} else {
+						break
+					}
+				}
+			} else if a.Value > top10[9].Value || (a.Value == top10[9].Value && a.Account < top10[9].Account) {
+				top10[9] = a
+				for i := 9; i > 0; i-- {
+					if top10[i].Value > top10[i-1].Value || (top10[i].Value == top10[i-1].Value && top10[i].Account < top10[i-1].Account) {
+						top10[i], top10[i-1] = top10[i-1], top10[i]
+					} else {
+						break
+					}
+				}
+			}
+		}
+		accounts = top10[:n]
+	} else {
+		slices.SortFunc(accounts, func(a, b Account) int {
+			if a.Value != b.Value {
+				if a.Value > b.Value {
+					return -1
+				}
+				return 1
+			}
+			if a.Account < b.Account {
+				return -1
+			}
+			if a.Account > b.Account {
+				return 1
+			}
+			return 0
+		})
 	}
 	var wb []byte
 	wb = append(wb, `{"Categories":[`...)

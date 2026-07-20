@@ -48,16 +48,17 @@ func kernel(in Input) Output {
 		}
 		diagonalSum += c[i*n+i]
 	}
-	h := sha256.New()
-	h.Write([]byte("dimension=" + strconv.Itoa(n) + "\n"))
-	var buf [32]byte
+	hdr := []byte("dimension=" + strconv.Itoa(n) + "\n")
+	bufSize := len(hdr) + n*n*13 + 2
+	hashBuf := make([]byte, 0, bufSize)
+	hashBuf = append(hashBuf, hdr...)
 	for i := 0; i < n*n; i++ {
-		tmp := strconv.AppendInt(buf[:0], c[i], 10)
-		tmp = append(tmp, ',')
-		h.Write(tmp)
+		hashBuf = strconv.AppendInt(hashBuf, c[i], 10)
+		hashBuf = append(hashBuf, ',')
 	}
-	h.Write([]byte("\n"))
-	return Output{"matrix-multiplication", 1, n, n * n, valueSum, diagonalSum, hex.EncodeToString(h.Sum(nil))}
+	hashBuf = append(hashBuf, '\n')
+	sum := sha256.Sum256(hashBuf)
+	return Output{"matrix-multiplication", 1, n, n * n, valueSum, diagonalSum, hex.EncodeToString(sum[:])}
 }
 
 var tCritical = [...]float64{0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045}

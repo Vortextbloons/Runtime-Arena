@@ -1,0 +1,39 @@
+{
+  "$schema": "../schemas/language.schema.json",
+  "id": "c-sharp",
+  "name": "C#",
+  "enabled": true,
+  "detect": {
+    "command": "dotnet",
+    "arguments": ["--version"]
+  },
+  "build": {
+    "workingDirectory": "{implementationDir}",
+    "command": "node",
+    "arguments": [
+      "{projectRoot}/scripts/build-csharp.mjs",
+      "--output",
+      ".arena/{benchmarkId}.dll",
+      "Program.cs"
+    ],
+    "artifact": ".arena/{benchmarkId}.dll"
+  },
+  "run": {
+    "command": "dotnet",
+    "arguments": [
+      "{artifact}",
+      "--input", "{inputFile}",
+      "--output", "{outputFile}",
+      "--timing-output", "{timingOutputFile}",
+      "--warmup", "{warmupIterations}",
+      "--min-iterations", "{minMeasuredIterations}",
+      "--max-iterations", "{maxMeasuredIterations}",
+      "--target-relative-ci", "{targetRelativeConfidenceInterval}"
+    ]
+  },
+  "environment": {
+    "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+    "DOTNET_NOLOGO": "1"
+  },
+  "sourceExtensions": [".cs"]
+}

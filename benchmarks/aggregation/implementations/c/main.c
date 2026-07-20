@@ -77,7 +77,6 @@ static Row *parseCSV(const char *content, int *outCount) {
     int count = 0, cap = 0;
     const char *p = content;
 
-    /* Skip header */
     while (*p && *p != '\n' && *p != '\r') p++;
     while (*p == '\n' || *p == '\r') p++;
 
@@ -88,7 +87,6 @@ static Row *parseCSV(const char *content, int *outCount) {
         while (*p == '\n' || *p == '\r') p++;
         if (lineStart == lineEnd) continue;
 
-        /* Parse 5 fields */
         const char *fields[5];
         const char *fieldEnds[5];
         const char *f = lineStart;
@@ -124,6 +122,17 @@ static Row *parseCSV(const char *content, int *outCount) {
     return rows;
 }
 
+static uint32_t fnv1a(const char *s) {
+    uint32_t h = 2166136261u;
+    while (*s) { h ^= (uint8_t)*s++; h *= 16777619u; }
+    return h;
+}
+
+#define CAT_CAP 256
+#define CAT_MASK (CAT_CAP - 1)
+#define ACCT_CAP 4096
+#define ACCT_MASK (ACCT_CAP - 1)
+
 static int catCmp(const void *a, const void *b) {
     return strcmp(((CategoryAgg*)a)->category, ((CategoryAgg*)b)->category);
 }
@@ -137,7 +146,6 @@ static int acctCmp(const void *a, const void *b) {
 static void buildChecksumString(const CategoryAgg *cats, int catCount,
                                  const AccountAgg *topAccts, int topCount,
                                  char **outStr, int *outLen) {
-    /* Build {"Categories":[...],"TopAccounts":[...]} */
     int cap = 4096, len = 0;
     char *buf = malloc(cap);
 
@@ -208,20 +216,17 @@ int main(int argc, char *argv[]) {
     int64_t kernelTimes[1024];
     int ktCount = 0;
 
-    /* Category hash map (simple open addressing) */
-    #define CAT_CAP 1024
     CategoryAgg catMap[CAT_CAP];
-    int catMapCount = 0;
+    AccountAgg acctMap[ACCT_CAP];
 
     for (int iter = -warmup; ; iter++) {
         int64_t recordCount = 0, totalQuantity = 0, totalValue = 0;
         int64_t minTrans = INT64_MAX, maxTrans = 0;
-        catMapCount = 0;
-
-        /* Account aggregation */
-        #define ACCT_CAP 4096
-        AccountAgg acctMap[ACCT_CAP];
+        int catMapCount = 0;
         int acctMapCount = 0;
+
+        memset(catMap, 0, sizeof(catMap));
+        memset(acctMap, 0, sizeof(acctMap));
 
         struct timespec t1, t2;
         clock_gettime(CLOCK_MONOTONIC, &t1);
@@ -234,47 +239,49 @@ int main(int argc, char *argv[]) {
             if (value < minTrans) minTrans = value;
             if (value > maxTrans) maxTrans = value;
 
-            /* Find or add category */
-            int found = -1;
-            for (int j = 0; j < catMapCount; j++) {
-                if (strcmp(catMap[j].category, rows[i].category) == 0) { found = j; break; }
+            uint32_t h = fnv1a(rows[i].category);
+            int idx = h & CAT_MASK;
+            while (catMap[idx].category[0] != '\0' && strcmp(catMap[idx].category, rows[i].category) != 0)
+                idx = (idx + 1) & CAT_MASK;
+            if (catMap[idx].category[0] == '\0') {
+                strcpy(catMap[idx].category, rows[i].category);
+                catMapCount++;
             }
-            if (found == -1) {
-                found = catMapCount++;
-                memset(&catMap[found], 0, sizeof(CategoryAgg));
-                strcpy(catMap[found].category, rows[i].category);
-            }
-            catMap[found].quantity += rows[i].quantity;
-            catMap[found].value += value;
+            catMap[idx].quantity += rows[i].quantity;
+            catMap[idx].value += value;
 
-            /* Find or add account */
-            found = -1;
-            for (int j = 0; j < acctMapCount; j++) {
-                if (strcmp(acctMap[j].accountId, rows[i].accountId) == 0) { found = j; break; }
+            h = fnv1a(rows[i].accountId);
+            idx = h & ACCT_MASK;
+            while (acctMap[idx].accountId[0] != '\0' && strcmp(acctMap[idx].accountId, rows[i].accountId) != 0)
+                idx = (idx + 1) & ACCT_MASK;
+            if (acctMap[idx].accountId[0] == '\0') {
+                strcpy(acctMap[idx].accountId, rows[i].accountId);
+                acctMapCount++;
             }
-            if (found == -1) {
-                found = acctMapCount++;
-                memset(&acctMap[found], 0, sizeof(AccountAgg));
-                strcpy(acctMap[found].accountId, rows[i].accountId);
-            }
-            acctMap[found].value += value;
+            acctMap[idx].value += value;
         }
 
-        /* Sort categories alphabetically */
-        qsort(catMap, catMapCount, sizeof(CategoryAgg), catCmp);
+        CategoryAgg *sortedCats = malloc(catMapCount * sizeof(CategoryAgg));
+        int scIdx = 0;
+        for (int i = 0; i < CAT_CAP; i++) {
+            if (catMap[i].category[0] != '\0') sortedCats[scIdx++] = catMap[i];
+        }
+        qsort(sortedCats, catMapCount, sizeof(CategoryAgg), catCmp);
 
-        /* Sort accounts by value desc, then id asc */
-        qsort(acctMap, acctMapCount, sizeof(AccountAgg), acctCmp);
+        AccountAgg *sortedAccts = malloc(acctMapCount * sizeof(AccountAgg));
+        int saIdx = 0;
+        for (int i = 0; i < ACCT_CAP; i++) {
+            if (acctMap[i].accountId[0] != '\0') sortedAccts[saIdx++] = acctMap[i];
+        }
+        qsort(sortedAccts, acctMapCount, sizeof(AccountAgg), acctCmp);
         int topCount = acctMapCount < 10 ? acctMapCount : 10;
 
-        /* Build checksum */
         char *checksumStr;
         int checksumLen;
-        buildChecksumString(catMap, catMapCount, acctMap, topCount, &checksumStr, &checksumLen);
+        buildChecksumString(sortedCats, catMapCount, sortedAccts, topCount, &checksumStr, &checksumLen);
 
         SHA256 sha;
         sha256_init(&sha);
-        /* Append newline for checksum */
         sha256_update(&sha, (uint8_t *)checksumStr, checksumLen);
         sha256_update(&sha, (uint8_t *)"\n", 1);
         char checksumHex[65];
@@ -285,15 +292,29 @@ int main(int argc, char *argv[]) {
         int64_t elapsed = (int64_t)(t2.tv_sec - t1.tv_sec) * 1000000000LL + (t2.tv_nsec - t1.tv_nsec);
         if (elapsed < 1) elapsed = 1;
 
+        free(sortedCats);
+        free(sortedAccts);
+
         if (iter >= 0) {
             kernelTimes[ktCount++] = elapsed;
             samples[sampleCount].iteration = sampleCount + 1;
             samples[sampleCount].kernelTimeNanoseconds = elapsed;
             sampleCount++;
 
-            /* Write output on last iteration */
             if (ktCount >= maxIter || (ktCount >= minIter && ciWidth(kernelTimes, ktCount) <= targetCi)) {
-                /* Write output JSON */
+                CategoryAgg *finalCats = malloc(catMapCount * sizeof(CategoryAgg));
+                AccountAgg *finalAccts = malloc(acctMapCount * sizeof(CategoryAgg));
+                int fi = 0;
+                for (int i = 0; i < CAT_CAP; i++) {
+                    if (catMap[i].category[0] != '\0') finalCats[fi++] = catMap[i];
+                }
+                qsort(finalCats, catMapCount, sizeof(CategoryAgg), catCmp);
+                fi = 0;
+                for (int i = 0; i < ACCT_CAP; i++) {
+                    if (acctMap[i].accountId[0] != '\0') finalAccts[fi++] = acctMap[i];
+                }
+                qsort(finalAccts, acctMapCount, sizeof(AccountAgg), acctCmp);
+
                 JsonValue out = json_object();
                 json_object_set(&out, "benchmark", json_string("aggregation"));
                 json_object_set(&out, "version", json_number(1));
@@ -306,9 +327,9 @@ int main(int argc, char *argv[]) {
                 JsonValue catsArr = json_array();
                 for (int j = 0; j < catMapCount; j++) {
                     JsonValue c = json_object();
-                    json_object_set(&c, "category", json_string(catMap[j].category));
-                    json_object_set(&c, "quantity", json_number(catMap[j].quantity));
-                    json_object_set(&c, "valueMinorUnits", json_number(catMap[j].value));
+                    json_object_set(&c, "category", json_string(finalCats[j].category));
+                    json_object_set(&c, "quantity", json_number(finalCats[j].quantity));
+                    json_object_set(&c, "valueMinorUnits", json_number(finalCats[j].value));
                     json_array_push(&catsArr, c);
                 }
                 json_object_set(&out, "categories", catsArr);
@@ -316,8 +337,8 @@ int main(int argc, char *argv[]) {
                 JsonValue topArr = json_array();
                 for (int j = 0; j < topCount; j++) {
                     JsonValue a = json_object();
-                    json_object_set(&a, "accountId", json_string(acctMap[j].accountId));
-                    json_object_set(&a, "valueMinorUnits", json_number(acctMap[j].value));
+                    json_object_set(&a, "accountId", json_string(finalAccts[j].accountId));
+                    json_object_set(&a, "valueMinorUnits", json_number(finalAccts[j].value));
                     json_array_push(&topArr, a);
                 }
                 json_object_set(&out, "topAccounts", topArr);
@@ -329,12 +350,13 @@ int main(int argc, char *argv[]) {
                 fclose(f);
                 free(dumped);
                 json_free(&out);
+                free(finalCats);
+                free(finalAccts);
                 break;
             }
         }
     }
 
-    /* Write timing JSON */
     {
         JsonValue timing = json_object();
         JsonValue arr = json_array();

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "3.0.0",
-  "snapshotId": "2026-07-20T05-07-58-058-3c4f3f77Z",
-  "updatedAt": "2026-07-20T05:07:58.058Z",
+  "snapshotId": "2026-07-20T05-07-25-678-65006b34Z",
+  "updatedAt": "2026-07-20T05:07:25.678Z",
   "arenaVersion": "0.2.0",
   "gitCommit": "45f9dc3944de8dc1998cc49f7d8e49562bc480cf",
   "gitDirty": true,
@@ -31325,9 +31325,9 @@
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 463697100,
-        "artifactSizeBytes": 2426880,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 2427392,
         "command": [
           "go",
           "build",
@@ -31340,7 +31340,7 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.1.0",
-        "totalProcessDurationNanoseconds": 231437300,
+        "totalProcessDurationNanoseconds": 257484300,
         "warmupIterations": 2,
         "measuredIterations": 30,
         "measurement": {
@@ -31352,7 +31352,7 @@
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 1293300,
+            "kernelTimeNanoseconds": 3480300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31361,7 +31361,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 1260000,
+            "kernelTimeNanoseconds": 2328300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31370,7 +31370,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 1290300,
+            "kernelTimeNanoseconds": 2617900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31379,7 +31379,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 1280900,
+            "kernelTimeNanoseconds": 2320700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31388,7 +31388,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 1526600,
+            "kernelTimeNanoseconds": 2695000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31397,7 +31397,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 1260400,
+            "kernelTimeNanoseconds": 2285500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31406,7 +31406,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 1624800,
+            "kernelTimeNanoseconds": 5675800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31415,7 +31415,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 1266100,
+            "kernelTimeNanoseconds": 2363900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31424,7 +31424,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 1264400,
+            "kernelTimeNanoseconds": 2389300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31433,7 +31433,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 1454700,
+            "kernelTimeNanoseconds": 2408600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31442,7 +31442,7 @@
           },
           {
             "iteration": 11,
-            "kernelTimeNanoseconds": 1512100,
+            "kernelTimeNanoseconds": 2158400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31451,7 +31451,7 @@
           },
           {
             "iteration": 12,
-            "kernelTimeNanoseconds": 1348100,
+            "kernelTimeNanoseconds": 2429100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31460,7 +31460,7 @@
           },
           {
             "iteration": 13,
-            "kernelTimeNanoseconds": 1302400,
+            "kernelTimeNanoseconds": 2572200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31469,7 +31469,7 @@
           },
           {
             "iteration": 14,
-            "kernelTimeNanoseconds": 1429800,
+            "kernelTimeNanoseconds": 2209400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31478,7 +31478,7 @@
           },
           {
             "iteration": 15,
-            "kernelTimeNanoseconds": 1248400,
+            "kernelTimeNanoseconds": 2128800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31487,7 +31487,7 @@
           },
           {
             "iteration": 16,
-            "kernelTimeNanoseconds": 1233400,
+            "kernelTimeNanoseconds": 2222300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31496,7 +31496,7 @@
           },
           {
             "iteration": 17,
-            "kernelTimeNanoseconds": 1237200,
+            "kernelTimeNanoseconds": 2216700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31505,7 +31505,7 @@
           },
           {
             "iteration": 18,
-            "kernelTimeNanoseconds": 1510700,
+            "kernelTimeNanoseconds": 2211000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31514,7 +31514,7 @@
           },
           {
             "iteration": 19,
-            "kernelTimeNanoseconds": 1845400,
+            "kernelTimeNanoseconds": 2231500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31523,7 +31523,7 @@
           },
           {
             "iteration": 20,
-            "kernelTimeNanoseconds": 1250100,
+            "kernelTimeNanoseconds": 2343200,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31532,7 +31532,7 @@
           },
           {
             "iteration": 21,
-            "kernelTimeNanoseconds": 1245400,
+            "kernelTimeNanoseconds": 2841500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31541,7 +31541,7 @@
           },
           {
             "iteration": 22,
-            "kernelTimeNanoseconds": 1350500,
+            "kernelTimeNanoseconds": 2146000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31550,7 +31550,7 @@
           },
           {
             "iteration": 23,
-            "kernelTimeNanoseconds": 1611600,
+            "kernelTimeNanoseconds": 2237500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31559,7 +31559,7 @@
           },
           {
             "iteration": 24,
-            "kernelTimeNanoseconds": 1252900,
+            "kernelTimeNanoseconds": 2060100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31568,7 +31568,7 @@
           },
           {
             "iteration": 25,
-            "kernelTimeNanoseconds": 1243600,
+            "kernelTimeNanoseconds": 2364000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31577,7 +31577,7 @@
           },
           {
             "iteration": 26,
-            "kernelTimeNanoseconds": 1241400,
+            "kernelTimeNanoseconds": 2224500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31586,7 +31586,7 @@
           },
           {
             "iteration": 27,
-            "kernelTimeNanoseconds": 1244900,
+            "kernelTimeNanoseconds": 3585300,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31595,7 +31595,7 @@
           },
           {
             "iteration": 28,
-            "kernelTimeNanoseconds": 1241600,
+            "kernelTimeNanoseconds": 2291100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31604,7 +31604,7 @@
           },
           {
             "iteration": 29,
-            "kernelTimeNanoseconds": 1236800,
+            "kernelTimeNanoseconds": 2523100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31613,7 +31613,7 @@
           },
           {
             "iteration": 30,
-            "kernelTimeNanoseconds": 2134500,
+            "kernelTimeNanoseconds": 2067400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 201,
@@ -31624,13 +31624,13 @@
         "summary": {
           "validSamples": 30,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 1233400,
-          "maximumKernelTimeNanoseconds": 2134500,
-          "medianKernelTimeNanoseconds": 1266100,
-          "meanKernelTimeNanoseconds": 1374743.3333333333,
-          "standardDeviationKernelTimeNanoseconds": 204702.87684565864,
-          "p95KernelTimeNanoseconds": 1845400,
-          "interquartileRangeKernelTimeNanoseconds": 209300
+          "minimumKernelTimeNanoseconds": 2060100,
+          "maximumKernelTimeNanoseconds": 5675800,
+          "medianKernelTimeNanoseconds": 2320700,
+          "meanKernelTimeNanoseconds": 2520946.6666666665,
+          "standardDeviationKernelTimeNanoseconds": 681344.6424697433,
+          "p95KernelTimeNanoseconds": 3585300,
+          "interquartileRangeKernelTimeNanoseconds": 306400
         },
         "metrics": {
           "kernelTime": {
@@ -31646,9 +31646,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "46904a7ad06edf42aa74f36b848f5c2a822f609e69ee77fa17fcecab4c936677",
+        "fingerprint": "162e5cb2f942b0b8d1b35766f6feaa39c22868e142db92175d2a6aa73b2aae09",
         "measurementContractVersion": "1.1.0",
-        "measuredAt": "2026-07-20T05:07:58.058Z",
+        "measuredAt": "2026-07-20T04:27:19.305Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -34406,9 +34406,9 @@
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 463697100,
-        "artifactSizeBytes": 2426880,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 2427392,
         "command": [
           "go",
           "build",
@@ -34421,7 +34421,7 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.1.0",
-        "totalProcessDurationNanoseconds": 75426000,
+        "totalProcessDurationNanoseconds": 145324900,
         "warmupIterations": 2,
         "measuredIterations": 30,
         "measurement": {
@@ -34433,7 +34433,7 @@
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 1299700,
+            "kernelTimeNanoseconds": 2444100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34442,7 +34442,7 @@
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 1268000,
+            "kernelTimeNanoseconds": 2386800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34451,7 +34451,7 @@
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 1262300,
+            "kernelTimeNanoseconds": 2297900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34460,7 +34460,7 @@
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 1284700,
+            "kernelTimeNanoseconds": 2822600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34469,7 +34469,7 @@
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 1575800,
+            "kernelTimeNanoseconds": 2942800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34478,7 +34478,7 @@
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 1265600,
+            "kernelTimeNanoseconds": 2361700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34487,7 +34487,7 @@
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 1239800,
+            "kernelTimeNanoseconds": 2776500,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34496,7 +34496,7 @@
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 1255100,
+            "kernelTimeNanoseconds": 3447400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34505,7 +34505,7 @@
           },
           {
             "iteration": 9,
-            "kernelTimeNanoseconds": 1245600,
+            "kernelTimeNanoseconds": 5210000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34514,7 +34514,7 @@
           },
           {
             "iteration": 10,
-            "kernelTimeNanoseconds": 1249900,
+            "kernelTimeNanoseconds": 2346100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34523,7 +34523,7 @@
           },
           {
             "iteration": 11,
-            "kernelTimeNanoseconds": 1333400,
+            "kernelTimeNanoseconds": 2709400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34532,7 +34532,7 @@
           },
           {
             "iteration": 12,
-            "kernelTimeNanoseconds": 1288000,
+            "kernelTimeNanoseconds": 2443700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34541,7 +34541,7 @@
           },
           {
             "iteration": 13,
-            "kernelTimeNanoseconds": 1319400,
+            "kernelTimeNanoseconds": 2435900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34550,7 +34550,7 @@
           },
           {
             "iteration": 14,
-            "kernelTimeNanoseconds": 1462300,
+            "kernelTimeNanoseconds": 3334000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34559,7 +34559,7 @@
           },
           {
             "iteration": 15,
-            "kernelTimeNanoseconds": 1254700,
+            "kernelTimeNanoseconds": 2765600,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34568,7 +34568,7 @@
           },
           {
             "iteration": 16,
-            "kernelTimeNanoseconds": 1250400,
+            "kernelTimeNanoseconds": 2637700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34577,7 +34577,7 @@
           },
           {
             "iteration": 17,
-            "kernelTimeNanoseconds": 1243300,
+            "kernelTimeNanoseconds": 2226900,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34586,7 +34586,7 @@
           },
           {
             "iteration": 18,
-            "kernelTimeNanoseconds": 2225400,
+            "kernelTimeNanoseconds": 2138800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34595,7 +34595,7 @@
           },
           {
             "iteration": 19,
-            "kernelTimeNanoseconds": 2059700,
+            "kernelTimeNanoseconds": 2094800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34604,7 +34604,7 @@
           },
           {
             "iteration": 20,
-            "kernelTimeNanoseconds": 2068400,
+            "kernelTimeNanoseconds": 2125400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34613,7 +34613,7 @@
           },
           {
             "iteration": 21,
-            "kernelTimeNanoseconds": 1704500,
+            "kernelTimeNanoseconds": 2066700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34622,7 +34622,7 @@
           },
           {
             "iteration": 22,
-            "kernelTimeNanoseconds": 1305500,
+            "kernelTimeNanoseconds": 2148100,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34631,7 +34631,7 @@
           },
           {
             "iteration": 23,
-            "kernelTimeNanoseconds": 1937800,
+            "kernelTimeNanoseconds": 2225400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34640,7 +34640,7 @@
           },
           {
             "iteration": 24,
-            "kernelTimeNanoseconds": 1267700,
+            "kernelTimeNanoseconds": 2453400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34649,7 +34649,7 @@
           },
           {
             "iteration": 25,
-            "kernelTimeNanoseconds": 1266200,
+            "kernelTimeNanoseconds": 2358400,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34658,7 +34658,7 @@
           },
           {
             "iteration": 26,
-            "kernelTimeNanoseconds": 1248300,
+            "kernelTimeNanoseconds": 2438000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34667,7 +34667,7 @@
           },
           {
             "iteration": 27,
-            "kernelTimeNanoseconds": 1310300,
+            "kernelTimeNanoseconds": 2259700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34676,7 +34676,7 @@
           },
           {
             "iteration": 28,
-            "kernelTimeNanoseconds": 2217300,
+            "kernelTimeNanoseconds": 2051800,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34685,7 +34685,7 @@
           },
           {
             "iteration": 29,
-            "kernelTimeNanoseconds": 1640900,
+            "kernelTimeNanoseconds": 2079000,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34694,7 +34694,7 @@
           },
           {
             "iteration": 30,
-            "kernelTimeNanoseconds": 1992400,
+            "kernelTimeNanoseconds": 1980700,
             "valid": true,
             "exitCode": 0,
             "outputSizeBytes": 199,
@@ -34705,13 +34705,13 @@
         "summary": {
           "validSamples": 30,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 1239800,
-          "maximumKernelTimeNanoseconds": 2225400,
-          "medianKernelTimeNanoseconds": 1288000,
-          "meanKernelTimeNanoseconds": 1478080,
-          "standardDeviationKernelTimeNanoseconds": 327199.70293385047,
-          "p95KernelTimeNanoseconds": 2217300,
-          "interquartileRangeKernelTimeNanoseconds": 385800
+          "minimumKernelTimeNanoseconds": 1980700,
+          "maximumKernelTimeNanoseconds": 5210000,
+          "medianKernelTimeNanoseconds": 2361700,
+          "meanKernelTimeNanoseconds": 2533643.3333333335,
+          "standardDeviationKernelTimeNanoseconds": 609596.7058546896,
+          "p95KernelTimeNanoseconds": 3447400,
+          "interquartileRangeKernelTimeNanoseconds": 561300
         },
         "metrics": {
           "kernelTime": {
@@ -34727,9 +34727,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "054c2bdd095f990d685c058e4b3369cf3a38df0f1431e6f2c4ba02aab32a275d",
+        "fingerprint": "a0b94c8dd99cc638ecf225c2549712625ca4d0d47d36b6b5efc7c8fa38b2e740",
         "measurementContractVersion": "1.1.0",
-        "measuredAt": "2026-07-20T05:07:58.058Z",
+        "measuredAt": "2026-07-20T04:27:19.305Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",
@@ -42703,9 +42703,9 @@
         ]
       },
       "build": {
-        "status": "success",
-        "durationNanoseconds": 534858300,
-        "artifactSizeBytes": 2434560,
+        "status": "cached",
+        "durationNanoseconds": 0,
+        "artifactSizeBytes": 2432000,
         "command": [
           "go",
           "build",
@@ -42718,9 +42718,9 @@
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.1.0",
-        "totalProcessDurationNanoseconds": 231117500,
+        "totalProcessDurationNanoseconds": 276573600,
         "warmupIterations": 2,
-        "measuredIterations": 8,
+        "measuredIterations": 30,
         "measurement": {
           "minMeasuredIterations": 5,
           "maxMeasuredIterations": 30,
@@ -42730,87 +42730,285 @@
         "samples": [
           {
             "iteration": 1,
-            "kernelTimeNanoseconds": 2522100,
+            "kernelTimeNanoseconds": 3400000,
             "valid": true,
             "exitCode": 0,
-            "outputSizeBytes": 254,
+            "outputSizeBytes": 255,
             "timedOut": false,
             "outputLimitExceeded": false
           },
           {
             "iteration": 2,
-            "kernelTimeNanoseconds": 2515400,
+            "kernelTimeNanoseconds": 3707600,
             "valid": true,
             "exitCode": 0,
-            "outputSizeBytes": 254,
+            "outputSizeBytes": 255,
             "timedOut": false,
             "outputLimitExceeded": false
           },
           {
             "iteration": 3,
-            "kernelTimeNanoseconds": 2488700,
+            "kernelTimeNanoseconds": 3898000,
             "valid": true,
             "exitCode": 0,
-            "outputSizeBytes": 254,
+            "outputSizeBytes": 255,
             "timedOut": false,
             "outputLimitExceeded": false
           },
           {
             "iteration": 4,
-            "kernelTimeNanoseconds": 2481300,
+            "kernelTimeNanoseconds": 3156500,
             "valid": true,
             "exitCode": 0,
-            "outputSizeBytes": 254,
+            "outputSizeBytes": 255,
             "timedOut": false,
             "outputLimitExceeded": false
           },
           {
             "iteration": 5,
-            "kernelTimeNanoseconds": 2712900,
+            "kernelTimeNanoseconds": 2935100,
             "valid": true,
             "exitCode": 0,
-            "outputSizeBytes": 254,
+            "outputSizeBytes": 255,
             "timedOut": false,
             "outputLimitExceeded": false
           },
           {
             "iteration": 6,
-            "kernelTimeNanoseconds": 2579100,
+            "kernelTimeNanoseconds": 3615300,
             "valid": true,
             "exitCode": 0,
-            "outputSizeBytes": 254,
+            "outputSizeBytes": 255,
             "timedOut": false,
             "outputLimitExceeded": false
           },
           {
             "iteration": 7,
-            "kernelTimeNanoseconds": 2499200,
+            "kernelTimeNanoseconds": 4614900,
             "valid": true,
             "exitCode": 0,
-            "outputSizeBytes": 254,
+            "outputSizeBytes": 255,
             "timedOut": false,
             "outputLimitExceeded": false
           },
           {
             "iteration": 8,
-            "kernelTimeNanoseconds": 2509900,
+            "kernelTimeNanoseconds": 4328900,
             "valid": true,
             "exitCode": 0,
-            "outputSizeBytes": 254,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 9,
+            "kernelTimeNanoseconds": 4897900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 10,
+            "kernelTimeNanoseconds": 5547700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 11,
+            "kernelTimeNanoseconds": 4447900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 12,
+            "kernelTimeNanoseconds": 4725100,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 13,
+            "kernelTimeNanoseconds": 4691900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 14,
+            "kernelTimeNanoseconds": 4778500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 15,
+            "kernelTimeNanoseconds": 5267900,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 16,
+            "kernelTimeNanoseconds": 4851600,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 17,
+            "kernelTimeNanoseconds": 4392800,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 18,
+            "kernelTimeNanoseconds": 5012300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 19,
+            "kernelTimeNanoseconds": 4233300,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 20,
+            "kernelTimeNanoseconds": 4767500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 21,
+            "kernelTimeNanoseconds": 5210000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 22,
+            "kernelTimeNanoseconds": 3975500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 23,
+            "kernelTimeNanoseconds": 4096000,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 24,
+            "kernelTimeNanoseconds": 6033600,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 25,
+            "kernelTimeNanoseconds": 5100800,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 26,
+            "kernelTimeNanoseconds": 4454700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 27,
+            "kernelTimeNanoseconds": 4366200,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 28,
+            "kernelTimeNanoseconds": 6275700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 29,
+            "kernelTimeNanoseconds": 4817700,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
+            "timedOut": false,
+            "outputLimitExceeded": false
+          },
+          {
+            "iteration": 30,
+            "kernelTimeNanoseconds": 5612500,
+            "valid": true,
+            "exitCode": 0,
+            "outputSizeBytes": 255,
             "timedOut": false,
             "outputLimitExceeded": false
           }
         ],
         "summary": {
-          "validSamples": 8,
+          "validSamples": 30,
           "rejectedSamples": 0,
-          "minimumKernelTimeNanoseconds": 2481300,
-          "maximumKernelTimeNanoseconds": 2712900,
-          "medianKernelTimeNanoseconds": 2509900,
-          "meanKernelTimeNanoseconds": 2538575,
-          "standardDeviationKernelTimeNanoseconds": 71572.14454660416,
-          "p95KernelTimeNanoseconds": 2712900,
-          "interquartileRangeKernelTimeNanoseconds": 33400
+          "minimumKernelTimeNanoseconds": 2935100,
+          "maximumKernelTimeNanoseconds": 6275700,
+          "medianKernelTimeNanoseconds": 4614900,
+          "meanKernelTimeNanoseconds": 4573780,
+          "standardDeviationKernelTimeNanoseconds": 771075.5758030467,
+          "p95KernelTimeNanoseconds": 6033600,
+          "interquartileRangeKernelTimeNanoseconds": 916300
         },
         "metrics": {
           "kernelTime": {
@@ -42826,9 +43024,9 @@
         "diagnostics": []
       },
       "provenance": {
-        "fingerprint": "2bc3cb7e8bd1e2a3eb1a35a7265f3f4a007264ce66dd4b9d4beb4abd4f38ce62",
+        "fingerprint": "0a424ae45c0d951232041018bb2aa91ca463855b3e6fe2d1a288ab7010d7fb81",
         "measurementContractVersion": "1.1.0",
-        "measuredAt": "2026-07-20T05:07:41.218Z",
+        "measuredAt": "2026-07-20T04:27:19.305Z",
         "machine": {
           "operatingSystem": {
             "platform": "win32",

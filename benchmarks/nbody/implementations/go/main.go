@@ -33,116 +33,72 @@ type Sample struct {
 	Duration  int64 `json:"kernelTimeNanoseconds"`
 }
 
-type sim struct {
-	n    int
-	mass []float64
-	px   []float64
-	py   []float64
-	pz   []float64
-	vx   []float64
-	vy   []float64
-	vz   []float64
-}
-
-func newSim(bodies []Body) *sim {
-	n := len(bodies)
-	s := &sim{
-		n:    n,
-		mass: make([]float64, n),
-		px:   make([]float64, n),
-		py:   make([]float64, n),
-		pz:   make([]float64, n),
-		vx:   make([]float64, n),
-		vy:   make([]float64, n),
-		vz:   make([]float64, n),
-	}
-	for i, b := range bodies {
-		s.mass[i] = b.Mass
-		s.px[i] = b.P[0]
-		s.py[i] = b.P[1]
-		s.pz[i] = b.P[2]
-		s.vx[i] = b.V[0]
-		s.vy[i] = b.V[1]
-		s.vz[i] = b.V[2]
-	}
-	return s
-}
-
-func (s *sim) step(dt float64) {
-	n := s.n
-	for i := 0; i < n; i++ {
-		pxi, pyi, pzi := s.px[i], s.py[i], s.pz[i]
-		vxi, vyi, vzi := s.vx[i], s.vy[i], s.vz[i]
-		mi := s.mass[i]
-		for j := i + 1; j < n; j++ {
-			dx := s.px[j] - pxi
-			dy := s.py[j] - pyi
-			dz := s.pz[j] - pzi
-			r2 := dx*dx + dy*dy + dz*dz
-			invR := 1.0 / math.Sqrt(r2)
-			invR3 := invR * invR * invR
-			f := dt * invR3
-			fmi := f * mi
-			fmj := f * s.mass[j]
-			vxi += dx * fmj
-			vyi += dy * fmj
-			vzi += dz * fmj
-			s.vx[j] -= dx * fmi
-			s.vy[j] -= dy * fmi
-			s.vz[j] -= dz * fmi
+func kernel(dt float64, steps int, mass, px, py, pz, vx, vy, vz []float64) (float64, string, string) {
+	n := len(mass)
+	for i := 0; i < steps; i++ {
+		for i := 0; i < n; i++ {
+			pxi, pyi, pzi := px[i], py[i], pz[i]
+			vxi, vyi, vzi := vx[i], vy[i], vz[i]
+			mi := mass[i]
+			for j := i + 1; j < n; j++ {
+				dx := px[j] - pxi
+				dy := py[j] - pyi
+				dz := pz[j] - pzi
+				r2 := dx*dx + dy*dy + dz*dz
+				invR := 1.0 / math.Sqrt(r2)
+				invR3 := invR * invR * invR
+				f := dt * invR3
+				fmi := f * mi
+				fmj := f * mass[j]
+				vxi += dx * fmj
+				vyi += dy * fmj
+				vzi += dz * fmj
+				vx[j] -= dx * fmi
+				vy[j] -= dy * fmi
+				vz[j] -= dz * fmi
+			}
+			vx[i] = vxi
+			vy[i] = vyi
+			vz[i] = vzi
 		}
-		s.vx[i] = vxi
-		s.vy[i] = vyi
-		s.vz[i] = vzi
-	}
-	for i := 0; i < n; i++ {
-		s.px[i] += dt * s.vx[i]
-		s.py[i] += dt * s.vy[i]
-		s.pz[i] += dt * s.vz[i]
-	}
-}
-
-func kernel(in Input, s *sim) Output {
-	dt := in.Dt
-	for i := 0; i < in.Steps; i++ {
-		s.step(dt)
+		for i := 0; i < n; i++ {
+			px[i] += dt * vx[i]
+			py[i] += dt * vy[i]
+			pz[i] += dt * vz[i]
+		}
 	}
 	var e float64
-	n := s.n
-	ph, vh := sha256.New(), sha256.New()
-	var buf [64]byte
 	for i := 0; i < n; i++ {
-		v2 := s.vx[i]*s.vx[i] + s.vy[i]*s.vy[i] + s.vz[i]*s.vz[i]
-		e += 0.5 * s.mass[i] * v2
-		tmp := strconv.AppendFloat(buf[:0], s.px[i], 'f', 9, 64)
-		tmp = append(tmp, ',')
-		ph.Write(tmp)
-		tmp = strconv.AppendFloat(buf[:0], s.py[i], 'f', 9, 64)
-		tmp = append(tmp, ',')
-		ph.Write(tmp)
-		tmp = strconv.AppendFloat(buf[:0], s.pz[i], 'f', 9, 64)
-		tmp = append(tmp, ',')
-		ph.Write(tmp)
-		tmp = strconv.AppendFloat(buf[:0], s.vx[i], 'f', 9, 64)
-		tmp = append(tmp, ',')
-		vh.Write(tmp)
-		tmp = strconv.AppendFloat(buf[:0], s.vy[i], 'f', 9, 64)
-		tmp = append(tmp, ',')
-		vh.Write(tmp)
-		tmp = strconv.AppendFloat(buf[:0], s.vz[i], 'f', 9, 64)
-		tmp = append(tmp, ',')
-		vh.Write(tmp)
-	}
-	for i := 0; i < n; i++ {
+		v2 := vx[i]*vx[i] + vy[i]*vy[i] + vz[i]*vz[i]
+		e += 0.5 * mass[i] * v2
 		for j := i + 1; j < n; j++ {
-			dx := s.px[i] - s.px[j]
-			dy := s.py[i] - s.py[j]
-			dz := s.pz[i] - s.pz[j]
+			dx := px[i] - px[j]
+			dy := py[i] - py[j]
+			dz := pz[i] - pz[j]
 			r := math.Sqrt(dx*dx + dy*dy + dz*dz)
-			e -= s.mass[i] * s.mass[j] / r
+			e -= mass[i] * mass[j] / r
 		}
 	}
-	return Output{"nbody", 1, n, e, hex.EncodeToString(ph.Sum(nil)), hex.EncodeToString(vh.Sum(nil))}
+	bufSize := n * 3 * 16
+	pBuf := make([]byte, 0, bufSize)
+	vBuf := make([]byte, 0, bufSize)
+	for i := 0; i < n; i++ {
+		pBuf = strconv.AppendFloat(pBuf, px[i], 'f', 9, 64)
+		pBuf = append(pBuf, ',')
+		pBuf = strconv.AppendFloat(pBuf, py[i], 'f', 9, 64)
+		pBuf = append(pBuf, ',')
+		pBuf = strconv.AppendFloat(pBuf, pz[i], 'f', 9, 64)
+		pBuf = append(pBuf, ',')
+		vBuf = strconv.AppendFloat(vBuf, vx[i], 'f', 9, 64)
+		vBuf = append(vBuf, ',')
+		vBuf = strconv.AppendFloat(vBuf, vy[i], 'f', 9, 64)
+		vBuf = append(vBuf, ',')
+		vBuf = strconv.AppendFloat(vBuf, vz[i], 'f', 9, 64)
+		vBuf = append(vBuf, ',')
+	}
+	pHash := sha256.Sum256(pBuf)
+	vHash := sha256.Sum256(vBuf)
+	return e, hex.EncodeToString(pHash[:]), hex.EncodeToString(vHash[:])
 }
 
 var tCritical = [...]float64{0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045}
@@ -188,12 +144,40 @@ func main() {
 	samples := []Sample{}
 	var out Output
 	kernelTimes := []int64{}
-	s := newSim(in.Bodies)
+	n := len(in.Bodies)
+	mass := make([]float64, n)
+	ipx := make([]float64, n)
+	ipy := make([]float64, n)
+	ipz := make([]float64, n)
+	ivx := make([]float64, n)
+	ivy := make([]float64, n)
+	ivz := make([]float64, n)
+	for i, b := range in.Bodies {
+		mass[i] = b.Mass
+		ipx[i] = b.P[0]
+		ipy[i] = b.P[1]
+		ipz[i] = b.P[2]
+		ivx[i] = b.V[0]
+		ivy[i] = b.V[1]
+		ivz[i] = b.V[2]
+	}
+	px := make([]float64, n)
+	py := make([]float64, n)
+	pz := make([]float64, n)
+	vx := make([]float64, n)
+	vy := make([]float64, n)
+	vz := make([]float64, n)
 	for i := -*w; ; i++ {
-		s2 := newSim(in.Bodies)
+		copy(px, ipx)
+		copy(py, ipy)
+		copy(pz, ipz)
+		copy(vx, ivx)
+		copy(vy, ivy)
+		copy(vz, ivz)
 		start := nowNanoseconds()
-		out = kernel(in, s2)
+		e, pH, vH := kernel(in.Dt, in.Steps, mass, px, py, pz, vx, vy, vz)
 		elapsed := max(int64(1), nowNanoseconds()-start)
+		out = Output{"nbody", 1, n, e, pH, vH}
 		if i >= 0 {
 			kernelTimes = append(kernelTimes, elapsed)
 			samples = append(samples, Sample{len(samples) + 1, elapsed})
@@ -201,7 +185,6 @@ func main() {
 				break
 			}
 		}
-		_ = s
 	}
 	raw, _ = json.Marshal(out)
 	os.WriteFile(*op, raw, 0644)

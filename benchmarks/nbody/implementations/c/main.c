@@ -164,8 +164,9 @@ int main(int argc, char *argv[]) {
     double finalEnergy;
     char posChecksum[65], velChecksum[65];
 
+    Body *bodiesCopy = malloc(in.bodyCount * sizeof(Body));
+
     for (int i = -warmup; ; i++) {
-        Body *bodiesCopy = malloc(in.bodyCount * sizeof(Body));
         memcpy(bodiesCopy, in.bodies, in.bodyCount * sizeof(Body));
 
         struct timespec t1, t2;
@@ -175,7 +176,6 @@ int main(int argc, char *argv[]) {
 
         int64_t elapsed = (int64_t)(t2.tv_sec - t1.tv_sec) * 1000000000LL + (t2.tv_nsec - t1.tv_nsec);
         if (elapsed < 1) elapsed = 1;
-        free(bodiesCopy);
 
         if (i >= 0) {
             kernelTimes[ktCount++] = elapsed;
@@ -223,6 +223,7 @@ int main(int argc, char *argv[]) {
         json_free(&timing);
     }
 
+    free(bodiesCopy);
     free(in.bodies);
     return 0;
 }

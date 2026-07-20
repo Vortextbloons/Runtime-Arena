@@ -22,16 +22,16 @@ _324/324 cells validated ✓ · Updated 2026-07-20_
 
 | # | Language | Overall | Perf | Versatility | Fastest |
 |---|----------|---------|------|-------------|---------|
-| 1 | Rust | 82.3 | 86.4 | 69.9 | 14 |
-| 2 | C++ | 80.3 | 85.3 | 65.5 | 18 |
-| 3 | Go | 66.6 | 69.0 | 59.6 | 1 |
-| 4 | java | 60.5 | 62.2 | 55.6 | 0 |
-| 5 | TS | 51.9 | 54.5 | 43.9 | 0 |
-| 6 | JS | 49.5 | 52.2 | 41.3 | 0 |
-| 7 | c | 43.5 | 47.0 | 33.3 | 0 |
-| 8 | LuaJIT | 42.7 | 46.0 | 32.8 | 0 |
-| 9 | lua-interpreted | 12.9 | 13.8 | 10.1 | 0 |
-| 10 | Python | 10.7 | 11.2 | 9.2 | 0 |
+| 1 | C++ | 82.4 | 85.8 | 72.1 | 11 |
+| 2 | c | 73.7 | 77.8 | 61.4 | 11 |
+| 3 | Rust | 72.6 | 77.1 | 59.2 | 10 |
+| 4 | Go | 59.6 | 61.5 | 53.9 | 1 |
+| 5 | java | 54.1 | 55.5 | 49.9 | 0 |
+| 6 | TS | 46.9 | 48.7 | 41.6 | 0 |
+| 7 | JS | 44.7 | 46.6 | 39.0 | 0 |
+| 8 | LuaJIT | 38.3 | 40.9 | 30.3 | 0 |
+| 9 | lua-interpreted | 11.6 | 12.3 | 9.4 | 0 |
+| 10 | Python | 9.6 | 10.0 | 8.5 | 0 |
 
 _Overall = 75% performance × 25% versatility (0–100). "Fastest" = benchmark×mutation cells where language had lowest median time. Tested on AMD Ryzen 5 9600X 6-Core Processor (12 cores) · win32 · 33.4 GB RAM._
 <!-- RESULTS END -->

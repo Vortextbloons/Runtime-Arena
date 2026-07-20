@@ -1,14 +1,14 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-20T04:37:42.216Z",
+  "generatedAt": "2026-07-20T04:58:24.329Z",
   "cells": {
     "aggregation:c": {
-      "logicalLines": 301,
+      "logicalLines": 333,
       "fileCount": 1,
       "files": [
         "main.c"
       ],
-      "sha256": "4e79242cf9ffc16c48573a7fa243a9066aa29c10a8596e2744f5c83edcbc03f4"
+      "sha256": "b62ceb3e9f58d6392e9129977a8577d28388adc0c93d68c39247b1f641f11581"
     },
     "aggregation:cpp": {
       "logicalLines": 224,
@@ -89,12 +89,12 @@
       "sha256": "8f94c09333899d1c5d9b9a93a471d12d7ec8b1c5528c16b88c8d4dde08bf6325"
     },
     "barrier-wave:c": {
-      "logicalLines": 244,
+      "logicalLines": 245,
       "fileCount": 1,
       "files": [
         "main.c"
       ],
-      "sha256": "068a2977c58730102f28e768efa0ec8a70b7eb6704238ae026abf1f2c5149402"
+      "sha256": "c6a5dc8836fc56f5d594e920c3dfb59394fd5c2a75e0388ed9a5f410978c3bf4"
     },
     "barrier-wave:cpp": {
       "logicalLines": 357,
@@ -157,12 +157,12 @@
       "sha256": "6d069d9ff7345d34098e3fa7355f67a77eff37a68035eda44313e08a9b6cdea0"
     },
     "matrix-multiplication:c": {
-      "logicalLines": 160,
+      "logicalLines": 162,
       "fileCount": 1,
       "files": [
         "main.c"
       ],
-      "sha256": "3eb28617047cea23b16d0a3d5c19776d705f0ab2784df2213f670faf1a6ad02f"
+      "sha256": "ecb188ebeeec950433e8157d6f8fe402185a812caba8727109ebe1f6060c10b3"
     },
     "matrix-multiplication:cpp": {
       "logicalLines": 167,
@@ -259,14 +259,14 @@
       "sha256": "6b0db5c66a4e3a181b7274efd0def07ba63ddf617f772f515a58893a31879f55"
     },
     "nbody:go": {
-      "logicalLines": 223,
+      "logicalLines": 209,
       "fileCount": 3,
       "files": [
         "main.go",
         "timer_other.go",
         "timer_windows.go"
       ],
-      "sha256": "22b2b44ae9c0ddface30c7b29e0f6a79efc7ab4df6a1516e4d8b146c8207efa0"
+      "sha256": "ae7badc69827059ca3838fa5ef7628c743d8dd3529fc049f0b3eec5d755472e1"
     },
     "nbody:java": {
       "logicalLines": 70,
@@ -329,12 +329,12 @@
       "sha256": "d197f82b204b4b4eeaa6fcc0c5dfffbc17538b83591899369e20c1f24dbcb3ad"
     },
     "record-sorting:c": {
-      "logicalLines": 161,
+      "logicalLines": 160,
       "fileCount": 1,
       "files": [
         "main.c"
       ],
-      "sha256": "575450168c86f40e90aa866f3557a88fcbedf8ef925471fb1a10fdcac95f07c7"
+      "sha256": "3eb28617047cea23b16d0a3d5c19776d705f0ab2784df2213f670faf1a6ad02f"
     },
     "record-sorting:cpp": {
       "logicalLines": 132,
@@ -415,12 +415,12 @@
       "sha256": "85e54f7ff9ac2d400fbd5ccf957ae6ebe896a287d3633e810b5a3614dfd96c16"
     },
     "shortest-path:c": {
-      "logicalLines": 274,
+      "logicalLines": 272,
       "fileCount": 1,
       "files": [
         "main.c"
       ],
-      "sha256": "aded9d018130b099ff2c80d06377a4dd29fd5848a2d1c0189975119b65223e5d"
+      "sha256": "58b5b283ce5a07e7acbd69d3900b022fe3e1251562a5bf03495a2e1fd88e1904"
     },
     "shortest-path:cpp": {
       "logicalLines": 174,
@@ -431,14 +431,14 @@
       "sha256": "9dfc0b704dc2f0c58bf5fac418c0ac5a18621b86f01061ccb440c8b99514b175"
     },
     "shortest-path:go": {
-      "logicalLines": 212,
+      "logicalLines": 215,
       "fileCount": 3,
       "files": [
         "main.go",
         "timer_other.go",
         "timer_windows.go"
       ],
-      "sha256": "920f7edb6e7a25ac589f4f32c5cce075f63469a83b8f951e41b07c08a26d46b7"
+      "sha256": "dcc36c12c4b8869ce536fcd21e789f80cd99f05b7445bb1abf914b1c712c6b04"
     },
     "shortest-path:java": {
       "logicalLines": 231,
@@ -501,12 +501,12 @@
       "sha256": "93f34c16d239dceebdef8afe0cac28aca79f7291e5153f6252063f2c474c91e0"
     },
     "word-frequency:c": {
-      "logicalLines": 174,
+      "logicalLines": 175,
       "fileCount": 1,
       "files": [
         "main.c"
       ],
-      "sha256": "629a2378929388a7451783a9a098beffc614d60a28322132fc69effb3ed481e7"
+      "sha256": "82a984418a84197b336e5517ad276a24019e1102c87412a5d62d99e147589ae3"
     },
     "word-frequency:cpp": {
       "logicalLines": 167,
