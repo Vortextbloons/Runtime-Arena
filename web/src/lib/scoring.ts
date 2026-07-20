@@ -1,7 +1,6 @@
 import type { ArenaResult, BenchmarkScore, MutationScore, SizeScore } from './types';
 
 const SIZE_ORDER = ['small', 'medium', 'large'];
-export const MINIMUM_RANKED_MEDIAN_NANOSECONDS = 1_000_000;
 export const SCORE_WEIGHTS = { performance: 0.75, versatility: 0.25 } as const;
 
 const average = (values: number[]) => values.reduce((total, value) => total + value, 0) / values.length;
@@ -10,7 +9,7 @@ const geometricMean = (values: number[]) =>
 		? Math.exp(values.reduce((total, value) => total + Math.log(value), 0) / values.length)
 		: 0;
 const PERF_EXPONENT = 0.65;
-const PERF_FLOOR = 5;
+const PERF_FLOOR = 0.1;
 const clampScore = (value: number) => Math.max(0, Math.min(100, value));
 const normalizeScore = (value: number) => Math.round(clampScore(value) * 1e9) / 1e9;
 const performanceScore = (fastest: number, median: number) =>
@@ -91,7 +90,7 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 				.map((result) => result.execution.summary.medianKernelTimeNanoseconds)
 				.filter((median) => Number.isFinite(median) && median > 0);
 			const fastest = medians.length ? Math.min(...medians) : 0;
-			if (fastest >= MINIMUM_RANKED_MEDIAN_NANOSECONDS) fastestByVariant.set(key, fastest);
+			if (fastest > 0) fastestByVariant.set(key, fastest);
 		}
 	}
 
@@ -126,7 +125,7 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 					}
 				}
 			}
-			if (!rankedSizes.length) diagnostics.push('No size tier has a fastest valid median of at least 1 ms.');
+			if (!rankedSizes.length) diagnostics.push('No size tier has complete valid results for ranking.');
 
 			const eligible = diagnostics.length === 0;
 			if (!eligible) {

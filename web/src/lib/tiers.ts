@@ -34,6 +34,7 @@ const LANGUAGE_MONOGRAMS: Record<string, string> = {
 	python: 'PY',
 	lua: 'LJ',
 	luajit: 'LJ',
+	'lua-interpreted': 'L5',
 	'c++': 'C++',
 	cpp: 'C++',
 	cplusplus: 'C++'

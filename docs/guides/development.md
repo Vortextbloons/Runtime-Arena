@@ -31,7 +31,7 @@ npm run build:checker
 | `npm run check --workspace=@runtime-arena/web` | Run TypeScript type checking on web |
 | `npm run dev` | Start web dev server |
 | `npm run prepare-results` | Copy `results/current.json` into `web/static/results/` for the dev UI |
-| `npm run arena -- doctor` | Check environment health |
+| `npm run arena -- doctor` (or `npm run doctor`) | Check environment health |
 | `npm run arena -- run` | Run benchmarks |
 | `npm run arena -- results summary` | Table view of `results/current.json` |
 | `npm run combine-docs` | Regenerate docs/ALL.md |

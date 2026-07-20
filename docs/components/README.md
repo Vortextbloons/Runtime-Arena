@@ -6,7 +6,7 @@ Runtime Arena consists of six main components.
 
 TypeScript command-line tool (`arena`) — the primary entry point. Handles discovery, building, execution, validation, and result storage. Commands: `doctor`, `list`, `build`, `run`, `check`, `dataset`, `results`, `web`.
 
-Source: `cli/src/index.ts` with modules for `metrics.ts` and `timing.ts`. Details: [cli.md](cli.md).
+Source: `cli/src/index.ts` with modules for `metrics.ts`, `timing.ts`, `mutations.ts`, `jdk.ts`, and `runner-cache.ts`. Details: [cli.md](cli.md).
 
 ## Checker (`checker/`)
 
@@ -22,7 +22,7 @@ Seven workloads under `benchmarks/<id>/`. nbody, shortest-path, and aggregation 
 |-----------|---|---|---|
 | **nbody** | Gravitational N-body simulation | Numeric computation, tight loops | Complete |
 | **shortest-path** | Weighted directed graph shortest-path | Priority queues, memory access | Complete |
-| **aggregation** | CSV transaction record aggregation | Parsing, hash maps, sorting | Complete |
+| **aggregation** | In-memory CSV transaction aggregation | Hash maps, sorting | Complete |
 | **barrier-wave** | Parallel phases with barriers | Fan-out/fan-in, synchronization | 7/8 languages complete; LuaJIT excluded |
 | **word-frequency** | Word count and frequency sort | Hash maps, sorting, checksum | Complete |
 | **record-sorting** | Multi-key record sorting | Tie-breaking sort, checksum | Complete |

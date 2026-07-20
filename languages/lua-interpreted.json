@@ -1,0 +1,38 @@
+{
+  "$schema": "../schemas/language.schema.json",
+  "id": "lua-interpreted",
+  "name": "Lua 5.4 (Interpreted)",
+  "enabled": true,
+  "detect": {
+    "command": "C:\\Users\\isaac\\AppData\\Local\\Programs\\Lua\\bin\\lua.exe",
+    "arguments": ["-v"]
+  },
+  "build": {
+    "workingDirectory": "{implementationDir}",
+    "command": "C:\\Users\\isaac\\AppData\\Local\\Programs\\Lua\\bin\\lua.exe",
+    "arguments": ["-e", "do end"],
+    "artifact": "main.lua"
+  },
+  "run": {
+    "command": "C:\\Users\\isaac\\AppData\\Local\\Programs\\Lua\\bin\\lua.exe",
+    "arguments": [
+      "{artifact}",
+      "--input",
+      "{inputFile}",
+      "--output",
+      "{outputFile}",
+      "--timing-output",
+      "{timingOutputFile}",
+      "--warmup",
+      "{warmupIterations}",
+      "--min-iterations",
+      "{minMeasuredIterations}",
+      "--max-iterations",
+      "{maxMeasuredIterations}",
+      "--target-relative-ci",
+      "{targetRelativeConfidenceInterval}"
+    ]
+  },
+  "environment": {},
+  "sourceExtensions": [".lua"]
+}

@@ -3,7 +3,7 @@
   "id": "aggregation",
   "name": "Structured-data aggregation",
   "version": 1,
-  "description": "CSV-style record aggregation exercising parsing, allocation, hash maps, sorting, and garbage collection.",
+  "description": "In-memory transaction aggregation over CSV input exercising hash maps, sorting, checksums, and garbage collection. CSV parsing happens before the timed kernel.",
   "inputFormat": "csv",
   "outputFormat": "json",
   "checker": {

@@ -16,23 +16,25 @@ The execution fingerprint (`fingerprintCell`) includes:
 2. **Benchmark manifest** — `benchmarks/<benchmark>/benchmark.json`
 3. **Dataset** — path from `sizes.<size>.dataset` under `benchmarks/<benchmark>/datasets/` (may be `.json`, `.csv`, or another extension)
 4. **Metrics registry** — `cli/src/metrics.ts`
-5. **All implementation source files** — `benchmarks/<benchmark>/implementations/<language>/` (recursive, excluding `node_modules`, `target`, `dist`, `build`, `__pycache__`, `.arena`)
-6. **All checker source files** — `checker/` (recursive)
-7. **Configuration metadata** — JSON object including:
+5. **Timing validation module** — `cli/src/timing.ts`
+6. **All implementation source files** — `benchmarks/<benchmark>/implementations/<language>/` (recursive, excluding `node_modules`, `target`, `dist`, `build`, `__pycache__`, `.arena`)
+7. **All checker source files** — `checker/` (recursive)
+8. **Configuration metadata** — JSON object including:
    - `benchmarkVersion`
-   - `measurementContractVersion` (`"1.0.0"`)
+   - `measurementContractVersion` (`"1.1.0"`)
    - `size`
-   - `warmups` / `iterations`
+   - `mutation`
+   - `warmups` / `measurement` (the full measurement policy object)
    - `metrics`
    - `toolchainVersion` / `compilerVersion`
 
 ## How it Works
 
 ```
-fingerprintCell(language, benchmark, size, toolchainVersion, compilerVersion, warmups, iterations)
-  → SHA-256(languageManifest + benchmarkManifest + dataset + metricsRegistry
+fingerprintCell(language, benchmark, size, mutation, datasetFile, toolchainVersion, compilerVersion, warmups, measurement)
+  → SHA-256(languageManifest + benchmarkManifest + dataset + metricsRegistry + timingModule
             + implementationSourceTree + checkerSourceTree
-            + JSON({benchmarkVersion, measurementContractVersion: "1.0.0", size, warmups, iterations, metrics, toolchainVersion, compilerVersion}))
+            + JSON({benchmarkVersion, measurementContractVersion: "1.1.0", size, mutation, warmups, measurement, metrics, toolchainVersion, compilerVersion}))
 ```
 
 ## Build Cache Fingerprint

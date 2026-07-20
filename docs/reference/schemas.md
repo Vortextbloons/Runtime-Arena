@@ -49,7 +49,7 @@ Validates language manifests (`languages/*.json`).
 
 **Build command** additionally requires `workingDirectory`.
 
-**Template variables:** `{projectRoot}`, `{benchmarkId}`, `{benchmarkDir}`, `{implementationDir}`, `{artifact}`, `{inputFile}`, `{outputFile}`, `{timingOutputFile}`, `{warmupIterations}`, `{measuredIterations}`, `{runId}`, `{size}`
+**Template variables:** `{projectRoot}`, `{benchmarkId}`, `{benchmarkDir}`, `{implementationDir}`, `{artifact}`, `{inputFile}`, `{outputFile}`, `{timingOutputFile}`, `{warmupIterations}`, `{minMeasuredIterations}`, `{maxMeasuredIterations}`, `{targetRelativeConfidenceInterval}`, `{runId}`, `{size}`
 
 ## result.schema.json
 
@@ -68,9 +68,9 @@ Each result is required to contain:
 - `dataset` — id and sha256 are required; seed, generatorVersion, and mutation are optional but present in practice
 - `language` — id, name, version; compilerVersion and compilerFlags are optional
 - `build` — status, durationNanoseconds, command; artifactSizeBytes is optional
-- `execution` — mode (always `"persistent-worker"`), measurementContractVersion (`"1.0.0"`), totalProcessDurationNanoseconds, warmupIterations, measuredIterations, samples, summary (includes `validSamples`, `rejectedSamples`, `medianKernelTimeNanoseconds`, `meanKernelTimeNanoseconds`, `minimumKernelTimeNanoseconds`, `maximumKernelTimeNanoseconds`, `standardDeviationKernelTimeNanoseconds`, `p95KernelTimeNanoseconds`, `interquartileRangeKernelTimeNanoseconds`), metrics
+- `execution` — mode (always `"persistent-worker"`), measurementContractVersion (`"1.1.0"`), totalProcessDurationNanoseconds, warmupIterations, measuredIterations, samples, summary (includes `validSamples`, `rejectedSamples`, `medianKernelTimeNanoseconds`, `meanKernelTimeNanoseconds`, `minimumKernelTimeNanoseconds`, `maximumKernelTimeNanoseconds`, `standardDeviationKernelTimeNanoseconds`, `p95KernelTimeNanoseconds`, `interquartileRangeKernelTimeNanoseconds`), metrics
 - `checker` — language, version, status (enum: accepted / wrong-answer / malformed-output / unsupported-version / checker-error), diagnostics (optional)
-- `provenance` — fingerprint (sha256 hex), measurementContractVersion (`"1.0.0"`), measuredAt, machine (os, cpu, memoryBytes)
+- `provenance` — fingerprint (sha256 hex), measurementContractVersion (`"1.1.0"`), measuredAt, machine (os, cpu, memoryBytes)
 
 ## implementation-output.schema.json
 

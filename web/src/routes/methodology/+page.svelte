@@ -27,7 +27,7 @@
 			<h2>Weighted overall score</h2>
 			<p>
 				Scores weight geometric-mean speed at 75% and flexibility at 25%. Earned badges can raise the overall rating but never lower it.
-				Stability is shown for diagnostics only. Tiers below the 1 ms timing floor are excluded for every language.
+				Stability is shown for diagnostics only. All accepted size tiers with valid samples are ranked.
 			</p>
 		</article>
 	</div>

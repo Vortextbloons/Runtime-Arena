@@ -10,9 +10,8 @@ const LANGUAGE_IDS = ['cpp', 'go', 'javascript', 'lua', 'python', 'rust', 'types
 const LANG_LABEL = { cpp: 'C++', go: 'Go', javascript: 'JS', lua: 'LuaJIT', python: 'Python', rust: 'Rust', typescript: 'TS' };
 const SIZE_ORDER = ['small', 'medium', 'large'];
 const PERF_EXPONENT = 0.65;
-const PERF_FLOOR = 5;
+const PERF_FLOOR = 0.1;
 const SCORE_WEIGHTS = { performance: 0.75, versatility: 0.25 };
-const MINIMUM_RANKED_MEDIAN_NS = 1_000_000;
 
 // ── Scoring helpers ──────────────────────────────────
 const geometricMean = (values) =>
@@ -77,7 +76,7 @@ function scoreBenchmark(benchmarkId) {
         .map(r => r.execution.summary.medianKernelTimeNanoseconds)
         .filter(m => Number.isFinite(m) && m > 0);
       const fastest = medians.length ? Math.min(...medians) : 0;
-      if (fastest >= MINIMUM_RANKED_MEDIAN_NS) fastestByVariant[key] = fastest;
+      if (fastest > 0) fastestByVariant[key] = fastest;
     }
   }
 

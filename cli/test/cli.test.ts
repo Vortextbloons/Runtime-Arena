@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 function arena(...args: string[]) {
   return spawnSync(process.execPath, ["--import", "tsx", "cli/src/index.ts", ...args], {
-    cwd: root, encoding: "utf8", windowsHide: true
+    cwd: root, encoding: "utf8", windowsHide: true, maxBuffer: 16 * 1024 * 1024
   });
 }
 

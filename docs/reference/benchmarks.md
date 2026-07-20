@@ -1,16 +1,16 @@
 # Benchmarks Reference
 
-Runtime Arena currently defines seven benchmark workloads. The original workloads are implemented across the supported languages, including Java; LuaJIT remains unavailable for barrier-wave because it has no native threading. The three newer workloads now also include Java implementations alongside their existing contracts, fixtures, generation, and checker support.
+Runtime Arena currently defines seven benchmark workloads, each with implementations in all eight supported languages (Rust, C++, Go, Java, TypeScript, JavaScript, LuaJIT, and Python). The sole exception is barrier-wave, where LuaJIT is excluded because it has no native threading. All workloads have contracts, fixtures, dataset generation, checker support, and complete benchmark results.
 
 | Benchmark | Status | Stresses |
 |-----------|--------|----------|
 | `nbody` | Complete (8 languages) | Numeric computation, tight loops |
 | `shortest-path` | Complete (8 languages) | Priority queues, graph traversal |
-| `aggregation` | Complete (8 languages) | Hash map aggregation, sorting, checksum |
-| `barrier-wave` | 7 languages implemented (LuaJIT pending) | Structured parallel concurrency, barriers |
-| `word-frequency` | Definition ready; implementations pending | String hashing, hash maps, ranking |
-| `record-sorting` | Definition ready; implementations pending | Multi-field sorting, comparator and struct access |
-| `matrix-multiplication` | Definition ready; implementations pending | Numeric loops, memory layout, cache locality |
+| `aggregation` | Complete (8 languages) | In-memory hash map aggregation, sorting, checksum |
+| `barrier-wave` | Complete (7 languages; LuaJIT excluded) | Structured parallel concurrency, barriers |
+| `word-frequency` | Complete (8 languages) | String hashing, hash maps, ranking |
+| `record-sorting` | Complete (8 languages) | Multi-field sorting, comparator and struct access |
+| `matrix-multiplication` | Complete (8 languages) | Numeric loops, memory layout, cache locality |
 
 Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md`.
 
@@ -42,7 +42,7 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 
 ## aggregation
 
-**Workload:** CSV transaction record aggregation.
+**Workload:** In-memory CSV transaction record aggregation (CSV is parsed before the timed kernel).
 
 **Input:** CSV with columns `timestamp`, `account_id`, `category`, `quantity`, `unit_price` (dataset file is typically `*.csv`, not JSON).
 
@@ -50,7 +50,7 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 
 **Stresses:** Hash map aggregation, sorting, and checksum computation over pre-parsed rows.
 
-**Algorithm:** Parse CSV, aggregate by category and account, sort categories alphabetically, sort accounts by value descending (top 10), compute SHA-256 checksum.
+**Algorithm:** Parse CSV before timing, then aggregate by category and account inside the timed kernel, sort categories alphabetically, sort accounts by value descending (top 10), compute SHA-256 checksum.
 
 ## barrier-wave
 
@@ -110,19 +110,19 @@ Four benchmarks use **mutations** — multiple dataset variants per size that st
 
 | Benchmark | Mutations | Data per size |
 |-----------|-----------|---------------|
-| shortest-path | `sparse`, `dense` | 400/300/600 vertices, edge count varies by mutation |
+| shortest-path | `sparse`, `dense` | 400/500/600 vertices, 120/110/180 queries; edge count varies by mutation |
 | word-frequency | `repeated-vocabulary`, `mostly-unique` | 50k/50k/200k total words, 3,421/3,421/8,421 unique |
 | record-sorting | `random`, `mostly-sorted` | 20k/100k/500k records, sorting difficulty varies |
 | matrix-multiplication | `row-major`, `column-major` | 128×128 / 256×256 / 512×512 dimensions |
 
-Mutation generators use `generatorVersion "2.1.0"` and produce a `mutation` field in the result's `benchmark` and `dataset` objects. Non-mutation benchmarks continue to use `generatorVersion "2.0.0"`. The cell key format for mutation cells is `benchmark/size/mutation/language`.
+Mutation generators use `generatorVersion "2.1.0"` and produce a `mutation` field in the result's `benchmark` and `dataset` objects. Non-mutation benchmarks use `generatorVersion "committed-fixture-1.0.0"` in result records (the datasets are pre-committed fixtures). When regenerating a dataset via `arena dataset generate`, non-mutation benchmarks write `generatorVersion "2.0.0"` in the dataset metadata. The cell key format for mutation cells is `benchmark/size/mutation/language`.
 
 ## Dataset Sizes
 
 | Size | N-body | Shortest path (per size) | Aggregation | Barrier Wave |
 |------|--------|--------------------------|-------------|--------------|
 | small | 12 bodies × 10,000 steps (2 / 5) | 400 vertices × 120 queries (2 / 5) | 100,000 records (2 / 5) | 2 workers × 1,500 phases × 64 items (2 / 5) |
-| medium | 7 bodies × 25,000 steps (2 / 3) | 300 vertices × 90 queries (2 / 3) | 120,000 records (2 / 3) | 4 workers × 250 phases × 1,024 items (2 / 3) |
-| large | 8 bodies × 50,000 steps (2 / 3) | 600 vertices × 180 queries (2 / 3) | 200,000 records (2 / 3) | 8 workers × 100 phases × 8,192 items (2 / 3) |
+| medium | 10 bodies × 18,000 steps (2 / 10) | 500 vertices × 110 queries (2 / 10) | 120,000 records (2 / 10) | 4 workers × 250 phases × 1,024 items (2 / 10) |
+| large | 12 bodies × 40,000 steps (2 / 10) | 600 vertices × 180 queries (2 / 10) | 200,000 records (2 / 10) | 8 workers × 100 phases × 8,192 items (2 / 10) |
 
 Warmup and measured iteration counts come from each benchmark's `benchmark.json` size entries (not only `arena.config.json` defaults). All datasets are deterministic from a seed. Regenerating via `arena dataset generate` writes metadata with the applicable `generatorVersion`.

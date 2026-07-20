@@ -76,7 +76,7 @@
 				{#if score.eligible}
 					<div class="formula">
 						<p><strong>Formula</strong> Geometric mean of fastest median ÷ this median. Stability and flexibility do not affect rank.</p>
-						<p><strong>Cohort</strong> {formatBenchmarkLabel(score.benchmarkId)} · {score.expectedSizes.join(', ')} · accepted tiers whose fastest median is at least 1 ms</p>
+						<p><strong>Cohort</strong> {formatBenchmarkLabel(score.benchmarkId)} · {score.expectedSizes.join(', ')} · accepted tiers with complete valid samples</p>
 					</div>
 					{#if score.benchmarks}
 						<div class="size-table">

@@ -19,6 +19,7 @@
 		javascript: '#f7df1e',
 		typescript: '#3178c6',
 		lua: '#2554C7',
+		'lua-interpreted': '#3d8b37',
 		python: '#f0c040',
 		cpp: '#6366f1'
 	};

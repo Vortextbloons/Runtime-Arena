@@ -15,6 +15,11 @@
     "maxMeasuredIterations": 30,
     "targetRelativeConfidenceInterval": 0.05
   },
+  "warmupOverrides": {
+    "java": 10,
+    "javascript": 8,
+    "typescript": 8
+  },
   "execution": {
     "parallelism": 2,
     "preserveTemporaryFiles": false

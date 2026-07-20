@@ -7,7 +7,7 @@ Aggregate CSV transaction records using integer minor currency units.
 - Hash map aggregation
 - Sorting
 - Checksum computation
-- General data processing over pre-parsed rows
+- In-memory data processing over rows parsed before timing
 
 ## Input
 

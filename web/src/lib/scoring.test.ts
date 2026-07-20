@@ -180,13 +180,14 @@ test('overall stays unranked when every benchmark is ineligible', () => {
 	assert.equal(broken?.overall, null);
 });
 
-test('an entire sub-millisecond size tier is excluded from every language score', () => {
+test('sub-millisecond medians remain eligible for ranking', () => {
 	const scores = scoreBenchmark([
 		result('fast', 'small', 500_000),
 		result('slow', 'small', 2_000_000),
 		result('fast', 'large', 2_000_000),
 		result('slow', 'large', 4_000_000)
 	], 'work');
-	assert.deepEqual(scores[0]?.expectedSizes, ['large']);
-	assert.equal(scores.find((score) => score.language.id === 'slow')?.performance, 63.728031366);
+	assert.deepEqual(scores[0]?.expectedSizes, ['small', 'large']);
+	const slow = scores.find((score) => score.language.id === 'slow');
+	assert.ok(slow?.performance && slow.performance < 64 && slow.performance > 50);
 });

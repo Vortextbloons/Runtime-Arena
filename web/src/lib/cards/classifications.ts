@@ -48,6 +48,12 @@ const CATALOG: Record<string, LanguageClassification> = {
 		executionModels: ['JIT', 'Interpreted'],
 		roles: ['Scripting', 'Embedded'],
 		memoryModels: ['Garbage Collected']
+	},
+	'lua-interpreted': {
+		languageId: 'lua-interpreted',
+		executionModels: ['Interpreted'],
+		roles: ['Scripting', 'Embedded'],
+		memoryModels: ['Garbage Collected']
 	}
 };
 

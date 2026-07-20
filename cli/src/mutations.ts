@@ -5,7 +5,7 @@ export const MUTATION_BENCHMARKS = new Set([
   "matrix-multiplication"
 ]);
 
-export const GENERATOR_VERSION = "2.1.0";
+export const GENERATOR_VERSION = "2.2.0";
 
 export type MutationEntry = { dataset: string; seed: number };
 export type SizeConfig = {
@@ -95,8 +95,8 @@ function generateRecordSorting(sizeName: string, mutation: string, random: () =>
 }
 
 function generateShortestPath(sizeName: string, mutation: string, random: () => number): string {
-  const vertexCount = { small: 400, medium: 300, large: 600 }[sizeName];
-  const queryCount = { small: 120, medium: 90, large: 180 }[sizeName];
+  const vertexCount = { small: 400, medium: 500, large: 600 }[sizeName];
+  const queryCount = { small: 120, medium: 110, large: 180 }[sizeName];
   if (!vertexCount || !queryCount) throw new Error(`No shortest-path generation profile for size '${sizeName}'`);
   const targetEdges = mutation === "dense"
     ? vertexCount * 8

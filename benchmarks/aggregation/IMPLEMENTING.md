@@ -2,7 +2,8 @@
 
 ## Overview
 
-Aggregate CSV transaction records. Parse rows, compute totals, group by
+Aggregate CSV transaction records. **Read and parse the CSV once before timing**;
+the timed kernel aggregates already-parsed rows. Compute totals, group by
 category, rank accounts, and produce a deterministic checksum.
 
 **Design philosophy:** Implementations must produce output accepted by the
@@ -15,8 +16,8 @@ source of truth for correctness.
 Your program must:
 
 1. Accept `--input <file>` and `--output <file>` arguments.
-2. Read the input CSV file.
-3. Compute all aggregations.
+2. Read and parse the input CSV file **before** warmup and measurement.
+3. Compute all aggregations inside the timed kernel over parsed rows.
 4. Write exactly one JSON result file to the output path.
 5. Exit with code `0` on success. Exit nonzero on failure.
 6. Write logs only to stderr. Never print result data to stdout.

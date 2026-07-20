@@ -17,8 +17,18 @@ Root runner configuration at the repository root.
     "measuredIterations": 10,
     "metrics": ["kernelTime"]
   },
+  "measurement": {
+    "minMeasuredIterations": 10,
+    "maxMeasuredIterations": 30,
+    "targetRelativeConfidenceInterval": 0.05
+  },
+  "warmupOverrides": {
+    "java": 10,
+    "javascript": 8,
+    "typescript": 8
+  },
   "execution": {
-    "parallelism": 1,
+    "parallelism": 2,
     "preserveTemporaryFiles": false
   }
 }
@@ -34,6 +44,10 @@ Root runner configuration at the repository root.
 | `defaults.warmupIterations` | Default warmup iterations (discarded) |
 | `defaults.measuredIterations` | Default measured iterations |
 | `defaults.metrics` | Default metrics to record |
+| `measurement.minMeasuredIterations` | Minimum iterations per cell (also the fixed count when `--iterations` is used) |
+| `measurement.maxMeasuredIterations` | Maximum iterations for adaptive measurement (default 30) |
+| `measurement.targetRelativeConfidenceInterval` | Target CI width (default 0.05). Set to 0 for fixed-iteration mode |
+| `warmupOverrides` | Optional per-language minimum warmup iteration floors (applied with `max(benchmark warmup, override)` unless `--warmup` is set explicitly) |
 | `execution.parallelism` | Number of cells to run concurrently (default: `1`). Override with `--parallel` flag |
 | `execution.preserveTemporaryFiles` | **Present in config but unused** — use CLI flag `--preserve-temp` instead |
 
@@ -74,16 +88,22 @@ Each language has a manifest defining detection, build, and run commands. The pr
 Note: Go's build manifest uses `".arena/{benchmarkId}"` as its artifact path to avoid polluting the implementation directory.
 
 **Template Variables:**
+
+Available in both `build` and `run`:
 - `{projectRoot}` — Repository root
 - `{benchmarkId}` — Benchmark identifier (e.g., `nbody`)
 - `{benchmarkDir}` — Benchmark directory path
 - `{implementationDir}` — Implementation directory path
 - `{artifact}` — Built binary path
+
+Available only in `run`:
 - `{inputFile}` — Input dataset file
 - `{outputFile}` — Output file path
 - `{timingOutputFile}` — Timing output file path (used by persistent-worker contract)
 - `{warmupIterations}` — Number of warmup iterations (integer)
-- `{measuredIterations}` — Number of measured iterations (integer)
+- `{minMeasuredIterations}` — Minimum measured iterations (integer; see `measurement` config)
+- `{maxMeasuredIterations}` — Maximum measured iterations (integer; see `measurement` config)
+- `{targetRelativeConfidenceInterval}` — Target confidence interval width (number; e.g. `0.05`)
 - `{runId}` — Run snapshot ID
 - `{size}` — Dataset size name
 

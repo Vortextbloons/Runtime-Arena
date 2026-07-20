@@ -37,8 +37,15 @@ const config = JSON.parse(await readFile(path.join(root, "arena.config.json"), "
   benchmarkDirectory: string; languageDirectory: string; resultDirectory: string; checkerExecutable: string;
   defaults: { sizes: string[]; warmupIterations: number; measuredIterations: number; metrics: string[] };
   measurement?: { minMeasuredIterations?: number; maxMeasuredIterations?: number; targetRelativeConfidenceInterval?: number };
+  warmupOverrides?: Record<string, number>;
   execution: { parallelism: number; preserveTemporaryFiles: boolean };
 };
+
+function resolveWarmupIterations(cellWarmups: number, languageId: string, flagOverride?: string) {
+  if (flagOverride !== undefined) return Number(flagOverride);
+  const languageFloor = config.warmupOverrides?.[languageId] ?? 0;
+  return Math.max(cellWarmups, languageFloor);
+}
 
 const MEASUREMENT_CONTRACT_VERSION = "1.1.0";
 
@@ -129,7 +136,7 @@ function parseFlags(args: string[]) {
     else {
       const value = args[++i];
       if (!value) throw new Error(`Missing value for ${key}`);
-      const normalized = key === "-l" ? "--language" : key === "-b" ? "--benchmark" : key;
+      const normalized = key === "-l" || key === "--languages" ? "--language" : key === "-b" || key === "--benchmarks" ? "--benchmark" : key;
       values.set(normalized, [...(values.get(normalized) ?? []), value]);
     }
   }
@@ -478,7 +485,7 @@ async function runCommand(args: string[]) {
             missingImplementationCells.set(missingKey, (missingImplementationCells.get(missingKey) ?? 0) + 1);
             continue;
           }
-          const warmups = Number(flags.get("--warmup") ?? cell.warmupIterations);
+          const warmups = resolveWarmupIterations(cell.warmupIterations, language.id, flags.get("--warmup"));
           const measurement = resolveMeasurementPolicy(flags, cell.measuredIterations);
           const fingerprint = await fingerprintCell(
             language, benchmark, sizeName, cell.mutation, cell.dataset, version, compilerVersion, warmups, measurement, runnerCache
@@ -775,7 +782,7 @@ async function resultsStatus(args: string[]) {
           rows.push({ key, status: "unavailable", detail: "toolchain missing or unsupported" });
           continue;
         }
-        const warmups = Number(flags.get("--warmup") ?? cell.warmupIterations);
+        const warmups = resolveWarmupIterations(cell.warmupIterations, language.id, flags.get("--warmup"));
         const measurement = resolveMeasurementPolicy(flags, cell.measuredIterations);
         const fingerprint = await fingerprintCell(
           language, benchmark, sizeName, cell.mutation, cell.dataset, version, compilerVersion, warmups, measurement, runnerCache
@@ -887,8 +894,8 @@ async function datasetCommand(args: string[]) {
     if (benchmarkId === "nbody") {
       const profile = {
         small: { bodies: 12, steps: 10_000 },
-        medium: { bodies: 7, steps: 25_000 },
-        large: { bodies: 8, steps: 50_000 }
+        medium: { bodies: 10, steps: 18_000 },
+        large: { bodies: 12, steps: 40_000 }
       }[sizeName];
       if (!profile) throw new Error(`No nbody generation profile for size '${sizeName}'`);
       const bodies = Array.from({ length: profile.bodies }, (_, index) => {
@@ -927,7 +934,7 @@ async function datasetCommand(args: string[]) {
     size: sizeName,
     ...(mutation ? { mutation } : {}),
     seed,
-    generatorVersion: mutation ? GENERATOR_VERSION : "2.0.0",
+    generatorVersion: GENERATOR_VERSION,
     sha256
   });
   console.log(`Generated ${path.relative(root, destination)}\nSHA-256 ${sha256}`);

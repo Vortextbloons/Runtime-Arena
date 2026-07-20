@@ -24,7 +24,7 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 ## Execution Model
 
-**Persistent-worker mode**: Each (benchmark, size, language) cell runs in one process. The CLI passes `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations`; the implementation discards warmup work and records only measured kernel samples via `--timing-output`. Full contract: [execution-model.md](execution-model.md).
+**Persistent-worker mode**: Each (benchmark, size, language) cell runs in one process. The CLI passes `--input`, `--output`, `--timing-output`, `--warmup`, `--min-iterations`, `--max-iterations`, and `--target-relative-ci`; the implementation discards warmup work and records only measured kernel samples via `--timing-output`. Full contract: [execution-model.md](execution-model.md).
 
 **Fingerprinting**: A SHA-256 hash of all source files, manifests, datasets, checker code, toolchain version, and compiler version determines if a cell is "current" or "stale". `arena run` only re-executes cells whose fingerprint has changed.
 
@@ -39,10 +39,10 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 3. For each (benchmark, size, language) cell:
    - Build the implementation using language-specific commands (cached via `.arena/build-cache/<buildFingerprint>/`)
    - Copy the dataset input to an isolated directory under `.arena/runs/` and make it read-only (`chmod 0o444`)
-   - Spawn one persistent worker with `--input`, `--output`, `--timing-output`, `--warmup`, and `--iterations`
+   - Spawn one persistent worker with `--input`, `--output`, `--timing-output`, `--warmup`, `--min-iterations`, `--max-iterations`, and `--target-relative-ci`
    - Check output size against `maxOutputBytes` limit before invoking the checker
    - Validate output with the Go checker via `checkOutput()`
-   - Parse and validate timing samples via `readTimingSamples()` (checks 1-indexed sequential iteration, safe integers, exact count)
+   - Parse and validate timing samples via `readTimingSamples()` (checks 1-indexed sequential iteration, safe integers, count within measurement policy bounds)
    - Record metric availability via `metricAvailability()`
    - Record result with provenance (fingerprint, machine info)
    - Validate the full snapshot against `result.schema.json` before writing

@@ -54,7 +54,10 @@ npm run arena -- run --output out.json
 - `--size` — Filter by size (small/medium/large)
 - `--mutation` — Filter by mutation variant (e.g. `sparse`, `dense`, `random`, `mostly-sorted`, `repeated-vocabulary`, `mostly-unique`, `row-major`, `column-major`)
 - `--warmup` — Override warmup iterations
-- `--iterations` — Override measured iterations
+- `--iterations` — Set a fixed number of measured iterations (disables adaptive measurement)
+- `--min-iterations` — Minimum measured iterations for adaptive measurement (default from `measurement.minMeasuredIterations`)
+- `--max-iterations` — Maximum measured iterations for adaptive measurement (default from `measurement.maxMeasuredIterations`)
+- `--target-ci` — Target relative confidence interval width (default from `measurement.targetRelativeConfidenceInterval`; set to `0` for fixed-iteration mode)
 - `--force` — Force re-run even if fingerprint matches
 - `--all` — With `--force`, re-run all cells
 - `--parallel` — Use all CPU cores (overrides `execution.parallelism` in config)
@@ -127,7 +130,7 @@ The `results/current.json` snapshot contains:
       "build": { "status": "success", "durationNanoseconds": 0, "artifactSizeBytes": 0, "command": [...] },
       "execution": {
         "mode": "persistent-worker",
-        "measurementContractVersion": "1.0.0",
+        "measurementContractVersion": "1.1.0",
         "warmupIterations": 1,
         "measuredIterations": 5,
         "samples": [...],
@@ -135,7 +138,7 @@ The `results/current.json` snapshot contains:
         "metrics": { "kernelTime": { "status": "available", "unit": "nanoseconds" } }
       },
       "checker": { "language": "go", "version": "1.0.0", "status": "accepted", "diagnostics": [] },
-      "provenance": { "fingerprint": "...", "measurementContractVersion": "1.0.0", "measuredAt": "...", "machine": { "operatingSystem": {...}, "cpu": {...}, "memoryBytes": 0 } }
+      "provenance": { "fingerprint": "...", "measurementContractVersion": "1.1.0", "measuredAt": "...", "machine": { "operatingSystem": {...}, "cpu": {...}, "memoryBytes": 0 } }
     }
   ]
 }
