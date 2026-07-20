@@ -69,13 +69,17 @@ async function sha256File(file: string, cache?: RunnerCache) {
 
 async function hashTree(directory: string, hash: ReturnType<typeof createHash>, root: string, cache?: RunnerCache) {
   if (!await exists(directory)) return;
+  if (cache) {
+    await cache.appendTreeHash(directory, hash, root);
+    return;
+  }
   for (const entry of (await readdir(directory, { withFileTypes: true })).sort((left, right) => left.name.localeCompare(right.name))) {
     if (["node_modules", "target", "dist", "build", "__pycache__", ".arena"].includes(entry.name)) continue;
     const file = path.join(directory, entry.name);
     if (entry.isDirectory()) await hashTree(file, hash, root, cache);
     else if (!entry.name.endsWith(".exe") && !entry.name.endsWith(".pyc")) {
       hash.update(path.relative(root, file).replaceAll("\\", "/"));
-      hash.update(cache ? await cache.readFile(file) : await readFile(file));
+      hash.update(await readFile(file));
     }
   }
 }

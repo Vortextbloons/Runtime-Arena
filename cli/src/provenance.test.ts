@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { isSourceArtifact, restoreCachedArtifact, storeCachedArtifact } from "./provenance.js";
+import { fingerprintCell, isSourceArtifact, restoreCachedArtifact, storeCachedArtifact } from "./provenance.js";
+import { RunnerCache } from "./runner-cache.js";
 
 test("isSourceArtifact detects implementation-root source files", () => {
   const implementationDir = path.join("/repo", "benchmarks", "nbody", "implementations", "javascript");
@@ -87,4 +88,45 @@ test("corrupted cache manifests are treated as cache misses", async () => {
   });
 
   assert.equal(restored, false);
+});
+
+test("cached tree hashing preserves cell fingerprints", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "arena-fingerprint-"));
+  try {
+    const implementationDir = path.join(root, "implementation");
+    const checkerDir = path.join(root, "checker");
+    await mkdir(implementationDir);
+    await mkdir(checkerDir);
+    await writeFile(path.join(implementationDir, "main.ts"), "export const value = 1;\n");
+    await writeFile(path.join(checkerDir, "main.go"), "package main\n");
+
+    const files = ["language.json", "benchmark.json", "dataset.json", "metrics.ts", "protocol.ts", "timing.ts"];
+    await Promise.all(files.map(file => writeFile(path.join(root, file), `${file}\n`)));
+    const buildProvenance = {
+      executables: {}, versions: {}, target: "test", compilerFlags: [], environment: {}, inputHashes: {},
+      inputAggregateHash: "a".repeat(64), buildFingerprint: "b".repeat(64)
+    };
+    const options = {
+      root,
+      languageManifestPath: path.join(root, "language.json"),
+      benchmarkManifestPath: path.join(root, "benchmark.json"),
+      datasetPath: path.join(root, "dataset.json"),
+      implementationDir,
+      checkerDir,
+      metricsPath: path.join(root, "metrics.ts"),
+      protocolPath: path.join(root, "protocol.ts"),
+      timingPath: path.join(root, "timing.ts"),
+      metadata: { size: "small" },
+      buildProvenance
+    };
+
+    const uncached = await fingerprintCell(options);
+    const cache = new RunnerCache(root);
+    const cached = await fingerprintCell({ ...options, cache });
+    const cachedAgain = await fingerprintCell({ ...options, cache });
+    assert.equal(cached, uncached);
+    assert.equal(cachedAgain, uncached);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });

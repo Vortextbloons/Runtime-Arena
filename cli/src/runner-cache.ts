@@ -11,6 +11,7 @@ async function pathExists(file: string) {
 export class RunnerCache {
   private readonly fileBytes = new Map<string, Buffer>();
   private readonly datasetHashes = new Map<string, string>();
+  private readonly treeBytes = new Map<string, Buffer>();
 
   constructor(private readonly root: string) {}
 
@@ -28,17 +29,29 @@ export class RunnerCache {
     return this.datasetHashes.get(key)!;
   }
 
-  async appendTreeHash(directory: string, hash: ReturnType<typeof createHash>) {
-    if (!await pathExists(directory)) return;
+  private async collectTreeBytes(directory: string, relativeRoot: string, chunks: Buffer[]) {
     for (const entry of (await readdir(directory, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
       if (SKIP_DIRS.has(entry.name)) continue;
       const file = path.join(directory, entry.name);
-      if (entry.isDirectory()) await this.appendTreeHash(file, hash);
+      if (entry.isDirectory()) await this.collectTreeBytes(file, relativeRoot, chunks);
       else if (!entry.name.endsWith(".exe") && !entry.name.endsWith(".pyc")) {
-        hash.update(path.relative(this.root, file).replaceAll("\\", "/"));
-        hash.update(await this.readFile(file));
+        chunks.push(Buffer.from(path.relative(relativeRoot, file).replaceAll("\\", "/")));
+        chunks.push(await this.readFile(file));
       }
     }
+  }
+
+  async appendTreeHash(directory: string, hash: ReturnType<typeof createHash>, relativeRoot = this.root) {
+    if (!await pathExists(directory)) return;
+    const key = `${path.resolve(relativeRoot)}\0${path.resolve(directory)}`;
+    let bytes = this.treeBytes.get(key);
+    if (!bytes) {
+      const chunks: Buffer[] = [];
+      await this.collectTreeBytes(directory, relativeRoot, chunks);
+      bytes = Buffer.concat(chunks);
+      this.treeBytes.set(key, bytes);
+    }
+    hash.update(bytes);
   }
 }
 

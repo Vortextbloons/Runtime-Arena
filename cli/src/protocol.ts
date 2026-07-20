@@ -212,6 +212,8 @@ export async function runHarnessProtocol(options: {
     // Individual writes receive the same error through their callbacks.
   });
   const samples: HarnessSample[] = [];
+  const measuredSamples: HarnessSample[] = [];
+  const measuredTimes: number[] = [];
   let timedOut = false;
   let limitExceeded = false;
   let exitCode: number | null = null;
@@ -272,7 +274,8 @@ export async function runHarnessProtocol(options: {
       samples.push(sample);
       if (phase === "measured") {
         measuredCount += 1;
-        const measuredTimes = samples.filter(s => s.phase === "measured").map(s => s.iterationTimeNanoseconds);
+        measuredSamples.push(sample);
+        measuredTimes.push(sample.iterationTimeNanoseconds);
         if (shouldStopMeasuring(measuredTimes, options.measurement)) break;
       }
     }
@@ -302,7 +305,6 @@ export async function runHarnessProtocol(options: {
     }
   }
 
-  const measuredSamples = samples.filter(sample => sample.phase === "measured");
   const success = protocolCompleted && exitCode === 0 && !timedOut && !limitExceeded
     && measuredSamples.length >= (options.measurement.mode === "fixed"
       ? options.measurement.minMeasuredIterations

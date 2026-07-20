@@ -80,11 +80,14 @@ export function bootstrapMedianConfidenceInterval(samples: number[], resampleCou
   return { lower: percentile(medians, 0.025), upper: percentile(medians, 0.975), median };
 }
 
+function relativeIntervalWidth(interval: { lower: number; upper: number; median: number }) {
+  if (interval.median <= 0) return Number.POSITIVE_INFINITY;
+  return (interval.upper - interval.lower) / interval.median;
+}
+
 export function relativeMedianConfidenceIntervalWidth(samples: number[]) {
   if (samples.length < 2) return Number.POSITIVE_INFINITY;
-  const { lower, upper, median } = bootstrapMedianConfidenceInterval(samples);
-  if (median <= 0) return Number.POSITIVE_INFINITY;
-  return (upper - lower) / median;
+  return relativeIntervalWidth(bootstrapMedianConfidenceInterval(samples));
 }
 
 /** Legacy mean CI helper retained for historical tooling. */
@@ -102,9 +105,8 @@ export function shouldStopMeasuring(iterationTimes: number[], policy: Measuremen
   const count = iterationTimes.length;
   if (count >= policy.maxMeasuredIterations) return true;
   if (count < policy.minMeasuredIterations) return false;
-  const { median } = bootstrapMedianConfidenceInterval(iterationTimes);
-  if (median <= 0) return count >= policy.maxMeasuredIterations;
-  return relativeMedianConfidenceIntervalWidth(iterationTimes) <= policy.targetRelativeConfidenceInterval;
+  const interval = bootstrapMedianConfidenceInterval(iterationTimes);
+  return relativeIntervalWidth(interval) <= policy.targetRelativeConfidenceInterval;
 }
 
 /** Legacy sidecar reader for measurement contract 1.x results. */

@@ -177,9 +177,14 @@ function withLanguageEnvironment(language: Language): Language {
   };
 }
 
-async function detections() {
+async function detections(requestedLanguageIds: string[] = []) {
   const minima: Record<string, number[]> = { rust: [1, 97], go: [1, 26], typescript: [26, 4], python: [3, 8] };
-  return Promise.all((await discoverLanguages()).map(async raw => {
+  const discovered = await discoverLanguages();
+  requireKnownIds(requestedLanguageIds, discovered.map(language => language.id), "language");
+  const selected = requestedLanguageIds.length
+    ? discovered.filter(language => requestedLanguageIds.includes(language.id))
+    : discovered;
+  return Promise.all(selected.map(async raw => {
     const language = withLanguageEnvironment(raw);
     const detectCommand = language.id === "java" ? resolveJdkTool("javac") : language.detect.command;
     const p = await runProcess(detectCommand, language.detect.arguments, root, 30_000, language.environment);
@@ -245,6 +250,50 @@ async function fingerprintCell(
       compilerVersion
     }
   });
+}
+
+type BuildProvenance = Awaited<ReturnType<typeof collectBuildProvenance>>;
+
+function buildEnvironment(language: Language) {
+  return language.id === "go"
+    ? { ...language.environment, GOCACHE: path.join(root, ".arena", "go-build-cache") }
+    : language.environment;
+}
+
+function collectCellBuildProvenance(
+  memo: Map<string, Promise<BuildProvenance>>,
+  language: Language,
+  benchmark: Benchmark,
+  cache: RunnerCache
+) {
+  const key = `${benchmark.id}/${language.id}`;
+  let pending = memo.get(key);
+  if (!pending) {
+    const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
+    const vars = {
+      projectRoot: root,
+      benchmarkId: benchmark.id,
+      benchmarkDir: path.join(root, "benchmarks", benchmark.id),
+      implementationDir,
+      artifact: ""
+    };
+    const rawArtifact = expand(language.build.artifact, vars);
+    vars.artifact = path.resolve(implementationDir, process.platform === "win32" && !path.extname(rawArtifact) ? `${rawArtifact}.exe` : rawArtifact);
+    pending = collectBuildProvenance({
+      root,
+      languageId: language.id,
+      languageManifestPath: path.join(root, config.languageDirectory, `${language.id}.json`),
+      implementationDir,
+      benchmarkId: benchmark.id,
+      build: language.build,
+      environment: buildEnvironment(language),
+      provenance: language.provenance,
+      vars,
+      cache
+    });
+    memo.set(key, pending);
+  }
+  return pending;
 }
 
 async function readSnapshot(): Promise<Snapshot | null> {
@@ -318,7 +367,7 @@ function expand(value: string, vars: Record<string, string>) {
   });
 }
 
-async function buildOne(language: Language, benchmark: Benchmark, cache?: RunnerCache) {
+async function buildOne(language: Language, benchmark: Benchmark, cache?: RunnerCache, knownBuildProvenance?: BuildProvenance) {
   const implementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
   const command = [language.build.command, ...language.build.arguments];
   if (!await exists(implementationDir)) {
@@ -329,16 +378,16 @@ async function buildOne(language: Language, benchmark: Benchmark, cache?: Runner
   const artifact = path.resolve(implementationDir, process.platform === "win32" && !path.extname(rawArtifact) ? `${rawArtifact}.exe` : rawArtifact);
   vars.artifact = artifact;
   const cwd = path.resolve(root, expand(language.build.workingDirectory ?? "{implementationDir}", vars));
-  const buildEnv: Record<string, string> = language.id === "go" ? { GOCACHE: path.join(root, ".arena", "go-build-cache") } : {};
-  if (language.id === "go") await mkdir(buildEnv.GOCACHE!, { recursive: true });
-  const buildProvenance = await collectBuildProvenance({
+  const resolvedBuildEnvironment = buildEnvironment(language);
+  if (language.id === "go") await mkdir(resolvedBuildEnvironment.GOCACHE!, { recursive: true });
+  const buildProvenance = knownBuildProvenance ?? await collectBuildProvenance({
     root,
     languageId: language.id,
     languageManifestPath: path.join(root, config.languageDirectory, `${language.id}.json`),
     implementationDir,
     benchmarkId: benchmark.id,
     build: language.build,
-    environment: { ...language.environment, ...buildEnv },
+    environment: resolvedBuildEnvironment,
     provenance: language.provenance,
     vars,
     cache
@@ -361,7 +410,7 @@ async function buildOne(language: Language, benchmark: Benchmark, cache?: Runner
   }
 
   await mkdir(path.dirname(artifact), { recursive: true });
-  const proc = await runProcess(expand(language.build.command, vars), language.build.arguments.map(x => expand(x, vars)), cwd, 180_000, { ...language.environment, ...buildEnv });
+  const proc = await runProcess(expand(language.build.command, vars), language.build.arguments.map(x => expand(x, vars)), cwd, 180_000, resolvedBuildEnvironment);
   if (proc.code !== 0) {
     return {
       status: "failed" as const,
@@ -446,10 +495,9 @@ async function runCommand(args: string[]) {
   const format = flags.get("--format");
   if (format !== undefined && format !== "json") throw new Error("--format must be json");
   await ensureChecker();
-  const ds = await detections();
   const requestedLanguages = flags.all("--language");
   const requestedBenchmarks = flags.all("--benchmark");
-  requireKnownIds(requestedLanguages, ds.map(d => d.language.id), "language");
+  const ds = await detections(requestedLanguages);
   const selectedDetections = ds.filter(d => d.language.enabled && (!requestedLanguages.length || requestedLanguages.includes(d.language.id)));
   const languages = selectedDetections.filter(d => d.available);
   const unavailableToolchains = selectedDetections.filter(d => !d.available).map(d => d.language.id);
@@ -486,6 +534,7 @@ async function runCommand(args: string[]) {
   const missingImplementationCells = new Map<string, number>();
   const mutationFilter = flags.get("--mutation");
   const runnerCache = new RunnerCache(root);
+  const buildProvenanceMemo = new Map<string, Promise<BuildProvenance>>();
   const verbose = !flags.has("--quiet") && flags.get("--format") !== "json";
 
   for (const benchmark of benchmarks) {
@@ -506,25 +555,7 @@ async function runCommand(args: string[]) {
           }
           const warmups = resolveWarmupIterations(cell.warmupIterations, language.id, flags.get("--warmup"));
           const measurement = resolveMeasurementPolicy(flags, cell.measuredIterations);
-          const vars = {
-            projectRoot: root,
-            benchmarkId: benchmark.id,
-            benchmarkDir: path.join(root, "benchmarks", benchmark.id),
-            implementationDir,
-            artifact: ""
-          };
-          const buildProvenance = await collectBuildProvenance({
-            root,
-            languageId: language.id,
-            languageManifestPath: path.join(root, config.languageDirectory, `${language.id}.json`),
-            implementationDir,
-            benchmarkId: benchmark.id,
-            build: language.build,
-            environment: language.environment,
-            provenance: language.provenance,
-            vars,
-            cache: runnerCache
-          });
+          const buildProvenance = await collectCellBuildProvenance(buildProvenanceMemo, language, benchmark, runnerCache);
           const fingerprint = await fingerprintCell(
             language, benchmark, sizeName, cell.mutation, cell.dataset, version, compilerVersion, warmups, measurement, buildProvenance, runnerCache
           );
@@ -568,7 +599,8 @@ async function runCommand(args: string[]) {
     staleCells.map(cell => [`${cell.benchmark.id}/${cell.language.id}`, { language: cell.language, benchmark: cell.benchmark }])
   ).values()];
   await runPool(buildTargets, Math.min(parallelism, buildTargets.length || 1), async ({ language, benchmark }) => {
-    const built = await buildOne(language, benchmark, runnerCache);
+    const buildProvenance = await collectCellBuildProvenance(buildProvenanceMemo, language, benchmark, runnerCache);
+    const built = await buildOne(language, benchmark, runnerCache, buildProvenance);
     builds.set(`${benchmark.id}/${language.id}`, built);
     if (built.status === "failed" && verbose) {
       console.log(`Build failed for ${benchmark.id}/${language.id}:\n${built.diagnostics.join("\n")}`);
@@ -834,13 +866,13 @@ async function resultsStatus(args: string[]) {
   const canonical = new Map((current?.results ?? []).map(result => [resultKey(result), result]));
   const requestedLanguages = flags.all("--language");
   const requestedBenchmarks = flags.all("--benchmark");
-  const detectionsById = await detections();
-  requireKnownIds(requestedLanguages, detectionsById.map(detection => detection.language.id), "language");
+  const detectionsById = await detections(requestedLanguages);
   const discoveredBenchmarks = await discoverBenchmarks();
   requireKnownIds(requestedBenchmarks, discoveredBenchmarks.map(benchmark => benchmark.id), "benchmark");
   const benchmarks = discoveredBenchmarks.filter(b => !requestedBenchmarks.length || requestedBenchmarks.includes(b.id));
   const mutationFilter = flags.get("--mutation");
   const runnerCache = new RunnerCache(root);
+  const buildProvenanceMemo = new Map<string, Promise<BuildProvenance>>();
   const rows: Array<{ key: string; status: string; detail: string }> = [];
   for (const benchmark of benchmarks) {
     const sizes = flags.get("--size") ? [flags.get("--size")!] : config.defaults.sizes.filter(name => benchmark.sizes[name]);
@@ -861,25 +893,7 @@ async function resultsStatus(args: string[]) {
         }
         const warmups = resolveWarmupIterations(cell.warmupIterations, language.id, flags.get("--warmup"));
         const measurement = resolveMeasurementPolicy(flags, cell.measuredIterations);
-        const vars = {
-          projectRoot: root,
-          benchmarkId: benchmark.id,
-          benchmarkDir: path.join(root, "benchmarks", benchmark.id),
-          implementationDir,
-          artifact: ""
-        };
-        const buildProvenance = await collectBuildProvenance({
-          root,
-          languageId: language.id,
-          languageManifestPath: path.join(root, config.languageDirectory, `${language.id}.json`),
-          implementationDir,
-          benchmarkId: benchmark.id,
-          build: language.build,
-          environment: language.environment,
-          provenance: language.provenance,
-          vars,
-          cache: runnerCache
-        });
+        const buildProvenance = await collectCellBuildProvenance(buildProvenanceMemo, language, benchmark, runnerCache);
         const fingerprint = await fingerprintCell(
           language, benchmark, sizeName, cell.mutation, cell.dataset, version, compilerVersion, warmups, measurement, buildProvenance, runnerCache
         );
