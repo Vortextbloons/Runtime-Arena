@@ -12,8 +12,8 @@
    Note that JavaScript (Node.js) implementations use the `javascript`
    language ID and `.mjs` source extension.
 5. Read each benchmark's `IMPLEMENTING.md` for the exact implementation
-   contract — input/output formats, algorithm requirements, checksum rules,
-   and checker gotchas:
+   contract — input/output formats, what the checker verifies, checksum rules,
+   and gotchas:
 
    - `benchmarks/nbody/IMPLEMENTING.md`
    - `benchmarks/shortest-path/IMPLEMENTING.md`
@@ -41,12 +41,11 @@
 7. Use optimized release builds. Produce output that passes the checker —
    the internal approach can differ from other language implementations.
    Use the language's best idioms, data structures, and patterns.
-8. For barrier-wave, use real parallel workers with stable IDs and a
-   dedicated inbox per worker (shared work queues allow steal races). Rust
-   uses native threads, Go uses goroutines with `GOMAXPROCS >= workerCount`,
-   TypeScript uses `worker_threads`, Python uses multiprocessing, JavaScript
-   uses `worker_threads`, and C++ uses std::thread. Mark
-   LuaJIT unavailable unless real native threads or processes are used.
+8. For barrier-wave, use true pre-emptive parallelism — OS threads,
+   goroutines, worker_threads, or multiprocessing. The number of concurrent
+   workers must equal `workerCount`. Event-loop tasks, coroutines scheduled
+   on a single OS thread, green threads, or a serial loop do not satisfy the
+   benchmark.
 9. Verify the integration:
 
    ```bash
@@ -55,6 +54,24 @@
    npm run arena -- run --language <language-id> --size small
    npm test
    ```
+
+10. Register the language in the web UI. Four files have hardcoded language
+    lists that need a new entry:
+
+    - `web/src/lib/cards/classifications.ts` — Add to `CATALOG` with
+      `executionModels`, `roles`, and `memoryModels`. Required: without it
+      the language gets no classification chips, no division membership, and
+      a generic takeover label.
+    - `web/src/lib/tiers.ts` — Add to `LANGUAGE_MONOGRAMS` with a 2-3
+      character abbreviation. Without it, falls back to a single initial.
+    - `web/src/lib/BenchmarkChart.svelte` — Add to `languageColors` with a
+      hex color. Without it, renders as gray.
+    - `web/src/lib/OverallChart.svelte` — Add to `colors` with the same hex
+      color. Without it, renders as gray.
+
+    Everything else in the card pipeline (attributes, badges, divisions,
+    takeovers, archetypes) is data-driven and adapts automatically from
+    benchmark results.
 
 The CLI discovers valid language manifests automatically; avoid adding
 language-specific branches to the runner.

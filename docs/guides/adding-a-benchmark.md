@@ -12,10 +12,10 @@
 
 2. Define the workload, input, output, and fairness rules in the README.
 3. Write an `IMPLEMENTING.md` that consolidates everything an implementer
-   needs: CLI contract, input/output formats (with examples), algorithm
-   pseudocode, checksum/hash rules, checker validation rules, fairness
-   constraints, and a verification command. Use existing `IMPLEMENTING.md`
-   files as a template.
+   needs: CLI contract, input/output formats (with examples), what the
+   checker verifies, checksum/hash rules, fairness constraints, and a
+   verification command. Describe algorithms as contracts ("the checker
+   verifies X"), not as pseudocode to transliterate.
 4. Add deterministic `small`, `medium`, and `large` datasets (commit fixtures
    with metadata). If you want `arena dataset generate` support, register a
    generator branch in `cli/src/index.ts` (`datasetCommand`) — without that,
