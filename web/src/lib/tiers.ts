@@ -37,6 +37,7 @@ const LANGUAGE_MONOGRAMS: Record<string, string> = {
 	'lua-interpreted': 'L5',
 	'c++': 'C++',
 	cpp: 'C++',
+	c: 'C',
 	cplusplus: 'C++'
 };
 

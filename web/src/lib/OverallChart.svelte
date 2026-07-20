@@ -7,7 +7,7 @@
 		(languageId ? scores.filter((score) => score.language.id === languageId) : scores)
 			.toSorted((a, b) => (b.performance ?? -1) - (a.performance ?? -1) || a.language.name.localeCompare(b.language.name))
 	);
-	const colors: Record<string, string> = { rust: '#d97852', go: '#58b7d6', java: '#f89820', javascript: '#f7df1e', typescript: '#3178c6', lua: '#2554C7', 'lua-interpreted': '#3d8b37', python: '#f0c040', cpp: '#6366f1' };
+	const colors: Record<string, string> = { rust: '#d97852', go: '#58b7d6', java: '#f89820', javascript: '#f7df1e', typescript: '#3178c6', lua: '#2554C7', 'lua-interpreted': '#3d8b37', python: '#f0c040', cpp: '#6366f1', c: '#555555' };
 
 	function statusLabel(score: BenchmarkScore): string {
 		if (!score.eligible) return 'Unranked';

@@ -54,6 +54,12 @@ const CATALOG: Record<string, LanguageClassification> = {
 		executionModels: ['Interpreted'],
 		roles: ['Scripting', 'Embedded'],
 		memoryModels: ['Garbage Collected']
+	},
+	c: {
+		languageId: 'c',
+		executionModels: ['Native'],
+		roles: ['Systems'],
+		memoryModels: ['Manual Memory']
 	}
 };
 

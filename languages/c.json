@@ -1,0 +1,32 @@
+{
+  "$schema": "../schemas/language.schema.json",
+  "id": "c",
+  "name": "C",
+  "enabled": true,
+  "detect": {
+    "command": "C:\\msys64\\ucrt64\\bin\\gcc.exe",
+    "arguments": ["--version"]
+  },
+  "build": {
+    "workingDirectory": "{implementationDir}",
+    "command": "C:\\msys64\\ucrt64\\bin\\gcc.exe",
+    "arguments": ["-O3", "-std=c11", "-I", "../../../../languages/c/include", "-o", "{artifact}", "main.c", "-lpthread", "-lm"],
+    "artifact": "{benchmarkId}.exe"
+  },
+  "run": {
+    "command": "{artifact}",
+    "arguments": [
+      "--input", "{inputFile}",
+      "--output", "{outputFile}",
+      "--timing-output", "{timingOutputFile}",
+      "--warmup", "{warmupIterations}",
+      "--min-iterations", "{minMeasuredIterations}",
+      "--max-iterations", "{maxMeasuredIterations}",
+      "--target-relative-ci", "{targetRelativeConfidenceInterval}"
+    ]
+  },
+  "environment": {
+    "PATH": "C:\\msys64\\ucrt64\\bin;{PATH}"
+  },
+  "sourceExtensions": [".c", ".h"]
+}

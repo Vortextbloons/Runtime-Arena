@@ -1,7 +1,15 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-20T01:39:15.304Z",
+  "generatedAt": "2026-07-20T02:06:03.266Z",
   "cells": {
+    "aggregation:c": {
+      "logicalLines": 301,
+      "fileCount": 1,
+      "files": [
+        "main.c"
+      ],
+      "sha256": "4e79242cf9ffc16c48573a7fa243a9066aa29c10a8596e2744f5c83edcbc03f4"
+    },
     "aggregation:cpp": {
       "logicalLines": 223,
       "fileCount": 1,
@@ -80,6 +88,14 @@
       ],
       "sha256": "8f94c09333899d1c5d9b9a93a471d12d7ec8b1c5528c16b88c8d4dde08bf6325"
     },
+    "barrier-wave:c": {
+      "logicalLines": 244,
+      "fileCount": 1,
+      "files": [
+        "main.c"
+      ],
+      "sha256": "068a2977c58730102f28e768efa0ec8a70b7eb6704238ae026abf1f2c5149402"
+    },
     "barrier-wave:cpp": {
       "logicalLines": 349,
       "fileCount": 1,
@@ -139,6 +155,14 @@
         "worker.ts"
       ],
       "sha256": "6d069d9ff7345d34098e3fa7355f67a77eff37a68035eda44313e08a9b6cdea0"
+    },
+    "matrix-multiplication:c": {
+      "logicalLines": 160,
+      "fileCount": 1,
+      "files": [
+        "main.c"
+      ],
+      "sha256": "3eb28617047cea23b16d0a3d5c19776d705f0ab2784df2213f670faf1a6ad02f"
     },
     "matrix-multiplication:cpp": {
       "logicalLines": 157,
@@ -218,6 +242,14 @@
       ],
       "sha256": "ed5b3c7e8da81cbec848f882179cd4cd783b2edab741c2475f450c24e7333916"
     },
+    "nbody:c": {
+      "logicalLines": 202,
+      "fileCount": 1,
+      "files": [
+        "main.c"
+      ],
+      "sha256": "ac3036bf0c526fd0092fd3f36955a295c5ba043b3a6a02273b7ffef37d49589d"
+    },
     "nbody:cpp": {
       "logicalLines": 202,
       "fileCount": 1,
@@ -295,6 +327,14 @@
         "index.ts"
       ],
       "sha256": "d197f82b204b4b4eeaa6fcc0c5dfffbc17538b83591899369e20c1f24dbcb3ad"
+    },
+    "record-sorting:c": {
+      "logicalLines": 161,
+      "fileCount": 1,
+      "files": [
+        "main.c"
+      ],
+      "sha256": "575450168c86f40e90aa866f3557a88fcbedf8ef925471fb1a10fdcac95f07c7"
     },
     "record-sorting:cpp": {
       "logicalLines": 132,
@@ -374,6 +414,14 @@
       ],
       "sha256": "85e54f7ff9ac2d400fbd5ccf957ae6ebe896a287d3633e810b5a3614dfd96c16"
     },
+    "shortest-path:c": {
+      "logicalLines": 274,
+      "fileCount": 1,
+      "files": [
+        "main.c"
+      ],
+      "sha256": "aded9d018130b099ff2c80d06377a4dd29fd5848a2d1c0189975119b65223e5d"
+    },
     "shortest-path:cpp": {
       "logicalLines": 169,
       "fileCount": 1,
@@ -451,6 +499,14 @@
         "index.ts"
       ],
       "sha256": "93f34c16d239dceebdef8afe0cac28aca79f7291e5153f6252063f2c474c91e0"
+    },
+    "word-frequency:c": {
+      "logicalLines": 174,
+      "fileCount": 1,
+      "files": [
+        "main.c"
+      ],
+      "sha256": "629a2378929388a7451783a9a098beffc614d60a28322132fc69effb3ed481e7"
     },
     "word-frequency:cpp": {
       "logicalLines": 153,
