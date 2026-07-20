@@ -7,7 +7,7 @@
 - Go >= 1.26 (for checker)
 - Rust >= 1.97 (for Rust implementations)
 - Python >= 3.8 (for Python implementations)
-- LuaJIT (for Lua implementations)
+- LuaJIT and Lua 5.4 (for Lua implementations: `lua` and `lua-interpreted` manifests)
 - g++ (with C++23 support, for C++ implementations)
 - JDK 17+ with `javac`/`jar`/`java` (for Java implementations; discovered via `JAVA_HOME`, `PATH`, or common install paths)
 - Node.js (for JavaScript implementations, see workspace Node requirement)
@@ -77,8 +77,11 @@ benchmarks/             # Workloads, datasets, implementations
   nbody/
   shortest-path/
   aggregation/
-  barrier-wave/         # Rust/Go/TS/Python/JS/C++/Java; LuaJIT unavailable
-languages/              # Language manifests (rust, go, typescript, python, lua, cpp, javascript, java)
+  barrier-wave/         # Rust/Go/TS/Python/JS/C++/Java (Lua unavailable — no pre-emptive threads)
+  word-frequency/
+  record-sorting/
+  matrix-multiplication/
+languages/              # Language manifests (rust, go, typescript, python, lua, lua-interpreted, cpp, javascript, java)
 schemas/                # JSON Schema definitions
 results/                # Canonical result snapshots
 web/                    # SvelteKit dashboard

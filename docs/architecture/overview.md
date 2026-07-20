@@ -30,7 +30,7 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 **Build caching**: A separate `buildFingerprint()` hashes language manifest + implementation source tree + benchmark ID + build config. Compiled artifacts are stored in `.arena/build-cache/<fingerprint>/` and reused if the hash matches, skipping the language build step entirely.
 
-**Atomic writes**: Results are written to a temp file then renamed. Failed checker results do not replace existing accepted results in the canonical snapshot.
+**Atomic writes**: Results are written to a temp file then renamed. All cell results — including build failures and checker rejections — replace the previous entry in the canonical snapshot, so a cell that was previously accepted but now fails will be recorded as failed. A cell remains `current` as long as its fingerprint matches; use `--force` to re-run a failing cell.
 
 ## Data Flow
 

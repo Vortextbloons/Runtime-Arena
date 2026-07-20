@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
+	import { base, resolve } from '$app/paths';
 	import { page } from '$app/state';
 
 	let { children } = $props();
@@ -16,7 +16,7 @@
 
 <header>
 	<a class="brand" href={resolve('/')}>
-		<img class="mark" src="/icon-192x192.png" alt="" width="32" height="32" />
+		<img class="mark" src="{base}/icon-192x192.png" alt="" width="32" height="32" />
 		<span>Runtime Arena</span>
 	</a>
 	<nav aria-label="Primary">

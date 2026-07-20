@@ -95,6 +95,7 @@ npm run arena -- run --force --all
 ```
 
 Java toolchains are discovered via `JAVA_HOME`, `PATH`, or common install locations (Adoptium, Oracle/OpenJDK, Microsoft JDK) so JDK installs that are not on `PATH` still run.
+
 ## Fingerprint Invalidation
 
 A cell's fingerprint changes when:

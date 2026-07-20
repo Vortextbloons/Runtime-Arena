@@ -11,6 +11,7 @@ Utility scripts for the arena monorepo.
 | `prepare-results.ts` | Copy the canonical result snapshot for the optional web UI |
 | `resolve-jdk.mjs` | JDK resolution utility — locate a JDK bin directory and tool paths (used by `build-java.mjs` and the CLI) |
 | `scorecard.mjs` | Generate `scorecard.md` with full scoring, tiered rankings, badges, and per-language card profiles |
+| `sync-badge-defs.mjs` | Read `shared/badge-definitions.json` and generate `web/src/lib/cards/shared.ts` for the web UI |
 | `test-checker.mjs` | Run Go checker tests with a local cache directory |
 | `update-readme-results.mjs` | Update the README.md results table from `results/current.json` |
 
@@ -20,6 +21,7 @@ Run via the root package:
 npm run build:checker        # scripts/build-checker.mjs
 npm run count-loc            # scripts/count-implementation-loc.mjs
 npm run prepare-results      # scripts/prepare-results.ts (also runs count-loc)
+npm run sync-defs            # scripts/sync-badge-defs.mjs
 npm run combine-docs         # scripts/combine-docs.mjs
 npm run scorecard            # scripts/scorecard.mjs
 npm test                     # also runs count-implementation-loc.test.mjs and test-checker.mjs

@@ -5,10 +5,9 @@
    run arguments, environment variables, and source extensions.
 3. Ensure the manifest matches `schemas/language.schema.json`.
 4. Add `benchmarks/<benchmark-id>/implementations/<language-id>/` for every
-   supported benchmark you intend to ship (nbody, shortest-path, aggregation,
-   barrier-wave). Additional benchmarks are available but optional:
-   word-frequency, record-sorting, and matrix-multiplication
-   (implementations for these are pending across most languages).
+   benchmark: nbody, shortest-path, aggregation, barrier-wave, word-frequency,
+   record-sorting, and matrix-multiplication. All seven are scored in the
+   leaderboard and card profiles.
    Note that JavaScript (Node.js) implementations use the `javascript`
    language ID and `.mjs` source extension.
 5. Read each benchmark's `IMPLEMENTING.md` for the exact implementation
@@ -19,6 +18,9 @@
    - `benchmarks/shortest-path/IMPLEMENTING.md`
    - `benchmarks/aggregation/IMPLEMENTING.md`
    - `benchmarks/barrier-wave/IMPLEMENTING.md`
+   - `benchmarks/word-frequency/IMPLEMENTING.md`
+   - `benchmarks/record-sorting/IMPLEMENTING.md`
+   - `benchmarks/matrix-multiplication/IMPLEMENTING.md`
 
 6. Each implementation must accept the persistent-worker CLI contract:
 

@@ -45,6 +45,7 @@
 
 	function initialBenchmark(): string {
 		if (fixedBenchmark) return fixedBenchmark;
+		if (!browser) return 'overall';
 		return parseBenchmark(
 			page.url.searchParams.get('benchmark'),
 			[...new Set(run.results.map((result) => result.benchmark.id))]
@@ -52,6 +53,7 @@
 	}
 
 	function initialView(): 'chart' | 'scorecard' {
+		if (!browser) return 'chart';
 		return parseView(page.url.searchParams.get('view'));
 	}
 
@@ -61,7 +63,7 @@
 	let selectedBadgeId = $state<string | null>(null);
 	let expandedPanelTab = $state<'badges' | 'benchmarks'>('badges');
 	let overlayEl: HTMLDivElement | undefined = $state();
-	let lastUrlSearch = $state(page.url.search);
+	let lastUrlSearch = $state(browser ? page.url.search : '');
 
 	$effect(() => {
 		if (fixedBenchmark) selectedBenchmark = fixedBenchmark;

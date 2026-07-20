@@ -44,7 +44,7 @@ Root runner configuration at the repository root.
 | `defaults.warmupIterations` | Default warmup iterations (discarded) |
 | `defaults.measuredIterations` | Default measured iterations |
 | `defaults.metrics` | Default metrics to record |
-| `measurement.minMeasuredIterations` | Minimum iterations per cell (also the fixed count when `--iterations` is used) |
+| `measurement.minMeasuredIterations` | Minimum iterations per cell (effective floor when a size in `benchmark.json` omits `measuredIterations`; also the fixed count when `--iterations` is used) |
 | `measurement.maxMeasuredIterations` | Maximum iterations for adaptive measurement (default 30) |
 | `measurement.targetRelativeConfidenceInterval` | Target CI width (default 0.05). Set to 0 for fixed-iteration mode |
 | `warmupOverrides` | Optional per-language minimum warmup iteration floors (applied with `max(benchmark warmup, override)` unless `--warmup` is set explicitly) |
@@ -56,7 +56,7 @@ Temp run directories live under `.arena/runs/` and are deleted after each run un
 
 ## Language Manifests (`languages/*.json`)
 
-Each language has a manifest defining detection, build, and run commands. The project ships eight manifests: `cpp.json`, `go.json`, `java.json`, `javascript.json`, `lua.json`, `python.json`, `rust.json`, and `typescript.json`.
+Each language has a manifest defining detection, build, and run commands. The project ships nine manifests: `cpp.json`, `go.json`, `java.json`, `javascript.json`, `lua-interpreted.json`, `lua.json`, `python.json`, `rust.json`, and `typescript.json`.
 
 ```json
 {
@@ -129,9 +129,9 @@ Each benchmark has a manifest defining sizes, metrics, and limits.
     "timeoutMilliseconds": 30000
   },
   "sizes": {
-    "small": { "dataset": "small.json", "warmupIterations": 1, "measuredIterations": 5 },
-    "medium": { "dataset": "medium.json", "warmupIterations": 3, "measuredIterations": 10 },
-    "large": { "dataset": "large.json", "warmupIterations": 3, "measuredIterations": 10 }
+    "small": { "dataset": "small.json", "warmupIterations": 2, "measuredIterations": 5 },
+    "medium": { "dataset": "medium.json", "warmupIterations": 2 },
+    "large": { "dataset": "large.json", "warmupIterations": 2 }
   },
   "metrics": ["kernelTime"],
   "limits": {

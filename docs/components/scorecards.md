@@ -19,7 +19,7 @@ Shared visual helpers live in `web/src/lib/tiers.ts` (`getScoreTier`, `languageM
 |--------------|--------|-------|
 | Large OVR number | `score.overall` | Weighted composite: 75% geometric-mean speed + 25% flexibility, plus badge bonuses (capped at 100 overall). Displayed as a rounded integer; `null` → `—` |
 | SPEED / STABLE / FLEX meters | `score.performance`, `consistency`, `versatility` | Segmented 10-bar meters **plus** tabular numeric values beside each label. STABLE is diagnostic only. |
-| Language name + monogram | `score.language` | Stable abbreviations (`RS`, `TS`, `PY`, `LJ`, `GO`, `C++`) via `languageMonogram` |
+| Language name + monogram | `score.language` | Stable abbreviations via `languageMonogram`: `RS` (Rust), `GO` (Go), `JV` (Java), `JS` (JavaScript), `TS` (TypeScript), `PY` (Python), `LJ` (LuaJIT), `L5` (lua-interpreted), `C++` (C++) |
 | Footer runtime | `score.language.id` / `score.language.version` | Version shows the first whitespace-delimited token |
 | Archetype / team label | `card.buildName` (or `formatBenchmarkLabel`) | When card data present: `generateBuildName` → unique archetype name. Fallback: `ARENA` or id with `[-_]+` → spaces, uppercased |
 | Letter-grade tier | `card.cardTier` | S+, S, A+, A, B, C, D via `cardTierFromOverall()` from `cards/util.ts` |

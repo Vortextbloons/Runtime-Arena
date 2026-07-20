@@ -19,26 +19,28 @@ web/
       tiers.test.ts         # Tier unit tests
       implementationLines.ts       # LOC-per-language data loader
       cards.test.ts                # Integration tests for the card-building pipeline
-      cards/                      # 2K-style card data pipeline
-        index.ts                  # Public exports
-        types.ts                  # CardTier, CardAttribute, EarnedBadge, LanguageCardData, etc.
-        util.ts                   # cardTierFromOverall, cardTierLabel, percentileRank
-        buildCardData.ts          # buildAllCardData, buildCardDataForLanguage, applyBadgeBonusesToScores
-        classifications.ts        # Language classification catalog (execution model, role, memory model)
-        attributes/
-          definitions.ts          # BENCHMARK_ATTRIBUTE_IDS, attribute metadata
-          calculateAttributes.ts  # Attribute ratings from benchmark scores + raw values
-        badges/
-          definitions.ts          # V1 / V1.5 / V2 / V2.5 badge definitions
-          calculateBadgeTier.ts   # Hybrid badge tier calculation (awardHybridBadge)
-          calculateBadgeBonus.ts  # Badge bonus computation (top 3 featured badges, overall capped at 100)
-          awardBadges.ts          # Main badge award + featured selection logic
-        divisions/
-          calculateDivisionRanks.ts  # Division rank calculation
-        takeovers/
-          calculateTakeover.ts       # Primary / secondary takeover computation
-        archetypes/
-          buildNames.ts              # Build name generation
+        cards/                      # 2K-style card data pipeline
+          index.ts                  # Public exports
+          types.ts                  # CardTier, CardAttribute, EarnedBadge, LanguageCardData, etc.
+          util.ts                   # cardTierFromOverall, cardTierLabel, percentileRank
+          buildCardData.ts          # buildAllCardData, buildCardDataForLanguage, applyBadgeBonusesToScores
+          classifications.ts        # Language classification catalog (execution model, role, memory model)
+          shared.ts                 # Auto-generated badge + attribute definitions from shared/badge-definitions.json
+          attributes/
+            definitions.ts          # BENCHMARK_ATTRIBUTE_IDS, attribute metadata
+            calculateAttributes.ts  # Attribute ratings from benchmark scores + raw values
+          badges/
+            definitions.ts          # V1 / V1.5 / V2 / V2.5 badge definitions
+            calculateBadgeTier.ts   # Hybrid badge tier calculation (awardHybridBadge)
+            calculateBadgeBonus.ts  # Badge bonus computation (top 3 featured badges, overall capped at 100)
+            awardBadges.ts          # Main badge award + featured selection logic
+            badgeDetail.ts          # Badge detail generation (summary, measurements, hover tooltips)
+          divisions/
+            calculateDivisionRanks.ts  # Division rank calculation
+          takeovers/
+            calculateTakeover.ts       # Primary / secondary takeover computation
+          archetypes/
+            buildNames.ts              # Build name generation
       data/
         implementation-lines.json    # Lines-of-code data per language/benchmark
       BenchmarkChart.svelte
@@ -65,7 +67,7 @@ web/
 The scoring system (`src/lib/scoring.ts`) computes a 0-100 weighted overall score from two measured components, then applies optional badge bonuses in `buildCardData.ts`:
 
 **Speed (75% weight)**
-- Each eligible benchmark/size contributes `fastestMedian / thisMedian` as a 0-100 performance score.
+- Each eligible benchmark/size contributes a performance score: `100 × (fastestMedian / thisMedian)^0.65`, clamped to a floor of 0.1. The 0.65 exponent makes the score sub-linear — being 2× slower costs less than half the points.
 - For benchmarks with dataset mutations, a `MutationScore` is computed per mutation variant, then size-level scores use the geometric mean of mutation performances.
 - Ratios are combined with a geometric mean across sizes and benchmarks.
 - A size tier is excluded for every language when its fastest valid median is below 1 ms.
@@ -97,7 +99,7 @@ The scoring system (`src/lib/scoring.ts`) computes a 0-100 weighted overall scor
 npm run build:web
 ```
 
-This runs `prepare-results.ts` (copies `results/current.json` into `web/static/results/`) then builds the SvelteKit static site to `web/build/`.
+This runs `sync-defs` (regenerates `web/src/lib/cards/shared.ts` from `shared/badge-definitions.json`), then `prepare-results.ts` (copies `results/current.json` into `web/static/results/`), then builds the SvelteKit static site to `web/build/`.
 
 ## Local Preview
 

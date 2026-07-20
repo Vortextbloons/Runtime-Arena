@@ -131,10 +131,17 @@ The `results/current.json` snapshot contains:
       "execution": {
         "mode": "persistent-worker",
         "measurementContractVersion": "1.1.0",
-        "warmupIterations": 1,
-        "measuredIterations": 5,
+        "totalProcessDurationNanoseconds": 148929300,
+        "warmupIterations": 2,
+        "measuredIterations": 30,
+        "measurement": {
+          "mode": "adaptive-confidence-interval",
+          "minMeasuredIterations": 10,
+          "maxMeasuredIterations": 30,
+          "targetRelativeConfidenceInterval": 0.05
+        },
         "samples": [...],
-        "summary": { "medianKernelTimeNanoseconds": 0, "meanKernelTimeNanoseconds": 0, "standardDeviationKernelTimeNanoseconds": 0, ... },
+        "summary": { "validSamples": 30, "rejectedSamples": 0, "minimumKernelTimeNanoseconds": 2965400, "maximumKernelTimeNanoseconds": 4509300, "medianKernelTimeNanoseconds": 3097900, "meanKernelTimeNanoseconds": 3285420, "standardDeviationKernelTimeNanoseconds": 377079, "p95KernelTimeNanoseconds": 4138200, "interquartileRangeKernelTimeNanoseconds": 378700 },
         "metrics": { "kernelTime": { "status": "available", "unit": "nanoseconds" } }
       },
       "checker": { "language": "go", "version": "1.0.0", "status": "accepted", "diagnostics": [] },

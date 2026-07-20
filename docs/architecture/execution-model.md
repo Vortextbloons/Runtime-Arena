@@ -28,7 +28,7 @@ Runtime startup, input parsing, state cloning, output encoding, file I/O, proces
 
 ## Isolation and Correctness
 
-Each cell runs in an isolated directory under `.arena/runs/<snapshotId>/<benchmark>/<language>/`. Its copied input is read-only (`chmod 0o444`). Before the checker is invoked, output size is checked against the benchmark's `maxOutputBytes` limit; oversized output is rejected without invoking the checker. The independent checker validates the final output once; a rejected output invalidates every timing sample. Missing, malformed, oversized, or incorrectly numbered timing samples also reject the cell.
+Each cell runs in an isolated working directory under `.arena/runs/<snapshotId>/<benchmark>/<language>/<size>/<mutation>/`. Its input dataset is copied to a separate read-only location under `.arena/runs/<snapshotId>/datasets/` (`chmod 0o444`). Before the checker is invoked, output size is checked against the benchmark's `maxOutputBytes` limit; oversized output is rejected without invoking the checker. The independent checker validates the final output once; a rejected output invalidates every timing sample. Missing, malformed, oversized, or incorrectly numbered timing samples also reject the cell.
 
 ## Limits and Summary
 
