@@ -1,6 +1,6 @@
 import type { BadgeCategory, BadgeTier, BadgeTierRule } from '../types.ts';
 import { HYBRID_TIER_THRESHOLDS } from '../types.ts';
-import sharedBadgeDefs from '../../../../shared/badge-definitions.json';
+import { ALL_BADGE_DEFINITIONS as _ALL_BADGE_DEFINITIONS } from '../shared.ts';
 
 export type BadgeSource =
 	| 'SPD'
@@ -34,7 +34,7 @@ export type BadgeDefinition = {
 };
 
 // Badge definitions from shared single source of truth
-export const ALL_BADGE_DEFINITIONS: BadgeDefinition[] = sharedBadgeDefs.badges;
+export const ALL_BADGE_DEFINITIONS: BadgeDefinition[] = _ALL_BADGE_DEFINITIONS;
 
 // Legacy exports for backward compatibility
 export const V1_BADGE_DEFINITIONS = ALL_BADGE_DEFINITIONS.filter(b =>

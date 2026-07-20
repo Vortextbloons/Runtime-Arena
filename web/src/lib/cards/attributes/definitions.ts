@@ -1,5 +1,5 @@
 import type { AttributeCategory } from '../types.ts';
-import sharedBadgeDefs from '../../../../shared/badge-definitions.json';
+import { ALL_ATTRIBUTE_DEFINITIONS as _ALL_ATTRIBUTE_DEFINITIONS } from '../shared.ts';
 
 export type AttributeDefinition = {
 	id: string;
@@ -9,7 +9,7 @@ export type AttributeDefinition = {
 };
 
 // Attribute definitions from shared single source of truth
-const sharedAttrDefs = sharedBadgeDefs.attributeDefinitions as AttributeDefinition[];
+const sharedAttrDefs = _ALL_ATTRIBUTE_DEFINITIONS as AttributeDefinition[];
 
 export const CORE_ATTRIBUTE_DEFINITIONS: AttributeDefinition[] = sharedAttrDefs.filter(
 	(d) => ['runtime-speed', 'consistency', 'scalability', 'compute', 'algorithms', 'data-processing'].includes(d.id)
