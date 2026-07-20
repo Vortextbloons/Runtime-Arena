@@ -5,27 +5,31 @@ const _ciW=(a)=>{const n=a.length;if(n<2)return Infinity;const m=a.reduce((x,y)=
 const warmups=Number(arg("--warmup")),minIt=Number(arg("--min-iterations")),maxIt=Number(arg("--max-iterations")),targetCi=Number(arg("--target-relative-ci"));
 const input=JSON.parse(await readFile(arg("--input"),"utf8"));
 const n=input.dimension;
+const nn=n*n;
 const a=input.left;
 const b=input.right;
+const c=new Array(nn);
 function kernel(){
-  const c=new Array(n*n);
-  let valueSum=0,diagonalSum=0;
+  for(let i=0;i<nn;i++)c[i]=0;
   for(let i=0;i<n;i++){
-    for(let j=0;j<n;j++){
-      let sum=0;
-      for(let k=0;k<n;k++){
-        sum+=a[i*n+k]*b[k*n+j];
+    const ci=i*n;
+    for(let k=0;k<n;k++){
+      const aik=a[i*n+k];
+      const bk=k*n;
+      for(let j=0;j<n;j++){
+        c[ci+j]+=aik*b[bk+j];
       }
-      c[i*n+j]=sum;
-      valueSum+=sum;
-      if(i===j)diagonalSum+=sum;
     }
   }
+  let valueSum=0;
+  for(let i=0;i<nn;i++)valueSum+=c[i];
+  let diagonalSum=0;
+  for(let i=0;i<n;i++)diagonalSum+=c[i*n+i];
   let s=`dimension=${n}\n`;
-  for(let i=0;i<n*n;i++)s+=c[i].toString()+",";
+  for(let i=0;i<nn;i++)s+=c[i].toString()+",";
   s+="\n";
   const checksum=createHash("sha256").update(s).digest("hex");
-  return{benchmark:"matrix-multiplication",version:1,dimension:n,elementCount:n*n,valueSum,diagonalSum,checksum};
+  return{benchmark:"matrix-multiplication",version:1,dimension:n,elementCount:nn,valueSum,diagonalSum,checksum};
 }
 let output;const samples=[];
 const _ts=[];for(let i=-warmups;;i++){

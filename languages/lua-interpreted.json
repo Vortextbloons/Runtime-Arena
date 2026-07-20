@@ -1,7 +1,7 @@
 {
   "$schema": "../schemas/language.schema.json",
   "id": "lua-interpreted",
-  "name": "Lua 5.4 (Interpreted)",
+  "name": "Lua Interpreted",
   "enabled": true,
   "detect": {
     "command": "C:\\Users\\isaac\\AppData\\Local\\Programs\\Lua\\bin\\lua.exe",

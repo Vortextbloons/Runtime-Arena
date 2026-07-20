@@ -282,8 +282,8 @@ static class Program
             }
         }
 
-        File.WriteAllText(output, Output(last), Encoding.UTF8);
-        File.WriteAllText(timing, sb.Append("]}").ToString(), Encoding.UTF8);
+        File.WriteAllText(output, Output(last), new System.Text.UTF8Encoding(false));
+        File.WriteAllText(timing, sb.Append("]}").ToString(), new System.Text.UTF8Encoding(false));
     }
 }
 

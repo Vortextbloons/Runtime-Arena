@@ -11,9 +11,9 @@ function kernel(words){
   for(const w of words)freq.set(w,(freq.get(w)??0)+1);
   const entries=[...freq.entries()];
   entries.sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
-  let checksumData="";
-  for(const[w,c]of entries)checksumData+=w+","+c+"\n";
-  const checksum=createHash("sha256").update(checksumData).digest("hex");
+  const lines=new Array(entries.length);
+  for(let i=0;i<entries.length;i++){const[w,c]=entries[i];lines[i]=w+","+c}
+  const checksum=createHash("sha256").update(lines.join("\n")+"\n").digest("hex");
   const topWords=entries.slice(0,10).map(([word,count])=>({word,count}));
   return{benchmark:"word-frequency",version:1,totalWords:words.length,uniqueWords:entries.length,topWords,checksum};
 }

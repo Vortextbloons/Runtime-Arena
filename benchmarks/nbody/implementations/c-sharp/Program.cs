@@ -8,7 +8,7 @@ using System.Text.Json;
 
 double[] T_CRITICAL = [0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045];
 
-static double CiWidth(long[] samples, int count)
+double CiWidth(long[] samples, int count)
 {
     if (count < 2) return double.PositiveInfinity;
     double mean = 0;
@@ -171,5 +171,10 @@ string resultJson = "{\"benchmark\":\"nbody\",\"version\":1,\"bodyCount\":" + bo
     + ",\"finalEnergy\":" + finalEnergy.ToString(CultureInfo.InvariantCulture)
     + ",\"positionChecksum\":\"" + posChecksum
     + "\",\"velocityChecksum\":\"" + velChecksum + "\"}";
-File.WriteAllText(outputFile, resultJson, Encoding.UTF8);
-File.WriteAllText(timingFile, samples.ToString(), Encoding.UTF8);
+File.WriteAllText(outputFile, resultJson, new UTF8Encoding(false));
+File.WriteAllText(timingFile, samples.ToString(), new UTF8Encoding(false));
+
+struct Body
+{
+    public double Mass, Px, Py, Pz, Vx, Vy, Vz;
+}

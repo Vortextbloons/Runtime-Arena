@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-var args = Environment.GetCommandLineArgs();
+var cliArgs = Environment.GetCommandLineArgs();
 static string Arg(string[] a, string name)
 {
     for (int i = 1; i + 1 < a.Length; i++)
@@ -13,13 +13,13 @@ static string Arg(string[] a, string name)
     throw new ArgumentException("missing argument " + name);
 }
 
-string inputPath = Arg(args, "--input");
-string outputPath = Arg(args, "--output");
-string timingPath = Arg(args, "--timing-output");
-int warmup = int.Parse(Arg(args, "--warmup"));
-int minIterations = int.Parse(Arg(args, "--min-iterations"));
-int maxIterations = int.Parse(Arg(args, "--max-iterations"));
-double targetCi = double.Parse(Arg(args, "--target-relative-ci"));
+string inputPath = Arg(cliArgs, "--input");
+string outputPath = Arg(cliArgs, "--output");
+string timingPath = Arg(cliArgs, "--timing-output");
+int warmup = int.Parse(Arg(cliArgs, "--warmup"));
+int minIterations = int.Parse(Arg(cliArgs, "--min-iterations"));
+int maxIterations = int.Parse(Arg(cliArgs, "--max-iterations"));
+double targetCi = double.Parse(Arg(cliArgs, "--target-relative-ci"));
 
 string jsonText = File.ReadAllText(inputPath);
 using JsonDocument doc = JsonDocument.Parse(jsonText);
@@ -95,7 +95,7 @@ static string OutputJson(int n, int elements, long valueSum, long diagonalSum, s
 
 double[] T_CRITICAL = [0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045];
 
-static double CiWidth(long[] samples, int count)
+double CiWidth(long[] samples, int count)
 {
     if (count < 2) return double.PositiveInfinity;
     double mean = 0;

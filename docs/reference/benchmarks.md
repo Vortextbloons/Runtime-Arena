@@ -1,6 +1,6 @@
 # Benchmarks Reference
 
-Runtime Arena currently defines seven benchmark workloads, each with implementations in all nine supported languages (Rust, C++, Go, Java, TypeScript, JavaScript, LuaJIT, Lua 5.4 (Interpreted), and Python). The sole exception is barrier-wave, where neither Lua runtime is included — both LuaJIT and lua-interpreted lack native threading. All workloads have contracts, fixtures, dataset generation, checker support, and complete benchmark results.
+Runtime Arena currently defines seven benchmark workloads, each with implementations in all nine supported languages (Rust, C++, Go, Java, TypeScript, JavaScript, LuaJIT, Lua Interpreted, and Python). The sole exception is barrier-wave, where neither Lua runtime is included — both LuaJIT and lua-interpreted lack native threading. All workloads have contracts, fixtures, dataset generation, checker support, and complete benchmark results.
 
 | Benchmark | Status | Stresses |
 |-----------|--------|----------|

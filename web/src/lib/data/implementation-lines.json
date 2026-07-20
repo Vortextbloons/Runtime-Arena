@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-20T05:24:16.510Z",
+  "generatedAt": "2026-07-20T05:46:31.142Z",
   "cells": {
     "aggregation:c": {
       "logicalLines": 333,
@@ -191,12 +191,12 @@
       "sha256": "a768ae12864ea6c2342f0545e9838173a9de4de14563fa4a612c1bcc10855989"
     },
     "matrix-multiplication:javascript": {
-      "logicalLines": 37,
+      "logicalLines": 41,
       "fileCount": 1,
       "files": [
         "index.mjs"
       ],
-      "sha256": "856ebfe90e97313752d249b37a328371d5f426dfa0c2be8d1fc38c5dacafc391"
+      "sha256": "98f58ea68983f200dd3d393b8c465de05a447a43e381ecfc530a331853b20085"
     },
     "matrix-multiplication:lua": {
       "logicalLines": 370,
@@ -277,12 +277,12 @@
       "sha256": "bea8591233d849350ef5fc2bdff96e10da396f48cb216b2be9bb16cb73415131"
     },
     "nbody:javascript": {
-      "logicalLines": 42,
+      "logicalLines": 45,
       "fileCount": 1,
       "files": [
         "index.mjs"
       ],
-      "sha256": "0ae80b33ae2e146020fc1f4a0e0d0755a453a7e2ac4f6524848900f58130b950"
+      "sha256": "1bc0957dcb4fdb9aa3d1489c953ae7eedee8b6239f858730a5c0c45ba0c2f587"
     },
     "nbody:lua": {
       "logicalLines": 393,
@@ -363,12 +363,12 @@
       "sha256": "bfe12ce21a87bd82418b735d6d9491b55fbd523c0d2d08bc5bf18126ae1c841e"
     },
     "record-sorting:javascript": {
-      "logicalLines": 24,
+      "logicalLines": 40,
       "fileCount": 1,
       "files": [
         "index.mjs"
       ],
-      "sha256": "a72413d6227a03e91b8b3a1effe57a51f37073ff806e9eddef44e76453ba2493"
+      "sha256": "3b0dcceae886c9f0491be75928c8e8aaee345b2edf6a702be782447662165386"
     },
     "record-sorting:lua": {
       "logicalLines": 372,
@@ -493,12 +493,12 @@
       "sha256": "9d0e49aafb6d12b9a797ce49c489cacdcb6282f04e78290c7de00befb1a795b6"
     },
     "shortest-path:typescript": {
-      "logicalLines": 111,
+      "logicalLines": 108,
       "fileCount": 1,
       "files": [
         "index.ts"
       ],
-      "sha256": "32fe05f19d57d333f5d12b18d3278a25d5e9d3fc488d735522f3ce8bec5d3f24"
+      "sha256": "93f34c16d239dceebdef8afe0cac28aca79f7291e5153f6252063f2c474c91e0"
     },
     "word-frequency:c": {
       "logicalLines": 175,

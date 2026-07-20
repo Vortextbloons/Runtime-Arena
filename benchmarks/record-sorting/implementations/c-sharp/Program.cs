@@ -17,7 +17,7 @@ static int Compare(long scoreA, long timestampA, long idA, long scoreB, long tim
     return timestamp != 0 ? timestamp : idA.CompareTo(idB);
 }
 
-static double CiWidth(long[] samples)
+double CiWidth(long[] samples)
 {
     int n = samples.Length;
     if (n < 2) return double.PositiveInfinity;
@@ -110,7 +110,7 @@ static void BottomUpMergeSort(long[] ids, long[] scores, long[] timestamps, int 
     }
 }
 
-static string Kernel(long[] ids, long[] scores, long[] timestamps, int count)
+string Kernel(long[] ids, long[] scores, long[] timestamps, int count)
 {
     long[] sortedIds = (long[])ids.Clone();
     long[] sortedScores = (long[])scores.Clone();

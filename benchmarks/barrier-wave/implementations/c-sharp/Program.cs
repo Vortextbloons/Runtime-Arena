@@ -23,13 +23,13 @@ static long RotateLeft64(long value) => unchecked((value << 7) | (value >>> 57))
 static string Hex(long value, int digits)
 {
     const string HEX_CHARS = "0123456789abcdef";
-    var sb = new StringBuilder(digits);
+    var result = new char[digits];
     for (int i = digits - 1; i >= 0; i--)
     {
-        sb.Append(HEX_CHARS[(int)(value & 0xfL)]);
+        result[i] = HEX_CHARS[(int)(value & 0xfL)];
         value >>>= 4;
     }
-    return sb.ToString();
+    return new string(result);
 }
 
 static double CiWidth(long[] samples, int count)
