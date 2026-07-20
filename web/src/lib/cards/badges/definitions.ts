@@ -1,5 +1,6 @@
 import type { BadgeCategory, BadgeTier, BadgeTierRule } from '../types.ts';
 import { HYBRID_TIER_THRESHOLDS } from '../types.ts';
+import sharedBadgeDefs from '../../../../shared/badge-definitions.json';
 
 export type BadgeSource =
 	| 'SPD'
@@ -32,105 +33,22 @@ export type BadgeDefinition = {
 	legendRequiresLargestRaw?: boolean;
 };
 
-/** Performance badges only — no participation / correctness trophies. */
-export const V1_BADGE_DEFINITIONS: BadgeDefinition[] = [
-	{
-		id: 'speedster',
-		name: 'Speedster',
-		category: 'execution',
-		source: 'SPD',
-		legendRequiresFirstOverall: true
-	},
-	{
-		id: 'compute-finisher',
-		name: 'Compute Finisher',
-		category: 'execution',
-		source: 'CMP',
-		benchmarkId: 'nbody',
-		legendRequiresSizeSweep: true
-	},
-	{
-		id: 'data-handler',
-		name: 'Data Wrangler',
-		category: 'control',
-		source: 'DAT',
-		benchmarkId: 'aggregation',
-		legendRequiresSizeSweep: true
-	},
-	{
-		id: 'pathfinder',
-		name: 'Pathfinder',
-		category: 'control',
-		source: 'ALG',
-		benchmarkId: 'shortest-path',
-		legendRequiresSizeSweep: true
-	},
-	{
-		id: 'steady-hands',
-		name: 'Steady Hands',
-		category: 'reliability',
-		source: 'CON',
-		legendRequiresCategoryWin: true
-	},
-	{
-		id: 'scale-master',
-		name: 'Scale Master',
-		category: 'physical',
-		source: 'SCL',
-		legendRequiresCategoryWin: true
-	}
-];
+// Badge definitions from shared single source of truth
+export const ALL_BADGE_DEFINITIONS: BadgeDefinition[] = sharedBadgeDefs.badges;
 
-export const V15_BADGE_DEFINITIONS: BadgeDefinition[] = [
-	{
-		id: 'fast-builder',
-		name: 'Quick Build',
-		category: 'physical',
-		source: 'BLD',
-		legendRequiresFastestRaw: true
-	},
-	{
-		id: 'lightweight-build',
-		name: 'Minimal Build',
-		category: 'physical',
-		source: 'BIN',
-		legendRequiresSmallestRaw: true
-	}
-];
-
-export const V2_BADGE_DEFINITIONS: BadgeDefinition[] = [
-	{
-		id: 'memory-minder',
-		name: 'Memory Minder',
-		category: 'physical',
-		source: 'MEM',
-		legendRequiresSmallestRaw: true
-	}
-];
-
-export const V25_BADGE_DEFINITIONS: BadgeDefinition[] = [
-	{
-		id: 'tight-code',
-		name: 'Tight Code',
-		category: 'physical',
-		source: 'LOC',
-		legendRequiresSmallestRaw: true
-	},
-	{
-		id: 'code-economy',
-		name: 'High Yield',
-		category: 'execution',
-		source: 'ECO',
-		legendRequiresLargestRaw: true
-	}
-];
-
-export const ALL_BADGE_DEFINITIONS = [
-	...V1_BADGE_DEFINITIONS,
-	...V15_BADGE_DEFINITIONS,
-	...V2_BADGE_DEFINITIONS,
-	...V25_BADGE_DEFINITIONS
-];
+// Legacy exports for backward compatibility
+export const V1_BADGE_DEFINITIONS = ALL_BADGE_DEFINITIONS.filter(b =>
+	['speedster', 'compute-finisher', 'data-handler', 'pathfinder', 'steady-hands', 'scale-master'].includes(b.id)
+);
+export const V15_BADGE_DEFINITIONS = ALL_BADGE_DEFINITIONS.filter(b =>
+	['fast-builder', 'lightweight-build'].includes(b.id)
+);
+export const V2_BADGE_DEFINITIONS = ALL_BADGE_DEFINITIONS.filter(b =>
+	['memory-minder'].includes(b.id)
+);
+export const V25_BADGE_DEFINITIONS = ALL_BADGE_DEFINITIONS.filter(b =>
+	['tight-code', 'code-economy'].includes(b.id)
+);
 
 export const HYBRID_RULES: Record<BadgeTier, BadgeTierRule> = Object.fromEntries(
 	HYBRID_TIER_THRESHOLDS.map(({ tier, minimumScore, minimumPercentile }) => [

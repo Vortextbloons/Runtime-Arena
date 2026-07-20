@@ -1,0 +1,102 @@
+{
+  "$schema": "../schemas/badge-definitions.schema.json",
+  "version": "2.5",
+  "badges": [
+    {
+      "id": "speedster",
+      "name": "Speedster",
+      "category": "execution",
+      "source": "SPD",
+      "legendRequiresFirstOverall": true
+    },
+    {
+      "id": "compute-finisher",
+      "name": "Compute Finisher",
+      "category": "execution",
+      "source": "CMP",
+      "benchmarkId": "nbody",
+      "legendRequiresSizeSweep": true
+    },
+    {
+      "id": "data-handler",
+      "name": "Data Wrangler",
+      "category": "control",
+      "source": "DAT",
+      "benchmarkId": "aggregation",
+      "legendRequiresSizeSweep": true
+    },
+    {
+      "id": "pathfinder",
+      "name": "Pathfinder",
+      "category": "control",
+      "source": "ALG",
+      "benchmarkId": "shortest-path",
+      "legendRequiresSizeSweep": true
+    },
+    {
+      "id": "steady-hands",
+      "name": "Steady Hands",
+      "category": "reliability",
+      "source": "CON",
+      "legendRequiresCategoryWin": true
+    },
+    {
+      "id": "scale-master",
+      "name": "Scale Master",
+      "category": "physical",
+      "source": "SCL",
+      "legendRequiresCategoryWin": true
+    },
+    {
+      "id": "fast-builder",
+      "name": "Quick Build",
+      "category": "physical",
+      "source": "BLD",
+      "legendRequiresFastestRaw": true
+    },
+    {
+      "id": "lightweight-build",
+      "name": "Minimal Build",
+      "category": "physical",
+      "source": "BIN",
+      "legendRequiresSmallestRaw": true
+    },
+    {
+      "id": "memory-minder",
+      "name": "Memory Minder",
+      "category": "physical",
+      "source": "MEM",
+      "legendRequiresSmallestRaw": true
+    },
+    {
+      "id": "tight-code",
+      "name": "Tight Code",
+      "category": "physical",
+      "source": "LOC",
+      "legendRequiresSmallestRaw": true
+    },
+    {
+      "id": "code-economy",
+      "name": "High Yield",
+      "category": "execution",
+      "source": "ECO",
+      "legendRequiresLargestRaw": true
+    }
+  ],
+  "attributeDefinitions": [
+    { "id": "runtime-speed", "label": "Runtime Speed", "abbreviation": "SPD", "category": "execution" },
+    { "id": "consistency", "label": "Consistency", "abbreviation": "CON", "category": "reliability" },
+    { "id": "scalability", "label": "Scalability", "abbreviation": "SCL", "category": "physical" },
+    { "id": "compute", "label": "Compute", "abbreviation": "CMP", "category": "execution" },
+    { "id": "algorithms", "label": "Algorithms", "abbreviation": "ALG", "category": "control" },
+    { "id": "data-processing", "label": "Data Processing", "abbreviation": "DAT", "category": "control" },
+    { "id": "build-speed", "label": "Build Speed", "abbreviation": "BLD", "category": "physical" },
+    { "id": "artifact-efficiency", "label": "Artifact Efficiency", "abbreviation": "BIN", "category": "physical" },
+    { "id": "startup", "label": "Startup", "abbreviation": "STA", "category": "physical" },
+    { "id": "memory", "label": "Memory Efficiency", "abbreviation": "MEM", "category": "physical" },
+    { "id": "io", "label": "I/O", "abbreviation": "IO", "category": "control" },
+    { "id": "parallelism", "label": "Parallelism", "abbreviation": "PAR", "category": "execution" },
+    { "id": "implementation-size", "label": "Implementation Size", "abbreviation": "LOC", "category": "physical" },
+    { "id": "code-economy", "label": "Code Economy", "abbreviation": "ECO", "category": "execution" }
+  ]
+}

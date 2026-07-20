@@ -5,6 +5,11 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 
+// ── Shared badge definitions (single source of truth) ──
+const sharedDefs = JSON.parse(readFileSync(resolve(root, 'shared', 'badge-definitions.json'), 'utf-8'));
+const ALL_BADGE_DEFINITIONS = sharedDefs.badges;
+const ALL_ATTRIBUTE_DEFINITIONS = sharedDefs.attributeDefinitions;
+
 // ── Constants (mirrored from scoring.ts / tiers.ts / cards) ────
 const SIZE_ORDER = ['small', 'medium', 'large'];
 const SIZE_LABEL = { small: 'S', medium: 'M', large: 'L' };
@@ -98,15 +103,6 @@ const HYBRID_TIER_THRESHOLDS = [
   { tier: 'gold', minimumScore: 90, minimumPercentile: 55 },
   { tier: 'silver', minimumScore: 85, minimumPercentile: 40 },
   { tier: 'bronze', minimumScore: 78, minimumPercentile: 25 },
-];
-
-const V1_BADGE_DEFINITIONS = [
-  { id: 'speedster',         name: 'Speedster',         category: 'execution',    source: 'SPD', legendRequiresFirstOverall: true },
-  { id: 'compute-finisher',  name: 'Compute Finisher',   category: 'execution',    source: 'CMP', benchmarkId: 'nbody', legendRequiresSizeSweep: true },
-  { id: 'data-handler',      name: 'Data Wrangler',      category: 'control',      source: 'DAT', benchmarkId: 'aggregation', legendRequiresSizeSweep: true },
-  { id: 'pathfinder',        name: 'Pathfinder',         category: 'control',      source: 'ALG', benchmarkId: 'shortest-path', legendRequiresSizeSweep: true },
-  { id: 'steady-hands',      name: 'Steady Hands',       category: 'reliability',  source: 'CON', legendRequiresCategoryWin: true },
-  { id: 'scale-master',      name: 'Scale Master',       category: 'physical',     source: 'SCL', legendRequiresCategoryWin: true },
 ];
 
 // ── Load data ────────────────────────────────────────
@@ -278,33 +274,83 @@ function overallScalability(sc) {
 }
 
 // Build attribute rating map per language
-// Returns { SPD, CMP, DAT, ALG, CON, SCL }
+// Returns { SPD, CMP, DAT, ALG, CON, SCL, BLD, BIN, MEM, LOC, ECO, etc. }
 function buildAttributeRatings(overallScore, benchScoresById) {
   const attr = {};
 
-  // SPD = overall performance
+  // Core attributes (always available from benchmark scores)
   attr.SPD = overallScore.eligible ? overallScore.performance : null;
 
-  // CMP = nbody benchmark performance
   const nbodyScores = benchScoresById.nbody;
   const nbodyOwn = nbodyScores?.find(s => s.lang === overallScore.lang);
   attr.CMP = nbodyOwn?.eligible ? nbodyOwn.performance : null;
 
-  // DAT = aggregation benchmark performance
   const aggScores = benchScoresById.aggregation;
   const aggOwn = aggScores?.find(s => s.lang === overallScore.lang);
   attr.DAT = aggOwn?.eligible ? aggOwn.performance : null;
 
-  // ALG = shortest-path benchmark performance
   const spScores = benchScoresById['shortest-path'];
   const spOwn = spScores?.find(s => s.lang === overallScore.lang);
   attr.ALG = spOwn?.eligible ? spOwn.performance : null;
 
-  // CON = overall consistency
   attr.CON = overallScore.eligible ? overallScore.consistency : null;
-
-  // SCL = average scalability across benchmarks
   attr.SCL = overallScalability(overallScore);
+
+  // Extended attributes from raw results (when available)
+  const langResults = results.filter(r => r.language.id === overallScore.lang);
+  const cohortByLang = {};
+  for (const r of results) {
+    if (!cohortByLang[r.language.id]) cohortByLang[r.language.id] = [];
+    cohortByLang[r.language.id].push(r);
+  }
+
+  // Build speed (lower is better)
+  const buildDurations = Object.entries(cohortByLang).map(([lang, ress]) => {
+    const builds = ress.map(r => r.build).filter(b => b && (b.status === 'success' || b.status === 'cached') && b.durationNanoseconds > 0);
+    return builds.length ? { lang, value: Math.min(...builds.map(b => b.durationNanoseconds)) } : null;
+  }).filter(Boolean);
+  const ownBuild = buildDurations.find(b => b.lang === overallScore.lang);
+  if (ownBuild && buildDurations.length >= 2) {
+    const field = buildDurations.map(b => b.value);
+    const best = Math.min(...field);
+    attr.BLD = best > 0 ? Math.round((best / ownBuild.value) * 100) : null;
+  } else {
+    attr.BLD = null;
+  }
+
+  // Artifact size (lower is better)
+  const artifactSizes = Object.entries(cohortByLang).map(([lang, ress]) => {
+    const sizes = ress.map(r => r.build?.artifactSizeBytes).filter(s => typeof s === 'number' && s > 0);
+    return sizes.length ? { lang, value: Math.min(...sizes) } : null;
+  }).filter(Boolean);
+  const ownArtifact = artifactSizes.find(a => a.lang === overallScore.lang);
+  if (ownArtifact && artifactSizes.length >= 2) {
+    const field = artifactSizes.map(a => a.value);
+    const best = Math.min(...field);
+    attr.BIN = best > 0 ? Math.round((best / ownArtifact.value) * 100) : null;
+  } else {
+    attr.BIN = null;
+  }
+
+  // Peak memory (lower is better)
+  const peakMemory = Object.entries(cohortByLang).map(([lang, ress]) => {
+    const memValues = ress.map(r => r.execution.memory?.peakResidentBytes).filter(v => typeof v === 'number' && v > 0);
+    return memValues.length ? { lang, value: Math.min(...memValues) } : null;
+  }).filter(Boolean);
+  const ownMemory = peakMemory.find(m => m.lang === overallScore.lang);
+  if (ownMemory && peakMemory.length >= 2) {
+    const field = peakMemory.map(m => m.value);
+    const best = Math.min(...field);
+    attr.MEM = best > 0 ? Math.round((best / ownMemory.value) * 100) : null;
+  } else {
+    attr.MEM = null;
+  }
+
+  // Implementation size and code economy - need line count data
+  // These require averageLogicalLinesForLanguage which isn't available in the scorecard
+  // Set to null for now - will be computed when line count data is available
+  attr.LOC = null;
+  attr.ECO = null;
 
   return attr;
 }
@@ -473,7 +519,7 @@ function awardBadge(definition, lang, allAttributes, benchScoresById) {
 const allBadges = {}; // lang -> EarnedBadge[]
 for (const lang of languages) {
   const badges = [];
-  for (const def of V1_BADGE_DEFINITIONS) {
+  for (const def of ALL_BADGE_DEFINITIONS) {
     const badge = awardBadge(def, lang, allAttributes, benchScoresById);
     if (badge) badges.push(badge);
   }
@@ -637,13 +683,14 @@ md += `| &lt; 45 | COMMON | Emerald | EME | 1 |\n\n`;
 
 // ── Badge Matrix ──────────────────────────────────────
 md += `## Badge Summary Matrix\n\n`;
-md += `| Lang | Speedster | Compute Finisher | Data Wrangler | Pathfinder | Steady Hands | Scale Master |\n`;
-md += `|------|-----------|------------------|---------------|------------|--------------|--------------|\n`;
+const badgeHeaders = ALL_BADGE_DEFINITIONS.map(d => d.name);
+md += `| Lang | ${badgeHeaders.join(' | ')} |\n`;
+md += `|------| ${badgeHeaders.map(() => '-'.repeat(14)).join(' | ')} |\n`;
 for (const s of rankedWithBadges) {
   const badges = allBadges[s.lang] || [];
   const byId = {};
   for (const b of badges) byId[b.badgeId] = b;
-  const cells = V1_BADGE_DEFINITIONS.map(def => {
+  const cells = ALL_BADGE_DEFINITIONS.map(def => {
     const b = byId[def.id];
     if (!b) return '—';
     const emoji = { legend: '🏆', 'hall-of-fame': '🌟', gold: '🥇', silver: '🥈', bronze: '🥉' };
@@ -734,17 +781,14 @@ for (const s of rankedWithBadges) {
   md += `#### Attribute Ratings\n\n`;
   md += `| Attribute | Abbrev | Rating | Used By |\n`;
   md += `|-----------|--------|--------|---------|\n`;
-  const attrMeta = [
-    { id: 'SPD', label: 'Runtime Speed', badges: 'Speedster' },
-    { id: 'CMP', label: 'Compute', badges: 'Compute Finisher' },
-    { id: 'DAT', label: 'Data Processing', badges: 'Data Wrangler' },
-    { id: 'ALG', label: 'Algorithms', badges: 'Pathfinder' },
-    { id: 'CON', label: 'Consistency', badges: 'Steady Hands' },
-    { id: 'SCL', label: 'Scalability', badges: 'Scale Master' },
-  ];
+  // Build attrMeta from shared definitions, mapping each attribute to its badges
+  const attrMeta = ALL_ATTRIBUTE_DEFINITIONS.map(def => {
+    const badgesForAttr = ALL_BADGE_DEFINITIONS.filter(b => b.source === def.abbreviation).map(b => b.name);
+    return { id: def.abbreviation, label: def.label, badges: badgesForAttr.join(', ') || '—' };
+  });
   for (const am of attrMeta) {
     const val = attrs[am.id];
-    const valStr = val !== null && val !== undefined ? val.toFixed(1) : '—';
+    const valStr = val !== null && val !== undefined ? (typeof val === 'number' ? val.toFixed(1) : val) : '—';
     md += `| ${am.label} | ${am.id} | **${valStr}** | ${am.badges} |\n`;
   }
   md += `\n`;

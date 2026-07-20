@@ -1,4 +1,5 @@
 import type { AttributeCategory } from '../types.ts';
+import sharedBadgeDefs from '../../../../shared/badge-definitions.json';
 
 export type AttributeDefinition = {
 	id: string;
@@ -7,95 +8,16 @@ export type AttributeDefinition = {
 	category: AttributeCategory;
 };
 
-export const CORE_ATTRIBUTE_DEFINITIONS: AttributeDefinition[] = [
-	{
-		id: 'runtime-speed',
-		label: 'Runtime Speed',
-		abbreviation: 'SPD',
-		category: 'execution'
-	},
-	{
-		id: 'consistency',
-		label: 'Consistency',
-		abbreviation: 'CON',
-		category: 'reliability'
-	},
-	{
-		id: 'scalability',
-		label: 'Scalability',
-		abbreviation: 'SCL',
-		category: 'physical'
-	},
-	{
-		id: 'compute',
-		label: 'Compute',
-		abbreviation: 'CMP',
-		category: 'execution'
-	},
-	{
-		id: 'algorithms',
-		label: 'Algorithms',
-		abbreviation: 'ALG',
-		category: 'control'
-	},
-	{
-		id: 'data-processing',
-		label: 'Data Processing',
-		abbreviation: 'DAT',
-		category: 'control'
-	}
-];
+// Attribute definitions from shared single source of truth
+const sharedAttrDefs = sharedBadgeDefs.attributeDefinitions as AttributeDefinition[];
 
-export const EXTENDED_ATTRIBUTE_DEFINITIONS: AttributeDefinition[] = [
-	{
-		id: 'build-speed',
-		label: 'Build Speed',
-		abbreviation: 'BLD',
-		category: 'physical'
-	},
-	{
-		id: 'artifact-efficiency',
-		label: 'Artifact Efficiency',
-		abbreviation: 'BIN',
-		category: 'physical'
-	},
-	{
-		id: 'startup',
-		label: 'Startup',
-		abbreviation: 'STA',
-		category: 'physical'
-	},
-	{
-		id: 'memory',
-		label: 'Memory Efficiency',
-		abbreviation: 'MEM',
-		category: 'physical'
-	},
-	{
-		id: 'io',
-		label: 'I/O',
-		abbreviation: 'IO',
-		category: 'control'
-	},
-	{
-		id: 'parallelism',
-		label: 'Parallelism',
-		abbreviation: 'PAR',
-		category: 'execution'
-	},
-	{
-		id: 'implementation-size',
-		label: 'Implementation Size',
-		abbreviation: 'LOC',
-		category: 'physical'
-	},
-	{
-		id: 'code-economy',
-		label: 'Code Economy',
-		abbreviation: 'ECO',
-		category: 'execution'
-	}
-];
+export const CORE_ATTRIBUTE_DEFINITIONS: AttributeDefinition[] = sharedAttrDefs.filter(
+	(d) => ['runtime-speed', 'consistency', 'scalability', 'compute', 'algorithms', 'data-processing'].includes(d.id)
+);
+
+export const EXTENDED_ATTRIBUTE_DEFINITIONS: AttributeDefinition[] = sharedAttrDefs.filter(
+	(d) => !['runtime-speed', 'consistency', 'scalability', 'compute', 'algorithms', 'data-processing'].includes(d.id)
+);
 
 export const ALL_ATTRIBUTE_DEFINITIONS = [
 	...CORE_ATTRIBUTE_DEFINITIONS,
