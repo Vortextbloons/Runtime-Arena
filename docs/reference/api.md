@@ -66,6 +66,24 @@ npm run arena -- run --output out.json
 - `--output` — Write results to specific file
 - `--preserve-temp` — Keep temporary run directory
 
+### `arena protocol test`
+
+Validate a language implementation's compliance with the harness stdin/stdout protocol.
+
+```bash
+npm run arena -- protocol test --language rust
+npm run arena -- protocol test --language go --minimal
+npm run arena -- protocol test --language python --benchmark aggregation
+```
+
+**Flags:**
+- `--language <id>` — Language to test (required)
+- `--minimal` — Use a pre-built example program from `examples/minimal-workers/` (quick validation of protocol helpers; skips building a full benchmark)
+- `--benchmark <id>` — Use a specific benchmark implementation (defaults to `nbody` when omitted)
+- `--preserve-temp` — Keep the temporary test directory
+
+Without `--minimal`, the command builds the language's implementation for the given benchmark and runs conformance checks. Always uses a single measured iteration with no warmup. See [`languages/protocol/README.md`](../languages/protocol/README.md) for the protocol helper reference.
+
 ### `arena check`
 
 Validate an implementation output file against the checker.
@@ -149,6 +167,8 @@ The `results/current.json` snapshot contains:
   ]
 }
 ```
+
+> **Note:** The example above shows a **legacy** result record (`"measurementContractVersion": "1.1.0"`, `mode: "persistent-worker"`). Current runs produce records with `"measurementContractVersion": "2.0.0"` and `mode: "harness-timed-persistent-worker"`. The summary field names also differ — legacy results use `medianKernelTimeNanoseconds` while current results use `medianIterationTimeNanoseconds`. See [`result.schema.json`](../schemas/result.schema.json) for the full current shape.
 
 `arenaVersion` is hardcoded in the CLI as `"0.2.0"` when writing snapshots. npm package versions may lag that string.
 

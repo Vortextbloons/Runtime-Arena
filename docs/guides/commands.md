@@ -158,6 +158,32 @@ See [web-deployment.md](web-deployment.md) for deployment details.
 npm run arena -- check --benchmark nbody --input path/to/input.json --output path/to/output.json
 ```
 
+### Protocol conformance test
+
+Test that a language implementation handles the harness stdin/stdout protocol
+correctly:
+
+```bash
+# Minimal worker test (quick — validates ready/run/result/finish)
+npm run arena -- protocol test --language rust --minimal
+
+# Full benchmark test (builds and runs a real benchmark)
+npm run arena -- protocol test --language rust --benchmark nbody
+```
+
+Diagnoses missing `ready`, digest mismatches, malformed JSON in stdout, and
+manifest gaps (missing `--input`, `--output`, or `--protocol-version` in
+`run.arguments`). Always runs a single measured iteration with no warmup.
+
+The `--minimal` variant uses a pre-built example program from
+[`examples/minimal-workers/`](../../examples/minimal-workers/) — useful for
+validating protocol helpers before writing a full benchmark implementation.
+Without `--minimal`, the command builds the benchmark implementation and runs
+the conformance tests against it.
+
+See [`languages/protocol/README.md`](../../languages/protocol/README.md) for
+the protocol helper reference.
+
 ### Regenerate a dataset
 
 Generators exist for all seven benchmarks. For non-mutation benchmarks (nbody,
@@ -178,6 +204,47 @@ npm run arena -- dataset generate --benchmark shortest-path --size small --mutat
 Committed fixtures are the source of truth for arena runs; only regenerate when
 intentionally refreshing datasets (and update metadata / hashes accordingly).
 
+## Scorecard
+
+Generate a self-contained markdown snapshot of all language rankings, badge
+breakdowns, and per-benchmark results:
+
+```bash
+npm run scorecard
+```
+
+Writes `docs/scorecard.md` by reading `results/current.json` and computing
+scores with the same algorithm as the web UI (75% geometric-mean speed + 25%
+flexibility + badge bonuses). The output includes:
+
+- **Overall leaderboard** — ranked languages with base OVR, badge bonus, final
+  OVR, SPD, FLEX, STABLE, tier/gem, and win count
+- **Badge summary matrix** — which badges each language earned and at what tier
+- **Per-language card profiles** — attribute meters (SPD, STABLE, FLEX),
+  earned badges with qualification details, per-benchmark breakdowns with rank
+  and relative speed, and fastest cells
+- **Per-benchmark leaderboards** — size-level breakdowns with median times and
+  relative speeds
+- **Win distribution** — count and share of fastest benchmark×size×mutation
+  cells per language
+- **Machine detail and benchmark metadata**
+
+Unlike the web UI, the scorecard is a static markdown file that can be committed
+and diffed — useful for tracking performance changes over time. Regenerate it
+after completing a benchmark run and before committing results.
+
+### README results table
+
+```bash
+npm run update-readme-results
+```
+
+Updates the summary leaderboard in `README.md` (between the `<!-- RESULTS
+START -->` and `<!-- RESULTS END -->` markers). This table shows only the base
+overall score (SPD + FLEX) without badge bonuses, making it a simpler
+at-a-glance comparison. Run this after `npm run scorecard` or whenever you
+want the README to reflect the latest `results/current.json`.
+
 ## Quick reference
 
 | Goal | Command |
@@ -195,6 +262,8 @@ intentionally refreshing datasets (and update metadata / hashes accordingly).
 | Protocol conformance | `npm run arena -- protocol test --language rust --minimal` |
 | Refresh web dev data | `npm run prepare-results` |
 | Web preview | `npm run build:web` then `npm run arena -- web` |
+| Generate scorecard | `npm run scorecard` |
+| Update README results | `npm run update-readme-results` |
 
 ## Related docs
 

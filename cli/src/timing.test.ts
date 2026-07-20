@@ -8,6 +8,7 @@ import {
   readTimingSamples,
   relativeMedianConfidenceIntervalWidth,
   shouldStopMeasuring,
+  validateMeasurementPolicy,
   type MeasurementPolicy
 } from "./timing.js";
 
@@ -70,4 +71,11 @@ test("keeps measuring noisy samples until max iterations", () => {
   const noisy = [1_000_000, 2_000_000, 500_000, 1_500_000, 1_200_000, 800_000, 1_100_000, 900_000, 1_050_000, 950_000];
   assert.equal(relativeMedianConfidenceIntervalWidth(noisy) > 0.05, true);
   assert.equal(shouldStopMeasuring(noisy, { minMeasuredIterations: 10, maxMeasuredIterations: 10, targetRelativeConfidenceInterval: 0.05 }), true);
+});
+
+test("measurement policies reject invalid bounds and confidence targets", () => {
+  assert.throws(() => validateMeasurementPolicy({ minMeasuredIterations: 0, maxMeasuredIterations: 1, targetRelativeConfidenceInterval: 0 }));
+  assert.throws(() => validateMeasurementPolicy({ minMeasuredIterations: 2, maxMeasuredIterations: 1, targetRelativeConfidenceInterval: 0 }));
+  assert.throws(() => validateMeasurementPolicy({ minMeasuredIterations: 1, maxMeasuredIterations: 1, targetRelativeConfidenceInterval: Number.NaN }));
+  assert.throws(() => validateMeasurementPolicy({ minMeasuredIterations: 1, maxMeasuredIterations: 2, targetRelativeConfidenceInterval: 0, mode: "fixed" }));
 });

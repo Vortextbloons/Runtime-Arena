@@ -2,7 +2,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import { resolveSpawnCommand, resolveSpawnEnv } from "./env.js";
-import { shouldStopMeasuring, type MeasurementPolicy } from "./timing.js";
+import { shouldStopMeasuring, validateMeasurementPolicy, type MeasurementPolicy } from "./timing.js";
 
 export const MEASUREMENT_PROTOCOL_VERSION = "2.0.0";
 
@@ -99,6 +99,7 @@ function createLineReader(child: ChildProcessWithoutNullStreams, maxCapturedByte
   const waiters: Array<{ resolve: (line: string) => void; reject: (error: Error) => void; timer: NodeJS.Timeout }> = [];
   let closed = false;
   let limitExceeded = false;
+  let terminalError: Error | undefined;
 
   const flushWaiter = (error?: Error, line?: string) => {
     const waiter = waiters.shift();
@@ -112,8 +113,9 @@ function createLineReader(child: ChildProcessWithoutNullStreams, maxCapturedByte
     capturedBytes += Buffer.byteLength(chunk, "utf8");
     if (capturedBytes > maxCapturedBytes) {
       limitExceeded = true;
+      terminalError = new Error("process output exceeded configured limit");
       child.kill("SIGKILL");
-      while (waiters.length) flushWaiter(new Error("process output exceeded configured limit"));
+      while (waiters.length) flushWaiter(terminalError);
       return;
     }
     pending += chunk;
@@ -123,7 +125,11 @@ function createLineReader(child: ChildProcessWithoutNullStreams, maxCapturedByte
       const line = pending.slice(0, index);
       pending = pending.slice(index + 1);
       if (waiters.length) flushWaiter(undefined, line);
-      else throw new Error("unexpected extra protocol output");
+      else {
+        terminalError = new Error("unexpected extra protocol output");
+        child.kill("SIGKILL");
+        return;
+      }
     }
   };
 
@@ -133,9 +139,14 @@ function createLineReader(child: ChildProcessWithoutNullStreams, maxCapturedByte
     capturedBytes += Buffer.byteLength(chunk);
     if (capturedBytes > maxCapturedBytes) {
       limitExceeded = true;
+      terminalError = new Error("process output exceeded configured limit");
       child.kill("SIGKILL");
-      while (waiters.length) flushWaiter(new Error("process output exceeded configured limit"));
+      while (waiters.length) flushWaiter(terminalError);
     }
+  });
+  child.on("error", cause => {
+    terminalError = cause;
+    while (waiters.length) flushWaiter(cause);
   });
   child.on("close", () => {
     closed = true;
@@ -143,7 +154,8 @@ function createLineReader(child: ChildProcessWithoutNullStreams, maxCapturedByte
   });
 
   return {
-  nextLine(timeoutMs: number) {
+    nextLine(timeoutMs: number) {
+      if (terminalError) return Promise.reject(terminalError);
       if (limitExceeded) return Promise.reject(new Error("process output exceeded configured limit"));
       const newline = pending.indexOf("\n");
       if (newline >= 0) {
@@ -178,6 +190,11 @@ export async function runHarnessProtocol(options: {
   timeoutMilliseconds: number;
   maxCapturedBytes: number;
 }): Promise<HarnessRunResult> {
+  validateMeasurementPolicy(options.measurement);
+  if (!Number.isSafeInteger(options.warmups) || options.warmups < 0) throw new Error("Warmup iterations must be a non-negative integer");
+  if (!Number.isFinite(options.timeoutMilliseconds) || options.timeoutMilliseconds <= 0) throw new Error("Protocol timeout must be positive");
+  if (!Number.isSafeInteger(options.maxCapturedBytes) || options.maxCapturedBytes < 1) throw new Error("Protocol output limit must be a positive integer");
+
   const started = process.hrtime.bigint();
   const platformCommand = resolveSpawnCommand(options.command);
   const resolvedEnv = resolveSpawnEnv(options.env ?? {});
@@ -207,7 +224,9 @@ export async function runHarnessProtocol(options: {
 
   const writeRequest = async (request: ProtocolRequest) => {
     const startedRequest = process.hrtime.bigint();
-    child.stdin.write(`${JSON.stringify(request)}\n`);
+    await new Promise<void>((resolve, reject) => {
+      child.stdin.write(`${JSON.stringify(request)}\n`, cause => cause ? reject(cause) : resolve());
+    });
     const expected = request.type === "finish" ? "finish" : "result";
     const line = await reader.nextLine(options.timeoutMilliseconds).catch((cause: Error) => {
       if (cause.message.includes("timed out")) timedOut = true;
@@ -274,11 +293,14 @@ export async function runHarnessProtocol(options: {
       waitForExit,
       new Promise<number | null>(resolve => setTimeout(() => resolve(null), protocolCompleted ? 5_000 : 1_000))
     ]);
-    if (!protocolCompleted && exitCode === null) reader.dispose(true);
+    if (exitCode === null) reader.dispose(true);
+    if (protocolCompleted && exitCode !== 0 && !error) {
+      error = exitCode === null ? "worker did not exit after protocol completed" : `worker exited with code ${exitCode}`;
+    }
   }
 
   const measuredSamples = samples.filter(sample => sample.phase === "measured");
-  const success = protocolCompleted && !timedOut && !limitExceeded
+  const success = protocolCompleted && exitCode === 0 && !timedOut && !limitExceeded
     && measuredSamples.length >= (options.measurement.mode === "fixed"
       ? options.measurement.minMeasuredIterations
       : Math.min(options.measurement.minMeasuredIterations, options.measurement.maxMeasuredIterations));

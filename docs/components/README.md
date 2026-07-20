@@ -6,7 +6,7 @@ Runtime Arena consists of six main components.
 
 TypeScript command-line tool (`arena`) — the primary entry point. Handles discovery, building, execution, validation, and result storage. Commands: `doctor`, `list`, `build`, `run`, `check`, `dataset`, `results`, `web`.
 
-Source: `cli/src/index.ts` with modules for `metrics.ts`, `timing.ts`, `mutations.ts`, `jdk.ts`, and `runner-cache.ts`. Details: [cli.md](cli.md).
+Source: `cli/src/index.ts` with ~15 supporting modules (`protocol.ts`, `provenance.ts`, `provenance-defaults.ts`, `process.ts`, `env.ts`, `runner-cache.ts`, `timing.ts`, `mutations.ts`, `metrics.ts`, `jdk.ts`, `minimal-workers.ts`, `protocol-conformance.ts`) and placeholders for future split. Details: [cli.md](cli.md).
 
 ## Checker (`checker/`)
 
@@ -32,7 +32,7 @@ Each has `small`, `medium`, and `large` datasets with per-size warmup/iteration 
 
 ## Languages (`languages/`)
 
-JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `java.json`, `typescript.json`, `python.json`, `lua.json`, `lua-interpreted.json`, `cpp.json`, `c.json`, `c-sharp.json`, and `javascript.json`. Run argument templates must include `--input`, `--output`, `--timing-output`, `--warmup`, `--min-iterations`, `--max-iterations`, and `--target-relative-ci` (persistent-worker contract).
+JSON manifests defining how to detect, build, and run each language: `rust.json`, `go.json`, `java.json`, `typescript.json`, `python.json`, `lua.json`, `lua-interpreted.json`, `cpp.json`, `c.json`, `c-sharp.json`, and `javascript.json`. Run argument templates must include `--input`, `--output`, and `--protocol-version` (harness-timed persistent-worker contract 2.0.0).
 
 Detect/build/run commands may use machine-local absolute paths (the LuaJIT manifest often does on Windows). Prefer portable commands when possible; absolute paths are valid when the toolchain is not on `PATH`.
 

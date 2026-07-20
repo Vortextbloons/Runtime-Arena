@@ -8,6 +8,12 @@ A fingerprint is a SHA-256 hash that captures the complete state of a (benchmark
 
 There are two separate fingerprint systems: one for **execution staleness** (`fingerprintCell`) and one for **build caching** (`buildFingerprint` via `collectBuildProvenance`).
 
+## RunnerCache Optimization
+
+A `RunnerCache` instance is created once per `arena run` invocation and passed to both `fingerprintCell()` and `collectBuildProvenance()`. It memoizes file reads in an in-memory `Map<string, Buffer>` and SHA-256 hashes in a separate `Map<string, string>`, avoiding redundant disk I/O and hashing when the same files are fingerprinted across multiple cells (benchmark manifests, datasets, implementation trees, etc.).
+
+Tree hashing via `RunnerCache.appendTreeHash()` also skips common generated-directory patterns (`node_modules`, `target`, `dist`, `build`, `__pycache__`, `.arena`) and binary artifacts (`.exe`, `.pyc`).
+
 ## Execution Fingerprint
 
 The execution fingerprint includes:
@@ -43,8 +49,8 @@ A cache hit requires a present manifest, matching provenance, and verified artif
 
 | Status | Meaning |
 |--------|---------|
-| `current` | Saved fingerprint matches computed fingerprint under contract 2.0.0 |
-| `stale` | Fingerprint changed or legacy measurement contract |
+| `current` | Saved fingerprint and measurement contract version both match the computed values under contract 2.0.0 |
+| `stale` | Fingerprint changed, measurement contract is legacy (`1.0.0`/`1.1.0`), or the machine CPU model or OS platform differs from the saved result |
 | `missing` | No saved result exists |
 | `unavailable` | Implementation or toolchain is missing |
 

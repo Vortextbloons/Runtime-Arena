@@ -22,7 +22,7 @@ Contracts `1.0.0` and `1.1.0` remain readable for historical snapshots. Legacy c
 
 ## Isolation and Correctness
 
-Each cell runs in an isolated working directory under `.arena/runs/<snapshotId>/<benchmark>/<language>/<size>/<mutation>/`. Its input dataset is copied to a separate read-only location under `.arena/runs/<snapshotId>/datasets/` (`chmod 0o444`). Before the checker is invoked, output size is checked against the benchmark's `maxOutputBytes` limit. The independent checker validates the final output once.
+Each cell runs in an isolated working directory under `.arena/runs/<snapshotId>/<benchmark.id>/<language.id>/<sizeName>/<mutation|"default">/`. Its input dataset is copied to a separate read-only location under `.arena/runs/<snapshotId>/datasets/<benchmark.id>/` and made read-only via `chmod 0o444` (applied unconditionally on all platforms through Node.js `fs.promises.chmod`). Before the checker is invoked, output size is checked against the benchmark's `maxOutputBytes` limit and the output file SHA-256 digest is compared against the last protocol response digest. The independent checker validates the final output once.
 
 ## Trust Boundary
 

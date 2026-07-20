@@ -52,6 +52,7 @@ export type CacheManifest = {
 };
 
 const CACHE_MANIFEST = "manifest.json";
+const SHA256_HEX = /^[a-f0-9]{64}$/;
 
 async function exists(file: string) {
   return access(file).then(() => true, () => false);
@@ -196,7 +197,19 @@ export async function restoreCachedArtifact(options: {
 }) {
   const manifestPath = path.join(options.cacheDir, CACHE_MANIFEST);
   if (!await exists(manifestPath)) return false;
-  const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as CacheManifest;
+  let manifest: CacheManifest;
+  try {
+    const value: unknown = JSON.parse(await readFile(manifestPath, "utf8"));
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    const candidate = value as Partial<CacheManifest>;
+    if (candidate.schemaVersion !== "1.0.0"
+      || typeof candidate.cacheFingerprint !== "string"
+      || typeof candidate.artifactSha256 !== "string"
+      || !SHA256_HEX.test(candidate.artifactSha256)) return false;
+    manifest = candidate as CacheManifest;
+  } catch {
+    return false;
+  }
   if (manifest.cacheFingerprint !== options.buildProvenance.buildFingerprint) return false;
 
   if (isSourceArtifact(options.artifact, options.implementationDir, options.sourceExtensions)) {

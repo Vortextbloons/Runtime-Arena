@@ -49,7 +49,9 @@ Validates language manifests (`languages/*.json`).
 
 **Build command** additionally requires `workingDirectory`.
 
-**Template variables:** `{projectRoot}`, `{benchmarkId}`, `{benchmarkDir}`, `{implementationDir}`, `{artifact}`, `{inputFile}`, `{outputFile}`, `{timingOutputFile}`, `{warmupIterations}`, `{minMeasuredIterations}`, `{maxMeasuredIterations}`, `{targetRelativeConfidenceInterval}`, `{runId}`, `{size}`
+**Template variables:** `{projectRoot}`, `{benchmarkId}`, `{benchmarkDir}`, `{implementationDir}`, `{artifact}`, `{inputFile}`, `{outputFile}`, `{protocolVersion}`, `{runId}`, `{size}`
+
+> Template variables `{timingOutputFile}`, `{warmupIterations}`, `{minMeasuredIterations}`, `{maxMeasuredIterations}`, and `{targetRelativeConfidenceInterval}` were used by the legacy protocol (pre-2.0.0). Current harness-timed runs pass these values via the protocol handshake.
 
 ## result.schema.json
 
@@ -68,9 +70,24 @@ Each result is required to contain:
 - `dataset` — id and sha256 are required; seed, generatorVersion, and mutation are optional but present in practice
 - `language` — id, name, version; compilerVersion and compilerFlags are optional
 - `build` — status, durationNanoseconds, command; artifactSizeBytes is optional
-- `execution` — mode (always `"persistent-worker"`), measurementContractVersion (`"1.1.0"`), totalProcessDurationNanoseconds, warmupIterations, measuredIterations, measurement (nested object with `mode`, `minMeasuredIterations`, `maxMeasuredIterations`, `targetRelativeConfidenceInterval`), samples, summary (includes `validSamples`, `rejectedSamples`, `medianKernelTimeNanoseconds`, `meanKernelTimeNanoseconds`, `minimumKernelTimeNanoseconds`, `maximumKernelTimeNanoseconds`, `standardDeviationKernelTimeNanoseconds`, `p95KernelTimeNanoseconds`, `interquartileRangeKernelTimeNanoseconds`), metrics, and optional `startup`, `memory`, `parallel` blocks
+- `execution` — uses a `oneOf` with two shapes:
+  - **Harness (current):** mode `"harness-timed-persistent-worker"`, measurementContractVersion `"2.0.0"`, measurement object with `mode` (`"adaptive-median-confidence-interval"` or `"fixed"`), `minMeasuredIterations`, `maxMeasuredIterations`, `targetRelativeConfidenceInterval`; summary uses `medianIterationTimeNanoseconds`, `meanIterationTimeNanoseconds`, etc.
+  - **Legacy:** mode `"persistent-worker"`, measurementContractVersion `"1.0.0"` or `"1.1.0"`, measurement is a generic object; summary uses `medianKernelTimeNanoseconds`, `minimumKernelTimeNanoseconds`, `p95KernelTimeNanoseconds`, etc.
+  Both include `totalProcessDurationNanoseconds`, `warmupIterations`, `measuredIterations`, `samples` (with differing per-sample fields), `metrics`, and optional `startup`, `memory`, `parallel` blocks
 - `checker` — language, version, status (enum: accepted / wrong-answer / malformed-output / unsupported-version / checker-error), diagnostics (optional)
-- `provenance` — fingerprint (sha256 hex), measurementContractVersion (`"1.1.0"`), measuredAt, machine (os, cpu, memoryBytes)
+- `provenance` — uses a `oneOf` with two shapes:
+  - **Harness (current):** fingerprint (sha256 hex), measurementContractVersion `"2.0.0"`, measuredAt, buildFingerprint, artifactSha256, toolchain, machine
+  - **Legacy:** fingerprint (sha256 hex), measurementContractVersion `"1.0.0"` or `"1.1.0"`, measuredAt, machine
+
+### Result Data Model Evolution
+
+The `schemaVersion` field at the root of each result snapshot tracks the data model version. The JSON schema validator uses semver range matching, so `schemaVersion: "3.0.0"` passes `^3.0.0`. The CLI currently hardcodes `"3.0.0"`.
+
+| Version | Key Changes |
+|---------|-------------|
+| `1.0.0` | **Initial schema.** Used `measurementContractVersion: "1.0.0"` or `"1.1.0"`. Execution mode was `persistent-worker` (the implementation measured its own timing). Metrics used `kernelTimeNanoseconds` per sample with `medianKernelTimeNanoseconds` as the primary ranking metric. Provenance was simple: just a fingerprint hash, `measurementContractVersion`, `measuredAt` timestamp, and `machine` info. |
+| `2.0.0` | **Mutations & generator versioning.** Added `mutation` support in `benchmark` objects and `seed`, `mutation`, and `generatorVersion` fields in `dataset` objects. Added `targetRelativeConfidenceInterval` to the measurement policy. The `GENERATOR_VERSION` constant (`"2.2.0"`) is written for mutation datasets; non-mutation datasets use `"committed-fixture-1.0.0"`. |
+| `3.0.0` (current) | **Harness-timed execution & enhanced provenance.** Added `measurementContractVersion: "2.0.0"` with `harness-timed-persistent-worker` mode (the CLI drives timing externally). Primary metric changed from `medianKernelTimeNanoseconds` to `medianIterationTimeNanoseconds`. Provenance expanded with `buildFingerprint`, `artifactSha256`, and `toolchain` (containing compiler versions, environment snapshot, and target info). |
 
 ## implementation-output.schema.json
 

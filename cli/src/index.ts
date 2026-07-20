@@ -17,7 +17,7 @@ import {
   groupKey,
   type SizeConfig
 } from "./mutations.js";
-import { type MeasurementPolicy } from "./timing.js";
+import { validateMeasurementPolicy, type MeasurementPolicy } from "./timing.js";
 import { MEASUREMENT_PROTOCOL_VERSION, runHarnessProtocol } from "./protocol.js";
 import {
   artifactSize,
@@ -33,6 +33,7 @@ import { jdkPathEnvironment, resolveJdkTool } from "./jdk.js";
 import { resolveLanguageProvenance } from "./provenance-defaults.js";
 import { runProtocolConformance } from "./protocol-conformance.js";
 import { prepareMinimalWorkerRun } from "./minimal-workers.js";
+import { runPool } from "./pool.js";
 
 type Command = { command: string; arguments: string[]; workingDirectory?: string; artifact?: string };
 type Language = {
@@ -72,7 +73,11 @@ const config = JSON.parse(await readFile(path.join(root, "arena.config.json"), "
 };
 
 function resolveWarmupIterations(cellWarmups: number, languageId: string, flagOverride?: string) {
-  if (flagOverride !== undefined) return Number(flagOverride);
+  if (flagOverride !== undefined) {
+    const warmups = Number(flagOverride);
+    if (!Number.isSafeInteger(warmups) || warmups < 0) throw new Error("--warmup must be a non-negative integer");
+    return warmups;
+  }
   const languageFloor = config.warmupOverrides?.[languageId] ?? 0;
   return Math.max(cellWarmups, languageFloor);
 }
@@ -85,14 +90,14 @@ function resolveMeasurementPolicy(flags: ReturnType<typeof parseFlags>, minOverr
   const fixed = flags.get("--iterations");
   if (fixed) {
     const iterations = Number(fixed);
-    return { minMeasuredIterations: iterations, maxMeasuredIterations: iterations, targetRelativeConfidenceInterval: 0, mode: "fixed" };
+    return validateMeasurementPolicy({ minMeasuredIterations: iterations, maxMeasuredIterations: iterations, targetRelativeConfidenceInterval: 0, mode: "fixed" });
   }
-  return {
+  return validateMeasurementPolicy({
     minMeasuredIterations: Number(flags.get("--min-iterations") ?? minDefault),
     maxMeasuredIterations: Number(flags.get("--max-iterations") ?? config.measurement?.maxMeasuredIterations ?? 30),
     targetRelativeConfidenceInterval: Number(flags.get("--target-ci") ?? config.measurement?.targetRelativeConfidenceInterval ?? 0.05),
     mode: "adaptive-median-confidence-interval"
-  };
+  });
 }
 
 const json = async <T>(file: string): Promise<T> => JSON.parse(await readFile(file, "utf8")) as T;
@@ -410,26 +415,6 @@ function medianNanoseconds(summary: Record<string, number>) {
   return summary.medianIterationTimeNanoseconds ?? summary.medianKernelTimeNanoseconds ?? 0;
 }
 
-async function pool<T>(items: T[], concurrency: number, fn: (item: T) => Promise<void>): Promise<void> {
-  let active = 0;
-  let resolveNext: (() => void) | null = null;
-  const wait = () => new Promise<void>(r => { resolveNext = r; });
-  const schedule = () => {
-    while (active < concurrency && items.length > 0) {
-      const item = items.shift()!;
-      active++;
-      fn(item).finally(() => {
-        active--;
-        if (resolveNext) { resolveNext(); resolveNext = null; }
-        schedule();
-      });
-    }
-  };
-  schedule();
-  while (active > 0) await wait();
-}
-
-
 async function ensureChecker() {
   const checker = executable(path.join(root, config.checkerExecutable));
   if (!await exists(checker)) {
@@ -566,7 +551,7 @@ async function runCommand(args: string[]) {
   const buildTargets = [...new Map(
     staleCells.map(cell => [`${cell.benchmark.id}/${cell.language.id}`, { language: cell.language, benchmark: cell.benchmark }])
   ).values()];
-  await pool(buildTargets, Math.min(parallelism, buildTargets.length || 1), async ({ language, benchmark }) => {
+  await runPool(buildTargets, Math.min(parallelism, buildTargets.length || 1), async ({ language, benchmark }) => {
     const built = await buildOne(language, benchmark, runnerCache);
     builds.set(`${benchmark.id}/${language.id}`, built);
     if (built.status === "failed" && verbose) {
@@ -576,7 +561,7 @@ async function runCommand(args: string[]) {
 
   const isolatedInputs = plannedCells ? await stageIsolatedDatasets(staleCells, tempRoot) : new Map<string, string>();
 
-  await pool(staleCells, parallelism, async (cell) => {
+  await runPool(staleCells, parallelism, async (cell) => {
     const { benchmark, sizeName, mutation, language, version, compilerVersion, fingerprint, key, input, datasetHash, datasetSeed, warmups, measurement } = cell;
     const build = builds.get(`${benchmark.id}/${language.id}`);
     if (!build || build.status === "missing") return;

@@ -20,6 +20,10 @@ This command:
 | CLI protocol | `cli/test/protocol.test.ts` | Node test runner |
 | CLI timing helpers | `cli/src/timing.test.ts` | Node test runner |
 | CLI provenance / cache | `cli/src/provenance.test.ts` | Node test runner |
+| CLI provenance defaults | `cli/src/provenance-defaults.test.ts` | Node test runner |
+| CLI protocol conformance | `cli/src/protocol-conformance.test.ts` | Node test runner |
+| CLI benchmark mutations | `cli/src/mutations.test.ts` | Node test runner |
+| CLI RunnerCache | `cli/src/runner-cache.test.ts` | Node test runner |
 | Web scoring | `web/src/lib/scoring.test.ts` | Node test runner |
 | Web tiers | `web/src/lib/tiers.test.ts` | Node test runner |
 | Web card data | `web/src/lib/cards.test.ts` | Node test runner |
@@ -42,6 +46,14 @@ Protocol tests in `cli/test/protocol.test.ts` cover the harness stdin/stdout con
 Timing unit tests in `cli/src/timing.test.ts` cover adaptive median bootstrap confidence intervals and fixed-count policy bounds.
 
 Provenance tests in `cli/src/provenance.test.ts` cover source-as-artifact cache behavior (interpreted languages must not be overwritten on cache restore).
+
+Provenance defaults tests in `cli/src/provenance-defaults.test.ts` cover merging of language manifest provenance with `provenance.defaults.json` and automatic runtime probe injection.
+
+Protocol conformance tests in `cli/src/protocol-conformance.test.ts` cover the `arena protocol test` command: manifest validation (required run arguments) and diagnostic/hint generation for common harness failures.
+
+Mutation tests in `cli/src/mutations.test.ts` cover mutation benchmark cell expansion and the `expandSizeCells` helper.
+
+RunnerCache tests in `cli/src/runner-cache.test.ts` cover the file-level cache used for dataset hashing and fingerprint inputs.
 
 ## Checker Tests
 

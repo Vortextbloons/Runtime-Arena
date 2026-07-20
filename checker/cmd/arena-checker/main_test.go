@@ -34,6 +34,19 @@ func TestShortestPathAndAlternateOptimalPath(t *testing.T) {
 	}
 }
 
+func TestShortestPathRejectsInvalidGraphWithoutPanicking(t *testing.T) {
+	graph := graphInput{VertexCount: 2, Edges: []edge{{From: 0, To: 2, Weight: 1}}, Queries: []query{{ID: 1, Source: 0, Destination: 1}}}
+	output := pathOutput{Benchmark: "shortest-path", Version: 1, Results: []pathResult{{QueryID: 1}}}
+	if err := checkPaths(graph, output); err == nil {
+		t.Fatal("out-of-range edge was accepted")
+	}
+
+	graph = graphInput{VertexCount: 2, Edges: []edge{{From: 0, To: 1, Weight: -1}}, Queries: []query{{ID: 1, Source: 0, Destination: 1}}}
+	if err := checkPaths(graph, output); err == nil {
+		t.Fatal("negative edge weight was accepted")
+	}
+}
+
 func TestAggregation(t *testing.T) {
 	file := filepath.Join(t.TempDir(), "input.csv")
 	data := "timestamp,account_id,category,quantity,unit_price\n2026-01-01,A,books,2,100\n2026-01-02,B,games,3,50\n"
@@ -46,6 +59,23 @@ func TestAggregation(t *testing.T) {
 	}
 	if got.RecordCount != 2 || got.TotalQuantity != 5 || got.TotalValueMinorUnits != 350 {
 		t.Fatalf("unexpected aggregate: %+v", got)
+	}
+}
+
+func TestAggregationRejectsMalformedNumbersAndHeaders(t *testing.T) {
+	for name, data := range map[string]string{
+		"number": "timestamp,account_id,category,quantity,unit_price\n2026-01-01,A,books,nope,100\n",
+		"header": "account_id,timestamp,category,quantity,unit_price\nA,2026-01-01,books,2,100\n",
+	} {
+		t.Run(name, func(t *testing.T) {
+			file := filepath.Join(t.TempDir(), "input.csv")
+			if err := os.WriteFile(file, []byte(data), 0600); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := aggregate(file); err == nil {
+				t.Fatal("malformed CSV was accepted")
+			}
+		})
 	}
 }
 

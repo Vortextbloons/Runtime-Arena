@@ -38,6 +38,8 @@ npm run build:checker
 | `npm run arena -- run` | Run benchmarks |
 | `npm run arena -- results summary` | Table view of `results/current.json` |
 | `npm run combine-docs` | Regenerate docs/ALL.md |
+| `npm run scorecard` | Generate the scorecard markdown snapshot at `docs/scorecard.md` |
+| `npm run update-readme-results` | Update the README results table from `results/current.json` |
 
 See [commands.md](commands.md) for the full CLI usage guide.
 
@@ -51,21 +53,7 @@ Omitting `--size` runs every default size the benchmark defines.
 
 ## Measurement defaults
 
-Adaptive measurement is configured in `arena.config.json`:
-
-```json
-"measurement": {
-  "minMeasuredIterations": 10,
-  "maxMeasuredIterations": 30,
-  "targetRelativeConfidenceInterval": 0.05
-}
-```
-
-Under measurement contract **2.0.0**, the harness owns the clock. It launches one persistent worker per cell, drives warmup and measured iterations over stdin/stdout, and records **median iteration time** (nanoseconds). Adaptive stopping uses a deterministic bootstrap 95% confidence interval for the median; pass `--iterations <n>` for fixed-count mode (used in tests).
-
-Language manifests pass `--input`, `--output`, and `--protocol-version` to implementations — not timing flags. See [execution model](../architecture/execution-model.md) for the protocol.
-
-After `arena run`, refresh the web UI with `npm run prepare-results` (or `npm run build:web`, which runs it automatically). Only rows with measurement contract **2.0.0** are ranked in the web UI and scorecards.
+Adaptive measurement is configured in [`arena.config.json`](../reference/configuration.md) via `minMeasuredIterations` (10), `maxMeasuredIterations` (30), and `targetRelativeConfidenceInterval` (0.05). Under measurement contract **2.0.0** the harness owns the clock — pass `--iterations <n>` to override with fixed-count mode. See [execution model](../architecture/execution-model.md) for the full protocol, contract, and timing details.
 
 ## First full run
 
@@ -77,19 +65,76 @@ A full `arena run --force` can sit quiet for a while before per-cell lines appea
 
 This is expected on a cold run with hundreds of cells.
 
+## Fingerprinting in Development
+
+The fingerprinting system determines which benchmark cells need re-execution. During iterative development, only cells whose fingerprint has changed are re-run — unchanged cells are marked `current` and skipped. This makes repeated `arena run` fast after the first full run.
+
+To see which cells would be re-run (or are stale):
+
+```bash
+npm run arena -- results status
+```
+
+This prints each cell's status (`current`, `stale`, `missing`, or `unavailable`) so you can verify you're not accidentally skipping cells you expected to run.
+
+**When to use `--force`:** The `--force` flag re-runs every selected cell regardless of its fingerprint. Use it when:
+- You changed something that the fingerprint doesn't capture (e.g., an environment variable, a dynamic dependency, system-wide config)
+- You want to verify no regression after a toolchain update
+- The checker output differs between runs despite identical source (rare — hints at a non-deterministic implementation or unhashed input)
+
+**What goes into a fingerprint:** The execution fingerprint is a SHA-256 hash of (see [fingerprinting](../architecture/fingerprinting.md) for the complete list):
+
+- Language manifest — `languages/<language>.json`
+- Benchmark manifest — `benchmarks/<benchmark>/benchmark.json`
+- Dataset — the size-specific input file
+- All implementation source files
+- All checker source files
+- Configuration metadata (contract version, measurement policy, metrics, toolchain versions)
+- Build provenance hash (compiler version, flags, resolved executables, etc.)
+
+**Build cache:** Compiled artifacts live under `.arena/build-cache/<buildFingerprint>/`. Each entry includes an atomic `manifest.json` with provenance details and artifact SHA-256. Clearing `.arena/build-cache/` forces every cell to rebuild from scratch.
+
+**RunnerCache:** During a single `arena run`, an in-memory `RunnerCache` memoizes file reads and SHA-256 hashes across all cells. This avoids redundant disk I/O and hashing when the same files (benchmark manifests, datasets, implementation trees) appear in multiple fingerprints. Tree hashing skips common generated-directory patterns (`node_modules`, `target`, `dist`, `build`, `__pycache__`, `.arena`) and binary artifacts (`.exe`, `.pyc`).
+
+**Practical tips for fast iteration:**
+- Filter by `--language` and `--benchmark` to narrow the run to the cells you're actively changing
+- Omit `--size` to run all sizes a benchmark defines — this gives you a complete picture without extra flags
+- Run `arena results status` first to confirm which cells are stale before committing to a full run
+
 ## Project Structure
 
 ```
 cli/                    # TypeScript CLI (arena command)
-  src/index.ts          # Main CLI logic
-  src/protocol.ts       # Harness protocol runner (contract 2.0.0)
-  src/provenance.ts     # Build provenance and artifact cache
-  src/timing.ts         # Adaptive median CI helpers
-  src/process.ts        # Child process spawning
-  src/env.ts            # Windows-safe spawn env/command resolution
-  src/metrics.ts        # Metric registry
-  test/protocol.test.ts # Protocol contract tests
-  test/cli.test.ts      # Integration tests
+  src/
+    index.ts            # Main CLI logic & entry point
+    protocol.ts         # Harness protocol runner (contract 2.0.0)
+    provenance.ts       # Build provenance and artifact cache
+    provenance-defaults.ts  # Merges language defaults from provenance.defaults.json
+    protocol-conformance.ts # Protocol conformance test runner (arena protocol test)
+    minimal-workers.ts  # Minimal worker setup for protocol testing
+    timing.ts           # Adaptive median CI helpers
+    process.ts          # Child process spawning
+    env.ts              # Windows-safe spawn env/command resolution
+    metrics.ts          # Metric registry
+    mutations.ts        # Mutation benchmark cell expansion & generators
+    runner-cache.ts     # File-level cache for fingerprints & datasets
+    jdk.ts              # JDK tool resolution (JAVA_HOME, PATH, etc.)
+    commands/           # Future command modules (`.gitkeep`)
+    discovery/          # Future discovery modules (`.gitkeep`)
+    execution/          # Future execution modules (`.gitkeep`)
+    metrics/            # Future metric collectors (`.gitkeep`)
+    reporting/          # Future reporting modules (`.gitkeep`)
+    results/            # Future results modules (`.gitkeep`)
+    timing.test.ts      # Adaptive median CI tests
+    provenance.test.ts  # Provenance cache tests
+    provenance-defaults.test.ts  # Provenance defaults resolution tests
+    protocol-conformance.test.ts # Protocol conformance test
+    mutations.test.ts   # Mutation cell expansion tests
+    runner-cache.test.ts # RunnerCache tests
+  test/
+    cli.test.ts         # Integration tests
+    protocol.test.ts    # Protocol contract tests
+    fixtures/           # Test fixture files
 checker/                # Independent Go checker
   cmd/arena-checker/main.go
 benchmarks/             # Workloads, datasets, implementations

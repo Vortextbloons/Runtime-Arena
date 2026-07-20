@@ -31,6 +31,7 @@ API documentation, configuration, and protocol specification.
 | [reference/api.md](reference/api.md) | CLI commands, flags, and output formats |
 | [reference/configuration.md](reference/configuration.md) | arena.config.json, language manifests, benchmark manifests |
 | [reference/schemas.md](reference/schemas.md) | JSON Schema definitions for validation |
+| [reference/protocol.md](reference/protocol.md) | Harness-timed protocol (contract 2.0.0): messages, digests, helpers, conformance |
 | [reference/benchmarks.md](reference/benchmarks.md) | Benchmark workloads — nbody, shortest-path, aggregation, barrier-wave, word-frequency, record-sorting, matrix-multiplication |
 
 ## Guides

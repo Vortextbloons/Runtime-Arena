@@ -75,11 +75,7 @@ Each language has a manifest defining detection, build, and run commands. The pr
     "arguments": [
       "--input", "{inputFile}",
       "--output", "{outputFile}",
-      "--timing-output", "{timingOutputFile}",
-      "--warmup", "{warmupIterations}",
-      "--min-iterations", "{minMeasuredIterations}",
-      "--max-iterations", "{maxMeasuredIterations}",
-      "--target-relative-ci", "{targetRelativeConfidenceInterval}"
+      "--protocol-version", "{protocolVersion}"
     ]
   },
   "environment": {},
@@ -101,13 +97,36 @@ Available in both `build` and `run`:
 Available only in `run`:
 - `{inputFile}` — Input dataset file
 - `{outputFile}` — Output file path
-- `{timingOutputFile}` — Timing output file path (used by persistent-worker contract)
-- `{warmupIterations}` — Number of warmup iterations (integer)
-- `{minMeasuredIterations}` — Minimum measured iterations (integer; see `measurement` config)
-- `{maxMeasuredIterations}` — Maximum measured iterations (integer; see `measurement` config)
-- `{targetRelativeConfidenceInterval}` — Target confidence interval width (number; e.g. `0.05`)
+- `{protocolVersion}` — Harness protocol version (e.g. `"2.0.0"`)
 - `{runId}` — Run snapshot ID
 - `{size}` — Dataset size name
+
+> Template variables `{timingOutputFile}`, `{warmupIterations}`, `{minMeasuredIterations}`, `{maxMeasuredIterations}`, and `{targetRelativeConfidenceInterval}` were used by the legacy persistent-worker contract (pre-2.0.0). Current harness-timed runs pass these via the protocol handshake instead.
+
+**Provenance block** (optional, present on most manifests):
+
+```json
+{
+  "provenance": {
+    "environmentAllowlist": ["GOCACHE", "GOOS", "GOARCH"],
+    "externalInputs": [
+      { "path": "{implementationDir}/go.mod" },
+      { "path": "{implementationDir}/go.sum" }
+    ],
+    "probes": [
+      { "id": "compiler", "command": "go", "arguments": ["version"] }
+    ]
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `environmentAllowlist` | Environment variable names that may affect the build or run result (used in fingerprinting) |
+| `externalInputs` | Paths to files outside the implementation directory that contribute to the fingerprint (e.g. build scripts, lockfiles). `recursive: true` includes a directory tree |
+| `probes` | Commands run during fingerprint collection (e.g. compiler version probes). Each has an `id`, `command`, and optional `arguments` |
+
+Default provenance values per language are defined in `languages/protocol/provenance.defaults.json`. The CLI merges these defaults with per-manifest overrides at `discoverLanguages()` time.
 
 C++ implementations use shared headers (JSON parser, SHA-256) bundled at `languages/cpp/include/` and referenced by the build command's include path.
 
@@ -164,6 +183,25 @@ Each mutation entry specifies a `dataset` file path and the `seed` used to gener
 
 ## Environment Variables
 
-The CLI detects toolchains by running the commands defined in each language manifest's `detect` block (e.g., `rustc --version`, `go version`). It does not read toolchain-specific environment variables like `RUSTC` or `GOPATH`. No custom Runtime Arena environment variables are defined for users.
+The CLI discovers toolchains by running the commands defined in each language manifest's `detect` block (e.g., `rustc --version`, `go version`). It does **not** read toolchain-specific environment variables like `RUSTC`, `GOPATH`, or `DOTNET_ROOT` for discovery. Some environment variables are read directly by the CLI or its scripts; others are consumed at build/run time by the toolchain itself and are allowlisted in provenance for fingerprint integrity.
 
-Internally, Go language builds set `GOCACHE` to `.arena/go-build-cache`, checker compilation (via `build-checker.mjs`) uses `.arena/go-checker-cache`, and checker test runs (via `test-checker.mjs`) use `.arena/go-test-cache`.
+| Variable | Used By | Purpose |
+|----------|---------|---------|
+| `NO_COLOR` | CLI (`index.ts`) | Suppresses ANSI color in results summary output when set |
+| `JAVA_HOME` | CLI (`jdk.ts`) | Primary JDK detection path (checked before `PATH`). Also allowlisted in Java's provenance for fingerprinting |
+| `PATH` / `Path` | CLI (`env.ts`, `jdk.ts`) | General toolchain discovery and spawn environment. On Windows the CLI copies `Path` into `PATH` for consistency |
+| `ProgramFiles` | CLI (`jdk.ts`) | Windows JDK root detection fallback (e.g., `C:\Program Files\Eclipse Adoptium\...`) |
+| `ProgramFiles(x86)` | CLI (`jdk.ts`) | Windows JDK detection fallback for 32-bit program files |
+| `GOCACHE` | CLI (`index.ts`), scripts | **Set by the CLI**, not read. Go build cache directory at `.arena/go-build-cache`. Script `scripts/build-checker.mjs` sets it to `.arena/go-checker-cache` |
+| `GOOS`, `GOARCH` | Language manifest `go.json` | Cross-compilation target; allowlisted in provenance (`environmentAllowlist`) |
+| `NODE_ENV` | Language manifests (`javascript.json`, `typescript.json`) | Allowlisted in provenance (`environmentAllowlist`) for Node.js builds |
+| `PYTHONHASHSEED` | Language manifest (`python.json`) | Allowlisted in provenance (`environmentAllowlist`) for deterministic hash randomization |
+
+**Notes:**
+
+- **Platform PATH differences:** Windows uses `Path` (capitalized) while Unix uses `PATH`. The `resolveSpawnEnv()` helper in `cli/src/env.ts` copies `Path` to `PATH` on Windows to ensure spawned processes always see a `PATH` variable.
+- **No `RUNTIME_ARENA_*` variables:** The project defines no custom Runtime Arena-specific environment variables.
+- **Script-level usage:**
+  - `scripts/build-java.mjs` reads `JAVA_HOME` via the `jdkPathEnvironment()` utility for JDK discovery and compiles with `javac`/`jar` from the discovered JDK.
+  - `scripts/build-checker.mjs` sets `GOCACHE` to `.arena/go-checker-cache` in the build environment for the Go checker binary.
+- **Provenance allowlisting:** Environment variables listed in a language manifest's `provenance.environmentAllowlist` are captured into the result's `provenance.toolchain.environment` at fingerprinting time. Variables outside this list do not affect the fingerprint, so changing them does not invalidate cached results.

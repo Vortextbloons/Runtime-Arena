@@ -274,6 +274,9 @@ func shortest(g graphInput, q query) *int64 {
 			return &x.dist
 		}
 		for _, e := range adj[x.node] {
+			if e.Weight > math.MaxInt64-x.dist {
+				continue
+			}
 			nd := x.dist + e.Weight
 			if nd < d[e.To] {
 				d[e.To] = nd
@@ -283,7 +286,34 @@ func shortest(g graphInput, q query) *int64 {
 	}
 	return nil
 }
+func validateGraphInput(in graphInput) error {
+	if in.VertexCount <= 0 {
+		return errors.New("vertexCount must be positive")
+	}
+	for index, e := range in.Edges {
+		if e.From < 0 || e.From >= in.VertexCount || e.To < 0 || e.To >= in.VertexCount {
+			return fmt.Errorf("edge %d contains a vertex outside the graph", index)
+		}
+		if e.Weight < 0 {
+			return fmt.Errorf("edge %d has a negative weight", index)
+		}
+	}
+	seenQueries := make(map[int]bool, len(in.Queries))
+	for index, q := range in.Queries {
+		if q.Source < 0 || q.Source >= in.VertexCount || q.Destination < 0 || q.Destination >= in.VertexCount {
+			return fmt.Errorf("query %d contains a vertex outside the graph", index)
+		}
+		if seenQueries[q.ID] {
+			return fmt.Errorf("duplicate query id %d", q.ID)
+		}
+		seenQueries[q.ID] = true
+	}
+	return nil
+}
 func checkPaths(in graphInput, out pathOutput) error {
+	if err := validateGraphInput(in); err != nil {
+		return fmt.Errorf("invalid shortest-path input: %w", err)
+	}
 	if out.Benchmark != "shortest-path" || out.Version != 1 || len(out.Results) != len(in.Queries) {
 		return errors.New("invalid header or result count")
 	}
@@ -508,8 +538,18 @@ func aggregate(file string) (aggregation, error) {
 	}
 	defer f.Close()
 	r := csv.NewReader(bufio.NewReader(f))
-	if _, e = r.Read(); e != nil {
+	header, e := r.Read()
+	if e != nil {
 		return aggregation{}, e
+	}
+	wantHeader := []string{"timestamp", "account_id", "category", "quantity", "unit_price"}
+	if len(header) != len(wantHeader) {
+		return aggregation{}, errors.New("aggregation CSV has an invalid header")
+	}
+	for index := range wantHeader {
+		if header[index] != wantHeader[index] {
+			return aggregation{}, errors.New("aggregation CSV has an invalid header")
+		}
 	}
 	cats := map[string]category{}
 	acc := map[string]int64{}
@@ -522,8 +562,14 @@ func aggregate(file string) (aggregation, error) {
 		if e != nil {
 			return o, e
 		}
-		q, _ := strconv.ParseInt(row[3], 10, 64)
-		price, _ := strconv.ParseInt(row[4], 10, 64)
+		q, parseErr := strconv.ParseInt(row[3], 10, 64)
+		if parseErr != nil {
+			return o, fmt.Errorf("record %d has invalid quantity: %w", o.RecordCount+1, parseErr)
+		}
+		price, parseErr := strconv.ParseInt(row[4], 10, 64)
+		if parseErr != nil {
+			return o, fmt.Errorf("record %d has invalid unit price: %w", o.RecordCount+1, parseErr)
+		}
 		v := q * price
 		o.RecordCount++
 		o.TotalQuantity += q
@@ -702,6 +748,9 @@ func main() {
 		var in graphInput
 		var out pathOutput
 		if err = readInputJSON(*input, &in); err != nil {
+			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
+		}
+		if err = validateGraphInput(in); err != nil {
 			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
 		}
 		if err = strictJSON(*output, &out); err != nil {

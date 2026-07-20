@@ -86,3 +86,26 @@ test("fake worker protocol obeys sequencing and digest contract", async () => {
   assert.equal(result.success, true);
   await rm(directory, { recursive: true, force: true });
 });
+
+for (const [behavior, expectedError] of [["extra-output", "unexpected extra protocol output|malformed protocol JSON"], ["nonzero-exit", "worker exited with code 7"]] as const) {
+  test(`fake worker rejects ${behavior}`, async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "arena-protocol-"));
+    const output = path.join(directory, "output.json");
+    try {
+      const result = await runHarnessProtocol({
+        command: process.execPath,
+        args: [path.join(fixtures, "fake-worker.mjs"), "--output", output, "--behavior", behavior],
+        cwd: directory,
+        outputFile: output,
+        warmups: 0,
+        measurement: { minMeasuredIterations: 1, maxMeasuredIterations: 1, targetRelativeConfidenceInterval: 0, mode: "fixed" },
+        timeoutMilliseconds: 5_000,
+        maxCapturedBytes: 1_000_000
+      });
+      assert.equal(result.success, false);
+      assert.match(result.error ?? "", new RegExp(expectedError));
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+}

@@ -60,3 +60,31 @@ test("source artifacts restore from manifest without copying over source", async
   assert.equal(restored, true);
   assert.equal(await readFile(artifact, "utf8"), "export const answer = 42;\n");
 });
+
+test("corrupted cache manifests are treated as cache misses", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "arena-provenance-"));
+  const implementationDir = path.join(root, "impl");
+  const cacheDir = path.join(root, "cache");
+  const artifact = path.join(implementationDir, "program.exe");
+  await mkdir(implementationDir, { recursive: true });
+  await mkdir(cacheDir, { recursive: true });
+  await writeFile(path.join(cacheDir, "manifest.json"), "not json");
+
+  const restored = await restoreCachedArtifact({
+    cacheDir,
+    artifact,
+    implementationDir,
+    sourceExtensions: [".ts"],
+    buildProvenance: {
+      executables: {}, versions: {}, target: "test", compilerFlags: [], environment: {},
+      inputHashes: {}, inputAggregateHash: "a".repeat(64), buildFingerprint: "b".repeat(64)
+    },
+    benchmarkId: "demo",
+    languageId: "demo",
+    command: [],
+    workingDirectory: implementationDir,
+    environment: {}
+  });
+
+  assert.equal(restored, false);
+});
