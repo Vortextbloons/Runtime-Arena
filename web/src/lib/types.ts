@@ -84,6 +84,39 @@ export type ArenaRun = {
 	arenaVersion: string;
 	gitCommit?: string;
 	results: ArenaResult[];
+	resources?: ResourceProfile[];
+	scoringModel?: 'legacy-versatility-v1' | 'efficiency-v1';
+};
+
+export type ResourceStatus = 'available' | 'unavailable' | 'stale';
+export type ResourceMeasurement = {
+	status: ResourceStatus;
+	value?: number;
+	reason?: string;
+	samples?: number[];
+	collector?: string;
+	fileCount?: number;
+	paths?: string[];
+	sourceHash?: string;
+};
+export type ResourceProfile = {
+	benchmarkId: string;
+	languageId: string;
+	fingerprint: string;
+	measuredAt: string;
+	resourceContractVersion: '1.0.0';
+	provenance: { machineFingerprint: string; toolchainFingerprint: string };
+	memory: ResourceMeasurement;
+	build: ResourceMeasurement;
+	artifact: ResourceMeasurement;
+	implementation: ResourceMeasurement;
+};
+export type EfficiencyBreakdown = {
+	memory: number | null;
+	artifact: number | null;
+	implementation: number | null;
+	build: number | null;
+	values: Partial<Record<'memory' | 'artifact' | 'implementation' | 'build', number>>;
 };
 
 export type MutationScore = {
@@ -117,6 +150,10 @@ export type BenchmarkScore = {
 	performance: number | null;
 	consistency: number | null;
 	versatility: number | null;
+	efficiency?: number | null;
+	scoringModel?: 'legacy-versatility-v1' | 'efficiency-v1';
+	efficiencyBreakdown?: EfficiencyBreakdown;
+	resourceReadiness?: { ready: boolean; reasons: string[] };
 	sizes: SizeScore[];
 	expectedSizes: string[];
 	diagnostics: string[];

@@ -98,6 +98,16 @@
       },
       "uniqueItems": true
     },
+    "resourceBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sourceInclude": { "type": "array", "items": { "type": "string" } },
+        "sourceExclude": { "type": "array", "items": { "type": "string" } },
+        "artifactInclude": { "type": "array", "items": { "type": "string" } },
+        "artifactExclude": { "type": "array", "items": { "type": "string" } }
+      }
+    },
     "provenance": {
       "type": "object",
       "additionalProperties": false,

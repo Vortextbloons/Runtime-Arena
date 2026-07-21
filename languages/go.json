@@ -32,6 +32,7 @@
   },
   "environment": {},
   "sourceExtensions": [".go"],
+  "resourceBundle": { "sourceInclude": ["**/*.go"], "sourceExclude": ["**/.arena/**"], "artifactInclude": ["**/*"], "artifactExclude": [] },
   "provenance": {
     "environmentAllowlist": ["GOCACHE", "GOOS", "GOARCH"],
     "externalInputs": [

@@ -59,7 +59,10 @@ type Provenance = {
   toolchain?: Record<string, unknown>;
 };
 type BenchmarkResult = Record<string, any> & { benchmark: Record<string, any> & { id: string; version: number; size: string }; language: Record<string, any> & { id: string; name: string; version: string }; checker: Record<string, any> & { status: string }; provenance?: Provenance };
-type Snapshot = { schemaVersion: string; snapshotId: string; updatedAt: string; arenaVersion: string; gitCommit?: string | null; gitDirty?: boolean | null; results: BenchmarkResult[] };
+type ResourceStatus = "available" | "unavailable" | "stale";
+type ResourceMeasurement = { status: ResourceStatus; value?: number; reason?: string; samples?: number[]; collector?: string; fileCount?: number; paths?: string[]; sourceHash?: string };
+type ResourceProfile = { benchmarkId: string; languageId: string; fingerprint: string; measuredAt: string; resourceContractVersion: "1.0.0"; provenance: { machineFingerprint: string; toolchainFingerprint: string }; memory: ResourceMeasurement; build: ResourceMeasurement; artifact: ResourceMeasurement; implementation: ResourceMeasurement };
+type Snapshot = { schemaVersion: string; snapshotId: string; updatedAt: string; arenaVersion: string; gitCommit?: string | null; gitDirty?: boolean | null; scoringModel?: "legacy-versatility-v1" | "efficiency-v1"; results: BenchmarkResult[]; resources?: ResourceProfile[] };
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../..");
@@ -315,6 +318,13 @@ async function doctor(): Promise<number> {
   await mkdir(resultDir, { recursive: true });
   const writable = await access(resultDir, constants.W_OK).then(() => true, () => false);
   console.log(`${"Results".padEnd(12)} ${writable ? "writable" : "not writable"}`);
+  const snapshot = await readSnapshot();
+  if (snapshot) {
+    const profiles = snapshot.resources ?? [];
+    const dimensions: Array<keyof Pick<ResourceProfile, "memory" | "build" | "artifact" | "implementation">> = ["memory", "build", "artifact", "implementation"];
+    const readiness = dimensions.map(dimension => `${dimension} ${profiles.filter(profile => profile[dimension].status === "available").length}/${profiles.length}`).join(" · ");
+    console.log(`${"Resources".padEnd(12)} ${profiles.length ? readiness : "none (run arena resources collect)"}`);
+  }
   bad ||= !checkerOk || !writable;
   const ajv = createAjv();
   const languageSchema = await json<Record<string, unknown>>(path.join(root, "schemas", "language.schema.json"));
@@ -727,7 +737,7 @@ async function runCommand(args: string[]) {
   const git = await runProcess("git", ["rev-parse", "HEAD"], root).then(p => p.code === 0 ? p.stdout.trim() : "unknown");
   const gitDirty = await runProcess("git", ["status", "--porcelain"], root).then(p => p.code === 0 ? p.stdout.trim().length > 0 : null);
   const snapshot: Snapshot = plannedCells === 0 && current ? current : {
-    schemaVersion: "3.0.0", snapshotId, updatedAt: createdAt, arenaVersion: "0.2.0",
+    schemaVersion: "4.0.0", snapshotId, updatedAt: createdAt, arenaVersion: "0.2.0", scoringModel: "legacy-versatility-v1",
     gitCommit: git, gitDirty, results: [...canonical.values()].sort((a, b) => resultKey(a).localeCompare(resultKey(b)))
   };
   await validateResult(snapshot);
@@ -737,6 +747,104 @@ async function runCommand(args: string[]) {
   if (flags.get("--format") === "json") console.log(JSON.stringify(snapshot, null, flags.has("--quiet") ? 0 : 2));
   if (!flags.has("--preserve-temp")) await rm(tempRoot, { recursive: true, force: true });
   return 0;
+}
+
+function resourceProfileKey(profile: Pick<ResourceProfile, "benchmarkId" | "languageId">) {
+  return `${profile.benchmarkId}/${profile.languageId}`;
+}
+
+async function resourcesCollectCommand(args: string[]) {
+  const flags = parseFlags(args);
+  const snapshot = await readSnapshot();
+  if (!snapshot) throw new Error("No current snapshot. Run arena run before collecting resources.");
+  const requestedLanguages = flags.all("--language");
+  const requestedBenchmarks = flags.all("--benchmark");
+  const lines = await collectResourceImplementationLines();
+  const profiles = new Map((snapshot.resources ?? []).map(profile => [resourceProfileKey(profile), profile]));
+  const cells = new Map<string, BenchmarkResult>();
+  for (const result of snapshot.results) {
+    if (requestedLanguages.length && !requestedLanguages.includes(result.language.id)) continue;
+    if (requestedBenchmarks.length && !requestedBenchmarks.includes(result.benchmark.id)) continue;
+    const key = `${result.benchmark.id}/${result.language.id}`;
+    if (!cells.has(key)) cells.set(key, result);
+  }
+  let updated = 0;
+  for (const [key, result] of cells) {
+    const implementation = lines[`${result.benchmark.id}:${result.language.id}`] as { logicalLines: number; fileCount: number; files: string[]; sha256: string } | undefined;
+    const fingerprint = createHash("sha256").update(JSON.stringify({
+      contract: "1.0.0", implementation, build: result.provenance?.buildFingerprint, artifact: result.build?.artifactSizeBytes,
+      machine: result.provenance?.machine, language: result.language.version
+    })).digest("hex");
+    const existing = profiles.get(key);
+    if (!flags.has("--force") && existing?.fingerprint === fingerprint) continue;
+    const artifactSizeBytes = result.build?.artifactSizeBytes;
+    profiles.set(key, {
+      benchmarkId: result.benchmark.id,
+      languageId: result.language.id,
+      fingerprint,
+      measuredAt: new Date().toISOString(),
+      resourceContractVersion: "1.0.0",
+      provenance: {
+        machineFingerprint: createHash("sha256").update(JSON.stringify(result.provenance?.machine ?? {})).digest("hex"),
+        toolchainFingerprint: result.provenance?.buildFingerprint ?? "unavailable"
+      },
+      memory: { status: "unavailable", reason: "No supported process-tree collector has recorded this profile." },
+      build: { status: "unavailable", reason: "Cold-build sampling has not been collected; cached build durations are intentionally invalid." },
+      artifact: artifactSizeBytes && artifactSizeBytes > 0
+        ? { status: "available", value: artifactSizeBytes, fileCount: 1, reason: "Legacy single-artifact measurement; refresh after bundle boundaries are configured." }
+        : { status: "unavailable", reason: "No runnable artifact size is available." },
+      implementation: implementation
+        ? { status: "available", value: implementation.logicalLines, fileCount: implementation.fileCount, paths: implementation.files, sourceHash: implementation.sha256 }
+        : { status: "unavailable", reason: "No workload-owned source files matched the language boundaries." }
+    });
+    updated++;
+  }
+  snapshot.resources = [...profiles.values()].sort((a, b) => resourceProfileKey(a).localeCompare(resourceProfileKey(b)));
+  snapshot.schemaVersion = "4.0.0";
+  snapshot.scoringModel = "legacy-versatility-v1";
+  await validateResult(snapshot);
+  await saveResult(snapshot, flags.get("--output"), false);
+  console.log(`Resource profiles: ${updated} collected/updated, ${snapshot.resources.length - updated} current.`);
+  console.log("Efficiency pending: memory and artifact-cold build samples are required before rankings can switch.");
+}
+
+async function collectResourceImplementationLines() {
+  const out: Record<string, { logicalLines: number; fileCount: number; files: string[]; sha256: string }> = {};
+  const languages = new Map((await discoverLanguages()).map(language => [language.id, language]));
+  for (const benchmark of await discoverBenchmarks()) {
+    for (const [languageId, language] of languages) {
+      const directory = path.join(root, "benchmarks", benchmark.id, "implementations", languageId);
+      if (!await exists(directory)) continue;
+      const files: string[] = [];
+      let logicalLines = 0;
+      const ignored = new Set([".arena", "node_modules", "target", "dist", "build", "bin", "obj", "__pycache__"]);
+      const walk = async (current: string): Promise<void> => {
+        for (const entry of await readdir(current, { withFileTypes: true })) {
+          if (ignored.has(entry.name)) continue;
+          const full = path.join(current, entry.name);
+          if (entry.isDirectory()) { await walk(full); continue; }
+          if (!language.sourceExtensions?.includes(path.extname(entry.name).toLowerCase())) continue;
+          const source = await readFile(full, "utf8");
+          const hashStyle = [".py", ".lua"].includes(path.extname(entry.name).toLowerCase());
+          let block = false;
+          for (let line of source.replace(/\r\n/g, "\n").split("\n")) {
+            if (hashStyle) line = line.slice(0, line.indexOf("#") < 0 ? line.length : line.indexOf("#"));
+            else {
+              if (block) { const end = line.indexOf("*/"); if (end < 0) continue; line = line.slice(end + 2); block = false; }
+              const start = line.indexOf("/*");
+              if (start >= 0) { const end = line.indexOf("*/", start + 2); if (end < 0) { line = line.slice(0, start); block = true; } else line = `${line.slice(0, start)}${line.slice(end + 2)}`; }
+              const slash = line.indexOf("//"); if (slash >= 0) line = line.slice(0, slash);
+            }
+            if (line.trim()) logicalLines++;
+          }
+          files.push(path.relative(directory, full).replaceAll("\\", "/"));
+        }
+      };
+      await walk(directory);
+      if (files.length) out[`${benchmark.id}:${languageId}`] = { logicalLines, fileCount: files.length, files: files.sort(), sha256: createHash("sha256").update(files.join("\n")).update(String(logicalLines)).digest("hex") };
+    }
+  }
+  return out;
 }
 
 function stripAnsi(text: string) {
@@ -1143,6 +1251,7 @@ async function main() {
   if (command === "doctor") return doctor();
   if (command === "list") { await listCommand(sub ?? ""); return 0; }
   if (command === "run") return runCommand([sub, ...rest].filter(Boolean) as string[]);
+  if (command === "resources" && sub === "collect") { await resourcesCollectCommand(rest); return 0; }
   if (command === "build") { await buildCommand([sub, ...rest].filter(Boolean) as string[]); return 0; }
   if (command === "dataset") { await datasetCommand([sub, ...rest].filter(Boolean) as string[]); return 0; }
   if (command === "web") { await webCommand(); return 0; }
@@ -1155,7 +1264,7 @@ async function main() {
     const result = await checkOutput(benchmark, path.resolve(f.get("--input")!), path.resolve(f.get("--output")!));
     console.log(JSON.stringify(result, null, 2)); return result.status === "accepted" ? 0 : 1;
   }
-  console.log("Runtime Arena\n\nUsage: arena <doctor|list|build|run|check|protocol|dataset|results|web>");
+  console.log("Runtime Arena\n\nUsage: arena <doctor|list|build|run|resources collect|check|protocol|dataset|results|web>");
   return command ? 1 : 0;
 }
 

@@ -65,6 +65,14 @@ ${data.badges.map(b => '\t' + badgeToTs(b)).join(',\n')}
 export const ALL_ATTRIBUTE_DEFINITIONS = [
 ${data.attributeDefinitions.map(a => '\t' + attrToTs(a)).join(',\n')}
 ];
+
+export const HYBRID_TIER_THRESHOLDS = [
+${data.tierThresholds.map(t => `\t{ tier: '${t.tier}' as const, minimumScore: ${t.minimumScore}, minimumPercentile: ${t.minimumPercentile} }`).join(',\n')}
+];
+
+export const BADGE_OVR_BONUS: Record<string, number> = {
+${Object.entries(data.badgeBonus).map(([k, v]) => `\t'${k}': ${v}`).join(',\n')}
+};
 `;
 
 writeFileSync(WEB_SHARED_TS, ts, 'utf-8');

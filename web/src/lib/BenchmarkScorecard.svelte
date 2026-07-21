@@ -61,9 +61,9 @@
 
 				<div class="categories">
 					{#each categories as category (category.key)}
-						{@const value = score[category.key]}
+						{@const value = category.key === 'versatility' && score.scoringModel === 'efficiency-v1' ? score.efficiency ?? null : score[category.key]}
 						<div class="cat">
-							<span class="cat-label">{category.label}{category.key === 'performance' ? ' · ranked' : category.key === 'versatility' ? ' · overall' : ' · diagnostic'}</span>
+							<span class="cat-label">{category.key === 'versatility' && score.scoringModel === 'efficiency-v1' ? 'EFF' : category.label}{category.key === 'performance' ? ' · ranked' : category.key === 'versatility' ? score.scoringModel === 'efficiency-v1' ? ' · overall' : ' · Efficiency pending' : ' · diagnostic'}</span>
 							<div class="category-track"><i style:--score={`${value ?? 0}%`}></i></div>
 							<strong class="cat-value">{value === null ? '—' : Math.round(value)}</strong>
 						</div>
@@ -75,7 +75,7 @@
 				<summary>{score.eligible ? 'Show calculation' : 'Show diagnostics'}</summary>
 				{#if score.eligible}
 					<div class="formula">
-						<p><strong>Formula</strong> Geometric mean of fastest median ÷ this median. Stability and flexibility do not affect rank.</p>
+						<p><strong>Formula</strong> Geometric mean of fastest median ÷ this median. Stability is diagnostic; {score.scoringModel === 'efficiency-v1' ? 'Efficiency contributes 25% of overall.' : 'Efficiency is pending complete comparable resource data; FLEX remains in the ranking.'}</p>
 						<p><strong>Cohort</strong> {formatBenchmarkLabel(score.benchmarkId)} · {score.expectedSizes.join(', ')} · accepted tiers with complete valid samples</p>
 					</div>
 					{#if score.benchmarks}

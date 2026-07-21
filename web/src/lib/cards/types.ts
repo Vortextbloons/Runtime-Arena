@@ -1,3 +1,5 @@
+import { HYBRID_TIER_THRESHOLDS as _HYBRID_TIER_THRESHOLDS } from './shared.ts';
+
 export type CardTier = 's-plus' | 's' | 'a-plus' | 'a' | 'b' | 'c' | 'd';
 
 export type AttributeCategory = 'execution' | 'control' | 'reliability' | 'physical';
@@ -115,7 +117,7 @@ export const ATTRIBUTE_PRIORITY = [
 export const BADGE_TIER_ORDER: BadgeTier[] = ['bronze', 'silver', 'gold', 'hall-of-fame', 'legend'];
 
 export const CARD_TIER_BANDS: Array<{ min: number; tier: CardTier }> = [
-	{ min: 95, tier: 's-plus' },
+	{ min: 93, tier: 's-plus' },
 	{ min: 90, tier: 's' },
 	{ min: 85, tier: 'a-plus' },
 	{ min: 80, tier: 'a' },
@@ -124,14 +126,4 @@ export const CARD_TIER_BANDS: Array<{ min: number; tier: CardTier }> = [
 	{ min: 0, tier: 'd' }
 ];
 
-export const HYBRID_TIER_THRESHOLDS: Array<{
-	tier: BadgeTier;
-	minimumScore: number;
-	minimumPercentile?: number;
-}> = [
-	{ tier: 'legend', minimumScore: 97, minimumPercentile: 85 },
-	{ tier: 'hall-of-fame', minimumScore: 94, minimumPercentile: 70 },
-	{ tier: 'gold', minimumScore: 90, minimumPercentile: 55 },
-	{ tier: 'silver', minimumScore: 85, minimumPercentile: 40 },
-	{ tier: 'bronze', minimumScore: 78, minimumPercentile: 25 }
-];
+export const HYBRID_TIER_THRESHOLDS = _HYBRID_TIER_THRESHOLDS;

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { scoreBenchmark, scoreOverall } from './scoring.ts';
-import type { ArenaResult } from './types.ts';
+import type { ArenaResult, ResourceProfile } from './types.ts';
 
 function result(
 	language: string,
@@ -27,6 +27,26 @@ function result(
 		checker: { status: options.status ?? 'accepted', diagnostics: [] }
 	};
 }
+
+function profile(languageId: string, values: Partial<Record<'memory' | 'artifact' | 'implementation' | 'build', number>> = {}): ResourceProfile {
+	const measurement = (value: number | undefined) => value === undefined ? { status: 'unavailable' as const, reason: 'missing' } : { status: 'available' as const, value };
+	return {
+		benchmarkId: 'work', languageId, fingerprint: 'a'.repeat(64), measuredAt: '2026-01-01T00:00:00.000Z', resourceContractVersion: '1.0.0',
+		provenance: { machineFingerprint: 'machine', toolchainFingerprint: languageId },
+		memory: measurement(values.memory), artifact: measurement(values.artifact), implementation: measurement(values.implementation), build: measurement(values.build)
+	};
+}
+
+test('efficiency activates only with complete comparable resource profiles', () => {
+	const rows = [result('fast', 'small', 1_000_000), result('lean', 'small', 1_300_000)];
+	assert.equal(scoreOverall(rows, [profile('fast', { memory: 10, artifact: 10, implementation: 10, build: 10 })])[0]?.scoringModel, 'legacy-versatility-v1');
+	const scores = scoreOverall(rows, [
+		profile('fast', { memory: 100, artifact: 100, implementation: 100, build: 100 }),
+		profile('lean', { memory: 10, artifact: 10, implementation: 10, build: 10 })
+	]);
+	assert.equal(scores[0]?.scoringModel, 'efficiency-v1');
+	assert.equal(scores.find((score) => score.language.id === 'lean')?.efficiency, 100);
+});
 
 test('performance is proportional to the fastest valid median', () => {
 	const scores = scoreBenchmark([result('fast', 'small', 1_000_000), result('slow', 'small', 2_000_000)], 'work');

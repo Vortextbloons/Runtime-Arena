@@ -26,6 +26,7 @@
   },
   "environment": {},
   "sourceExtensions": [".rs"],
+  "resourceBundle": { "sourceInclude": ["**/*.rs"], "sourceExclude": ["**/.arena/**", "**/target/**"], "artifactInclude": ["**/*"], "artifactExclude": [] },
   "provenance": {
     "environmentAllowlist": [],
     "externalInputs": [

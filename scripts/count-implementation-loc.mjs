@@ -22,6 +22,7 @@ const SOURCE_EXTENSIONS = new Set([
 	".c",
 	".h",
 	".hpp"
+	,".cs"
 ]);
 
 /** @param {string} extension */

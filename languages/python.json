@@ -27,6 +27,7 @@
   },
   "environment": {},
   "sourceExtensions": [".py"],
+  "resourceBundle": { "sourceInclude": ["**/*.py"], "sourceExclude": ["**/.arena/**", "**/__pycache__/**"], "artifactInclude": ["**/*.py"], "artifactExclude": ["**/__pycache__/**"] },
   "provenance": {
     "environmentAllowlist": ["PYTHONHASHSEED"],
     "probes": [

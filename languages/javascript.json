@@ -29,6 +29,7 @@
     "NODE_ENV": "production"
   },
   "sourceExtensions": [".mjs"],
+  "resourceBundle": { "sourceInclude": ["**/*.mjs"], "sourceExclude": ["**/.arena/**", "**/node_modules/**"], "artifactInclude": ["**/*.mjs"], "artifactExclude": ["**/node_modules/**"] },
   "provenance": {
     "environmentAllowlist": ["NODE_ENV"],
     "probes": [

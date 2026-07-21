@@ -33,14 +33,58 @@
     "gitDirty": {
       "type": ["boolean", "null"]
     },
+    "scoringModel": {
+      "type": "string",
+      "enum": ["legacy-versatility-v1", "efficiency-v1"]
+    },
     "results": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/benchmarkResult"
       }
+    },
+    "resources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/resourceProfile" }
     }
   },
   "$defs": {
+    "resourceProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["benchmarkId", "languageId", "fingerprint", "measuredAt", "resourceContractVersion", "provenance", "memory", "build", "artifact", "implementation"],
+      "properties": {
+        "benchmarkId": { "type": "string", "minLength": 1 },
+        "languageId": { "type": "string", "minLength": 1 },
+        "fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "measuredAt": { "type": "string", "format": "date-time" },
+        "resourceContractVersion": { "type": "string", "const": "1.0.0" },
+        "provenance": {
+          "type": "object", "additionalProperties": false,
+          "required": ["machineFingerprint", "toolchainFingerprint"],
+          "properties": { "machineFingerprint": { "type": "string", "minLength": 1 }, "toolchainFingerprint": { "type": "string", "minLength": 1 } }
+        },
+        "memory": { "$ref": "#/$defs/resourceMeasurement" },
+        "build": { "$ref": "#/$defs/resourceMeasurement" },
+        "artifact": { "$ref": "#/$defs/resourceMeasurement" },
+        "implementation": { "$ref": "#/$defs/resourceMeasurement" }
+      }
+    },
+    "resourceMeasurement": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "type": "string", "enum": ["available", "unavailable", "stale"] },
+        "value": { "type": "number", "exclusiveMinimum": 0 },
+        "reason": { "type": "string" },
+        "samples": { "type": "array", "items": { "type": "number", "exclusiveMinimum": 0 } },
+        "collector": { "type": "string" },
+        "fileCount": { "type": "integer", "minimum": 0 },
+        "paths": { "type": "array", "items": { "type": "string" } },
+        "sourceHash": { "type": "string" }
+      },
+      "allOf": [{ "if": { "properties": { "status": { "const": "available" } } }, "then": { "required": ["value"] } }]
+    },
     "benchmarkResult": {
       "type": "object",
       "required": [

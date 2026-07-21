@@ -2,14 +2,9 @@ import type { BadgeTier, EarnedBadge } from '../types.ts';
 import { BADGE_TIER_ORDER } from '../types.ts';
 import { clampScore, normalizeScore } from '../util.ts';
 import { selectFeaturedBadgeIds } from './awardBadges.ts';
+import { BADGE_OVR_BONUS as _BADGE_OVR_BONUS } from '../shared.ts';
 
-export const BADGE_OVR_BONUS: Record<BadgeTier, number> = {
-	bronze: 0.70,
-	silver: 1.15,
-	gold: 1.75,
-	'hall-of-fame': 2.25,
-	legend: 2.75
-};
+export const BADGE_OVR_BONUS: Record<BadgeTier, number> = _BADGE_OVR_BONUS as Record<BadgeTier, number>;
 
 export function applyFinalOverall(baseOverall: number, badgeBonus: number): number {
 	return normalizeScore(Math.min(100, baseOverall + Math.max(0, badgeBonus)));

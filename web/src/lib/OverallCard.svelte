@@ -287,7 +287,7 @@
 		{:else}
 			<div class="attribute-grid">
 				{#each categories as cat (cat.key)}
-					{@const value = score[cat.key]}
+					{@const value = cat.key === 'versatility' && score.scoringModel === 'efficiency-v1' ? score.efficiency ?? null : score[cat.key]}
 					{@const segs = filled(value)}
 					<div class="attribute" data-stat={cat.key}>
 						<div class="attribute-head">
@@ -302,10 +302,10 @@
 									<svg viewBox="0 0 16 16"><path d="M2 13 L6 7 L9 10 L14 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /><path d="M10 2 L14 2 L14 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
 								{/if}
 							</span>
-							<span class="attribute-label">{cat.label}</span>
+							<span class="attribute-label">{cat.key === 'versatility' && score.scoringModel === 'efficiency-v1' ? 'EFF' : cat.label}</span>
 							<span class="attribute-value">{value === null ? '—' : Math.round(value)}</span>
 						</div>
-						<div class="attribute-bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow={value ?? 0} aria-label={`${cat.label} ${value === null ? 'unavailable' : Math.round(value)}`}>
+						<div class="attribute-bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow={value ?? 0} aria-label={`${cat.key === 'versatility' && score.scoringModel === 'efficiency-v1' ? 'Efficiency' : cat.label} ${value === null ? 'unavailable' : Math.round(value)}`}>
 							{#each Array(10) as _, i (i)}
 								<span class="seg" class:on={i < segs}></span>
 							{/each}

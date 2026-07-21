@@ -27,6 +27,7 @@
   },
   "environment": {},
   "sourceExtensions": [".lua"],
+  "resourceBundle": { "sourceInclude": ["**/*.lua"], "sourceExclude": ["**/.arena/**"], "artifactInclude": ["**/*.lua"], "artifactExclude": [] },
   "provenance": {
     "probes": [
       { "id": "runtime", "command": "C:\\Users\\isaac\\AppData\\Local\\Programs\\Lua\\bin\\lua.exe", "arguments": ["-v"] }

@@ -97,14 +97,8 @@ const percentileRank = (value, field) => {
 // ── Badge system ──────────────────────────────────────
 const BADGE_TIER_ORDER = ['bronze', 'silver', 'gold', 'hall-of-fame', 'legend'];
 const BADGE_TIER_LABEL = { bronze: 'Bronze', silver: 'Silver', gold: 'Gold', 'hall-of-fame': 'Hall of Fame', legend: 'Legend' };
-const BADGE_OVR_BONUS = { bronze: 0.5, silver: 1.0, gold: 1.5, 'hall-of-fame': 2.0, legend: 2.5 };
-const HYBRID_TIER_THRESHOLDS = [
-  { tier: 'legend', minimumScore: 97, minimumPercentile: 85 },
-  { tier: 'hall-of-fame', minimumScore: 94, minimumPercentile: 70 },
-  { tier: 'gold', minimumScore: 90, minimumPercentile: 55 },
-  { tier: 'silver', minimumScore: 85, minimumPercentile: 40 },
-  { tier: 'bronze', minimumScore: 78, minimumPercentile: 25 },
-];
+const HYBRID_TIER_THRESHOLDS = sharedDefs.tierThresholds;
+const BADGE_OVR_BONUS = sharedDefs.badgeBonus;
 
 // ── Load data ────────────────────────────────────────
 const data = JSON.parse(readFileSync(resolve(root, 'results', 'current.json'), 'utf-8'));

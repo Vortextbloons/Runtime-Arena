@@ -84,19 +84,98 @@
     }
   ],
   "attributeDefinitions": [
-    { "id": "runtime-speed", "label": "Runtime Speed", "abbreviation": "SPD", "category": "execution" },
-    { "id": "consistency", "label": "Consistency", "abbreviation": "CON", "category": "reliability" },
-    { "id": "scalability", "label": "Scalability", "abbreviation": "SCL", "category": "physical" },
-    { "id": "compute", "label": "Compute", "abbreviation": "CMP", "category": "execution" },
-    { "id": "algorithms", "label": "Algorithms", "abbreviation": "ALG", "category": "control" },
-    { "id": "data-processing", "label": "Data Processing", "abbreviation": "DAT", "category": "control" },
-    { "id": "build-speed", "label": "Build Speed", "abbreviation": "BLD", "category": "physical" },
-    { "id": "artifact-efficiency", "label": "Artifact Efficiency", "abbreviation": "BIN", "category": "physical" },
-    { "id": "startup", "label": "Startup", "abbreviation": "STA", "category": "physical" },
-    { "id": "memory", "label": "Memory Efficiency", "abbreviation": "MEM", "category": "physical" },
+    {
+      "id": "runtime-speed",
+      "label": "Runtime Speed",
+      "abbreviation": "SPD",
+      "category": "execution"
+    },
+    {
+      "id": "consistency",
+      "label": "Consistency",
+      "abbreviation": "CON",
+      "category": "reliability"
+    },
+    {
+      "id": "scalability",
+      "label": "Scalability",
+      "abbreviation": "SCL",
+      "category": "physical"
+    },
+    {
+      "id": "compute",
+      "label": "Compute",
+      "abbreviation": "CMP",
+      "category": "execution"
+    },
+    {
+      "id": "algorithms",
+      "label": "Algorithms",
+      "abbreviation": "ALG",
+      "category": "control"
+    },
+    {
+      "id": "data-processing",
+      "label": "Data Processing",
+      "abbreviation": "DAT",
+      "category": "control"
+    },
+    {
+      "id": "build-speed",
+      "label": "Build Speed",
+      "abbreviation": "BLD",
+      "category": "physical"
+    },
+    {
+      "id": "artifact-efficiency",
+      "label": "Artifact Efficiency",
+      "abbreviation": "BIN",
+      "category": "physical"
+    },
+    {
+      "id": "startup",
+      "label": "Startup",
+      "abbreviation": "STA",
+      "category": "physical"
+    },
+    {
+      "id": "memory",
+      "label": "Memory Efficiency",
+      "abbreviation": "MEM",
+      "category": "physical"
+    },
     { "id": "io", "label": "I/O", "abbreviation": "IO", "category": "control" },
-    { "id": "parallelism", "label": "Parallelism", "abbreviation": "PAR", "category": "execution" },
-    { "id": "implementation-size", "label": "Implementation Size", "abbreviation": "LOC", "category": "physical" },
-    { "id": "code-economy", "label": "Code Economy", "abbreviation": "ECO", "category": "execution" }
-  ]
+    {
+      "id": "parallelism",
+      "label": "Parallelism",
+      "abbreviation": "PAR",
+      "category": "execution"
+    },
+    {
+      "id": "implementation-size",
+      "label": "Implementation Size",
+      "abbreviation": "LOC",
+      "category": "physical"
+    },
+    {
+      "id": "code-economy",
+      "label": "Code Economy",
+      "abbreviation": "ECO",
+      "category": "execution"
+    }
+  ],
+  "tierThresholds": [
+    { "tier": "legend", "minimumScore": 95, "minimumPercentile": 85 },
+    { "tier": "hall-of-fame", "minimumScore": 90, "minimumPercentile": 70 },
+    { "tier": "gold", "minimumScore": 85, "minimumPercentile": 55 },
+    { "tier": "silver", "minimumScore": 80, "minimumPercentile": 40 },
+    { "tier": "bronze", "minimumScore": 75, "minimumPercentile": 25 }
+  ],
+  "badgeBonus": {
+    "bronze": 0.70,
+    "silver": 1.15,
+    "gold": 1.75,
+    "hall-of-fame": 2.25,
+    "legend": 2.75
+  }
 }

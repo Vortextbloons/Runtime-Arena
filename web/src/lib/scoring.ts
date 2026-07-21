@@ -1,7 +1,9 @@
-import type { ArenaResult, BenchmarkScore, MutationScore, SizeScore } from './types';
+import type { ArenaResult, BenchmarkScore, EfficiencyBreakdown, MutationScore, ResourceProfile, SizeScore } from './types';
 
 const SIZE_ORDER = ['small', 'medium', 'large'];
-export const SCORE_WEIGHTS = { performance: 0.75, versatility: 0.25 } as const;
+export const SCORE_WEIGHTS = { performance: 0.75, efficiency: 0.25, versatility: 0.25 } as const;
+export const RESOURCE_CONTRACT_VERSION = '1.0.0';
+export const SCORING_MODELS = { legacy: 'legacy-versatility-v1', efficiency: 'efficiency-v1' } as const;
 
 const average = (values: number[]) => values.reduce((total, value) => total + value, 0) / values.length;
 const geometricMean = (values: number[]) =>
@@ -14,8 +16,8 @@ const clampScore = (value: number) => Math.max(0, Math.min(100, value));
 const normalizeScore = (value: number) => Math.round(clampScore(value) * 1e9) / 1e9;
 const performanceScore = (fastest: number, median: number) =>
 	Math.max(PERF_FLOOR, normalizeScore(100 * Math.pow(fastest / median, PERF_EXPONENT)));
-const weightedOverall = (performance: number, versatility: number) =>
-	normalizeScore(performance * SCORE_WEIGHTS.performance + versatility * SCORE_WEIGHTS.versatility);
+const weightedOverall = (performance: number, secondary: number) =>
+	normalizeScore(performance * SCORE_WEIGHTS.performance + secondary * SCORE_WEIGHTS.efficiency);
 
 const variantKey = (size: string, mutation?: string) => (mutation ? `${size}/${mutation}` : size);
 
@@ -204,10 +206,73 @@ export function scoreBenchmark(results: ArenaResult[], benchmarkId: string): Ben
 		});
 }
 
-export function scoreOverall(results: ArenaResult[]): BenchmarkScore[] {
+type ResourceDimension = keyof Pick<ResourceProfile, 'memory' | 'artifact' | 'implementation' | 'build'>;
+const RESOURCE_DIMENSIONS: ResourceDimension[] = ['memory', 'artifact', 'implementation', 'build'];
+
+function validResource(profile: ResourceProfile | undefined, dimension: ResourceDimension): number | null {
+	const measurement = profile?.[dimension];
+	return measurement?.status === 'available' && Number.isFinite(measurement.value) && measurement.value! > 0
+		? measurement.value!
+		: null;
+}
+
+function efficiencyForSnapshot(
+	benchmarkIds: string[],
+	benchmarkScores: Map<string, BenchmarkScore[]>,
+	resources: ResourceProfile[]
+): { ready: boolean; reasons: string[]; byLanguage: Map<string, EfficiencyBreakdown> } {
+	const profiles = new Map(resources.map((profile) => [`${profile.benchmarkId}/${profile.languageId}`, profile]));
+	const reasons: string[] = [];
+	const perLanguage = new Map<string, Map<ResourceDimension, number[]>>();
+	const values = new Map<string, Partial<Record<ResourceDimension, number>>>();
+	for (const benchmarkId of benchmarkIds) {
+		const candidates = (benchmarkScores.get(benchmarkId) ?? []).filter((score) => score.eligible && score.performance !== null);
+		const comparable = candidates.filter((score) => {
+			const profile = profiles.get(`${benchmarkId}/${score.language.id}`);
+			return profile?.resourceContractVersion === RESOURCE_CONTRACT_VERSION && RESOURCE_DIMENSIONS.every((dimension) => validResource(profile, dimension) !== null);
+		});
+		if (comparable.length < 2) {
+			reasons.push(`${benchmarkId}: fewer than two languages have comparable complete resource profiles.`);
+			continue;
+		}
+		const machine = profiles.get(`${benchmarkId}/${comparable[0]!.language.id}`)!.provenance.machineFingerprint;
+		if (!comparable.every((score) => profiles.get(`${benchmarkId}/${score.language.id}`)!.provenance.machineFingerprint === machine)) {
+			reasons.push(`${benchmarkId}: resource profiles were measured on different machines.`);
+			continue;
+		}
+		for (const dimension of RESOURCE_DIMENSIONS) {
+			const raw = comparable.map((score) => ({ score, value: score.performance! / validResource(profiles.get(`${benchmarkId}/${score.language.id}`), dimension)! }));
+			const best = Math.max(...raw.map((entry) => entry.value));
+			for (const entry of raw) {
+				const byDimension = perLanguage.get(entry.score.language.id) ?? new Map<ResourceDimension, number[]>();
+				byDimension.set(dimension, [...(byDimension.get(dimension) ?? []), normalizeScore(100 * entry.value / best)]);
+				perLanguage.set(entry.score.language.id, byDimension);
+				const languageValues = values.get(entry.score.language.id) ?? {};
+				languageValues[dimension] = validResource(profiles.get(`${benchmarkId}/${entry.score.language.id}`), dimension)!;
+				values.set(entry.score.language.id, languageValues);
+			}
+		}
+	}
+	for (const benchmarkId of benchmarkIds) {
+		for (const score of benchmarkScores.get(benchmarkId) ?? []) {
+			if (!score.eligible) continue;
+			const profile = profiles.get(`${benchmarkId}/${score.language.id}`);
+			for (const dimension of RESOURCE_DIMENSIONS) if (validResource(profile, dimension) === null) reasons.push(`${benchmarkId}/${score.language.id}: ${dimension} is ${profile?.[dimension].status ?? 'missing'}.`);
+		}
+	}
+	const byLanguage = new Map<string, EfficiencyBreakdown>();
+	for (const [languageId, dimensionScores] of perLanguage) {
+		const dimensions = Object.fromEntries(RESOURCE_DIMENSIONS.map((dimension) => [dimension, dimensionScores.get(dimension)?.length === benchmarkIds.length ? normalizeScore(geometricMean(dimensionScores.get(dimension)!)) : null])) as Record<ResourceDimension, number | null>;
+		byLanguage.set(languageId, { ...dimensions, values: values.get(languageId) ?? {} });
+	}
+	return { ready: reasons.length === 0, reasons: [...new Set(reasons)], byLanguage };
+}
+
+export function scoreOverall(results: ArenaResult[], resources: ResourceProfile[] = []): BenchmarkScore[] {
 	const benchmarkIds = [...new Set(results.map((result) => result.benchmark.id))].toSorted();
 	const benchmarkScores = new Map(benchmarkIds.map((id) => [id, scoreBenchmark(results, id)]));
 	const languages = new Map(results.map((result) => [result.language.id, result.language]));
+	const efficiencyState = efficiencyForSnapshot(benchmarkIds, benchmarkScores, resources);
 
 	return [...languages.values()]
 		.map((language): BenchmarkScore => {
@@ -248,7 +313,12 @@ export function scoreOverall(results: ArenaResult[]): BenchmarkScore[] {
 			const consistency = average(eligibleEntries.map((score) => score.consistency!));
 			const benchmarkPerformances = eligibleEntries.map((score) => score.performance!);
 			const versatility = normalizeScore(0.6 * Math.min(...benchmarkPerformances) + 0.4 * average(benchmarkPerformances));
-			const overall = weightedOverall(performance, versatility);
+			const efficiencyBreakdown = efficiencyState.byLanguage.get(language.id);
+			const efficiency = efficiencyBreakdown && RESOURCE_DIMENSIONS.every((dimension) => efficiencyBreakdown[dimension] !== null)
+				? normalizeScore(geometricMean(RESOURCE_DIMENSIONS.map((dimension) => efficiencyBreakdown[dimension]!)))
+				: null;
+			const useEfficiency = efficiencyState.ready && efficiency !== null;
+			const overall = weightedOverall(performance, useEfficiency ? efficiency : versatility);
 
 			return {
 				benchmarkId: 'overall',
@@ -258,6 +328,10 @@ export function scoreOverall(results: ArenaResult[]): BenchmarkScore[] {
 				performance,
 				consistency,
 				versatility,
+				efficiency,
+				scoringModel: useEfficiency ? SCORING_MODELS.efficiency : SCORING_MODELS.legacy,
+				efficiencyBreakdown,
+				resourceReadiness: { ready: useEfficiency, reasons: efficiencyState.reasons },
 				sizes: [],
 				expectedSizes: eligibleEntries.map((entry) => entry.benchmarkId),
 				diagnostics,

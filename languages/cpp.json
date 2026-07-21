@@ -25,6 +25,7 @@
     "PATH": "C:\\msys64\\ucrt64\\bin;{PATH}"
   },
   "sourceExtensions": [".cpp", ".hpp", ".h"],
+  "resourceBundle": { "sourceInclude": ["**/*.cpp", "**/*.hpp", "**/*.h"], "sourceExclude": ["**/.arena/**"], "artifactInclude": ["**/*"], "artifactExclude": [] },
   "provenance": {
     "environmentAllowlist": ["PATH"],
     "externalInputs": [

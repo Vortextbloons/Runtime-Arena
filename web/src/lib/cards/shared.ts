@@ -101,3 +101,19 @@ export const ALL_ATTRIBUTE_DEFINITIONS = [
 	{ id: 'implementation-size', label: 'Implementation Size', abbreviation: 'LOC', category: 'physical' as const },
 	{ id: 'code-economy', label: 'Code Economy', abbreviation: 'ECO', category: 'execution' as const }
 ];
+
+export const HYBRID_TIER_THRESHOLDS = [
+	{ tier: 'legend' as const, minimumScore: 95, minimumPercentile: 85 },
+	{ tier: 'hall-of-fame' as const, minimumScore: 90, minimumPercentile: 70 },
+	{ tier: 'gold' as const, minimumScore: 85, minimumPercentile: 55 },
+	{ tier: 'silver' as const, minimumScore: 80, minimumPercentile: 40 },
+	{ tier: 'bronze' as const, minimumScore: 75, minimumPercentile: 25 }
+];
+
+export const BADGE_OVR_BONUS: Record<string, number> = {
+	'bronze': 0.7,
+	'silver': 1.15,
+	'gold': 1.75,
+	'hall-of-fame': 2.25,
+	'legend': 2.75
+};

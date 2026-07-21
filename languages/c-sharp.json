@@ -32,6 +32,7 @@
     "DOTNET_NOLOGO": "1"
   },
   "sourceExtensions": [".cs"],
+  "resourceBundle": { "sourceInclude": ["**/*.cs"], "sourceExclude": ["**/.arena/**", "**/bin/**", "**/obj/**"], "artifactInclude": ["**/*"], "artifactExclude": ["**/*.pdb", "**/*.xml"] },
   "provenance": {
     "environmentAllowlist": ["DOTNET_CLI_TELEMETRY_OPTOUT", "DOTNET_NOLOGO", "DOTNET_ROOT"],
     "externalInputs": [

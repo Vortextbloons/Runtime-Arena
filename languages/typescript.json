@@ -33,6 +33,7 @@
     "NODE_ENV": "production"
   },
   "sourceExtensions": [".ts"],
+  "resourceBundle": { "sourceInclude": ["**/*.ts"], "sourceExclude": ["**/.arena/**", "**/node_modules/**"], "artifactInclude": ["**/*.mjs", "**/*.js"], "artifactExclude": ["**/node_modules/**"] },
   "provenance": {
     "environmentAllowlist": ["NODE_ENV"],
     "externalInputs": [

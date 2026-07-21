@@ -36,6 +36,7 @@
   },
   "environment": {},
   "sourceExtensions": [".java"],
+  "resourceBundle": { "sourceInclude": ["**/*.java"], "sourceExclude": ["**/.arena/**"], "artifactInclude": ["**/*"], "artifactExclude": [] },
   "provenance": {
     "environmentAllowlist": ["JAVA_HOME"],
     "externalInputs": [

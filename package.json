@@ -13,14 +13,14 @@
     "build:checker": "node scripts/build-checker.mjs",
     "build:web": "npm run sync-defs && npm run prepare-results && npm run build --workspace=@runtime-arena/web",
     "doctor": "npm run arena -- doctor",
-    "dev": "npm run sync-defs && npm run dev --workspace=@runtime-arena/web",
+    "dev": "node scripts/dev.mjs",
     "count-loc": "node scripts/count-implementation-loc.mjs",
     "prepare-results": "npm run count-loc && tsx scripts/prepare-results.ts",
     "sync-defs": "node scripts/sync-badge-defs.mjs",
     "test": "npm run build:checker && npm run test --workspaces --if-present && node scripts/count-implementation-loc.test.mjs && node scripts/test-checker.mjs",
     "combine-docs": "node scripts/combine-docs.mjs",
-    "scorecard": "node scripts/scorecard.mjs",
-    "update-readme-results": "node scripts/scorecard.mjs"
+    "scorecard": "npm run sync-defs && node scripts/scorecard.mjs",
+    "update-readme-results": "npm run sync-defs && node scripts/scorecard.mjs"
   },
   "engines": {
     "node": ">=26.4.0",

@@ -27,6 +27,7 @@
   },
   "environment": {},
   "sourceExtensions": [".lua"],
+  "resourceBundle": { "sourceInclude": ["**/*.lua"], "sourceExclude": ["**/.arena/**"], "artifactInclude": ["**/*.lua"], "artifactExclude": [] },
   "provenance": {
     "probes": [
       { "id": "runtime", "command": "C:\\Users\\isaac\\AppData\\Local\\Programs\\LuaJIT\\bin\\luajit.exe", "arguments": ["-v"] }

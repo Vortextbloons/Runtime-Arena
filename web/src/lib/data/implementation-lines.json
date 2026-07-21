@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-21T00:39:57.496Z",
+  "generatedAt": "2026-07-21T01:09:06.068Z",
   "cells": {
     "aggregation:c": {
       "logicalLines": 336,
@@ -9,6 +9,14 @@
         "main.c"
       ],
       "sha256": "fe6f3375bb1b16354f7838391ab9c52534967c97a939c2fb9b88c5f16e0a07d7"
+    },
+    "aggregation:c-sharp": {
+      "logicalLines": 281,
+      "fileCount": 1,
+      "files": [
+        "Program.cs"
+      ],
+      "sha256": "11057031ff7782b24ee9cbbf5ec2fcce30c54e6b5e91b7ad57a254fb54784328"
     },
     "aggregation:cpp": {
       "logicalLines": 199,
@@ -94,6 +102,14 @@
       ],
       "sha256": "b42b977d8c0d622d55c470f24b6dd21e44ebe7386173b6176a21825d63cefb35"
     },
+    "barrier-wave:c-sharp": {
+      "logicalLines": 216,
+      "fileCount": 1,
+      "files": [
+        "Program.cs"
+      ],
+      "sha256": "fabc5c0b76f781f9acbcba229597e0d51982c631ff7e497e3f9f318e3347fa17"
+    },
     "barrier-wave:cpp": {
       "logicalLines": 340,
       "fileCount": 1,
@@ -159,6 +175,14 @@
         "main.c"
       ],
       "sha256": "9f2e0adffb362f4411b23ceb2f8a6970671fb334baa52142f58263041e3c97c2"
+    },
+    "matrix-multiplication:c-sharp": {
+      "logicalLines": 133,
+      "fileCount": 1,
+      "files": [
+        "Program.cs"
+      ],
+      "sha256": "cedd3eb96390f7f55c58a0859dd1b8d0ecbfaab727e789feb71d091a3a1793a9"
     },
     "matrix-multiplication:cpp": {
       "logicalLines": 146,
@@ -244,6 +268,14 @@
       ],
       "sha256": "b1def19ecf83aa80f5b32f62a2c7aeb99392696f7610f932f7900a7314a23303"
     },
+    "nbody:c-sharp": {
+      "logicalLines": 157,
+      "fileCount": 1,
+      "files": [
+        "Program.cs"
+      ],
+      "sha256": "26416c3c591200a78d4345f27cd6b1c32d409bacfdc555809e24c56118c20cc6"
+    },
     "nbody:cpp": {
       "logicalLines": 181,
       "fileCount": 1,
@@ -327,6 +359,14 @@
         "main.c"
       ],
       "sha256": "a6d87dd60b68129dca948744164f0547d7026873e0dc4ecba92c1ccd41b87ff7"
+    },
+    "record-sorting:c-sharp": {
+      "logicalLines": 236,
+      "fileCount": 1,
+      "files": [
+        "Program.cs"
+      ],
+      "sha256": "b01791a2ec59353485351bbb456999b792f698b4e8cf4a591f5a6c4067b37901"
     },
     "record-sorting:cpp": {
       "logicalLines": 113,
@@ -412,6 +452,14 @@
       ],
       "sha256": "6447863a2a0b6b5df82a293794fd7addf10a5b1c69986de4cb8c7258f65ca9d1"
     },
+    "shortest-path:c-sharp": {
+      "logicalLines": 199,
+      "fileCount": 1,
+      "files": [
+        "Program.cs"
+      ],
+      "sha256": "a24242ed981daafdd49037e12c6e4e74393b34a8aa88e90da4350c7c2121c8de"
+    },
     "shortest-path:cpp": {
       "logicalLines": 162,
       "fileCount": 1,
@@ -495,6 +543,14 @@
         "main.c"
       ],
       "sha256": "786b46447110911e2897ed8f1c82f92f49b03a9082de6a2e0e3ddc07885b1ba5"
+    },
+    "word-frequency:c-sharp": {
+      "logicalLines": 105,
+      "fileCount": 1,
+      "files": [
+        "Program.cs"
+      ],
+      "sha256": "a92d38b98a3b7faa586e2dee4dd0156c27e53587dad03871ddb428a23ffa08ac"
     },
     "word-frequency:cpp": {
       "logicalLines": 146,

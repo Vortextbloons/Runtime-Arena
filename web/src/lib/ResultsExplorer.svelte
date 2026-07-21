@@ -192,7 +192,7 @@
 
 	const activeBenchmark = $derived(fixedBenchmark ?? selectedBenchmark);
 	const benchmarkResults = $derived(run.results.filter((result) => result.benchmark.id === activeBenchmark));
-	const baseOverallScores = $derived(scoreOverall(run.results));
+	const baseOverallScores = $derived(scoreOverall(run.results, run.resources));
 	const languageCards = $derived(
 		activeBenchmark === 'overall'
 			? buildAllCardData({
@@ -322,7 +322,7 @@
 				{/if}
 			</h2>
 			<p class="qualification">
-				<a href="{resolve('/methodology')}#ranking">75% geometric-mean speed · 25% flexibility</a>
+				<a href="{resolve('/methodology')}#ranking">75% geometric-mean speed · 25% {baseOverallScores[0]?.scoringModel === 'efficiency-v1' ? 'Efficiency' : 'FLEX · Efficiency pending'}</a>
 				{#if view === 'scorecard'} · badge bonuses{/if}
 				 · skipped workloads noted
 			</p>
