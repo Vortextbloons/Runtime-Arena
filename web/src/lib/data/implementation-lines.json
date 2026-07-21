@@ -1,14 +1,14 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-21T20:50:36.119Z",
+  "generatedAt": "2026-07-21T21:50:21.123Z",
   "cells": {
     "aggregation:c": {
-      "logicalLines": 336,
+      "logicalLines": 342,
       "fileCount": 1,
       "files": [
         "main.c"
       ],
-      "sha256": "069dfa4754416acf2e28633ea3eb1377e90574c8b9ef7f4545203d27194a2ec7"
+      "sha256": "3523dd9a096cc8830c24c3194c683d32cc1325d8695d6ad7d4041d723b344403"
     },
     "aggregation:c-sharp": {
       "logicalLines": 281,
@@ -32,7 +32,7 @@
       "files": [
         "main.go"
       ],
-      "sha256": "1337ad5cccd6bc3b510018da15f9d2b6a47802b4b1b249001157bb7134208364"
+      "sha256": "e55cd64f9b3fd5556107488138dd03271d855a0ec6e4c09b8795d405a76756cf"
     },
     "aggregation:java": {
       "logicalLines": 251,
@@ -193,12 +193,12 @@
       "sha256": "aa023a5f027a55cb95ce8490bf507f26e6b0304f55cf5e75324bfef3b246f094"
     },
     "matrix-multiplication:go": {
-      "logicalLines": 98,
+      "logicalLines": 113,
       "fileCount": 1,
       "files": [
         "main.go"
       ],
-      "sha256": "e209221df2bc7b365b1f4b87cdf40a373df75e2b93d5fb585b09e2e4ec9d92d9"
+      "sha256": "2d6d7405bfce490c30d9a74f78229899241734e0bd991a15b1b1e81331acf863"
     },
     "matrix-multiplication:java": {
       "logicalLines": 272,
@@ -237,12 +237,12 @@
       "sha256": "e4d51b35c7766248b88ad7159f1504e9a011058d447ccc603f93e5e1ace476bd"
     },
     "matrix-multiplication:python": {
-      "logicalLines": 66,
+      "logicalLines": 235,
       "fileCount": 1,
       "files": [
         "main.py"
       ],
-      "sha256": "1085489868a76ff2b1764af45fb7fb95520442cd7e8beacf0ee41dd71b66a529"
+      "sha256": "1b376843873050a766c5b4a183f22e568b6c5fbac0f5ea0520b4e7f9bc9e49ad"
     },
     "matrix-multiplication:rust": {
       "logicalLines": 148,
@@ -353,12 +353,12 @@
       "sha256": "8902d36e9a2c7b68ef0c295da4b07406d3b01bdcbe16a0d137d198357f6ee4b9"
     },
     "record-sorting:c": {
-      "logicalLines": 180,
+      "logicalLines": 186,
       "fileCount": 1,
       "files": [
         "main.c"
       ],
-      "sha256": "e66915569944bc968a4886f1f46b5729405cedf6c56f94f1c47053bfcb1b7008"
+      "sha256": "5763d418174cb3e8bcf410cb80116d1dc142701ec7dac2321c90986ca937a51c"
     },
     "record-sorting:c-sharp": {
       "logicalLines": 236,
@@ -377,12 +377,12 @@
       "sha256": "17efb780637a7215c44682d046469af372520b57e2008c6708a58f4405dbfad0"
     },
     "record-sorting:go": {
-      "logicalLines": 111,
+      "logicalLines": 118,
       "fileCount": 1,
       "files": [
         "main.go"
       ],
-      "sha256": "f4b4cae1ef13f6e54fbac3e92b582493cf90ae5ac9cbf75fb2a0e535ccf6f36a"
+      "sha256": "e903f952945bd5f84066d95bf7532f986556168b11a688b6fd1cc8f975bd7084"
     },
     "record-sorting:java": {
       "logicalLines": 277,
@@ -469,12 +469,12 @@
       "sha256": "c958f132e63d108daba27536a096afddd9ab9fc0de606dc741d07d69a5acc4df"
     },
     "shortest-path:go": {
-      "logicalLines": 178,
+      "logicalLines": 200,
       "fileCount": 1,
       "files": [
         "main.go"
       ],
-      "sha256": "f02ee46096730de522950de86e84e540f6a1cab68774fa464eb85ba7019fe4ff"
+      "sha256": "37fd513bac4a22a900fb8aaaf77cdf2ef255b0b87d8a937c97da264a3ba5b779"
     },
     "shortest-path:java": {
       "logicalLines": 239,
@@ -537,12 +537,12 @@
       "sha256": "66bc5eaaced777ebe7efea7fea587a521b4c988d521d593b503d306c54c4ab87"
     },
     "word-frequency:c": {
-      "logicalLines": 198,
+      "logicalLines": 203,
       "fileCount": 1,
       "files": [
         "main.c"
       ],
-      "sha256": "64bf68ab76cc23bb9c7e375b220fa373fc0789448c78b0a8ad1ce5e8b99b6254"
+      "sha256": "890bf52855dd33b82300432adc7879ef1887b130f6659d147a6437ef85c06c30"
     },
     "word-frequency:c-sharp": {
       "logicalLines": 105,
@@ -561,12 +561,12 @@
       "sha256": "fd8a6fbd9d46666240c8a541845afe35d5ef2fb14772decce88d18baf35f4db3"
     },
     "word-frequency:go": {
-      "logicalLines": 113,
+      "logicalLines": 137,
       "fileCount": 1,
       "files": [
         "main.go"
       ],
-      "sha256": "4e25ba3be024630a78f6249eeb99bf1477bf36d501d531bc5873e060f3e3c772"
+      "sha256": "db027f7afbcb7d8f833dd5f1e6edc3adf66142214b16aabec7b9ef282d5fa106"
     },
     "word-frequency:java": {
       "logicalLines": 194,
@@ -613,12 +613,12 @@
       "sha256": "dff488527b25a50efd523b045a6bb48feb191012f3b42ecc5f6755bca6f9f2b7"
     },
     "word-frequency:rust": {
-      "logicalLines": 132,
+      "logicalLines": 203,
       "fileCount": 1,
       "files": [
         "src/main.rs"
       ],
-      "sha256": "4906b7bf01d717b0a62149cef7733fb6d05637b3346c6c052959194e34aec386"
+      "sha256": "b4309e52e1e527be6efa364be3c337e01710b3744389a28f7ee5381b7e8b5103"
     },
     "word-frequency:typescript": {
       "logicalLines": 39,

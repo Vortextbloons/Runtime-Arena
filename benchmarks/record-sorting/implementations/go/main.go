@@ -32,7 +32,18 @@ type Output struct {
 	Checksum     string   `json:"checksum"`
 }
 
+var recordBuf []Record
+
 func kernel(records []Record) Output {
+	/* Reuse pre-allocated buffer */
+	if cap(recordBuf) < len(records) {
+		recordBuf = make([]Record, len(records))
+	} else {
+		recordBuf = recordBuf[:len(records)]
+	}
+	copy(recordBuf, records)
+	records = recordBuf
+	
 	slices.SortFunc(records, func(a, b Record) int {
 		if c := cmp.Compare(b.Score, a.Score); c != 0 {
 			return c
@@ -118,8 +129,7 @@ func main() {
 			return
 		}
 		if req.Type == "run" {
-			records := append([]Record(nil), in.Records...)
-			last = kernel(records)
+			last = kernel(in.Records)
 			respond(map[string]any{"type": "result", "requestId": req.RequestId, "digest": outputDigest(last)})
 		}
 	}

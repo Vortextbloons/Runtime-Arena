@@ -5,6 +5,7 @@
 #include <limits.h>
 #include "json.h"
 #include "sha256.h"
+#include "sort.h"
 
 #define PROTOCOL_VERSION "2.0.0"
 
@@ -125,6 +126,13 @@ static int acctCmp(const void *a, const void *b) {
     if (aa->value != bb->value) return aa->value > bb->value ? -1 : 1;
     return strcmp(aa->accountId, bb->accountId);
 }
+
+/* Type-specific insertion sort to avoid qsort function-pointer overhead */
+INSERTION_SORT(sortCategories, CategoryAgg, strcmp(tmp.category, a[j].category) < 0)
+INSERTION_SORT(sortAccounts, AccountAgg, 
+    (tmp.value > a[j].value) || 
+    (tmp.value == a[j].value && strcmp(tmp.accountId, a[j].accountId) < 0)
+)
 
 static void buildChecksumString(const CategoryAgg *cats, int catCount,
                                  const AccountAgg *topAccts, int topCount,
@@ -270,14 +278,14 @@ static char *produce_output(void *ctx, size_t *out_len) {
     for (int i = 0; i < CAT_CAP; i++) {
         if (catMap[i].category[0] != '\0') sortedCats[scIdx++] = catMap[i];
     }
-    qsort(sortedCats, catMapCount, sizeof(CategoryAgg), catCmp);
+    sortCategories(sortedCats, catMapCount);
 
     AccountAgg *sortedAccts = malloc(acctMapCount * sizeof(AccountAgg));
     int saIdx = 0;
     for (int i = 0; i < ACCT_CAP; i++) {
         if (acctMap[i].accountId[0] != '\0') sortedAccts[saIdx++] = acctMap[i];
     }
-    qsort(sortedAccts, acctMapCount, sizeof(AccountAgg), acctCmp);
+    sortAccounts(sortedAccts, acctMapCount);
     int topCount = acctMapCount < 10 ? acctMapCount : 10;
 
     char *checksumStr;

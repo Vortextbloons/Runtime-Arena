@@ -86,21 +86,52 @@ func buildAdjacency(n int, edges []Edge) [][]Edge {
 	return a
 }
 
+var distBuf []int64
+var prevBuf []int
+var visitedBuf []int
+var pqBuf []heapItem
+var resultBuf []Result
+
 func kernel(adj [][]Edge, queries []Query) []Result {
 	n := len(adj)
-	d := make([]int64, n)
-	pr := make([]int, n)
+	
+	/* Reuse pre-allocated buffers */
+	if cap(distBuf) < n {
+		distBuf = make([]int64, n)
+		prevBuf = make([]int, n)
+		visitedBuf = make([]int, 0, n)
+	} else {
+		distBuf = distBuf[:n]
+		prevBuf = prevBuf[:n]
+		visitedBuf = visitedBuf[:0]
+	}
+	d := distBuf
+	pr := prevBuf
+	visited := visitedBuf
+	
 	for i := range d {
 		d[i] = math.MaxInt64
 		pr[i] = -1
 	}
-	visited := make([]int, 0, n)
-	rs := make([]Result, 0, len(queries))
-	var pq minHeap
+	
+	/* Reuse heap buffer */
+	if cap(pqBuf) < n {
+		pqBuf = make([]heapItem, 0, n)
+	}
+	
+	/* Reuse result buffer */
+	if cap(resultBuf) < len(queries) {
+		resultBuf = make([]Result, 0, len(queries))
+	} else {
+		resultBuf = resultBuf[:0]
+	}
+	rs := resultBuf
+	
 	for _, q := range queries {
 		d[q.Source] = 0
 		visited = append(visited[:0], q.Source)
-		pq = append(pq[:0], heapItem{q.Source, 0})
+		pq := minHeap(pqBuf[:0])
+		pq.push(heapItem{q.Source, 0})
 		for len(pq) > 0 {
 			x := pq.pop()
 			if x.dist != d[x.node] {

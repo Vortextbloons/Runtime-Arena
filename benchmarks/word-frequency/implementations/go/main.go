@@ -33,46 +33,75 @@ func (e Entry) MarshalJSON() ([]byte, error) {
 	}{e.Word, e.Count})
 }
 
+var freqBuf map[string]int
+var entryBuf []Entry
+var hashBuf []byte
+
 func kernel(words []string) Output {
-	freq := make(map[string]int, len(words)/2)
+	/* Reuse pre-allocated map */
+	if freqBuf == nil {
+		freqBuf = make(map[string]int, len(words)/2)
+	} else {
+		for k := range freqBuf {
+			delete(freqBuf, k)
+		}
+	}
 	for _, w := range words {
-		freq[w]++
+		freqBuf[w]++
 	}
 
-	entries := make([]Entry, 0, len(freq))
-	for w, c := range freq {
-		entries = append(entries, Entry{w, c})
+	/* Reuse pre-allocated entry slice */
+	if cap(entryBuf) < len(freqBuf) {
+		entryBuf = make([]Entry, 0, len(freqBuf))
+	} else {
+		entryBuf = entryBuf[:0]
+	}
+	for w, c := range freqBuf {
+		entryBuf = append(entryBuf, Entry{w, c})
 	}
 
-	slices.SortFunc(entries, func(a, b Entry) int {
+	slices.SortFunc(entryBuf, func(a, b Entry) int {
 		if a.Count != b.Count {
 			return b.Count - a.Count
 		}
-		return slices.Compare([]byte(a.Word), []byte(b.Word))
+		/* Direct string comparison instead of slices.Compare([]byte(...), []byte(...)) */
+		if a.Word < b.Word {
+			return -1
+		}
+		if a.Word > b.Word {
+			return 1
+		}
+		return 0
 	})
 
 	h := sha256.New()
 	var buf [32]byte
-	for _, e := range entries {
+	/* Reuse hash buffer */
+	bufSize := len(entryBuf) * 64
+	if cap(hashBuf) < bufSize {
+		hashBuf = make([]byte, 0, bufSize)
+	} else {
+		hashBuf = hashBuf[:0]
+	}
+	for _, e := range entryBuf {
 		tmp := strconv.AppendInt(buf[:0], int64(e.Count), 10)
-		wb := make([]byte, 0, len(e.Word)+len(tmp)+2)
-		wb = append(wb, e.Word...)
-		wb = append(wb, ',')
-		wb = append(wb, tmp...)
-		wb = append(wb, '\n')
-		h.Write(wb)
+		hashBuf = append(hashBuf, e.Word...)
+		hashBuf = append(hashBuf, ',')
+		hashBuf = append(hashBuf, tmp...)
+		hashBuf = append(hashBuf, '\n')
+		h.Write(hashBuf[len(hashBuf)-len(e.Word)-len(tmp)-2:])
 	}
 
-	top := entries
+	top := entryBuf
 	if len(top) > 10 {
-		top = entries[:10]
+		top = entryBuf[:10]
 	}
 
 	return Output{
 		Benchmark:   "word-frequency",
 		Version:     1,
 		TotalWords:  len(words),
-		UniqueWords: len(entries),
+		UniqueWords: len(entryBuf),
 		TopWords:    top,
 		Checksum:    hex.EncodeToString(h.Sum(nil)),
 	}

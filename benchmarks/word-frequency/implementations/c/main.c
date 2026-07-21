@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "json.h"
 #include "sha256.h"
+#include "sort.h"
 
 #define PROTOCOL_VERSION "2.0.0"
 
@@ -30,6 +31,12 @@ static int entryCmp(const void *a, const void *b) {
     if (ea->count != eb->count) return eb->count - ea->count;
     return strcmp(ea->word, eb->word);
 }
+
+/* Type-specific insertion sort to avoid qsort function-pointer overhead */
+INSERTION_SORT(sortEntries, Entry, 
+    (tmp.count > a[j].count) || 
+    (tmp.count == a[j].count && strcmp(tmp.word, a[j].word) < 0)
+)
 
 typedef struct { char word[64]; int count; } MapEntry;
 
@@ -119,7 +126,7 @@ static char *produce_output(void *ctx, size_t *out_len) {
             eIdx++;
         }
     }
-    qsort(c->entries, mapUsed, sizeof(Entry), entryCmp);
+    sortEntries(c->entries, mapUsed);
 
     SHA256 hasher;
     sha256_init(&hasher);

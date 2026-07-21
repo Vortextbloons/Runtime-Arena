@@ -40,9 +40,17 @@ type Output struct {
 	Checksum   string     `json:"checksum"`
 }
 
+type catAgg struct {
+	quantity, value int64
+}
+
+type acctAgg struct {
+	value int64
+}
+
 func kernel(rows []Row) Output {
-	cm := map[string]*[2]int64{}
-	am := map[string]*int64{}
+	cm := make(map[string]catAgg, 64)
+	am := make(map[string]acctAgg, 128)
 	var q, total int64
 	min := int64(^uint64(0) >> 1)
 	var max int64
@@ -57,22 +65,16 @@ func kernel(rows []Row) Output {
 			max = v
 		}
 		x := cm[r.Category]
-		if x == nil {
-			x = &[2]int64{}
-			cm[r.Category] = x
-		}
-		x[0] += r.Quantity
-		x[1] += v
+		x.quantity += r.Quantity
+		x.value += v
+		cm[r.Category] = x
 		y := am[r.Account]
-		if y == nil {
-			y = new(int64)
-			am[r.Account] = y
-		}
-		*y += v
+		y.value += v
+		am[r.Account] = y
 	}
 	cats := make([]Category, 0, len(cm))
 	for k, v := range cm {
-		cats = append(cats, Category{k, v[0], v[1]})
+		cats = append(cats, Category{k, v.quantity, v.value})
 	}
 	slices.SortFunc(cats, func(a, b Category) int {
 		if a.Category < b.Category {
@@ -85,7 +87,7 @@ func kernel(rows []Row) Output {
 	})
 	accounts := make([]Account, 0, len(am))
 	for k, v := range am {
-		accounts = append(accounts, Account{k, *v})
+		accounts = append(accounts, Account{k, v.value})
 	}
 	if len(accounts) > 10 {
 		var top10 [10]Account

@@ -26,11 +26,26 @@ type Output struct {
 	Checksum     string `json:"checksum"`
 }
 
+var productBuf []int64
+var hashBuf []byte
+
 func kernel(in Input) Output {
 	n := in.Dimension
 	a := in.Left
 	b := in.Right
-	c := make([]int64, n*n)
+	
+	/* Reuse pre-allocated buffer */
+	size := n * n
+	if cap(productBuf) < size {
+		productBuf = make([]int64, size)
+	} else {
+		productBuf = productBuf[:size]
+		for i := range productBuf {
+			productBuf[i] = 0
+		}
+	}
+	c := productBuf
+	
 	var valueSum int64
 	var diagonalSum int64
 	for i := 0; i < n; i++ {
@@ -45,9 +60,15 @@ func kernel(in Input) Output {
 		}
 		diagonalSum += c[i*n+i]
 	}
+	
+	/* Reuse hash buffer */
 	hdr := []byte("dimension=" + strconv.Itoa(n) + "\n")
 	bufSize := len(hdr) + n*n*13 + 2
-	hashBuf := make([]byte, 0, bufSize)
+	if cap(hashBuf) < bufSize {
+		hashBuf = make([]byte, 0, bufSize)
+	} else {
+		hashBuf = hashBuf[:0]
+	}
 	hashBuf = append(hashBuf, hdr...)
 	for i := 0; i < n*n; i++ {
 		hashBuf = strconv.AppendInt(hashBuf, c[i], 10)

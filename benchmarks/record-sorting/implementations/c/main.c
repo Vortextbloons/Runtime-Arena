@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "json.h"
 #include "sha256.h"
+#include "sort.h"
 
 #define PROTOCOL_VERSION "2.0.0"
 
@@ -38,6 +39,13 @@ static int recordCmp(const void *a, const void *b) {
     if (ra->timestamp != rb->timestamp) return ra->timestamp < rb->timestamp ? -1 : 1;
     return ra->id < rb->id ? -1 : 1;
 }
+
+/* Type-specific insertion sort to avoid qsort function-pointer overhead */
+INSERTION_SORT(sortRecords, Record, 
+    (tmp.score > a[j].score) || 
+    (tmp.score == a[j].score && tmp.timestamp < a[j].timestamp) ||
+    (tmp.score == a[j].score && tmp.timestamp == a[j].timestamp && tmp.id < a[j].id)
+)
 
 static char *read_stdin_line(char *buf, size_t cap) {
     if (!fgets(buf, (int)cap, stdin)) return NULL;
@@ -90,7 +98,7 @@ static char *produce_output(void *ctx, size_t *out_len) {
     int recCount = c->recCount;
     memcpy(c->recs, c->inputRecs, recCount * sizeof(Record));
 
-    qsort(c->recs, recCount, sizeof(Record), recordCmp);
+    sortRecords(c->recs, recCount);
 
     int take = recCount < 10 ? recCount : 10;
 
