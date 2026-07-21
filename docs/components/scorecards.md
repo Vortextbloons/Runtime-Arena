@@ -17,7 +17,7 @@ Shared visual helpers live in `web/src/lib/tiers.ts` (`getScoreTier`, `languageM
 
 | Card surface | Source | Notes |
 |--------------|--------|-------|
-| Large OVR number | `score.overall` | Weighted composite: 75% geometric-mean speed + 25% Efficiency after resource readiness passes (otherwise legacy FLEX), plus badge bonuses capped at 100. Displayed as a rounded integer; `null` → `—` |
+| Large OVR number | `score.overall` | Weighted composite: 85% geometric-mean speed + 15% Efficiency after resource readiness passes (otherwise legacy FLEX uses 85% speed + 15% versatility), plus badge bonuses capped at 100. Displayed as a rounded integer; `null` → `—` |
 | SPEED / STABLE / FLEX meters | `score.performance`, `consistency`, `versatility` | Segmented 10-bar meters **plus** tabular numeric values beside each label. STABLE is diagnostic only. |
 | Language name + monogram | `score.language` | Stable abbreviations via `languageMonogram`: `RS` (Rust), `GO` (Go), `JV` (Java), `JS` (JavaScript), `TS` (TypeScript), `PY` (Python), `LJ` (LuaJIT), `L5` (lua-interpreted), `C` (C), `C#` (C#), `C++` (C++) |
 | Footer runtime | `score.language.id` / `score.language.version` | Version shows the first whitespace-delimited token |
@@ -82,7 +82,7 @@ Languages do **not** have fixed brand colorways. Appearance is:
 
 Near rankings in `ResultsExplorer`, a small line clarifies scope:
 
-> Snapshot rankings · 75% geometric-mean speed · 25% flexibility · badge bonuses · skipped workloads noted
+> Snapshot rankings · 85% geometric-mean speed · 15% secondary (versatility or efficiency) · badge bonuses · skipped workloads noted
 
 ## Data Model
 

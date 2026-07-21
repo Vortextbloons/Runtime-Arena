@@ -214,13 +214,13 @@ npm run scorecard
 ```
 
 Writes `docs/scorecard.md` by reading `results/current.json` and computing
-scores with the same algorithm as the web UI (75% geometric-mean speed + 25%
-flexibility + badge bonuses). The output includes:
+scores with the same algorithm as the web UI (85% geometric-mean speed + 15%
+Efficiency + badge bonuses; legacy flexibility is the resource-data fallback). The output includes:
 
 - **Overall leaderboard** — ranked languages with base OVR, badge bonus, final
-  OVR, SPD, FLEX, STABLE, tier/gem, and win count
+  OVR, SPD, EFF, STABLE, tier/gem, and win count
 - **Badge summary matrix** — which badges each language earned and at what tier
-- **Per-language card profiles** — attribute meters (SPD, STABLE, FLEX),
+- **Per-language card profiles** — attribute meters (SPD, STABLE, EFF),
   earned badges with qualification details, per-benchmark breakdowns with rank
   and relative speed, and fastest cells
 - **Per-benchmark leaderboards** — size-level breakdowns with median times and
@@ -241,7 +241,7 @@ npm run update-readme-results
 
 Updates the summary leaderboard in `README.md` (between the `<!-- RESULTS
 START -->` and `<!-- RESULTS END -->` markers). This table shows only the base
-overall score (SPD + FLEX) without badge bonuses, making it a simpler
+overall score (SPD + EFF) without badge bonuses, making it a simpler
 at-a-glance comparison. Run this after `npm run scorecard` or whenever you
 want the README to reflect the latest `results/current.json`.
 

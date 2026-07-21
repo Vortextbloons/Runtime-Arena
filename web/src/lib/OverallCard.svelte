@@ -53,6 +53,16 @@
 	const issueLabel = $derived(
 		issueCount === 1 ? 'UNVERIFIED · 1 issue' : `UNVERIFIED · ${issueCount} issues`
 	);
+	const efficiencyDetails = $derived.by(() => {
+		const breakdown = score.efficiencyBreakdown;
+		if (!breakdown) return [];
+		return [
+			{ label: 'MEM', value: breakdown.memory },
+			{ label: 'ART', value: breakdown.artifact },
+			{ label: 'LOC', value: breakdown.implementation },
+			{ label: 'BLD', value: breakdown.build }
+		];
+	});
 
 	function filled(value: number | null): number {
 		if (value === null) return 0;
@@ -226,6 +236,24 @@
 			</div>
 
 			{#if expanded}
+				{#if score.efficiency !== null && score.efficiency !== undefined}
+					<section class="efficiency-details" aria-label="Efficiency score breakdown">
+						<header>
+							<strong>EFF</strong>
+							<span>{score.efficiency.toFixed(1)} / 100</span>
+						</header>
+						<div class="efficiency-subscore-grid">
+							{#each efficiencyDetails as detail (detail.label)}
+								<div>
+									<span>{detail.label}</span>
+									<strong>{detail.value === null ? '—' : detail.value.toFixed(1)}</strong>
+								</div>
+							{/each}
+						</div>
+						<p>{score.scoringModel === 'efficiency-v1' ? 'Equal-weight Memory, Artifact, LOC, and Build subscores.' : 'Pending the full resource gate; shown for comparison only.'}</p>
+					</section>
+				{/if}
+
 				{@const extended = card.attributes.slice(6)}
 				{#if extended.length}
 					<div class="attribute-grid attribute-grid-v1 extended-attrs" aria-label="Extended attributes">
@@ -1146,6 +1174,22 @@
 		color: #fff;
 		text-shadow: 0 0 4px var(--tier-glow);
 	}
+
+	.efficiency-details {
+		position: relative;
+		z-index: 2;
+		margin: .45rem -.2rem 0;
+		padding: .5rem .45rem;
+		border-top: 1px solid color-mix(in srgb, var(--tier-glow) 32%, transparent);
+		background: color-mix(in srgb, var(--tier-glow) 8%, rgba(0, 0, 0, .35));
+	}
+	.efficiency-details header { display: flex; justify-content: space-between; color: #fff; font: 800 .58rem var(--mono); letter-spacing: .12em; }
+	.efficiency-details header strong { color: color-mix(in srgb, var(--tier-glow) 85%, #fff); }
+	.efficiency-subscore-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .22rem; margin-top: .4rem; }
+	.efficiency-subscore-grid > div { padding: .25rem; border: 1px solid color-mix(in srgb, var(--tier-glow) 25%, transparent); background: rgba(0, 0, 0, .28); }
+	.efficiency-subscore-grid span { display: block; color: color-mix(in srgb, var(--tier-glow) 80%, #fff); font: 800 .47rem var(--mono); letter-spacing: .1em; }
+	.efficiency-subscore-grid strong { display: block; margin-top: .1rem; color: #fff; font: 800 .65rem var(--mono); }
+	.efficiency-details p { margin: .35rem 0 0; color: #aeb9c5; font: 600 .46rem/1.35 var(--mono); }
 
 	/* --- Footer: runtime / compiler, no longer debug-looking --- */
 	.card-foot {

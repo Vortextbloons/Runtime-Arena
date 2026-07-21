@@ -103,6 +103,23 @@ Available only in `run`:
 
 > Template variables `{timingOutputFile}`, `{warmupIterations}`, `{minMeasuredIterations}`, `{maxMeasuredIterations}`, and `{targetRelativeConfidenceInterval}` were used by the legacy persistent-worker contract (pre-2.0.0). Current harness-timed runs pass these via the protocol handshake instead.
 
+**`resourceBundle`** (optional, present on all manifests as of schema 4.0.0):
+
+```json
+{
+  "resourceBundle": {
+    "sourceInclude": ["**/*.rs"],
+    "sourceExclude": ["**/.arena/**", "**/target/**"],
+    "artifactInclude": ["**/*"],
+    "artifactExclude": []
+  }
+}
+```
+
+Defines glob patterns for resource profiling (`arena resources collect`):
+- `sourceInclude` / `sourceExclude` — Which files count toward workload-owned lines of code and source hash
+- `artifactInclude` / `artifactExclude` — Which files form the runnable workload bundle (counted by `artifact.fileCount` and `artifact.paths`)
+
 **Provenance block** (optional, present on most manifests):
 
 ```json

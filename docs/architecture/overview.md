@@ -28,7 +28,7 @@ The **checker** is intentionally written in Go and independent from the TypeScri
 
 **Fingerprinting**: A SHA-256 hash of all source files, manifests, datasets, checker code, toolchain version, and compiler version determines if a cell is "current" or "stale". A `RunnerCache` instance memoizes file reads and SHA-256 hashes across all cells to avoid redundant I/O. `arena run` only re-executes cells whose fingerprint has changed.
 
-**Build caching**: A separate `buildFingerprint()` hashes language manifest + implementation source tree + benchmark ID + build config. Compiled artifacts are stored in `.arena/build-cache/<fingerprint>/` and reused if the hash matches, skipping the language build step entirely.
+**Build caching**: A separate `collectBuildProvenance()` hashes language manifest + implementation source tree + benchmark ID + build config to produce a build fingerprint. Compiled artifacts are stored in `.arena/build-cache/<buildFingerprint>/` and reused if the hash matches, skipping the language build step entirely.
 
 **Atomic writes**: Results are written to a temp file then renamed via `atomicJson()`. All cell results — including build failures and checker rejections — replace the previous entry in the canonical snapshot, so a cell that was previously accepted but now fails will be recorded as failed. A cell remains `current` as long as its fingerprint and measurement contract version both match; use `--force` to re-run a cell.
 

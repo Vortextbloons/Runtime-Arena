@@ -58,11 +58,13 @@ Validates language manifests (`languages/*.json`).
 Validates result snapshots (`results/current.json`).
 
 **Structure:**
-- `schemaVersion` — Semver string; the schema validates against `^\d+\.\d+\.\d+$` (the CLI currently writes `"3.0.0"`)
+- `schemaVersion` — Semver string; the schema validates against `^\d+\.\d+\.\d+$` (the CLI currently writes `"4.0.0"`)
 - `snapshotId` — Unique run identifier
 - `updatedAt` — ISO 8601 timestamp
 - `arenaVersion` — Protocol version written into snapshots (CLI currently hardcodes `"0.2.0"`; may differ from npm `package.json` version)
 - `gitCommit` / `gitDirty` — Git state (both nullable)
+- `scoringModel` — Optional string enum: `"legacy-versatility-v1"` or `"efficiency-v1"` (the CLI writes `"legacy-versatility-v1"` for all current snapshots)
+- `resources[]` — Optional array of resource profile objects (populated by `arena resources collect`)
 - `results[]` — Array of benchmark results
 
 Each result is required to contain:
@@ -81,13 +83,14 @@ Each result is required to contain:
 
 ### Result Data Model Evolution
 
-The `schemaVersion` field at the root of each result snapshot tracks the data model version. The JSON schema validator uses semver range matching, so `schemaVersion: "3.0.0"` passes `^3.0.0`. The CLI currently hardcodes `"3.0.0"`.
+The `schemaVersion` field at the root of each result snapshot tracks the data model version. The JSON schema validator uses semver range matching, so `schemaVersion: "4.0.0"` passes `^4.0.0`. The CLI currently hardcodes `"4.0.0"`.
 
 | Version | Key Changes |
 |---------|-------------|
 | `1.0.0` | **Initial schema.** Used `measurementContractVersion: "1.0.0"` or `"1.1.0"`. Execution mode was `persistent-worker` (the implementation measured its own timing). Metrics used `kernelTimeNanoseconds` per sample with `medianKernelTimeNanoseconds` as the primary ranking metric. Provenance was simple: just a fingerprint hash, `measurementContractVersion`, `measuredAt` timestamp, and `machine` info. |
 | `2.0.0` | **Mutations & generator versioning.** Added `mutation` support in `benchmark` objects and `seed`, `mutation`, and `generatorVersion` fields in `dataset` objects. Added `targetRelativeConfidenceInterval` to the measurement policy. The `GENERATOR_VERSION` constant (`"2.2.0"`) is written for mutation datasets; non-mutation datasets use `"committed-fixture-1.0.0"`. |
-| `3.0.0` (current) | **Harness-timed execution & enhanced provenance.** Added `measurementContractVersion: "2.0.0"` with `harness-timed-persistent-worker` mode (the CLI drives timing externally). Primary metric changed from `medianKernelTimeNanoseconds` to `medianIterationTimeNanoseconds`. Provenance expanded with `buildFingerprint`, `artifactSha256`, and `toolchain` (containing compiler versions, environment snapshot, and target info). |
+| `3.0.0` | **Harness-timed execution & enhanced provenance.** Added `measurementContractVersion: "2.0.0"` with `harness-timed-persistent-worker` mode (the CLI drives timing externally). Primary metric changed from `medianKernelTimeNanoseconds` to `medianIterationTimeNanoseconds`. Provenance expanded with `buildFingerprint`, `artifactSha256`, and `toolchain` (containing compiler versions, environment snapshot, and target info). |
+| `4.0.0` (current) | **Scoring model & resource profiles.** Added optional `scoringModel` (string enum: `"legacy-versatility-v1"` / `"efficiency-v1"`) and optional `resources[]` array to the snapshot root. Each resource profile contains `benchmarkId`, `languageId`, `fingerprint`, `resourceContractVersion: "1.0.0"`, `provenance` (machine + toolchain fingerprints), and four measurement blocks: `memory`, `build`, `artifact`, `implementation`. The `resourceBundle` field (source/artifact include/exclude globs) was also added to language manifests for resource profiling. CLI writes `scoringModel: "legacy-versatility-v1"` and initializes `resources: []` on new runs. |
 
 ## implementation-output.schema.json
 

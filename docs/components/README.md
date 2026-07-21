@@ -6,7 +6,7 @@ Runtime Arena consists of six main components.
 
 TypeScript command-line tool (`arena`) — the primary entry point. Handles discovery, building, execution, validation, and result storage. Commands: `doctor`, `list`, `build`, `run`, `check`, `dataset`, `results`, `web`.
 
-Source: `cli/src/index.ts` with ~15 supporting modules (`protocol.ts`, `provenance.ts`, `provenance-defaults.ts`, `process.ts`, `env.ts`, `runner-cache.ts`, `timing.ts`, `mutations.ts`, `metrics.ts`, `jdk.ts`, `minimal-workers.ts`, `protocol-conformance.ts`) and placeholders for future split. Details: [cli.md](cli.md).
+Source: `cli/src/index.ts` with 15 supporting modules (`protocol.ts`, `provenance.ts`, `provenance-defaults.ts`, `process.ts`, `process-registry.ts`, `pool.ts`, `env.ts`, `runner-cache.ts`, `timing.ts`, `mutations.ts`, `metrics.ts`, `jdk.ts`, `minimal-workers.ts`, `protocol-conformance.ts`) and placeholders for future split. Details: [cli.md](cli.md).
 
 ## Checker (`checker/`)
 
@@ -49,4 +49,4 @@ JSON Schema definitions for validation:
 
 ## Web (`web/`)
 
-SvelteKit static dashboard for viewing results. Loads `results/current.json`, computes scores (75% geometric-mean speed / 25% flexibility), and displays charts and 2K-style scorecards with attribute meters, badges, division ranks, and takeovers. Built with adapter-static for deployment anywhere. Scorecard design system: [scorecards.md](scorecards.md). Overview: [web.md](web.md).
+SvelteKit static dashboard for viewing results. Loads `results/current.json`, computes scores (85% geometric-mean speed / 15% Efficiency, with legacy flexibility as the resource-data fallback), and displays charts and 2K-style scorecards with attribute meters, badges, division ranks, and takeovers. Built with adapter-static for deployment anywhere. Scorecard design system: [scorecards.md](scorecards.md). Overview: [web.md](web.md).

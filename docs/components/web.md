@@ -66,14 +66,15 @@ web/
 
 The scoring system (`src/lib/scoring.ts`) computes a 0-100 weighted overall score from two measured components, then applies optional badge bonuses in `buildCardData.ts`:
 
-**Speed (75% weight)**
+**Speed (85% weight)**
 - Each eligible benchmark/size contributes a performance score: `100 × (fastestMedian / thisMedian)^0.65`, clamped to a floor of 0.1. The 0.65 exponent makes the score sub-linear — being 2× slower costs less than half the points.
 - For benchmarks with dataset mutations, a `MutationScore` is computed per mutation variant, then size-level scores use the geometric mean of mutation performances.
 - Ratios are combined with a geometric mean across sizes and benchmarks.
 - A size tier is excluded for every language when its fastest valid median is below 1 ms.
 
-**Flexibility (25% weight)**
-- `versatility = 0.6 × min(benchmark performances) + 0.4 × average(benchmark performances)`, measuring breadth across completed workloads.
+**Efficiency (15% weight)**
+- Efficiency is the geometric mean of equal-weight Memory, Artifact, Implementation Size, and Build-Time subscores. Each 10× resource-efficiency gap costs 20 points, with a 20-point floor.
+- Until every eligible benchmark/language pair has comparable resource data, the legacy flexibility score is used for that 15% component.
 
 **Stability (diagnostic)**
 - Per size: `consistency = clampScore(100 − CV × 400)`, where CV is the coefficient of variation of kernel times.
@@ -87,7 +88,8 @@ The scoring system (`src/lib/scoring.ts`) computes a 0-100 weighted overall scor
 - Total bonus is computed by `calculateBadgeBonus()`: sum of top 3 featured tiers, overall capped at 100 via `applyFinalOverall()`.
 
 **Overall**
-- `baseOverall = 0.75 × geometric-mean speed + 0.25 × Efficiency` after the complete-resource gate; otherwise the snapshot retains the reproducible legacy FLEX formula and labels Efficiency as pending.
+- The snapshot's `scoringModel` field maps to either `"legacy-versatility-v1"` (legacy FLEX formula: 85% speed / 15% versatility) when resource data is incomplete, or `"efficiency-v1"` (85% speed / 15% efficiency) when all four resource dimensions have comparable measurements across languages.
+- `baseOverall = 0.85 × geometric-mean speed + 0.15 × secondary` where secondary is either versatility (legacy model) or efficiency (resource-complete model). The legacy model computes versatility as `0.6 × min(benchmark performances) + 0.4 × average(benchmark performances)`.
 - `overall = min(100, baseOverall + badgeBonus)`
 - Per-benchmark card scores use speed only.
 - Correctness and complete sample counts remain strict eligibility gates **within** a benchmark.

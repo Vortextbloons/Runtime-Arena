@@ -152,7 +152,11 @@ The Go toolchain caches (`go-build-cache`) can become stale. Clear them and
 retry:
 
 ```bash
-rm -rf .arena/go-build-cache .arena/go-checker-cache
+# PowerShell
+Remove-Item -Recurse -Force .arena/go-build-cache, .arena/go-checker-cache
+
+# Unix / Git Bash
+# rm -rf .arena/go-build-cache .arena/go-checker-cache
 npm run build:checker
 ```
 

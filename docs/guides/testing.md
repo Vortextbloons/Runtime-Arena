@@ -24,6 +24,7 @@ This command:
 | CLI protocol conformance | `cli/src/protocol-conformance.test.ts` | Node test runner |
 | CLI benchmark mutations | `cli/src/mutations.test.ts` | Node test runner |
 | CLI RunnerCache | `cli/src/runner-cache.test.ts` | Node test runner |
+| CLI pool | `cli/src/pool.test.ts` | Node test runner |
 | Web scoring | `web/src/lib/scoring.test.ts` | Node test runner |
 | Web tiers | `web/src/lib/tiers.test.ts` | Node test runner |
 | Web card data | `web/src/lib/cards.test.ts` | Node test runner |

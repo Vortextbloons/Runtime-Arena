@@ -58,7 +58,7 @@ npm run arena -- run --output out.json
 - `--max-iterations` — Maximum measured iterations for adaptive measurement (default from `measurement.maxMeasuredIterations`)
 - `--target-ci` — Target relative confidence interval width (default from `measurement.targetRelativeConfidenceInterval`; set to `0` for fixed-iteration mode)
 - `--force` — Force re-run even if fingerprint matches
-- `--all` — Parsed as a boolean flag but currently has no effect on `run` (only `--force` gates re-execution)
+- `--all` — Parsed as a boolean flag by the CLI; currently has no effect on `run` (only `--force` gates re-execution). Present for forward compatibility
 - `--parallel` — Use all CPU cores (overrides `execution.parallelism` in config)
 - `--quiet` — Suppress console output
 - `--no-save` — Don't write to results file
@@ -118,6 +118,26 @@ npm run arena -- results status --language rust
 
 `summary` and `status` accept the same filters as `run`: `--language`/`-l`, `--benchmark`/`-b`, `--size`, and `--mutation`.
 
+### `arena resources collect`
+
+Collect resource profiles (build size, memory, artifact bundle, source lines) for each benchmark/language combination in the current snapshot. Requires `arena run` to have been executed first.
+
+```bash
+npm run arena -- resources collect
+npm run arena -- resources collect --language rust --benchmark nbody
+npm run arena -- resources collect --force          # Force refresh all profiles
+```
+
+**Flags:**
+- `--language`, `-l` — Filter by language (repeatable)
+- `--benchmark`, `-b` — Filter by benchmark (repeatable)
+- `--force` — Re-collect even if the fingerprint matches an existing profile
+- `--output` — Write the updated snapshot to a specific file
+
+Collects three artifact-cold/toolchain-cache-warm build samples, complete workload bundle size (file count and paths), workload-owned logical lines of code (with source hash), and (on Windows) three untimed process-tree RSS probes. Profiles are keyed by a fingerprint of the implementation source, build artifact, and machine identity — only stale entries are refreshed unless `--force` is passed.
+
+The `resources` array and `scoringModel` field are added to the snapshot (see output format below).
+
 ### `arena web`
 
 Launch a local preview server for the web UI.
@@ -130,14 +150,32 @@ npm run arena -- web
 
 The `results/current.json` snapshot contains:
 
+### Top-level fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `schemaVersion` | string | Semver for the snapshot shape — the CLI currently writes `"4.0.0"` |
+| `snapshotId` | string | Unique run identifier (ISO timestamp + UUID fragment) |
+| `updatedAt` | string | ISO 8601 timestamp |
+| `arenaVersion` | string | Hardcoded in the CLI as `"0.2.0"`; may differ from npm `package.json` |
+| `scoringModel` | string | Scoring model used for rankings. Currently `"legacy-versatility-v1"`; future alternative is `"efficiency-v1"` (requires resource profiles) |
+| `gitCommit` | string or null | Git commit SHA at run time |
+| `gitDirty` | boolean or null | Whether the working tree had uncommitted changes |
+| `resources` | array | Resource profile array (empty `[]` until `arena resources collect` is run). Each entry contains `benchmarkId`, `languageId`, `fingerprint`, `memory`, `build`, `artifact`, and `implementation` measurements |
+| `results` | array | Array of `BenchmarkResult` objects (see below) |
+
+### Example (legacy result record)
+
 ```json
 {
-  "schemaVersion": "3.0.0",
+  "schemaVersion": "4.0.0",
   "snapshotId": "...",
   "updatedAt": "...",
   "arenaVersion": "0.2.0",
+  "scoringModel": "legacy-versatility-v1",
   "gitCommit": "...",
   "gitDirty": false,
+  "resources": [],
   "results": [
     {
       "benchmark": { "id": "nbody", "version": 1, "size": "small" },
@@ -169,8 +207,6 @@ The `results/current.json` snapshot contains:
 ```
 
 > **Note:** The example above shows a **legacy** result record (`"measurementContractVersion": "1.1.0"`, `mode: "persistent-worker"`). Current runs produce records with `"measurementContractVersion": "2.0.0"` and `mode: "harness-timed-persistent-worker"`. The summary field names also differ — legacy results use `medianKernelTimeNanoseconds` while current results use `medianIterationTimeNanoseconds`. See [`result.schema.json`](../schemas/result.schema.json) for the full current shape.
-
-`arenaVersion` is hardcoded in the CLI as `"0.2.0"` when writing snapshots. npm package versions may lag that string.
 
 ## Checker Exit Codes
 

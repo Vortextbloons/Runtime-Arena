@@ -114,6 +114,8 @@ cli/                    # TypeScript CLI (arena command)
     minimal-workers.ts  # Minimal worker setup for protocol testing
     timing.ts           # Adaptive median CI helpers
     process.ts          # Child process spawning
+    process-registry.ts # Process registry — tracks spawned children for cleanup (killAll)
+    pool.ts             # Bounded-concurrency async semaphore (runPool)
     env.ts              # Windows-safe spawn env/command resolution
     metrics.ts          # Metric registry
     mutations.ts        # Mutation benchmark cell expansion & generators
@@ -131,6 +133,7 @@ cli/                    # TypeScript CLI (arena command)
     protocol-conformance.test.ts # Protocol conformance test
     mutations.test.ts   # Mutation cell expansion tests
     runner-cache.test.ts # RunnerCache tests
+    pool.test.ts        # Pool concurrency tests
   test/
     cli.test.ts         # Integration tests
     protocol.test.ts    # Protocol contract tests

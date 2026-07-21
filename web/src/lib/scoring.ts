@@ -1,13 +1,13 @@
 import type { ArenaResult, BenchmarkScore, EfficiencyBreakdown, MutationScore, ResourceProfile, SizeScore } from './types';
 
 const SIZE_ORDER = ['small', 'medium', 'large'];
-export const SCORE_WEIGHTS = { performance: 0.75, efficiency: 0.25, versatility: 0.25 } as const;
+export const SCORE_WEIGHTS = { performance: 0.85, efficiency: 0.15, versatility: 0.15 } as const;
 export const RESOURCE_CONTRACT_VERSION = '1.0.0';
 export const SCORING_MODELS = { legacy: 'legacy-versatility-v1', efficiency: 'efficiency-v1' } as const;
 // Resource values commonly differ by several orders of magnitude (for example,
 // a script entrypoint vs. a native executable). Penalize each tenfold gap by
-// 15 points, while preserving a visible 20-point floor for valid measurements.
-export const EFFICIENCY_LOG_PENALTY_PER_DECADE = 15;
+// 20 points, while preserving a visible 20-point floor for valid measurements.
+export const EFFICIENCY_LOG_PENALTY_PER_DECADE = 17.5;
 export const EFFICIENCY_SUBSCORE_FLOOR = 20;
 
 const average = (values: number[]) => values.reduce((total, value) => total + value, 0) / values.length;

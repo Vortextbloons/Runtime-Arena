@@ -50,7 +50,7 @@ test('efficiency activates only with complete comparable resource profiles', () 
 
 test('resource subscores use a bounded logarithmic penalty', () => {
 	assert.equal(resourceSubscore(100, 100), 100);
-	assert.equal(resourceSubscore(10, 100), 85);
+	assert.equal(resourceSubscore(10, 100), 80);
 	assert.equal(resourceSubscore(0.000001, 100), 20);
 });
 
@@ -141,7 +141,7 @@ test('benchmark overall equals speed when stability is diagnostic only', () => {
 	assert.equal(score.overall, 100);
 });
 
-test('overall uses a 75/25 speed and flexibility split', () => {
+test('overall uses an 85/15 speed and secondary-score split', () => {
 	const rows = [
 		result('lang', 'small', 4_000_000),
 		result('peer', 'small', 1_000_000),
@@ -152,7 +152,7 @@ test('overall uses a 75/25 speed and flexibility split', () => {
 	const lang = scores.find((score) => score.language.id === 'lang');
 	assert.equal(lang?.performance, 63.728031366);
 	assert.equal(lang?.versatility, 52.490095854);
-	assert.equal(lang?.overall, 60.918547488);
+	assert.equal(lang?.overall, 62.042341039);
 });
 
 test('overall view uses a geometric mean across benchmarks', () => {
@@ -165,7 +165,7 @@ test('overall view uses a geometric mean across benchmarks', () => {
 	const scores = scoreOverall(rows);
 	assert.equal(scores[0]?.performance, 63.728031366);
 	assert.equal(scores[1]?.performance, 63.728031366);
-	assert.equal(scores[0]?.overall, 60.918547488);
+	assert.equal(scores[0]?.overall, 62.042341039);
 });
 
 test('overall still ranks a language that skips one benchmark', () => {

@@ -65,5 +65,9 @@ keeping only rows with measurement contract **`2.0.0`** for rankings. Legacy `1.
 for the same cell in `current.json`, `2.0.0` wins. Obsolete mutation-less rows are
 pruned when mutation variants exist for the same benchmark/size.
 
+The script also **rewrites `results/current.json`** with the filtered/pruned data to
+keep the canonical file aligned — this prevents the next `arena run` from resurrecting
+obsolete rows.
+
 After a partial run, re-run `prepare-results` (or `build:web`) so the dev server and
 static build reflect the latest ranked data.

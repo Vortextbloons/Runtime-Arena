@@ -15,7 +15,11 @@ const SIZE_ORDER = ['small', 'medium', 'large'];
 const SIZE_LABEL = { small: 'S', medium: 'M', large: 'L' };
 const PERF_EXPONENT = 0.65;
 const PERF_FLOOR = 0.1;
-const SCORE_WEIGHTS = { performance: 0.75, versatility: 0.25 };
+const SCORE_WEIGHTS = { performance: 0.85, efficiency: 0.15 };
+const RESOURCE_CONTRACT_VERSION = '1.0.0';
+const RESOURCE_DIMENSIONS = ['memory', 'artifact', 'implementation', 'build'];
+const EFFICIENCY_LOG_PENALTY_PER_DECADE = 20;
+const EFFICIENCY_SUBSCORE_FLOOR = 20;
 const LANGUAGE_MONOGRAMS = { c: 'C ', rust: 'RS', go: 'GO', java: 'JV', javascript: 'JS', typescript: 'TS', python: 'PY', lua: 'LJ', luajit: 'LJ', 'lua-interpreted': 'L5', 'c-sharp': 'C#', 'c++': 'C++', cpp: 'C++', cplusplus: 'C++' };
 const LANG_LABEL = { c: 'C', 'c-sharp': 'C#', cpp: 'C++', go: 'Go', java: 'Java', javascript: 'JavaScript', lua: 'LuaJIT', 'lua-interpreted': 'Lua 5.4', python: 'Python', rust: 'Rust', typescript: 'TypeScript' };
 
@@ -33,6 +37,17 @@ const performanceScore = (fastest, median) =>
 const variantKey = (size, mutation) => (mutation ? `${size}/${mutation}` : size);
 const completeResult = (r) =>
   r && r.checker.status === 'accepted' && r.execution.summary.validSamples === r.execution.measuredIterations;
+const validResource = (profile, dimension) => {
+  const measurement = profile?.[dimension];
+  return measurement?.status === 'available' && Number.isFinite(measurement.value) && measurement.value > 0
+    ? measurement.value
+    : null;
+};
+const resourceSubscore = (rawEfficiency, cohortBest) => {
+  if (!(rawEfficiency > 0) || !(cohortBest > 0)) return 0;
+  const decadesBehind = Math.max(0, Math.log10(cohortBest / rawEfficiency));
+  return normalizeScore(Math.max(EFFICIENCY_SUBSCORE_FLOOR, 100 - EFFICIENCY_LOG_PENALTY_PER_DECADE * decadesBehind));
+};
 
 // ── Tier definitions ──────────────────────────────────
 const TIERS = [
@@ -103,6 +118,7 @@ const BADGE_OVR_BONUS = sharedDefs.badgeBonus;
 // ── Load data ────────────────────────────────────────
 const data = JSON.parse(readFileSync(resolve(root, 'results', 'current.json'), 'utf-8'));
 const results = data.results;
+const resources = data.resources ?? [];
 const snapshotId = data.snapshotId;
 const updatedAt = data.updatedAt;
 const arenaVersion = data.arenaVersion;
@@ -224,18 +240,87 @@ for (const b of benchmarkIds) {
   benchmarkData[b] = scoreBenchmark(b);
 }
 
+// ── Resource efficiency (kept in sync with web/src/lib/scoring.ts) ──
+function efficiencyForSnapshot() {
+  const profiles = new Map(resources.map(profile => [`${profile.benchmarkId}/${profile.languageId}`, profile]));
+  const reasons = [];
+  const perLanguage = new Map();
+
+  for (const benchmarkId of benchmarkIds) {
+    const candidates = languages
+      .map(languageId => ({ languageId, score: benchmarkData[benchmarkId].scores[languageId] }))
+      .filter(entry => entry.score?.eligible && entry.score.performance !== null);
+    const comparable = candidates.filter(entry => {
+      const profile = profiles.get(`${benchmarkId}/${entry.languageId}`);
+      return profile?.resourceContractVersion === RESOURCE_CONTRACT_VERSION
+        && RESOURCE_DIMENSIONS.every(dimension => validResource(profile, dimension) !== null);
+    });
+    if (comparable.length < 2) {
+      reasons.push(`${benchmarkId}: fewer than two languages have comparable complete resource profiles.`);
+      continue;
+    }
+    const machine = profiles.get(`${benchmarkId}/${comparable[0].languageId}`).provenance.machineFingerprint;
+    if (!comparable.every(entry => profiles.get(`${benchmarkId}/${entry.languageId}`).provenance.machineFingerprint === machine)) {
+      reasons.push(`${benchmarkId}: resource profiles were measured on different machines.`);
+      continue;
+    }
+    for (const dimension of RESOURCE_DIMENSIONS) {
+      const raw = comparable.map(entry => ({
+        languageId: entry.languageId,
+        value: entry.score.performance / validResource(profiles.get(`${benchmarkId}/${entry.languageId}`), dimension)
+      }));
+      const best = Math.max(...raw.map(entry => entry.value));
+      for (const entry of raw) {
+        const dimensions = perLanguage.get(entry.languageId) ?? new Map();
+        dimensions.set(dimension, [...(dimensions.get(dimension) ?? []), resourceSubscore(entry.value, best)]);
+        perLanguage.set(entry.languageId, dimensions);
+      }
+    }
+  }
+
+	for (const benchmarkId of benchmarkIds) {
+		for (const languageId of languages) {
+			const score = benchmarkData[benchmarkId].scores[languageId];
+			if (!score?.eligible) continue;
+			const profile = profiles.get(`${benchmarkId}/${languageId}`);
+			for (const dimension of RESOURCE_DIMENSIONS) {
+				if (validResource(profile, dimension) === null) {
+					reasons.push(`${benchmarkId}/${languageId}: ${dimension} is ${profile?.[dimension]?.status ?? 'missing'}.`);
+				}
+			}
+		}
+	}
+
+  const byLanguage = new Map();
+  for (const [languageId, dimensions] of perLanguage) {
+    byLanguage.set(languageId, Object.fromEntries(RESOURCE_DIMENSIONS.map(dimension => {
+      const scores = dimensions.get(dimension) ?? [];
+      return [dimension, scores.length === benchmarkIds.length ? normalizeScore(geometricMean(scores)) : null];
+    })));
+  }
+  return { ready: reasons.length === 0, reasons, byLanguage };
+}
+
+const efficiencyState = efficiencyForSnapshot();
+const efficiencyActive = efficiencyState.ready;
+
 // ── Compute overall scores ──────────────────────────
 const overallScores = languages.map(lang => {
   const byBench = benchmarkIds.map(b => ({ benchmarkId: b, score: benchmarkData[b].scores[lang] }));
   const eligible = byBench.filter(e => e.score?.eligible).map(e => e.score);
-  if (!eligible.length) return { lang, overall: null, performance: null, versatility: null, consistency: null, eligible: false, benchScores: byBench };
+  if (!eligible.length) return { lang, overall: null, performance: null, versatility: null, efficiency: null, consistency: null, eligible: false, benchScores: byBench };
 
   const perf = normalizeScore(geometricMean(eligible.map(e => e.performance)));
   const cons = average(eligible.map(e => e.consistency));
   const bp = eligible.map(e => e.performance);
   const versatility = normalizeScore(0.6 * Math.min(...bp) + 0.4 * average(bp));
-  const overall = normalizeScore(perf * SCORE_WEIGHTS.performance + versatility * SCORE_WEIGHTS.versatility);
-  return { lang, overall, performance: perf, versatility, consistency: cons, eligible: true, benchScores: byBench };
+  const breakdown = efficiencyState.byLanguage.get(lang);
+  const efficiency = breakdown && RESOURCE_DIMENSIONS.every(dimension => breakdown[dimension] !== null)
+    ? normalizeScore(geometricMean(RESOURCE_DIMENSIONS.map(dimension => breakdown[dimension])))
+    : null;
+  const useEfficiency = efficiencyState.ready && efficiency !== null;
+  const overall = normalizeScore(perf * SCORE_WEIGHTS.performance + (useEfficiency ? efficiency : versatility) * SCORE_WEIGHTS.efficiency);
+  return { lang, overall, performance: perf, versatility, efficiency, consistency: cons, scoringModel: useEfficiency ? 'efficiency-v1' : 'legacy-versatility-v1', eligible: true, benchScores: byBench };
 });
 
 const ranked = overallScores
@@ -269,12 +354,13 @@ function overallScalability(sc) {
 }
 
 // Build attribute rating map per language
-// Returns { SPD, CMP, DAT, ALG, CON, SCL, BLD, BIN, MEM, LOC, ECO, etc. }
+// Returns { SPD, EFF, CMP, DAT, ALG, CON, SCL, BLD, BIN, MEM, LOC, ECO, etc. }
 function buildAttributeRatings(overallScore, benchScoresById) {
   const attr = {};
 
   // Core attributes (always available from benchmark scores)
   attr.SPD = overallScore.eligible ? overallScore.performance : null;
+  attr.EFF = overallScore.eligible ? overallScore.efficiency : null;
 
   const nbodyScores = benchScoresById.nbody;
   const nbodyOwn = nbodyScores?.find(s => s.lang === overallScore.lang);
@@ -360,7 +446,7 @@ for (const bid of benchmarkIds) {
 }
 
 // Collect all per-language attributes
-const allAttributes = {}; // lang -> { SPD, CMP, DAT, ALG, CON, SCL }
+const allAttributes = {}; // lang -> { SPD, EFF, CMP, DAT, ALG, CON, SCL }
 for (const s of overallScores) {
   allAttributes[s.lang] = buildAttributeRatings(s, benchScoresById);
 }
@@ -625,8 +711,10 @@ md += `> **Languages**: ${[...languages].map(id => LANG_LABEL[id] || id).join(',
 
 // ── Overall Leaderboard ─────────────────────────────
 md += `## Overall Leaderboard\n\n`;
-md += `Scoring: **OVR** = 75% geometric-mean **SPD** + 25% **FLEX** + badge bonus. *Base OVR* shown in parentheses.\n\n`;
-md += `| # | | Lang | Monogram | Base OVR | +Bonus | Final OVR | SPD | FLEX | STABLE | Tier | Gem | Wins |\n`;
+md += efficiencyActive
+  ? `Scoring: **OVR** = 85% geometric-mean **SPD** + 15% **EFF** + badge bonus. *Base OVR* shown in parentheses.\n\n`
+  : `Scoring: **OVR** currently uses 85% geometric-mean **SPD** + 15% legacy flexibility because resource collection is incomplete. **EFF** is shown for comparison. *Base OVR* shown in parentheses.\n\n`;
+md += `| # | | Lang | Monogram | Base OVR | +Bonus | Final OVR | SPD | EFF | STABLE | Tier | Gem | Wins |\n`;
 md += `|---|----|------|----------|----------|--------|-----------|-----|------|--------|------|------|------|\n`;
 
 for (let i = 0; i < rankedWithBadges.length; i++) {
@@ -635,15 +723,17 @@ for (let i = 0; i < rankedWithBadges.length; i++) {
   const bonus = bonusByLang[s.lang] || 0;
   const tier = getScoreTier(finalOvr);
   const ct = getCardTierLetter(finalOvr);
-  md += `| **${i + 1}** | **${ct}** | ${LANG_LABEL[s.lang] || s.lang} | ${monogram({id: s.lang, name: LANG_LABEL[s.lang] || s.lang})} | ${s.overall.toFixed(1)} | +${bonus.toFixed(1)} | **${finalOvr.toFixed(1)}** | ${s.performance.toFixed(1)} | ${s.versatility.toFixed(1)} | ${s.consistency.toFixed(1)} | ${tier.gem} \`${tier.tag}\` | ${wins[s.lang]} |\n`;
+  md += `| **${i + 1}** | **${ct}** | ${LANG_LABEL[s.lang] || s.lang} | ${monogram({id: s.lang, name: LANG_LABEL[s.lang] || s.lang})} | ${s.overall.toFixed(1)} | +${bonus.toFixed(1)} | **${finalOvr.toFixed(1)}** | ${s.performance.toFixed(1)} | ${s.efficiency === null ? '—' : s.efficiency.toFixed(1)} | ${s.consistency.toFixed(1)} | ${tier.gem} \`${tier.tag}\` | ${wins[s.lang]} |\n`;
 }
 md += '\n';
 
 // ── Scoring methodology ──────────────────────────────
 md += `### Scoring Methodology\n\n`;
-md += `- **Base OVR** = 75% geometric-mean **SPD** + 25% **FLEX** (weighted composite, 0–100).\n`;
+md += efficiencyActive
+  ? `- **Base OVR** = 85% geometric-mean **SPD** + 15% **EFF** (weighted composite, 0–100).\n`
+  : `- **Base OVR** currently uses legacy flexibility until all eligible benchmark/language pairs have complete comparable resource profiles.\n`;
 md += `- **SPD** (Performance): geometric mean of all benchmark performance scores.\n`;
-md += `- **FLEX** (Versatility): 60% minimum-benchmark + 40% average — across all benchmarks.\n`;
+md += `- **EFF** (Efficiency): geometric mean of equal-weight Memory, Artifact, Implementation Size, and Build-Time subscores. Each 10× resource-efficiency gap costs 20 points, with a 20-point floor.\n`;
 md += `- **STABLE** (Consistency): average stability; diagnostic only, not used in OVR.\n`;
 md += `- **+Bonus**: sum of up to 3 featured badge bonuses (Bronze +0.5, Silver +1.0, Gold +1.5, HoF +2.0, Legend +2.5).\n`;
 md += `- **Final OVR** = Base OVR + Badge Bonus (capped at 100).\n`;
@@ -722,7 +812,7 @@ for (const s of rankedWithBadges) {
   md += `|-------|-------|-----|\n`;
   md += `| SPD | **${s.performance.toFixed(1)}** | ${bar(s.performance, 100)} |\n`;
   md += `| STABLE | **${s.consistency.toFixed(1)}** | ${bar(s.consistency, 100)} |\n`;
-  md += `| FLEX | **${s.versatility.toFixed(1)}** | ${bar(s.versatility, 100)} |\n`;
+  md += `| EFF | **${s.efficiency === null ? '—' : s.efficiency.toFixed(1)}** | ${s.efficiency === null ? '—'.repeat(20) : bar(s.efficiency, 100)} |\n`;
   md += `\n</td></tr></table>\n\n`;
 
   // Badges
@@ -907,11 +997,11 @@ const readmePath = resolve(root, 'README.md');
 const readme = readFileSync(readmePath, 'utf-8');
 
 const leaderboardTable = [
-  '| # | Language | Overall | Perf | Versatility | Fastest |',
+  '| # | Language | Overall | Perf | Efficiency | Fastest |',
   '|---|----------|---------|------|-------------|---------|',
   ...rankedWithBadges.map((s, i) => {
     const finalOvr = finalOverallByLang[s.lang] ?? s.overall;
-    return `| ${i + 1} | ${LANG_LABEL[s.lang] || s.lang} | ${finalOvr.toFixed(1)} | ${s.performance.toFixed(1)} | ${s.versatility.toFixed(1)} | ${wins[s.lang] || 0} |`;
+    return `| ${i + 1} | ${LANG_LABEL[s.lang] || s.lang} | ${finalOvr.toFixed(1)} | ${s.performance.toFixed(1)} | ${s.efficiency === null ? '—' : s.efficiency.toFixed(1)} | ${wins[s.lang] || 0} |`;
   }),
 ].join('\n');
 
@@ -926,7 +1016,7 @@ _${accepted}/${total} cells validated \u2713 \u00B7 Updated ${dateShort}_
 
 ${leaderboardTable}
 
-_Performance = 75% geometric-mean benchmark speed + 25% versatility (0\u2013100). "Fastest" = benchmark\u00D7mutation cells with lowest median time. Tested on ${cpuShort} \u00B7 ${os} \u00B7 ${memShort}._
+_${efficiencyActive ? 'Performance = 85% geometric-mean benchmark speed + 15% efficiency' : 'Performance currently uses 85% geometric-mean benchmark speed + 15% legacy flexibility; Efficiency is shown for comparison until resource collection is complete'} (0\u2013100). Efficiency combines Memory, Artifact, Implementation Size, and Build Time. "Fastest" = benchmark\u00D7mutation cells with lowest median time. Tested on ${cpuShort} \u00B7 ${os} \u00B7 ${memShort}._
 `;
 
 const startMarker = '<!-- RESULTS START -->';
