@@ -193,13 +193,6 @@
 	const activeBenchmark = $derived(fixedBenchmark ?? selectedBenchmark);
 	const benchmarkResults = $derived(run.results.filter((result) => result.benchmark.id === activeBenchmark));
 	const baseOverallScores = $derived(scoreOverall(run.results, run.resources));
-	const resourceReadiness = $derived.by(() => {
-		const profiles = run.resources ?? [];
-		const dimensions = ['memory', 'artifact', 'implementation', 'build'] as const;
-		const complete = profiles.filter((profile) => dimensions.every((dimension) => profile[dimension].status === 'available')).length;
-		const available = profiles.reduce((total, profile) => total + dimensions.filter((dimension) => profile[dimension].status === 'available').length, 0);
-		return { profiles: profiles.length, complete, available, total: profiles.length * dimensions.length };
-	});
 	const languageCards = $derived(
 		activeBenchmark === 'overall'
 			? buildAllCardData({
@@ -342,17 +335,6 @@
 				: 'Scores are relative to accepted languages in this benchmark and run.'}
 		</p>
 	</div>
-
-	{#if activeBenchmark === 'overall'}
-		<div class:ready={baseOverallScores[0]?.scoringModel === 'efficiency-v1'} class="efficiency-status" role="status">
-			<strong>{baseOverallScores[0]?.scoringModel === 'efficiency-v1' ? 'EFFICIENCY ACTIVE' : 'EFFICIENCY PENDING'}</strong>
-			{#if resourceReadiness.profiles}
-				<span>{resourceReadiness.complete}/{resourceReadiness.profiles} profiles complete · {resourceReadiness.available}/{resourceReadiness.total} resource measurements available</span>
-			{:else}
-				<span>No resource profiles yet — run <code>arena resources collect</code>.</span>
-			{/if}
-		</div>
-	{/if}
 
 	{#if view === 'chart'}
 		{#if activeBenchmark === 'overall'}
@@ -630,11 +612,6 @@
 	.view-toggle button { min-width: 6.5rem; border: 0; border-radius: .28rem; background: transparent; color: var(--muted); padding: .55rem .8rem; cursor: pointer; font: 650 .72rem var(--mono); }
 	.view-toggle button.active { background: var(--accent); color: #071217; }
 	.view-intro { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding: 1.25rem 0 0.85rem; }
-	.efficiency-status { display: flex; align-items: center; gap: .65rem; margin: -.2rem 0 1.15rem; padding: .65rem .8rem; border: 1px solid color-mix(in srgb, var(--warning) 55%, var(--rule)); border-radius: .45rem; background: color-mix(in srgb, var(--warning) 10%, var(--panel)); color: var(--muted); font: 700 .68rem var(--mono); letter-spacing: .04em; }
-	.efficiency-status strong { color: var(--warning); letter-spacing: .1em; }
-	.efficiency-status.ready { border-color: color-mix(in srgb, var(--accepted) 55%, var(--rule)); background: color-mix(in srgb, var(--accepted) 10%, var(--panel)); }
-	.efficiency-status.ready strong { color: var(--accepted); }
-	.efficiency-status code { color: var(--text); font: inherit; }
 	.view-intro .hint { max-width: 34rem; margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
 	.view-intro .qualification {
 		margin: 0.4rem 0 0;
