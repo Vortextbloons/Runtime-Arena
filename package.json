@@ -20,7 +20,7 @@
     "test": "npm run build:checker && npm run test --workspaces --if-present && node scripts/count-implementation-loc.test.mjs && node scripts/test-checker.mjs",
     "combine-docs": "node scripts/combine-docs.mjs",
     "scorecard": "node scripts/scorecard.mjs",
-    "update-readme-results": "node scripts/update-readme-results.mjs"
+    "update-readme-results": "node scripts/scorecard.mjs"
   },
   "engines": {
     "node": ">=26.4.0",

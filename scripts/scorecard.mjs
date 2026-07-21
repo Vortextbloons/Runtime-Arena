@@ -16,8 +16,8 @@ const SIZE_LABEL = { small: 'S', medium: 'M', large: 'L' };
 const PERF_EXPONENT = 0.65;
 const PERF_FLOOR = 0.1;
 const SCORE_WEIGHTS = { performance: 0.75, versatility: 0.25 };
-const LANGUAGE_MONOGRAMS = { rust: 'RS', go: 'GO', java: 'JV', javascript: 'JS', typescript: 'TS', python: 'PY', lua: 'LJ', luajit: 'LJ', 'c++': 'C++', cpp: 'C++', cplusplus: 'C++' };
-const LANG_LABEL = { cpp: 'C++', go: 'Go', java: 'Java', javascript: 'JavaScript', lua: 'LuaJIT', python: 'Python', rust: 'Rust', typescript: 'TypeScript' };
+const LANGUAGE_MONOGRAMS = { c: 'C ', rust: 'RS', go: 'GO', java: 'JV', javascript: 'JS', typescript: 'TS', python: 'PY', lua: 'LJ', luajit: 'LJ', 'lua-interpreted': 'L5', 'c-sharp': 'C#', 'c++': 'C++', cpp: 'C++', cplusplus: 'C++' };
+const LANG_LABEL = { c: 'C', 'c-sharp': 'C#', cpp: 'C++', go: 'Go', java: 'Java', javascript: 'JavaScript', lua: 'LuaJIT', 'lua-interpreted': 'Lua 5.4', python: 'Python', rust: 'Rust', typescript: 'TypeScript' };
 
 // ── Math helpers ──────────────────────────────────────
 const geometricMean = (values) =>
@@ -903,20 +903,63 @@ for (const bid of benchmarkIds) {
   md += `| \`${bid}\` | ${benchLangs.length} | ${benchSizes.map(s => SIZE_LABEL[s] || s).join(', ')} | ${cohort.length} |\n`;
 }
 
-// ── Write output ─────────────────────────────────────
+// ── Write scorecard markdown ─────────────────────────
 const outPath = resolve(root, 'docs', 'scorecard.md');
 writeFileSync(outPath, md, 'utf-8');
 console.log(`Scorecard written to: ${outPath}`);
+
+// ── Update README leaderboard ───────────────────────
+const readmePath = resolve(root, 'README.md');
+const readme = readFileSync(readmePath, 'utf-8');
+
+const leaderboardTable = [
+  '| # | Language | Overall | Perf | Versatility | Fastest |',
+  '|---|----------|---------|------|-------------|---------|',
+  ...rankedWithBadges.map((s, i) => {
+    const finalOvr = finalOverallByLang[s.lang] ?? s.overall;
+    return `| ${i + 1} | ${LANG_LABEL[s.lang] || s.lang} | ${finalOvr.toFixed(1)} | ${s.performance.toFixed(1)} | ${s.versatility.toFixed(1)} | ${wins[s.lang] || 0} |`;
+  }),
+].join('\n');
+
+const cpuShort = p.machine.cpu.model.replace(/\s+/g, ' ').trim();
+const memShort = (p.machine.memoryBytes / 1e9).toFixed(1) + ' GB RAM';
+const dateShort = updatedAt.slice(0, 10);
+
+const readmeSection = `
+## Latest Results
+
+_${accepted}/${total} cells validated \u2713 \u00B7 Updated ${dateShort}_  
+
+${leaderboardTable}
+
+_Performance = 75% geometric-mean benchmark speed + 25% versatility (0\u2013100). "Fastest" = benchmark\u00D7mutation cells with lowest median time. Tested on ${cpuShort} \u00B7 ${os} \u00B7 ${memShort}._
+`;
+
+const startMarker = '<!-- RESULTS START -->';
+const endMarker = '<!-- RESULTS END -->';
+
+let newReadme;
+if (readme.includes(startMarker) && readme.includes(endMarker)) {
+  newReadme = readme.replace(
+    new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`, 'm'),
+    `${startMarker}\n${readmeSection.trim()}\n${endMarker}`
+  );
+} else {
+  newReadme = readme + `\n\n${startMarker}\n${readmeSection.trim()}\n${endMarker}\n`;
+}
+
+writeFileSync(readmePath, newReadme, 'utf-8');
+console.log(`README.md updated.`);
+
+// ── Summary ─────────────────────────────────────────
 console.log(`  Total results: ${total}`);
 console.log(`  Benchmarks: ${benchmarkIds.length}`);
 console.log(`  Languages: ${languages.length} (${ranked.length} eligible)`);
-
-// Summary
 for (const s of rankedWithBadges) {
   const bonus = bonusByLang[s.lang] || 0;
   const finalOvr = finalOverallByLang[s.lang] ?? s.overall;
   const tier = getScoreTier(finalOvr);
   const nBadges = allBadges[s.lang]?.length || 0;
   const featCount = featuredByLang[s.lang]?.length || 0;
-  console.log(`  ${LANG_LABEL[s.lang]}: ${s.overall.toFixed(1)} +${bonus.toFixed(1)} = ${finalOvr.toFixed(1)} OVR (${tier.gem}) — ${nBadges} badges, ${featCount} featured`);
+  console.log(`  ${LANG_LABEL[s.lang]}: ${s.overall.toFixed(1)} +${bonus.toFixed(1)} = ${finalOvr.toFixed(1)} OVR (${tier.gem}) \u2014 ${nBadges} badges, ${featCount} featured`);
 }
