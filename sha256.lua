@@ -20,8 +20,6 @@ local K = {
 	0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 }
 
-local TWO32 = 2 ^ 32
-
 local function sha256(message)
 	local h0, h1, h2, h3 = 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a
 	local h4, h5, h6, h7 = 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
@@ -64,34 +62,34 @@ local function sha256(message)
 			local s0 = bxor(bxor(rshift(x, 7), lshift(x, 25)), bxor(rshift(x, 18), lshift(x, 14)), rshift(x, 3))
 			local y = w[i - 2]
 			local s1 = bxor(bxor(rshift(y, 17), lshift(y, 15)), bxor(rshift(y, 19), lshift(y, 13)), rshift(y, 10))
-			w[i] = (w[i - 16] + s0 + w[i - 7] + s1) % TWO32
+			w[i] = band(w[i - 16] + s0 + w[i - 7] + s1, 0xffffffff)
 		end
 
 		for i = 0, 63 do
-			local S1 = bxor(bxor(rshift(e, 6), lshift(e, 26)), bxor(rshift(e, 11), lshift(e, 21)), bxor(rshift(e, 25), lshift(e, 7)))
+			local S1 = bxor(bxor(rshift(e, 6), lshift(e, 26)), bxor(rshift(e, 11), lshift(e, 21)), rshift(e, 25))
 			local ch = bxor(band(e, f), band(bxor(e, 0xffffffff), g))
-			local temp1 = (h + S1 + ch + K[i + 1] + w[i]) % TWO32
-			local S0 = bxor(bxor(rshift(a, 2), lshift(a, 30)), bxor(rshift(a, 13), lshift(a, 19)), bxor(rshift(a, 22), lshift(a, 10)))
+			local temp1 = band(h + S1 + ch + K[i + 1] + w[i], 0xffffffff)
+			local S0 = bxor(bxor(rshift(a, 2), lshift(a, 30)), bxor(rshift(a, 13), lshift(a, 19)), rshift(a, 22))
 			local maj = bxor(bxor(band(a, b), band(a, c)), band(b, c))
-			local temp2 = (S0 + maj) % TWO32
+			local temp2 = band(S0 + maj, 0xffffffff)
 			h = g
 			g = f
 			f = e
-			e = (d + temp1) % TWO32
+			e = band(d + temp1, 0xffffffff)
 			d = c
 			c = b
 			b = a
-			a = (temp1 + temp2) % TWO32
+			a = band(temp1 + temp2, 0xffffffff)
 		end
 
-		h0 = (h0 + a) % TWO32
-		h1 = (h1 + b) % TWO32
-		h2 = (h2 + c) % TWO32
-		h3 = (h3 + d) % TWO32
-		h4 = (h4 + e) % TWO32
-		h5 = (h5 + f) % TWO32
-		h6 = (h6 + g) % TWO32
-		h7 = (h7 + h) % TWO32
+		h0 = band(h0 + a, 0xffffffff)
+		h1 = band(h1 + b, 0xffffffff)
+		h2 = band(h2 + c, 0xffffffff)
+		h3 = band(h3 + d, 0xffffffff)
+		h4 = band(h4 + e, 0xffffffff)
+		h5 = band(h5 + f, 0xffffffff)
+		h6 = band(h6 + g, 0xffffffff)
+		h7 = band(h7 + h, 0xffffffff)
 	end
 
 	return fmt("%08x%08x%08x%08x%08x%08x%08x%08x",

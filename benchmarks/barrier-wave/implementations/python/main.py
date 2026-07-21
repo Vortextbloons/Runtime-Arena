@@ -115,6 +115,7 @@ def kernel():
     }
 
 
+if arg("--protocol-version") != "2.0.0": raise ValueError("unsupported protocol version")
 respond({"type": "ready", "protocolVersion": "2.0.0"})
 last = None
 try:

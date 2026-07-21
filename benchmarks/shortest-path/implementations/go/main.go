@@ -156,8 +156,12 @@ func respond(v any) {
 func main() {
 	ip := flag.String("input", "", "")
 	op := flag.String("output", "", "")
-	flag.String("protocol-version", "2.0.0", "")
+	pv := flag.String("protocol-version", "2.0.0", "")
 	flag.Parse()
+	if *pv != "2.0.0" {
+		fmt.Fprintf(os.Stderr, "unsupported protocol version\n")
+		os.Exit(1)
+	}
 	raw, _ := os.ReadFile(*ip)
 	var in Input
 	json.Unmarshal(raw, &in)

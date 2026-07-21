@@ -49,14 +49,17 @@ local function kernel()
         local row_off = i * n
         local ai1 = row_off + 1
         for j = 0, n - 1 do
-            local s = 0
-            local bj_off = j
-            for k = 0, n - 1 do
-                s = s + a[ai1 + k] * b[bj_off + 1]
-                bj_off = bj_off + n
+            c[row_off + j + 1] = 0
+        end
+        for k = 0, n - 1 do
+            local a_ik = a[ai1 + k]
+            local bk_off = k * n
+            for j = 0, n - 1 do
+                c[row_off + j + 1] = c[row_off + j + 1] + a_ik * b[bk_off + j + 1]
             end
-            local cidx = row_off + j + 1
-            c[cidx] = s
+        end
+        for j = 0, n - 1 do
+            local s = c[row_off + j + 1]
             value_sum = value_sum + s
             if i == j then diagonal_sum = diagonal_sum + s end
         end

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"cmp"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -13,9 +14,9 @@ import (
 )
 
 type Record struct {
-	Id        int `json:"id"`
-	Score     int `json:"score"`
-	Timestamp int `json:"timestamp"`
+	Id        int64 `json:"id"`
+	Score     int64 `json:"score"`
+	Timestamp int64 `json:"timestamp"`
 }
 
 type Input struct {
@@ -33,13 +34,13 @@ type Output struct {
 
 func kernel(records []Record) Output {
 	slices.SortFunc(records, func(a, b Record) int {
-		if a.Score != b.Score {
-			return b.Score - a.Score
+		if c := cmp.Compare(b.Score, a.Score); c != 0 {
+			return c
 		}
-		if a.Timestamp != b.Timestamp {
-			return a.Timestamp - b.Timestamp
+		if c := cmp.Compare(a.Timestamp, b.Timestamp); c != 0 {
+			return c
 		}
-		return a.Id - b.Id
+		return cmp.Compare(a.Id, b.Id)
 	})
 
 	n := len(records)
@@ -90,8 +91,12 @@ func respond(v any) {
 func main() {
 	ip := flag.String("input", "", "")
 	op := flag.String("output", "", "")
-	flag.String("protocol-version", "2.0.0", "")
+	pv := flag.String("protocol-version", "2.0.0", "")
 	flag.Parse()
+	if *pv != "2.0.0" {
+		fmt.Fprintf(os.Stderr, "unsupported protocol version\n")
+		os.Exit(1)
+	}
 
 	raw, _ := os.ReadFile(*ip)
 	var in Input

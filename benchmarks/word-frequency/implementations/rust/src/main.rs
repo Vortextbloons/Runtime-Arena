@@ -56,8 +56,30 @@ fn kernel(words: &[String]) -> Output {
     entries.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(b.0)));
 
     let mut hasher = Sha256::new();
+    let mut buf = [0u8; 64];
     for (word, count) in &entries {
-        hasher.update(format!("{word},{count}\n"));
+        let mut pos = 0;
+        let wb = word.as_bytes();
+        buf[pos..pos + wb.len()].copy_from_slice(wb);
+        pos += wb.len();
+        buf[pos] = b',';
+        pos += 1;
+        let mut n = *count;
+        let start = pos;
+        if n == 0 {
+            buf[pos] = b'0';
+            pos += 1;
+        } else {
+            while n > 0 {
+                buf[pos] = b'0' + (n % 10) as u8;
+                n /= 10;
+                pos += 1;
+            }
+            buf[start..pos].reverse();
+        }
+        buf[pos] = b'\n';
+        pos += 1;
+        hasher.update(&buf[..pos]);
     }
 
     let top_words: Vec<TopWord> = entries

@@ -71,14 +71,18 @@ static void Multiply(int n, long[] left, long[] right, long[] product, out long 
         int leftBase = i * n;
         int outputBase = i * n;
         for (int j = 0; j < n; j++)
+            product[outputBase + j] = 0;
+        for (int k = 0; k < n; k++)
         {
-            long sum = 0;
-            int rightIndex = j;
-            for (int k = 0; k < n; k++, rightIndex += n)
-                sum += left[leftBase + k] * right[rightIndex];
-            product[outputBase + j] = sum;
-            valueSum += sum;
-            if (i == j) diagonalSum += sum;
+            long a_ik = left[leftBase + k];
+            int rightBase = k * n;
+            for (int j = 0; j < n; j++)
+                product[outputBase + j] += a_ik * right[rightBase + j];
+        }
+        for (int j = 0; j < n; j++)
+        {
+            valueSum += product[outputBase + j];
+            if (i == j) diagonalSum += product[outputBase + j];
         }
     }
 }

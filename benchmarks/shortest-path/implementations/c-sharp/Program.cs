@@ -149,6 +149,7 @@ static string Kernel(int vertexCount, int[] offsets, int[] destinations, long[] 
             int node = heapNode[0];
             long dist = PopDistance(heapDist, heapNode, ref heapSize);
             if (dist != distances[node]) continue;
+            if (node == dest) break;
 
             for (int edge = offsets[node]; edge < offsets[node + 1]; edge++)
             {

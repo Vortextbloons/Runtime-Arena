@@ -32,13 +32,15 @@ def kernel():
     for i in _range(_n):
         i_base = i * _n
         for j in _range(_n):
-            s = 0
-            for k in _range(_n):
-                s += a_local[i_base + k] * b_local[k * _n + j]
-            c_local[i_base + j] = s
-            value_sum += s
+            c_local[i_base + j] = 0
+        for k in _range(_n):
+            a_ik = a_local[i_base + k]
+            for j in _range(_n):
+                c_local[i_base + j] += a_ik * b_local[k * _n + j]
+        for j in _range(_n):
+            value_sum += c_local[i_base + j]
             if i == j:
-                diagonal_sum += s
+                diagonal_sum += c_local[i_base + j]
     h = hashlib.sha256()
     h.update(f"dimension={_n}\n".encode())
     _str_v = _str
@@ -57,6 +59,7 @@ def kernel():
         "checksum": checksum,
     }
 
+if arg("--protocol-version") != "2.0.0": raise ValueError("unsupported protocol version")
 respond({"type": "ready", "protocolVersion": "2.0.0"})
 last = None
 for line in sys.stdin:

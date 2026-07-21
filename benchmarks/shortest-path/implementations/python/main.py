@@ -37,6 +37,8 @@ def kernel():
             cost, node = heapq.heappop(heap)
             if cost != dist[node]:
                 continue
+            if node == dst:
+                break
             for to, w in adj[node]:
                 nc = cost + w
                 if nc < dist[to]:
@@ -55,6 +57,7 @@ def kernel():
             results.append({"queryId": q["id"], "distance": dist[dst], "path": path})
     return results
 
+if arg("--protocol-version") != "2.0.0": raise ValueError("unsupported protocol version")
 respond({"type": "ready", "protocolVersion": "2.0.0"})
 last = None
 for line in sys.stdin:

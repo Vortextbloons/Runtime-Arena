@@ -11,8 +11,8 @@ interface Input { records: Record[] }
 const input = JSON.parse(await readFile(arg("--input"), "utf8")) as Input;
 const inputRecords = input.records;
 const rc = inputRecords.length;
-const ids = new Int32Array(rc);
-const scores = new Int32Array(rc);
+const ids = new Array<number>(rc);
+const scores = new Array<number>(rc);
 const timestamps = new Float64Array(rc);
 for (let i = 0; i < rc; i++) {
   ids[i] = inputRecords[i].id;
@@ -41,11 +41,12 @@ function kernel() {
     const k = idx[i]!;
     lastRecords.push({ id: ids[k], score: scores[k], timestamp: timestamps[k] });
   }
-  let data = "";
+  const lines = new Array<string>(rc);
   for (let i = 0; i < rc; i++) {
     const k = idx[i]!;
-    data += ids[k] + "," + scores[k] + "," + timestamps[k] + "\n";
+    lines[i] = ids[k] + "," + scores[k] + "," + timestamps[k] + "\n";
   }
+  const data = lines.join("");
   const checksum = createHash("sha256").update(data).digest("hex");
   return { benchmark: "record-sorting" as const, version: 1 as const, recordCount: rc, firstRecords, lastRecords, checksum };
 }

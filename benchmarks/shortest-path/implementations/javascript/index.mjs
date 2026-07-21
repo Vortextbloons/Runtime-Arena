@@ -60,6 +60,7 @@ function kernel() {
         }
       }
       if (cost !== dist[u]) continue;
+      if (u === q.destination) break;
       for (const e of adj[u]) {
         const next = cost + e.weight;
         if (next < dist[e.to]) {

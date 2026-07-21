@@ -170,6 +170,7 @@ public final class Main {
                 int node = heapNodes[0];
                 long distance = popDistance(heapDistances, heapNodes, heapSize);
                 if (distance != distances[node]) continue;
+                if (node == query.destination) break;
                 for (int edge = graph.offsets[node]; edge < graph.offsets[node + 1]; edge++) {
                     int destination = graph.destinations[edge];
                     long nextDistance = distance + graph.weights[edge];

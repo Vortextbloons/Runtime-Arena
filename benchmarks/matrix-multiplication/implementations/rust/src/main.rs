@@ -51,14 +51,18 @@ fn kernel(input: &Input) -> Output {
     let mut diagonal_sum: i64 = 0;
     for i in 0..n {
         for j in 0..n {
-            let mut sum: i64 = 0;
-            for k in 0..n {
-                sum += a[i * n + k] * b[k * n + j];
+            c[i * n + j] = 0;
+        }
+        for k in 0..n {
+            let a_ik = a[i * n + k];
+            for j in 0..n {
+                c[i * n + j] += a_ik * b[k * n + j];
             }
-            c[i * n + j] = sum;
-            value_sum += sum;
+        }
+        for j in 0..n {
+            value_sum += c[i * n + j];
             if i == j {
-                diagonal_sum += sum;
+                diagonal_sum += c[i * n + j];
             }
         }
     }

@@ -213,15 +213,17 @@ public final class Main {
         for (int i = 0; i < n; i++) {
             int leftBase = i * n;
             int outputBase = i * n;
+            for (int j = 0; j < n; j++)
+                product[outputBase + j] = 0;
+            for (int k = 0; k < n; k++) {
+                long a_ik = input.left[leftBase + k];
+                int rightBase = k * n;
+                for (int j = 0; j < n; j++)
+                    product[outputBase + j] += a_ik * input.right[rightBase + j];
+            }
             for (int j = 0; j < n; j++) {
-                long sum = 0;
-                int rightIndex = j;
-                for (int k = 0; k < n; k++, rightIndex += n) {
-                    sum += input.left[leftBase + k] * input.right[rightIndex];
-                }
-                product[outputBase + j] = sum;
-                valueSum += sum;
-                if (i == j) diagonalSum += sum;
+                valueSum += product[outputBase + j];
+                if (i == j) diagonalSum += product[outputBase + j];
             }
         }
 

@@ -64,6 +64,7 @@ function kernel(): { benchmark: "shortest-path"; version: 1; results: { queryId:
         }
       }
       if (cost !== dist[u]) continue;
+      if (u === q.destination) break;
       for (const e of adj[u]!) {
         const next: number = cost + e.weight;
         if (next < dist[e.to]) {

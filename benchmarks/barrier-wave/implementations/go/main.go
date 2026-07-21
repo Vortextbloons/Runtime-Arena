@@ -10,8 +10,6 @@ import (
 	"os"
 	"runtime"
 	"strconv"
-	"sync"
-	"sync/atomic"
 )
 
 type Input struct {
@@ -37,11 +35,9 @@ type pool struct {
 	workerCount    int
 	itemsPerWorker int
 	roundsPerItem  int
-	seed           atomic.Uint32
 	results        []workerResult
-	start          []atomic.Uint32
-	done           []atomic.Uint32
-	wg             sync.WaitGroup
+	inputChans     []chan uint32
+	outputChans    []chan workerResult
 }
 
 type workerResult struct {
@@ -55,35 +51,22 @@ func newPool(workerCount, itemsPerWorker, roundsPerItem int) *pool {
 		itemsPerWorker: itemsPerWorker,
 		roundsPerItem:  roundsPerItem,
 		results:        make([]workerResult, workerCount),
-		start:          make([]atomic.Uint32, workerCount),
-		done:           make([]atomic.Uint32, workerCount),
+		inputChans:     make([]chan uint32, workerCount),
+		outputChans:    make([]chan workerResult, workerCount),
 	}
-	p.wg.Add(workerCount)
 	for w := 0; w < workerCount; w++ {
+		p.inputChans[w] = make(chan uint32, 1)
+		p.outputChans[w] = make(chan workerResult, 1)
 		go p.worker(w)
 	}
 	return p
 }
 
 func (p *pool) worker(id int) {
-	defer p.wg.Done()
 	workerMul := uint32(id) * 0x9e3779b9
 	itemsPerWorker := p.itemsPerWorker
 	roundsPerItem := p.roundsPerItem
-	var phaseGen uint32
-	for {
-		for {
-			cur := p.start[id].Load()
-			if cur != phaseGen {
-				phaseGen = cur
-				break
-			}
-			runtime.Gosched()
-		}
-		if phaseGen == ^uint32(0) {
-			return
-		}
-		phaseSeed := p.seed.Load()
+	for phaseSeed := range p.inputChans[id] {
 		localXor := uint32(0)
 		localSum := uint64(0)
 		for localItem := 0; localItem < itemsPerWorker; localItem++ {
@@ -98,28 +81,23 @@ func (p *pool) worker(id int) {
 			localXor ^= x
 			localSum += uint64(x)
 		}
-		p.results[id] = workerResult{localXor, localSum}
-		p.done[id].Store(phaseGen)
+		p.outputChans[id] <- workerResult{localXor, localSum}
 	}
 }
 
 func (p *pool) run(seed uint32) {
-	p.seed.Store(seed)
 	for w := 0; w < p.workerCount; w++ {
-		p.start[w].Add(1)
+		p.inputChans[w] <- seed
 	}
 	for w := 0; w < p.workerCount; w++ {
-		for p.done[w].Load() != p.start[w].Load() {
-			runtime.Gosched()
-		}
+		p.results[w] = <-p.outputChans[w]
 	}
 }
 
 func (p *pool) close() {
 	for w := 0; w < p.workerCount; w++ {
-		p.start[w].Store(^uint32(0))
+		close(p.inputChans[w])
 	}
-	p.wg.Wait()
 }
 
 func mix32(x uint32) uint32 {
@@ -200,8 +178,12 @@ func respond(v any) {
 func main() {
 	ip := flag.String("input", "", "")
 	op := flag.String("output", "", "")
-	flag.String("protocol-version", "2.0.0", "")
+	pv := flag.String("protocol-version", "2.0.0", "")
 	flag.Parse()
+	if *pv != "2.0.0" {
+		fmt.Fprintf(os.Stderr, "unsupported protocol version\n")
+		os.Exit(1)
+	}
 
 	raw, _ := os.ReadFile(*ip)
 	var in Input

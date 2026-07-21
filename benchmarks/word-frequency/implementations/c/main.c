@@ -31,8 +31,6 @@ static int entryCmp(const void *a, const void *b) {
     return strcmp(ea->word, eb->word);
 }
 
-#define MAP_CAP 16384
-#define MAP_MASK (MAP_CAP - 1)
 typedef struct { char word[64]; int count; } MapEntry;
 
 static uint32_t hashStr(const char *s) {
@@ -90,20 +88,22 @@ static void digest_hex_bytes(const uint8_t *data, size_t len, char out[65]) {
 typedef struct {
     char **words;
     int totalWords;
+    int mapCap;
     MapEntry *map;
     Entry *entries;
 } WfCtx;
 
 static char *produce_output(void *ctx, size_t *out_len) {
     WfCtx *c = (WfCtx *)ctx;
-    memset(c->map, 0, MAP_CAP * sizeof(MapEntry));
+    memset(c->map, 0, c->mapCap * sizeof(MapEntry));
     int mapUsed = 0;
+    int mask = c->mapCap - 1;
 
     for (int i = 0; i < c->totalWords; i++) {
         uint32_t h = hashStr(c->words[i]);
-        int idx = h & MAP_MASK;
+        int idx = h & mask;
         while (c->map[idx].word[0] != '\0' && strcmp(c->map[idx].word, c->words[i]) != 0)
-            idx = (idx + 1) & MAP_MASK;
+            idx = (idx + 1) & mask;
         if (c->map[idx].word[0] == '\0') {
             strcpy(c->map[idx].word, c->words[i]);
             mapUsed++;
@@ -112,7 +112,7 @@ static char *produce_output(void *ctx, size_t *out_len) {
     }
 
     int eIdx = 0;
-    for (int i = 0; i < MAP_CAP; i++) {
+    for (int i = 0; i < c->mapCap; i++) {
         if (c->map[i].word[0] != '\0') {
             strcpy(c->entries[eIdx].word, c->map[i].word);
             c->entries[eIdx].count = c->map[i].count;
@@ -177,10 +177,14 @@ int main(int argc, char *argv[]) {
         words[i] = strdup(json_as_string(json_array_get(wordsArr, i)));
     json_free(&root);
 
+    int mapCap = 1;
+    while (mapCap < totalWords * 2) mapCap <<= 1;
+
     WfCtx ctx = {
         .words = words,
         .totalWords = totalWords,
-        .map = malloc(MAP_CAP * sizeof(MapEntry)),
+        .mapCap = mapCap,
+        .map = calloc(mapCap, sizeof(MapEntry)),
         .entries = malloc(totalWords * sizeof(Entry))
     };
 

@@ -87,6 +87,7 @@ for qi = 1, query_count do
     while not heap:empty() do
         local cost, node = heap:pop()
         if cost == distance[node] then
+            if node == destination then break end
             local adj = adjacency[node]
             for ei = 1, #adj do
                 local edge = adj[ei]

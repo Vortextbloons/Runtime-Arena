@@ -78,6 +78,9 @@ fn kernel(adjacency: &[Vec<Edge>], input: &Input) -> Vec<ResultRow> {
                 if cost != distance[node] {
                     continue;
                 }
+                if node == query.destination {
+                    break;
+                }
                 for edge in &adjacency[node] {
                     let next = cost + edge.weight;
                     if next < distance[edge.to] {

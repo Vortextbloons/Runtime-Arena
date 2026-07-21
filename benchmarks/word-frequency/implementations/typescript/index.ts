@@ -13,7 +13,7 @@ function kernel(words: string[]) {
   const freq = new Map<string, number>();
   for (const w of words) freq.set(w, (freq.get(w) ?? 0) + 1);
   const entries = [...freq.entries()];
-  entries.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  entries.sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
   const lines = new Array<string>(entries.length);
   for (let i = 0; i < entries.length; i++) {
     const [w, c] = entries[i]!;

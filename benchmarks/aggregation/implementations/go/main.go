@@ -199,8 +199,12 @@ func respond(v any) {
 func main() {
 	ip := flag.String("input", "", "")
 	op := flag.String("output", "", "")
-	flag.String("protocol-version", "2.0.0", "")
+	pv := flag.String("protocol-version", "2.0.0", "")
 	flag.Parse()
+	if *pv != "2.0.0" {
+		fmt.Fprintf(os.Stderr, "unsupported protocol version\n")
+		os.Exit(1)
+	}
 	rows := readRows(*ip)
 	respond(map[string]string{"type": "ready", "protocolVersion": "2.0.0"})
 	scanner := bufio.NewScanner(os.Stdin)
