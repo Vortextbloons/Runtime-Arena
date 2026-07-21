@@ -255,6 +255,8 @@ want the README to reflect the latest `results/current.json`.
 | Run all stale/missing | `npm run arena -- run` |
 | Run one language × benchmark | `npm run arena -- run -l rust -b nbody --size small` |
 | Force re-run | `npm run arena -- run --force ...` |
+| Collect stale resource profiles | `npm run arena -- resources collect` |
+| Fully refresh resource profiles | `npm run arena -- resources collect --force` |
 | Results table | `npm run arena -- results summary` |
 | Cell freshness | `npm run arena -- results status` |
 | Raw JSON | `npm run arena -- results current` |
@@ -266,6 +268,8 @@ want the README to reflect the latest `results/current.json`.
 | Update README results | `npm run update-readme-results` |
 
 ## Related docs
+
+`resources collect` records three artifact-cold/toolchain-cache-warm build samples, complete workload bundle size, workload-owned logical LOC, and (on Windows) three untimed process-tree RSS probes. Efficiency remains pending until every ranked benchmark/language profile has all four comparable measurements.
 
 - [CLI reference](../reference/api.md) — flags and snapshot schema
 - [CLI component](../components/cli.md) — architecture

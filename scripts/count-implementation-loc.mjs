@@ -130,10 +130,12 @@ export async function collectImplementationLines(benchmarksDir = benchmarksRoot)
 			const implementationDir = path.join(implementationsDir, languageEntry.name);
 			const counted = await countImplementationDirectory(implementationDir);
 			if (!counted.files.length) continue;
-			const sha256 = createHash("sha256")
-				.update(counted.files.map((file) => `${file}\n`).join(""))
-				.update(String(counted.logicalLines))
-				.digest("hex");
+			const hash = createHash("sha256");
+			for (const file of counted.files) {
+				hash.update(`${file}\0`);
+				hash.update(await readFile(path.join(implementationDir, file)));
+			}
+			const sha256 = hash.digest("hex");
 			cells[`${benchmarkEntry.name}:${languageEntry.name}`] = {
 				logicalLines: counted.logicalLines,
 				fileCount: counted.files.length,

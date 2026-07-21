@@ -77,7 +77,7 @@
         "status": { "type": "string", "enum": ["available", "unavailable", "stale"] },
         "value": { "type": "number", "exclusiveMinimum": 0 },
         "reason": { "type": "string" },
-        "samples": { "type": "array", "items": { "type": "number", "exclusiveMinimum": 0 } },
+        "samples": { "type": "array", "minItems": 3, "items": { "type": "number", "exclusiveMinimum": 0 } },
         "collector": { "type": "string" },
         "fileCount": { "type": "integer", "minimum": 0 },
         "paths": { "type": "array", "items": { "type": "string" } },

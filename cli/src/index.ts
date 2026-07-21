@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
-import { access, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
+import { access, cp, mkdir, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import { constants, existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -45,6 +45,7 @@ type Language = {
   run: Command;
   environment: Record<string, string>;
   sourceExtensions?: string[];
+  resourceBundle?: { sourceInclude?: string[]; sourceExclude?: string[]; artifactInclude?: string[]; artifactExclude?: string[] };
   provenance?: LanguageProvenance;
 };
 type Benchmark = { id: string; name: string; version: number; sizes: Record<string, SizeConfig>; metrics: string[]; limits: { timeoutMilliseconds: number; maxOutputBytes: number } };
@@ -770,6 +771,8 @@ async function resourcesCollectCommand(args: string[]) {
   }
   let updated = 0;
   for (const [key, result] of cells) {
+    const language = (await discoverLanguages()).find(candidate => candidate.id === result.language.id)!;
+    const benchmark = (await discoverBenchmarks()).find(candidate => candidate.id === result.benchmark.id)!;
     const implementation = lines[`${result.benchmark.id}:${result.language.id}`] as { logicalLines: number; fileCount: number; files: string[]; sha256: string } | undefined;
     const fingerprint = createHash("sha256").update(JSON.stringify({
       contract: "1.0.0", implementation, build: result.provenance?.buildFingerprint, artifact: result.build?.artifactSizeBytes,
@@ -777,7 +780,8 @@ async function resourcesCollectCommand(args: string[]) {
     })).digest("hex");
     const existing = profiles.get(key);
     if (!flags.has("--force") && existing?.fingerprint === fingerprint) continue;
-    const artifactSizeBytes = result.build?.artifactSizeBytes;
+    const cold = await collectColdBuildResource(language, benchmark, fingerprint);
+    const memory = await collectMemoryResource(language, benchmark, snapshot.results.filter(candidate => candidate.benchmark.id === benchmark.id && candidate.language.id === language.id), fingerprint);
     profiles.set(key, {
       benchmarkId: result.benchmark.id,
       languageId: result.language.id,
@@ -788,11 +792,15 @@ async function resourcesCollectCommand(args: string[]) {
         machineFingerprint: createHash("sha256").update(JSON.stringify(result.provenance?.machine ?? {})).digest("hex"),
         toolchainFingerprint: result.provenance?.buildFingerprint ?? "unavailable"
       },
-      memory: { status: "unavailable", reason: "No supported process-tree collector has recorded this profile." },
-      build: { status: "unavailable", reason: "Cold-build sampling has not been collected; cached build durations are intentionally invalid." },
-      artifact: artifactSizeBytes && artifactSizeBytes > 0
-        ? { status: "available", value: artifactSizeBytes, fileCount: 1, reason: "Legacy single-artifact measurement; refresh after bundle boundaries are configured." }
-        : { status: "unavailable", reason: "No runnable artifact size is available." },
+      memory: memory.samples.length >= 3
+        ? { status: "available", value: memory.value ?? geometricMean(memory.samples), samples: memory.samples, collector: memory.collector }
+        : { status: "unavailable", reason: memory.reason ?? "Process-tree memory collection is not available for this resource probe.", collector: memory.collector },
+      build: cold.buildSamples.length === 3
+        ? { status: "available", value: median(cold.buildSamples), samples: cold.buildSamples, collector: "artifact-cold/toolchain-cache-warm" }
+        : { status: "unavailable", reason: cold.reason ?? "Three artifact-cold build samples could not be collected." },
+      artifact: cold.artifactBytes > 0
+        ? { status: "available", value: cold.artifactBytes, fileCount: cold.artifactFiles, paths: cold.artifactPaths, collector: "workload-bundle-v1" }
+        : { status: "unavailable", reason: cold.reason ?? "No runnable workload bundle was produced." },
       implementation: implementation
         ? { status: "available", value: implementation.logicalLines, fileCount: implementation.fileCount, paths: implementation.files, sourceHash: implementation.sha256 }
         : { status: "unavailable", reason: "No workload-owned source files matched the language boundaries." }
@@ -805,7 +813,123 @@ async function resourcesCollectCommand(args: string[]) {
   await validateResult(snapshot);
   await saveResult(snapshot, flags.get("--output"), false);
   console.log(`Resource profiles: ${updated} collected/updated, ${snapshot.resources.length - updated} current.`);
-  console.log("Efficiency pending: memory and artifact-cold build samples are required before rankings can switch.");
+  console.log("Efficiency pending until every profile has four comparable resource measurements.");
+}
+
+function median(values: number[]) { const ordered = [...values].sort((a, b) => a - b); return ordered[Math.floor(ordered.length / 2)] ?? 0; }
+function geometricMean(values: number[]) { return values.length && values.every(value => value > 0) ? Math.exp(values.reduce((sum, value) => sum + Math.log(value), 0) / values.length) : 0; }
+
+async function collectMemoryResource(language: Language, benchmark: Benchmark, results: BenchmarkResult[], fingerprint: string) {
+  if (process.platform !== "win32") return { samples: [] as number[], collector: "unsupported", reason: `No process-tree collector for ${process.platform}.` };
+  const built = await buildOne(language, benchmark);
+  if (built.status === "failed" || built.status === "missing") return { samples: [] as number[], collector: "windows-cim-process-tree-v1", reason: "Could not build runnable workload for memory probe." };
+  const rank = (size: string) => ({ small: 1, medium: 2, large: 3 }[size] ?? 0);
+  const largest = Math.max(...results.map(result => rank(result.benchmark.size)));
+  const selectedResults = results.filter(result => rank(result.benchmark.size) === largest);
+  if (!selectedResults.length) return { samples: [] as number[], collector: "windows-cim-process-tree-v1", reason: "No largest-size dataset for memory probe." };
+  const samples: number[] = []; const mutationMedians: number[] = [];
+  for (const result of selectedResults) for (let sample = 0; sample < 3; sample++) {
+    const cells = expandSizeCells(benchmark.sizes, result.benchmark.size, result.benchmark.mutation);
+    const selected = cells[0];
+    if (!selected) return { samples, collector: "windows-cim-process-tree-v1", reason: "No dataset for memory probe." };
+    const input = path.join(root, "benchmarks", benchmark.id, "datasets", selected.dataset);
+    const work = path.join(root, ".arena", "resources", fingerprint, `memory-${sample}`);
+    await mkdir(work, { recursive: true });
+    const output = path.join(work, "output.json");
+    let collector: Promise<number> | undefined;
+    const vars = { projectRoot: root, benchmarkId: benchmark.id, benchmarkDir: path.join(root, "benchmarks", benchmark.id), implementationDir: built.implementationDir, artifact: built.artifact, inputFile: input, outputFile: output, protocolVersion: MEASUREMENT_PROTOCOL_VERSION, runId: `resource-${sample}`, size: result.benchmark.size };
+    const probe = await runHarnessProtocol({
+      command: expand(language.run.command, vars), args: language.run.arguments.map(value => expand(value, vars)), cwd: work, env: language.environment,
+      // Keep the persistent worker alive long enough for an OS collector to observe fast processes; these runs are never timing samples.
+      outputFile: output, warmups: 0, measurement: { mode: "fixed", minMeasuredIterations: 250, maxMeasuredIterations: 250, targetRelativeConfidenceInterval: 0 },
+      timeoutMilliseconds: benchmark.limits.timeoutMilliseconds, maxCapturedBytes: benchmark.limits.maxOutputBytes,
+      onWorkerPid: pid => { collector = collectWindowsProcessTreePeak(pid, benchmark.limits.timeoutMilliseconds + 10_000); }
+    });
+    const peak = await (collector ?? Promise.resolve(0));
+    if (!probe.success || !peak) return { samples, collector: "windows-cim-process-tree-v1", reason: probe.error ?? "Memory probe did not complete." };
+    samples.push(peak);
+    if ((sample + 1) % 3 === 0) mutationMedians.push(median(samples.slice(-3)));
+    await rm(work, { recursive: true, force: true });
+  }
+  return { samples, value: geometricMean(mutationMedians), collector: "windows-cim-process-tree-v1" };
+}
+
+async function collectWindowsProcessTreePeak(rootPid: number, timeoutMs: number) {
+  const started = Date.now(); let peak = 0; let seenRoot = false; let missingRootPolls = 0;
+  const script = "Get-CimInstance Win32_Process | ForEach-Object { \"$($_.ProcessId),$($_.ParentProcessId),$($_.WorkingSetSize)\" }";
+  while (Date.now() - started < timeoutMs) {
+    const proc = await runProcess("powershell", ["-NoProfile", "-NonInteractive", "-Command", script], root, 5_000);
+    const entries = proc.stdout.split(/\r?\n/).map(line => line.split(",").map(Number)).filter(parts => parts.length === 3 && parts.every(Number.isFinite));
+    const descendants = new Set([rootPid]); let changed = true;
+    while (changed) { changed = false; for (const [pid, parent] of entries) if (descendants.has(parent) && !descendants.has(pid)) { descendants.add(pid); changed = true; } }
+    const roots = entries.filter(([pid]) => pid === rootPid);
+    if (roots.length) { seenRoot = true; missingRootPolls = 0; } else missingRootPolls++;
+    for (const [pid, , rss] of entries) if (descendants.has(pid)) peak = Math.max(peak, rss);
+    if ((seenRoot && !roots.length) || (!seenRoot && missingRootPolls >= 3)) break;
+    await new Promise(resolve => setTimeout(resolve, 25));
+  }
+  return peak;
+}
+
+async function collectColdBuildResource(language: Language, benchmark: Benchmark, fingerprint: string) {
+  const samples: number[] = [];
+  let artifactBytes = 0, artifactFiles = 0, artifactPaths: string[] = [], reason: string | undefined;
+  const source = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
+  for (let sample = 0; sample < 3; sample++) {
+    const workspace = path.join(root, ".arena", "resources", fingerprint, `build-${sample}`);
+    const implementationDir = path.join(workspace, "implementation");
+    await rm(workspace, { recursive: true, force: true });
+    await mkdir(workspace, { recursive: true });
+    await cp(source, implementationDir, { recursive: true, filter: entry => ![".arena", "target", "dist", "build", "bin", "obj", "node_modules", "__pycache__"].includes(path.basename(entry)) });
+    const vars = { projectRoot: root, benchmarkId: benchmark.id, benchmarkDir: path.join(root, "benchmarks", benchmark.id), implementationDir, artifact: "" };
+    const rawArtifact = expand(language.build.artifact, vars);
+    const artifact = path.resolve(implementationDir, process.platform === "win32" && !path.extname(rawArtifact) ? `${rawArtifact}.exe` : rawArtifact);
+    vars.artifact = artifact;
+    const cwd = path.resolve(root, expand(language.build.workingDirectory ?? "{implementationDir}", vars));
+    const originalImplementationDir = path.join(root, "benchmarks", benchmark.id, "implementations", language.id);
+    const originalVars = { ...vars, implementationDir: originalImplementationDir, artifact: "" };
+    const originalCwd = path.resolve(root, expand(language.build.workingDirectory ?? "{implementationDir}", originalVars));
+    const relocatedArguments = language.build.arguments.map(value => {
+      const expanded = expand(value, vars);
+      if (!expanded.includes("..") || path.isAbsolute(expanded)) return expanded;
+      const originalTarget = path.resolve(originalCwd, expand(value, originalVars));
+      return !originalTarget.startsWith(originalImplementationDir) && existsSync(originalTarget) ? originalTarget : expanded;
+    });
+    const proc = await runProcess(expand(language.build.command, vars), relocatedArguments, cwd, 180_000, buildEnvironment(language));
+    if (proc.code !== 0) { reason = proc.stderr || proc.stdout || "cold build failed"; break; }
+    samples.push(proc.durationNs);
+    if (sample === 0) {
+      const bundle = await collectBundleFiles(implementationDir, artifact, language);
+      artifactBytes = bundle.bytes; artifactFiles = bundle.paths.length; artifactPaths = bundle.paths;
+    }
+    await rm(workspace, { recursive: true, force: true });
+  }
+  return { buildSamples: samples, artifactBytes, artifactFiles, artifactPaths, reason };
+}
+
+function matchesBundlePattern(file: string, patterns: string[] = []) {
+  if (!patterns.length) return false;
+  return patterns.some(pattern => pattern === "**/*" || (pattern.startsWith("**/*.") && file.endsWith(pattern.slice(4))));
+}
+async function collectBundleFiles(implementationDir: string, artifact: string, language: Language) {
+  const paths: string[] = []; let bytes = 0;
+  const artifactInsideImplementation = artifact.startsWith(implementationDir);
+  const searchRoot = artifactInsideImplementation && ![".mjs", ".js", ".py", ".lua"].includes(path.extname(artifact)) ? path.dirname(artifact) : implementationDir;
+  const walk = async (current: string): Promise<void> => {
+    for (const entry of await readdir(current, { withFileTypes: true })) {
+      if (["node_modules", "target", "__pycache__", ".git"].includes(entry.name)) continue;
+      const full = path.join(current, entry.name);
+      if (entry.isDirectory()) { await walk(full); continue; }
+      const relative = path.relative(implementationDir, full).replaceAll("\\", "/");
+      const isEntrypoint = full === artifact;
+      const isSource = language.sourceExtensions?.includes(path.extname(full).toLowerCase()) ?? false;
+      const artifactIsSource = language.sourceExtensions?.includes(path.extname(artifact).toLowerCase()) ?? false;
+      if ((!isEntrypoint && isSource && !artifactIsSource) || !matchesBundlePattern(relative, language.resourceBundle?.artifactInclude) || matchesBundlePattern(relative, language.resourceBundle?.artifactExclude)) continue;
+      paths.push(relative); bytes += (await stat(full)).size;
+    }
+  };
+  if (await exists(searchRoot)) await walk(searchRoot);
+  return { paths: paths.sort(), bytes };
 }
 
 async function collectResourceImplementationLines() {
@@ -817,6 +941,7 @@ async function collectResourceImplementationLines() {
       if (!await exists(directory)) continue;
       const files: string[] = [];
       let logicalLines = 0;
+      const sourceHash = createHash("sha256");
       const ignored = new Set([".arena", "node_modules", "target", "dist", "build", "bin", "obj", "__pycache__"]);
       const walk = async (current: string): Promise<void> => {
         for (const entry of await readdir(current, { withFileTypes: true })) {
@@ -824,7 +949,10 @@ async function collectResourceImplementationLines() {
           const full = path.join(current, entry.name);
           if (entry.isDirectory()) { await walk(full); continue; }
           if (!language.sourceExtensions?.includes(path.extname(entry.name).toLowerCase())) continue;
+          const relative = path.relative(directory, full).replaceAll("\\", "/");
+          if (!matchesBundlePattern(relative, language.resourceBundle?.sourceInclude) || matchesBundlePattern(relative, language.resourceBundle?.sourceExclude)) continue;
           const source = await readFile(full, "utf8");
+          sourceHash.update(`${relative}\0`).update(source);
           const hashStyle = [".py", ".lua"].includes(path.extname(entry.name).toLowerCase());
           let block = false;
           for (let line of source.replace(/\r\n/g, "\n").split("\n")) {
@@ -841,7 +969,7 @@ async function collectResourceImplementationLines() {
         }
       };
       await walk(directory);
-      if (files.length) out[`${benchmark.id}:${languageId}`] = { logicalLines, fileCount: files.length, files: files.sort(), sha256: createHash("sha256").update(files.join("\n")).update(String(logicalLines)).digest("hex") };
+      if (files.length) out[`${benchmark.id}:${languageId}`] = { logicalLines, fileCount: files.length, files: files.sort(), sha256: sourceHash.digest("hex") };
     }
   }
   return out;

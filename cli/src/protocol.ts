@@ -189,6 +189,8 @@ export async function runHarnessProtocol(options: {
   measurement: MeasurementPolicy;
   timeoutMilliseconds: number;
   maxCapturedBytes: number;
+  /** Resource probes can observe the worker outside timed iteration samples. */
+  onWorkerPid?: (pid: number) => void;
 }): Promise<HarnessRunResult> {
   validateMeasurementPolicy(options.measurement);
   if (!Number.isSafeInteger(options.warmups) || options.warmups < 0) throw new Error("Warmup iterations must be a non-negative integer");
@@ -206,6 +208,7 @@ export async function runHarnessProtocol(options: {
     shell: false,
     stdio: ["pipe", "pipe", "pipe"]
   }) as ChildProcessWithoutNullStreams;
+  if (child.pid !== undefined) options.onWorkerPid?.(child.pid);
 
   const reader = createLineReader(child, options.maxCapturedBytes);
   child.stdin.on("error", () => {

@@ -87,7 +87,7 @@ The scoring system (`src/lib/scoring.ts`) computes a 0-100 weighted overall scor
 - Total bonus is computed by `calculateBadgeBonus()`: sum of top 3 featured tiers, overall capped at 100 via `applyFinalOverall()`.
 
 **Overall**
-- `baseOverall = 0.75 × geometric-mean speed + 0.25 × flexibility`
+- `baseOverall = 0.75 × geometric-mean speed + 0.25 × Efficiency` after the complete-resource gate; otherwise the snapshot retains the reproducible legacy FLEX formula and labels Efficiency as pending.
 - `overall = min(100, baseOverall + badgeBonus)`
 - Per-benchmark card scores use speed only.
 - Correctness and complete sample counts remain strict eligibility gates **within** a benchmark.
