@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-21T05:20:54.914Z",
+  "generatedAt": "2026-07-21T19:53:35.891Z",
   "cells": {
     "aggregation:c": {
       "logicalLines": 336,
@@ -144,12 +144,12 @@
       "sha256": "066fb4b007443455ba459b485a423fcc3632f971b60ed0a15ad75b98b46a6154"
     },
     "barrier-wave:python": {
-      "logicalLines": 115,
+      "logicalLines": 110,
       "fileCount": 1,
       "files": [
         "main.py"
       ],
-      "sha256": "2c2247cc6bb2b091835c8eaac6bae7a4db152e28a1e323709be7639c027618ba"
+      "sha256": "f4ac54abf6e8d47315eb308690e9531cc4a621b6ec7f356336c0b9e3107e489e"
     },
     "barrier-wave:rust": {
       "logicalLines": 199,

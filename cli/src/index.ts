@@ -740,7 +740,11 @@ async function runCommand(args: string[]) {
   const gitDirty = await runProcess("git", ["status", "--porcelain"], root).then(p => p.code === 0 ? p.stdout.trim().length > 0 : null);
   const snapshot: Snapshot = plannedCells === 0 && current ? current : {
     schemaVersion: "4.0.0", snapshotId, updatedAt: createdAt, arenaVersion: "0.2.0", scoringModel: "legacy-versatility-v1",
-    gitCommit: git, gitDirty, results: [...canonical.values()].sort((a, b) => resultKey(a).localeCompare(resultKey(b)))
+    gitCommit: git, gitDirty,
+    // A partial performance rerun must not discard independent resource profiles.
+    // Their fingerprints decide whether `resources collect` refreshes them.
+    resources: current?.resources ?? [],
+    results: [...canonical.values()].sort((a, b) => resultKey(a).localeCompare(resultKey(b)))
   };
   await validateResult(snapshot);
   if (results.length && verbose) printSummary(results);
@@ -817,7 +821,8 @@ async function resourcesCollectCommand(args: string[]) {
         : { status: "unavailable", reason: "No workload-owned source files matched the language boundaries." }
     });
     updated++;
-    console.log(`${label} done · build ${cold.buildSamples.length}/3 · memory ${memory.samples.length}/3 · artifact ${cold.artifactFiles} file${cold.artifactFiles === 1 ? "" : "s"}`);
+    const memoryMutations = snapshot.results.filter(candidate => candidate.benchmark.id === benchmark.id && candidate.language.id === language.id && candidate.benchmark.size === "large").length || 1;
+    console.log(`${label} done · build ${cold.buildSamples.length}/3 · memory ${memory.samples.length}/${memoryMutations * 3} · artifact ${cold.artifactFiles} file${cold.artifactFiles === 1 ? "" : "s"}`);
   }
   snapshot.resources = [...profiles.values()].sort((a, b) => resourceProfileKey(a).localeCompare(resourceProfileKey(b)));
   snapshot.schemaVersion = "4.0.0";
@@ -845,6 +850,10 @@ async function collectMemoryResource(language: Language, benchmark: Benchmark, r
     const selected = cells[0];
     if (!selected) return { samples, collector: "windows-cim-process-tree-v1", reason: "No dataset for memory probe." };
     const input = path.join(root, "benchmarks", benchmark.id, "datasets", selected.dataset);
+    // CIM startup can itself take several hundred milliseconds. Derive this per
+    // mutation so a fast worker remains observable while a slow mutation stays cheap.
+    const iterationNs = Math.max(1, medianNanoseconds(result.execution.summary as Record<string, number>));
+    const probeIterations = Math.max(2, Math.min(1_000, Math.ceil(1_200_000_000 / iterationNs)));
     const work = path.join(root, ".arena", "resources", fingerprint, `memory-${sample}`);
     await mkdir(work, { recursive: true });
     const output = path.join(work, "output.json");
@@ -853,7 +862,7 @@ async function collectMemoryResource(language: Language, benchmark: Benchmark, r
     const probe = await runHarnessProtocol({
       command: expand(language.run.command, vars), args: language.run.arguments.map(value => expand(value, vars)), cwd: work, env: language.environment,
       // Keep the persistent worker alive long enough for an OS collector to observe fast processes; these runs are never timing samples.
-      outputFile: output, warmups: 0, measurement: { mode: "fixed", minMeasuredIterations: 250, maxMeasuredIterations: 250, targetRelativeConfidenceInterval: 0 },
+      outputFile: output, warmups: 0, measurement: { mode: "fixed", minMeasuredIterations: probeIterations, maxMeasuredIterations: probeIterations, targetRelativeConfidenceInterval: 0 },
       timeoutMilliseconds: benchmark.limits.timeoutMilliseconds, maxCapturedBytes: benchmark.limits.maxOutputBytes,
       onWorkerPid: pid => { collector = collectWindowsProcessTreePeak(pid, benchmark.limits.timeoutMilliseconds + 10_000); }
     });
