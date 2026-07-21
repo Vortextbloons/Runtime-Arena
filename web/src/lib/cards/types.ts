@@ -94,7 +94,7 @@ export type LanguageClassification = {
 
 export const CORE_ATTRIBUTE_IDS = [
 	'runtime-speed',
-	'consistency',
+	'efficiency',
 	'scalability',
 	'compute',
 	'algorithms',

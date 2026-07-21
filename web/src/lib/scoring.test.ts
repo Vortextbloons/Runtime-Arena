@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { scoreBenchmark, scoreOverall } from './scoring.ts';
+import { resourceSubscore, scoreBenchmark, scoreOverall } from './scoring.ts';
 import type { ArenaResult, ResourceProfile } from './types.ts';
 
 function result(
@@ -46,6 +46,12 @@ test('efficiency activates only with complete comparable resource profiles', () 
 	]);
 	assert.equal(scores[0]?.scoringModel, 'efficiency-v1');
 	assert.equal(scores.find((score) => score.language.id === 'lean')?.efficiency, 100);
+});
+
+test('resource subscores use a bounded logarithmic penalty', () => {
+	assert.equal(resourceSubscore(100, 100), 100);
+	assert.equal(resourceSubscore(10, 100), 85);
+	assert.equal(resourceSubscore(0.000001, 100), 20);
 });
 
 test('performance is proportional to the fastest valid median', () => {

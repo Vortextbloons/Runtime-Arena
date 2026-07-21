@@ -87,6 +87,7 @@ export const ALL_BADGE_DEFINITIONS = [
 
 export const ALL_ATTRIBUTE_DEFINITIONS = [
 	{ id: 'runtime-speed', label: 'Runtime Speed', abbreviation: 'SPD', category: 'execution' as const },
+	{ id: 'efficiency', label: 'Efficiency', abbreviation: 'EFF', category: 'physical' as const },
 	{ id: 'consistency', label: 'Consistency', abbreviation: 'CON', category: 'reliability' as const },
 	{ id: 'scalability', label: 'Scalability', abbreviation: 'SCL', category: 'physical' as const },
 	{ id: 'compute', label: 'Compute', abbreviation: 'CMP', category: 'execution' as const },

@@ -91,6 +91,12 @@
       "category": "execution"
     },
     {
+      "id": "efficiency",
+      "label": "Efficiency",
+      "abbreviation": "EFF",
+      "category": "physical"
+    },
+    {
       "id": "consistency",
       "label": "Consistency",
       "abbreviation": "CON",

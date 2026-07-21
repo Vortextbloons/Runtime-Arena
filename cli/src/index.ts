@@ -807,7 +807,7 @@ async function resourcesCollectCommand(args: string[]) {
         machineFingerprint: createHash("sha256").update(JSON.stringify(result.provenance?.machine ?? {})).digest("hex"),
         toolchainFingerprint: result.provenance?.buildFingerprint ?? "unavailable"
       },
-      memory: memory.samples.length >= 3
+      memory: memory.expectedSamples > 0 && memory.samples.length === memory.expectedSamples
         ? { status: "available", value: memory.value ?? geometricMean(memory.samples), samples: memory.samples, collector: memory.collector }
         : { status: "unavailable", reason: memory.reason ?? "Process-tree memory collection is not available for this resource probe.", collector: memory.collector },
       build: cold.buildSamples.length === 3
@@ -837,18 +837,19 @@ function median(values: number[]) { const ordered = [...values].sort((a, b) => a
 function geometricMean(values: number[]) { return values.length && values.every(value => value > 0) ? Math.exp(values.reduce((sum, value) => sum + Math.log(value), 0) / values.length) : 0; }
 
 async function collectMemoryResource(language: Language, benchmark: Benchmark, results: BenchmarkResult[], fingerprint: string) {
-  if (process.platform !== "win32") return { samples: [] as number[], collector: "unsupported", reason: `No process-tree collector for ${process.platform}.` };
+  if (process.platform !== "win32") return { samples: [] as number[], expectedSamples: 0, collector: "unsupported", reason: `No process-tree collector for ${process.platform}.` };
   const built = await buildOne(language, benchmark);
-  if (built.status === "failed" || built.status === "missing") return { samples: [] as number[], collector: "windows-cim-process-tree-v1", reason: "Could not build runnable workload for memory probe." };
+  if (built.status === "failed" || built.status === "missing") return { samples: [] as number[], expectedSamples: 0, collector: "windows-cim-process-tree-v1", reason: "Could not build runnable workload for memory probe." };
   const rank = (size: string) => ({ small: 1, medium: 2, large: 3 }[size] ?? 0);
   const largest = Math.max(...results.map(result => rank(result.benchmark.size)));
   const selectedResults = results.filter(result => rank(result.benchmark.size) === largest);
-  if (!selectedResults.length) return { samples: [] as number[], collector: "windows-cim-process-tree-v1", reason: "No largest-size dataset for memory probe." };
+  if (!selectedResults.length) return { samples: [] as number[], expectedSamples: 0, collector: "windows-cim-process-tree-v1", reason: "No largest-size dataset for memory probe." };
+  const expectedSamples = selectedResults.length * 3;
   const samples: number[] = []; const mutationMedians: number[] = [];
   for (const result of selectedResults) for (let sample = 0; sample < 3; sample++) {
     const cells = expandSizeCells(benchmark.sizes, result.benchmark.size, result.benchmark.mutation);
     const selected = cells[0];
-    if (!selected) return { samples, collector: "windows-cim-process-tree-v1", reason: "No dataset for memory probe." };
+    if (!selected) return { samples, expectedSamples, collector: "windows-cim-process-tree-v1", reason: "No dataset for memory probe." };
     const input = path.join(root, "benchmarks", benchmark.id, "datasets", selected.dataset);
     // CIM startup can itself take several hundred milliseconds. Derive this per
     // mutation so a fast worker remains observable while a slow mutation stays cheap.
@@ -867,12 +868,12 @@ async function collectMemoryResource(language: Language, benchmark: Benchmark, r
       onWorkerPid: pid => { collector = collectWindowsProcessTreePeak(pid, benchmark.limits.timeoutMilliseconds + 10_000); }
     });
     const peak = await (collector ?? Promise.resolve(0));
-    if (!probe.success || !peak) return { samples, collector: "windows-cim-process-tree-v1", reason: probe.error ?? "Memory probe did not complete." };
+    if (!probe.success || !peak) return { samples, expectedSamples, collector: "windows-cim-process-tree-v1", reason: probe.error ?? "Memory probe did not complete." };
     samples.push(peak);
     if ((sample + 1) % 3 === 0) mutationMedians.push(median(samples.slice(-3)));
     await rm(work, { recursive: true, force: true });
   }
-  return { samples, value: geometricMean(mutationMedians), collector: "windows-cim-process-tree-v1" };
+  return { samples, expectedSamples, value: geometricMean(mutationMedians), collector: "windows-cim-process-tree-v1" };
 }
 
 async function collectWindowsProcessTreePeak(rootPid: number, timeoutMs: number) {
@@ -935,18 +936,33 @@ function matchesBundlePattern(file: string, patterns: string[] = []) {
 async function collectBundleFiles(implementationDir: string, artifact: string, language: Language) {
   const paths: string[] = []; let bytes = 0;
   const artifactInsideImplementation = artifact.startsWith(implementationDir);
-  const searchRoot = artifactInsideImplementation && ![".mjs", ".js", ".py", ".lua"].includes(path.extname(artifact)) ? path.dirname(artifact) : implementationDir;
+  const artifactIsSource = language.sourceExtensions?.includes(path.extname(artifact).toLowerCase()) ?? false;
+  const add = async (full: string) => {
+    const relative = path.relative(implementationDir, full).replaceAll("\\", "/");
+    if (matchesBundlePattern(relative, language.resourceBundle?.artifactExclude)) return;
+    paths.push(relative); bytes += (await stat(full)).size;
+  };
+  // Native executables and JARs are self-contained. Walking Cargo's release
+  // directory incorrectly captured dependency caches and fingerprints (tens of MB).
+  if (!artifactIsSource) {
+    if (await exists(artifact)) await add(artifact);
+    // .NET requires its managed runtime companions beside the entry DLL.
+    if (language.id === "c-sharp" && artifactInsideImplementation) {
+      for (const entry of await readdir(path.dirname(artifact), { withFileTypes: true })) {
+        if (entry.isFile() && entry.name !== path.basename(artifact) && [".dll", ".json"].includes(path.extname(entry.name).toLowerCase())) await add(path.join(path.dirname(artifact), entry.name));
+      }
+    }
+    return { paths: paths.sort(), bytes };
+  }
+  const searchRoot = implementationDir;
   const walk = async (current: string): Promise<void> => {
     for (const entry of await readdir(current, { withFileTypes: true })) {
       if (["node_modules", "target", "__pycache__", ".git"].includes(entry.name)) continue;
       const full = path.join(current, entry.name);
       if (entry.isDirectory()) { await walk(full); continue; }
       const relative = path.relative(implementationDir, full).replaceAll("\\", "/");
-      const isEntrypoint = full === artifact;
-      const isSource = language.sourceExtensions?.includes(path.extname(full).toLowerCase()) ?? false;
-      const artifactIsSource = language.sourceExtensions?.includes(path.extname(artifact).toLowerCase()) ?? false;
-      if ((!isEntrypoint && isSource && !artifactIsSource) || !matchesBundlePattern(relative, language.resourceBundle?.artifactInclude) || matchesBundlePattern(relative, language.resourceBundle?.artifactExclude)) continue;
-      paths.push(relative); bytes += (await stat(full)).size;
+      if (!matchesBundlePattern(relative, language.resourceBundle?.artifactInclude) || matchesBundlePattern(relative, language.resourceBundle?.artifactExclude)) continue;
+      await add(full);
     }
   };
   if (await exists(searchRoot)) await walk(searchRoot);

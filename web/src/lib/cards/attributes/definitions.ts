@@ -12,11 +12,11 @@ export type AttributeDefinition = {
 const sharedAttrDefs = _ALL_ATTRIBUTE_DEFINITIONS as AttributeDefinition[];
 
 export const CORE_ATTRIBUTE_DEFINITIONS: AttributeDefinition[] = sharedAttrDefs.filter(
-	(d) => ['runtime-speed', 'consistency', 'scalability', 'compute', 'algorithms', 'data-processing'].includes(d.id)
+	(d) => ['runtime-speed', 'efficiency', 'scalability', 'compute', 'algorithms', 'data-processing'].includes(d.id)
 );
 
 export const EXTENDED_ATTRIBUTE_DEFINITIONS: AttributeDefinition[] = sharedAttrDefs.filter(
-	(d) => !['runtime-speed', 'consistency', 'scalability', 'compute', 'algorithms', 'data-processing'].includes(d.id)
+	(d) => !['runtime-speed', 'efficiency', 'scalability', 'compute', 'algorithms', 'data-processing'].includes(d.id)
 );
 
 export const ALL_ATTRIBUTE_DEFINITIONS = [

@@ -231,6 +231,13 @@ export function calculateAttributes(ctx: AttributeContext): CardAttribute[] {
 				rating: overall.eligible ? overall.performance : null,
 				evidence: overall.eligible ? ['Overall performance score'] : ['Overall performance unavailable']
 			},
+			efficiency: {
+				rating: overall.eligible ? overall.efficiency ?? null : null,
+				evidence:
+					overall.scoringModel === 'efficiency-v1'
+						? ['Overall Efficiency score']
+						: ['Efficiency pending complete comparable resource measurements']
+			},
 			consistency: {
 				rating: overall.eligible ? overall.consistency : null,
 				evidence: overall.eligible ? ['Overall consistency score'] : ['Overall consistency unavailable']

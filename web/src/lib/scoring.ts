@@ -4,6 +4,11 @@ const SIZE_ORDER = ['small', 'medium', 'large'];
 export const SCORE_WEIGHTS = { performance: 0.75, efficiency: 0.25, versatility: 0.25 } as const;
 export const RESOURCE_CONTRACT_VERSION = '1.0.0';
 export const SCORING_MODELS = { legacy: 'legacy-versatility-v1', efficiency: 'efficiency-v1' } as const;
+// Resource values commonly differ by several orders of magnitude (for example,
+// a script entrypoint vs. a native executable). Penalize each tenfold gap by
+// 15 points, while preserving a visible 20-point floor for valid measurements.
+export const EFFICIENCY_LOG_PENALTY_PER_DECADE = 15;
+export const EFFICIENCY_SUBSCORE_FLOOR = 20;
 
 const average = (values: number[]) => values.reduce((total, value) => total + value, 0) / values.length;
 const geometricMean = (values: number[]) =>
@@ -216,6 +221,12 @@ function validResource(profile: ResourceProfile | undefined, dimension: Resource
 		: null;
 }
 
+export function resourceSubscore(rawEfficiency: number, cohortBest: number): number {
+	if (!(rawEfficiency > 0) || !(cohortBest > 0)) return 0;
+	const decadesBehind = Math.max(0, Math.log10(cohortBest / rawEfficiency));
+	return normalizeScore(Math.max(EFFICIENCY_SUBSCORE_FLOOR, 100 - EFFICIENCY_LOG_PENALTY_PER_DECADE * decadesBehind));
+}
+
 function efficiencyForSnapshot(
 	benchmarkIds: string[],
 	benchmarkScores: Map<string, BenchmarkScore[]>,
@@ -245,7 +256,7 @@ function efficiencyForSnapshot(
 			const best = Math.max(...raw.map((entry) => entry.value));
 			for (const entry of raw) {
 				const byDimension = perLanguage.get(entry.score.language.id) ?? new Map<ResourceDimension, number[]>();
-				byDimension.set(dimension, [...(byDimension.get(dimension) ?? []), normalizeScore(100 * entry.value / best)]);
+				byDimension.set(dimension, [...(byDimension.get(dimension) ?? []), resourceSubscore(entry.value, best)]);
 				perLanguage.set(entry.score.language.id, byDimension);
 				const languageValues = values.get(entry.score.language.id) ?? {};
 				languageValues[dimension] = validResource(profiles.get(`${benchmarkId}/${entry.score.language.id}`), dimension)!;
