@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-21T01:19:12.609Z",
+  "generatedAt": "2026-07-21T05:20:54.914Z",
   "cells": {
     "aggregation:c": {
       "logicalLines": 336,
@@ -245,12 +245,12 @@
       "sha256": "1085489868a76ff2b1764af45fb7fb95520442cd7e8beacf0ee41dd71b66a529"
     },
     "matrix-multiplication:rust": {
-      "logicalLines": 119,
+      "logicalLines": 148,
       "fileCount": 1,
       "files": [
         "src/main.rs"
       ],
-      "sha256": "bb0dd55fc83f91c89015966c42371133508901620647f20c63c893ddccc24198"
+      "sha256": "b089c8ea2b479e1e80b2af6777180ffdf8dbbf9549886184835c2bec841a6a4f"
     },
     "matrix-multiplication:typescript": {
       "logicalLines": 50,
@@ -613,12 +613,12 @@
       "sha256": "dff488527b25a50efd523b045a6bb48feb191012f3b42ecc5f6755bca6f9f2b7"
     },
     "word-frequency:rust": {
-      "logicalLines": 131,
+      "logicalLines": 132,
       "fileCount": 1,
       "files": [
         "src/main.rs"
       ],
-      "sha256": "874c6dbca37896581feb0a9ef49c3bbb27c0c58c1399fdd1b45a675201a6f888"
+      "sha256": "4906b7bf01d717b0a62149cef7733fb6d05637b3346c6c052959194e34aec386"
     },
     "word-frequency:typescript": {
       "logicalLines": 39,

@@ -42,6 +42,25 @@ fn emit_line(value: &serde_json::Value) {
     stdout.flush().unwrap();
 }
 
+fn write_i64(buf: &mut Vec<u8>, mut v: i64) {
+    if v == 0 {
+        buf.push(b'0');
+        return;
+    }
+    if v < 0 {
+        buf.push(b'-');
+        v = -v;
+    }
+    let mut digits = [0u8; 20];
+    let mut i = 20;
+    while v > 0 {
+        i -= 1;
+        digits[i] = b'0' + (v % 10) as u8;
+        v /= 10;
+    }
+    buf.extend_from_slice(&digits[i..]);
+}
+
 fn kernel(input: &Input) -> Output {
     let n = input.dimension;
     let a = &input.left;
@@ -49,10 +68,8 @@ fn kernel(input: &Input) -> Output {
     let mut c = vec![0i64; n * n];
     let mut value_sum: i64 = 0;
     let mut diagonal_sum: i64 = 0;
+
     for i in 0..n {
-        for j in 0..n {
-            c[i * n + j] = 0;
-        }
         for k in 0..n {
             let a_ik = a[i * n + k];
             for j in 0..n {
@@ -66,20 +83,37 @@ fn kernel(input: &Input) -> Output {
             }
         }
     }
-    let mut hasher = Sha256::new();
-    hasher.update(format!("dimension={}\n", n));
+
+    let nn = n * n;
+    let mut checksum_buf = Vec::with_capacity(nn * 12 + 64);
+    checksum_buf.extend_from_slice(b"dimension=");
+    write_i64(&mut checksum_buf, n as i64);
+    checksum_buf.push(b'\n');
     for val in &c {
-        hasher.update(format!("{},", val));
+        write_i64(&mut checksum_buf, *val);
+        checksum_buf.push(b',');
     }
-    hasher.update("\n");
+    checksum_buf.push(b'\n');
+
+    let checksum = {
+        let hash = Sha256::digest(&checksum_buf);
+        const HEX: &[u8; 16] = b"0123456789abcdef";
+        let mut s = String::with_capacity(64);
+        for &b in hash.as_slice() {
+            s.push(HEX[(b >> 4) as usize] as char);
+            s.push(HEX[(b & 0xf) as usize] as char);
+        }
+        s
+    };
+
     Output {
         benchmark: "matrix-multiplication",
         version: 1,
         dimension: n,
-        element_count: n * n,
+        element_count: nn,
         value_sum,
         diagonal_sum,
-        checksum: format!("{:x}", hasher.finalize()),
+        checksum,
     }
 }
 

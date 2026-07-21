@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import { resolveSpawnCommand, resolveSpawnEnv } from "./env.js";
 import { shouldStopMeasuring, validateMeasurementPolicy, type MeasurementPolicy } from "./timing.js";
+import { register } from "./process-registry.js";
 
 export const MEASUREMENT_PROTOCOL_VERSION = "2.0.0";
 
@@ -209,6 +210,7 @@ export async function runHarnessProtocol(options: {
     stdio: ["pipe", "pipe", "pipe"]
   }) as ChildProcessWithoutNullStreams;
   if (child.pid !== undefined) options.onWorkerPid?.(child.pid);
+  register(child);
 
   const reader = createLineReader(child, options.maxCapturedBytes);
   child.stdin.on("error", () => {

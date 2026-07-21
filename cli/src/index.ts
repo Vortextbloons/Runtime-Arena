@@ -28,6 +28,7 @@ import {
   type LanguageProvenance
 } from "./provenance.js";
 import { runProcess } from "./process.js";
+import { killAll } from "./process-registry.js";
 import { RunnerCache, stageIsolatedDatasets } from "./runner-cache.js";
 import { jdkPathEnvironment, resolveJdkTool } from "./jdk.js";
 import { resolveLanguageProvenance } from "./provenance-defaults.js";
@@ -747,6 +748,7 @@ async function runCommand(args: string[]) {
   if (verbose && plannedCells === 0) console.log(`All ${currentCells} selected cells are current.`);
   if (flags.get("--format") === "json") console.log(JSON.stringify(snapshot, null, flags.has("--quiet") ? 0 : 2));
   if (!flags.has("--preserve-temp")) await rm(tempRoot, { recursive: true, force: true });
+  killAll();
   return 0;
 }
 
@@ -770,16 +772,25 @@ async function resourcesCollectCommand(args: string[]) {
     if (!cells.has(key)) cells.set(key, result);
   }
   let updated = 0;
-  for (const [key, result] of cells) {
-    const language = (await discoverLanguages()).find(candidate => candidate.id === result.language.id)!;
-    const benchmark = (await discoverBenchmarks()).find(candidate => candidate.id === result.benchmark.id)!;
+  const languagesById = new Map((await discoverLanguages()).map(language => [language.id, language]));
+  const benchmarksById = new Map((await discoverBenchmarks()).map(benchmark => [benchmark.id, benchmark]));
+  const planned = [...cells.entries()];
+  console.log(`Resource plan: ${planned.length} benchmark/language profile${planned.length === 1 ? "" : "s"}.`);
+  for (const [index, [key, result]] of planned.entries()) {
+    const label = `[${index + 1}/${planned.length}] ${result.benchmark.id}/${result.language.id}`;
+    const language = languagesById.get(result.language.id)!;
+    const benchmark = benchmarksById.get(result.benchmark.id)!;
     const implementation = lines[`${result.benchmark.id}:${result.language.id}`] as { logicalLines: number; fileCount: number; files: string[]; sha256: string } | undefined;
     const fingerprint = createHash("sha256").update(JSON.stringify({
       contract: "1.0.0", implementation, build: result.provenance?.buildFingerprint, artifact: result.build?.artifactSizeBytes,
       machine: result.provenance?.machine, language: result.language.version
     })).digest("hex");
     const existing = profiles.get(key);
-    if (!flags.has("--force") && existing?.fingerprint === fingerprint) continue;
+    if (!flags.has("--force") && existing?.fingerprint === fingerprint) {
+      console.log(`${label} current`);
+      continue;
+    }
+    console.log(`${label} collecting (3 cold builds + memory probes)…`);
     const cold = await collectColdBuildResource(language, benchmark, fingerprint);
     const memory = await collectMemoryResource(language, benchmark, snapshot.results.filter(candidate => candidate.benchmark.id === benchmark.id && candidate.language.id === language.id), fingerprint);
     profiles.set(key, {
@@ -806,6 +817,7 @@ async function resourcesCollectCommand(args: string[]) {
         : { status: "unavailable", reason: "No workload-owned source files matched the language boundaries." }
     });
     updated++;
+    console.log(`${label} done · build ${cold.buildSamples.length}/3 · memory ${memory.samples.length}/3 · artifact ${cold.artifactFiles} file${cold.artifactFiles === 1 ? "" : "s"}`);
   }
   snapshot.resources = [...profiles.values()].sort((a, b) => resourceProfileKey(a).localeCompare(resourceProfileKey(b)));
   snapshot.schemaVersion = "4.0.0";
@@ -1395,6 +1407,11 @@ async function main() {
   console.log("Runtime Arena\n\nUsage: arena <doctor|list|build|run|resources collect|check|protocol|dataset|results|web>");
   return command ? 1 : 0;
 }
+
+const cleanup = () => killAll();
+process.on("exit", cleanup);
+process.on("SIGINT", () => { cleanup(); process.exit(130); });
+process.on("SIGTERM", () => { cleanup(); process.exit(143); });
 
 try { process.exitCode = await main(); }
 catch (error) { console.error(error instanceof Error ? error.message : error); process.exitCode = 1; }

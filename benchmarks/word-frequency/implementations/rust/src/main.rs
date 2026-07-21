@@ -1,6 +1,6 @@
+use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Write};
 use std::{env, fs};
 
@@ -47,7 +47,8 @@ fn emit_line(value: &serde_json::Value) {
 }
 
 fn kernel(words: &[String]) -> Output {
-    let mut freq: HashMap<&str, usize> = HashMap::new();
+    let mut freq: FxHashMap<&str, usize> =
+        FxHashMap::with_capacity_and_hasher(words.len() / 2, Default::default());
     for w in words {
         *freq.entry(w.as_str()).or_insert(0) += 1;
     }
