@@ -1,7 +1,7 @@
-export type TierLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+export type TierLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 export type ScoreTier = {
-	/** Band label shown on the tier strip (e.g. DOMINANT). */
+	/** Band label shown on the tier strip (e.g. SUPERSTAR). */
 	name: string;
 	/** Gem / rarity label (e.g. Diamond). */
 	sub: string;
@@ -44,96 +44,119 @@ const LANGUAGE_MONOGRAMS: Record<string, string> = {
 
 export function getScoreTier(score: number | null): ScoreTier {
 	if (score === null) return UNRANKED;
-	if (score >= 100) {
+	// Hoop Rush OVR bands: cut points double as the adjustment mechanism —
+	// to rebalance rarity, move a `min` below. Target pool shares in comments.
+	if (score >= 97) {
+		// Historic / GOAT — target 0.5–1% of player pool
 		return {
-			name: 'FLAWLESS',
+			name: 'HISTORIC',
 			sub: 'Dark Matter',
 			tag: 'DM',
 			class: 'dark-matter',
 			gradient: 'linear-gradient(135deg, #0a0612 0%, #1a0f3d 35%, #00d4ff 70%, #7b2fff 100%)',
 			glow: '#00e5ff',
-			tierLevel: 9
+			tierLevel: 10
 		};
 	}
-	if (score >= 99) {
+	if (score >= 94) {
+		// MVP — target 1–2%
 		return {
-			name: 'TRANSCENDENT',
+			name: 'MVP',
 			sub: 'Prismatic Opal',
 			tag: 'PO',
 			class: 'prismatic-opal',
 			gradient: 'linear-gradient(135deg, #ff6ec7 0%, #7afcff 35%, #ffe66d 65%, #b388ff 100%)',
 			glow: '#e8c4ff',
-			tierLevel: 8
+			tierLevel: 9
 		};
 	}
-	if (score >= 95) {
+	if (score >= 90) {
+		// Superstar — target 3–5%
 		return {
-			name: 'UNTOUCHABLE',
+			name: 'SUPERSTAR',
 			sub: 'Galaxy Opal',
 			tag: 'GO',
 			class: 'galaxy-opal',
 			gradient: 'linear-gradient(135deg, #ff2bd6 0%, #b13bd6 45%, #6a1bd6 100%)',
 			glow: '#ff2bd6',
-			tierLevel: 7
+			tierLevel: 8
 		};
 	}
-	if (score >= 90) {
+	if (score >= 86) {
+		// Star — target 6–10%
 		return {
-			name: 'INVINCIBLE',
+			name: 'STAR',
 			sub: 'Pink Diamond',
 			tag: 'PD',
 			class: 'pink-diamond',
 			gradient: 'linear-gradient(135deg, #ff6db5 0%, #d6388a 50%, #6a1d4f 100%)',
 			glow: '#ff5fa8',
-			tierLevel: 6
+			tierLevel: 7
 		};
 	}
-	if (score >= 80) {
+	if (score >= 82) {
+		// High-end starter — target 12–16%
 		return {
-			name: 'DOMINANT',
+			name: 'KEY STARTER',
 			sub: 'Diamond',
 			tag: 'DIA',
 			class: 'diamond',
 			gradient: 'linear-gradient(135deg, #5ce6ff 0%, #2d9fd6 50%, #103a5e 100%)',
 			glow: '#5ce6ff',
-			tierLevel: 5
+			tierLevel: 6
 		};
 	}
-	if (score >= 70) {
+	if (score >= 78) {
+		// Starter — target 18–22%
 		return {
-			name: 'ELITE',
+			name: 'STARTER',
 			sub: 'Amethyst',
 			tag: 'AME',
 			class: 'amethyst',
 			gradient: 'linear-gradient(135deg, #b794ff 0%, #7a4ed6 50%, #2a1850 100%)',
 			glow: '#b794ff',
-			tierLevel: 4
+			tierLevel: 5
 		};
 	}
-	if (score >= 60) {
+	if (score >= 74) {
+		// Rotation — target 20–25%
 		return {
-			name: 'STANDARD',
+			name: 'ROTATION',
 			sub: 'Ruby',
 			tag: 'RUB',
 			class: 'ruby',
 			gradient: 'linear-gradient(135deg, #ff5a5a 0%, #b32d2d 50%, #4a0e0e 100%)',
 			glow: '#ff5a5a',
-			tierLevel: 3
+			tierLevel: 4
 		};
 	}
-	if (score >= 45) {
+	if (score >= 70) {
+		// Bench — target 12–18%
 		return {
-			name: 'ROOKIE',
+			name: 'BENCH',
 			sub: 'Sapphire',
 			tag: 'SAP',
 			class: 'sapphire',
 			gradient: 'linear-gradient(135deg, #6a8cff 0%, #2d4fb8 50%, #0e1a4a 100%)',
 			glow: '#6a8cff',
+			tierLevel: 3
+		};
+	}
+	if (score >= 65) {
+		// Fringe — target 5–10%
+		return {
+			name: 'FRINGE',
+			sub: 'Turquoise',
+			tag: 'TUR',
+			class: 'turquoise',
+			gradient: 'linear-gradient(135deg, #4fd8c8 0%, #2d8f86 50%, #0e3a36 100%)',
+			glow: '#4fd8c8',
 			tierLevel: 2
 		};
 	}
+	// Replacement — target 1–5%
 	return {
-		name: 'COMMON',
+		name: 'REPLACEMENT',
 		sub: 'Emerald',
 		tag: 'EME',
 		class: 'emerald',

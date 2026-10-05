@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-21T21:50:21.123Z",
+  "generatedAt": "2026-07-21T22:02:04.254Z",
   "cells": {
     "aggregation:c": {
       "logicalLines": 342,
@@ -353,12 +353,12 @@
       "sha256": "8902d36e9a2c7b68ef0c295da4b07406d3b01bdcbe16a0d137d198357f6ee4b9"
     },
     "record-sorting:c": {
-      "logicalLines": 186,
+      "logicalLines": 180,
       "fileCount": 1,
       "files": [
         "main.c"
       ],
-      "sha256": "5763d418174cb3e8bcf410cb80116d1dc142701ec7dac2321c90986ca937a51c"
+      "sha256": "e66915569944bc968a4886f1f46b5729405cedf6c56f94f1c47053bfcb1b7008"
     },
     "record-sorting:c-sharp": {
       "logicalLines": 236,

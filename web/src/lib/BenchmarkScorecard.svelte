@@ -313,6 +313,7 @@
 	.amethyst { --tier-glow: #b794ff; }
 	.ruby { --tier-glow: #ff5a5a; }
 	.sapphire { --tier-glow: #6a8cff; }
+	.turquoise { --tier-glow: #4fd8c8; }
 	.emerald { --tier-glow: #6affb8; }
 	.unranked { --tier-glow: #4a5560; }
 

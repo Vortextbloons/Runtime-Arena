@@ -40,18 +40,19 @@ Resolved by `getScoreTier(score: number | null)`:
 
 | `overall` | Band name | Gem (rarity) | Tag | `tierLevel` | CSS class | `--tier-glow` | `--tier-gradient` |
 |-----------|-----------|--------------|-----|-------------|-----------|---------------|--------------------|
-| 100 | FLAWLESS | Dark Matter | DM | 9 | `dark-matter` | `#00e5ff` | `linear-gradient(135deg, #0a0612 0%, #1a0f3d 35%, #00d4ff 70%, #7b2fff 100%)` |
-| ≥ 99 | TRANSCENDENT | Prismatic Opal | PO | 8 | `prismatic-opal` | `#e8c4ff` | `linear-gradient(135deg, #ff6ec7 0%, #7afcff 35%, #ffe66d 65%, #b388ff 100%)` |
-| ≥ 95 | UNTOUCHABLE | Galaxy Opal | GO | 7 | `galaxy-opal` | `#ff2bd6` | `linear-gradient(135deg, #ff2bd6 0%, #b13bd6 45%, #6a1bd6 100%)` |
-| ≥ 90 | INVINCIBLE | Pink Diamond | PD | 6 | `pink-diamond` | `#ff5fa8` | `linear-gradient(135deg, #ff6db5 0%, #d6388a 50%, #6a1d4f 100%)` |
-| ≥ 80 | DOMINANT | Diamond | DIA | 5 | `diamond` | `#5ce6ff` | `linear-gradient(135deg, #5ce6ff 0%, #2d9fd6 50%, #103a5e 100%)` |
-| ≥ 70 | ELITE | Amethyst | AME | 4 | `amethyst` | `#b794ff` | `linear-gradient(135deg, #b794ff 0%, #7a4ed6 50%, #2a1850 100%)` |
-| ≥ 60 | STANDARD | Ruby | RUB | 3 | `ruby` | `#ff5a5a` | `linear-gradient(135deg, #ff5a5a 0%, #b32d2d 50%, #4a0e0e 100%)` |
-| ≥ 45 | ROOKIE | Sapphire | SAP | 2 | `sapphire` | `#6a8cff` | `linear-gradient(135deg, #6a8cff 0%, #2d4fb8 50%, #0e1a4a 100%)` |
-| &lt; 45 | COMMON | Emerald | EME | 1 | `emerald` | `#6affb8` | `linear-gradient(135deg, #6affb8 0%, #2db87a 50%, #0e4a2a 100%)` |
+| ≥ 97 | HISTORIC | Dark Matter | DM | 10 | `dark-matter` | `#00e5ff` | `linear-gradient(135deg, #0a0612 0%, #1a0f3d 35%, #00d4ff 70%, #7b2fff 100%)` |
+| ≥ 94 | MVP | Prismatic Opal | PO | 9 | `prismatic-opal` | `#e8c4ff` | `linear-gradient(135deg, #ff6ec7 0%, #7afcff 35%, #ffe66d 65%, #b388ff 100%)` |
+| ≥ 90 | SUPERSTAR | Galaxy Opal | GO | 8 | `galaxy-opal` | `#ff2bd6` | `linear-gradient(135deg, #ff2bd6 0%, #b13bd6 45%, #6a1bd6 100%)` |
+| ≥ 86 | STAR | Pink Diamond | PD | 7 | `pink-diamond` | `#ff5fa8` | `linear-gradient(135deg, #ff6db5 0%, #d6388a 50%, #6a1d4f 100%)` |
+| ≥ 82 | KEY STARTER | Diamond | DIA | 6 | `diamond` | `#5ce6ff` | `linear-gradient(135deg, #5ce6ff 0%, #2d9fd6 50%, #103a5e 100%)` |
+| ≥ 78 | STARTER | Amethyst | AME | 5 | `amethyst` | `#b794ff` | `linear-gradient(135deg, #b794ff 0%, #7a4ed6 50%, #2a1850 100%)` |
+| ≥ 74 | ROTATION | Ruby | RUB | 4 | `ruby` | `#ff5a5a` | `linear-gradient(135deg, #ff5a5a 0%, #b32d2d 50%, #4a0e0e 100%)` |
+| ≥ 70 | BENCH | Sapphire | SAP | 3 | `sapphire` | `#6a8cff` | `linear-gradient(135deg, #6a8cff 0%, #2d4fb8 50%, #0e1a4a 100%)` |
+| ≥ 65 | FRINGE | Turquoise | TUR | 2 | `turquoise` | `#4fd8c8` | `linear-gradient(135deg, #4fd8c8 0%, #2d8f86 50%, #0e3a36 100%)` |
+| &lt; 65 | REPLACEMENT | Emerald | EME | 1 | `emerald` | `#6affb8` | `linear-gradient(135deg, #6affb8 0%, #2db87a 50%, #0e4a2a 100%)` |
 | `null` | UNVERIFIED | No Rank | — | 0 | `unranked` | `#4a5560` | `linear-gradient(135deg, #4a5560 0%, #2a323a 50%, #0e141a 100%)` |
 
-`tierLevel` (`0 | 1 | … | 9`) drives shimmer intensity and `high-tier` styling (`tierLevel >= 5`). Apex cards (`tierLevel >= 8`) get stronger foil shimmer. Each tier sets `--tier-glow` and `--tier-gradient`.
+`tierLevel` (`0 | 1 | … | 10`) drives shimmer intensity and `high-tier` styling (`tierLevel >= 5`). Apex cards (`tierLevel >= 8`) get stronger foil shimmer. Each tier sets `--tier-glow` and `--tier-gradient`. Cut points follow the Hoop Rush OVR bands (97 / 94 / 90 / 86 / 82 / 78 / 74 / 70 / 65); rebalance rarity by moving a `min` in `tiers.ts` (mirrored in `scripts/scorecard.mjs`).
 
 ## Language Visual Identity
 

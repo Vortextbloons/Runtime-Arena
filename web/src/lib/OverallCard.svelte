@@ -575,12 +575,12 @@
 		background:
 			linear-gradient(
 				115deg,
-				transparent calc(30% - 12% * var(--tier-level) / 9),
-				color-mix(in srgb, var(--tier-glow) calc(8% + 5% * var(--tier-level) / 9), transparent) 50%,
-				transparent calc(70% + 12% * var(--tier-level) / 9)
+				transparent calc(30% - 12% * var(--tier-level) / 10),
+				color-mix(in srgb, var(--tier-glow) calc(8% + 5% * var(--tier-level) / 10), transparent) 50%,
+				transparent calc(70% + 12% * var(--tier-level) / 10)
 			);
 		mix-blend-mode: screen;
-		opacity: calc(0.25 + 0.55 * var(--tier-level) / 9);
+		opacity: calc(0.25 + 0.55 * var(--tier-level) / 10);
 		pointer-events: none;
 	}
 
@@ -609,6 +609,7 @@
 	.amethyst { --tier-glow: #b794ff; }
 	.ruby { --tier-glow: #ff5a5a; }
 	.sapphire { --tier-glow: #6a8cff; }
+	.turquoise { --tier-glow: #4fd8c8; }
 	.emerald { --tier-glow: #6affb8; }
 	.unranked { --tier-glow: #4a5560; }
 

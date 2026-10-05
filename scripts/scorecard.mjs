@@ -49,17 +49,18 @@ const resourceSubscore = (rawEfficiency, cohortBest) => {
   return normalizeScore(Math.max(EFFICIENCY_SUBSCORE_FLOOR, 100 - EFFICIENCY_LOG_PENALTY_PER_DECADE * decadesBehind));
 };
 
-// ── Tier definitions ──────────────────────────────────
+// ── Tier definitions (Hoop Rush OVR bands; rebalance by moving `min`) ──
 const TIERS = [
-  { min: 100, name: 'FLAWLESS', gem: 'Dark Matter', tag: 'DM', level: 9 },
-  { min: 99,  name: 'TRANSCENDENT', gem: 'Prismatic Opal', tag: 'PO', level: 8 },
-  { min: 95,  name: 'UNTOUCHABLE', gem: 'Galaxy Opal', tag: 'GO', level: 7 },
-  { min: 90,  name: 'INVINCIBLE', gem: 'Pink Diamond', tag: 'PD', level: 6 },
-  { min: 80,  name: 'DOMINANT', gem: 'Diamond', tag: 'DIA', level: 5 },
-  { min: 70,  name: 'ELITE', gem: 'Amethyst', tag: 'AME', level: 4 },
-  { min: 60,  name: 'STANDARD', gem: 'Ruby', tag: 'RUB', level: 3 },
-  { min: 45,  name: 'ROOKIE', gem: 'Sapphire', tag: 'SAP', level: 2 },
-  { min: 0,   name: 'COMMON', gem: 'Emerald', tag: 'EME', level: 1 },
+  { min: 97,  name: 'HISTORIC', gem: 'Dark Matter', tag: 'DM', level: 10 },
+  { min: 94,  name: 'MVP', gem: 'Prismatic Opal', tag: 'PO', level: 9 },
+  { min: 90,  name: 'SUPERSTAR', gem: 'Galaxy Opal', tag: 'GO', level: 8 },
+  { min: 86,  name: 'STAR', gem: 'Pink Diamond', tag: 'PD', level: 7 },
+  { min: 82,  name: 'KEY STARTER', gem: 'Diamond', tag: 'DIA', level: 6 },
+  { min: 78,  name: 'STARTER', gem: 'Amethyst', tag: 'AME', level: 5 },
+  { min: 74,  name: 'ROTATION', gem: 'Ruby', tag: 'RUB', level: 4 },
+  { min: 70,  name: 'BENCH', gem: 'Sapphire', tag: 'SAP', level: 3 },
+  { min: 65,  name: 'FRINGE', gem: 'Turquoise', tag: 'TUR', level: 2 },
+  { min: 0,   name: 'REPLACEMENT', gem: 'Emerald', tag: 'EME', level: 1 },
 ];
 
 const getScoreTier = (score) => {
@@ -756,15 +757,16 @@ md += `| Bronze | 78 | 78 | P25 | +0.5 |\n\n`;
 md += `## Tier & Rarity Reference\n\n`;
 md += `| Score | Band | Gem (Rarity) | Tag | Tier Level |\n`;
 md += `|-------|------|--------------|-----|------------|\n`;
-md += `| 100 | FLAWLESS | Dark Matter | DM | 9 |\n`;
-md += `| ≥ 99 | TRANSCENDENT | Prismatic Opal | PO | 8 |\n`;
-md += `| ≥ 95 | UNTOUCHABLE | Galaxy Opal | GO | 7 |\n`;
-md += `| ≥ 90 | INVINCIBLE | Pink Diamond | PD | 6 |\n`;
-md += `| ≥ 80 | DOMINANT | Diamond | DIA | 5 |\n`;
-md += `| ≥ 70 | ELITE | Amethyst | AME | 4 |\n`;
-md += `| ≥ 60 | STANDARD | Ruby | RUB | 3 |\n`;
-md += `| ≥ 45 | ROOKIE | Sapphire | SAP | 2 |\n`;
-md += `| &lt; 45 | COMMON | Emerald | EME | 1 |\n\n`;
+md += `| ≥ 97 | HISTORIC | Dark Matter | DM | 10 |\n`;
+md += `| ≥ 94 | MVP | Prismatic Opal | PO | 9 |\n`;
+md += `| ≥ 90 | SUPERSTAR | Galaxy Opal | GO | 8 |\n`;
+md += `| ≥ 86 | STAR | Pink Diamond | PD | 7 |\n`;
+md += `| ≥ 82 | KEY STARTER | Diamond | DIA | 6 |\n`;
+md += `| ≥ 78 | STARTER | Amethyst | AME | 5 |\n`;
+md += `| ≥ 74 | ROTATION | Ruby | RUB | 4 |\n`;
+md += `| ≥ 70 | BENCH | Sapphire | SAP | 3 |\n`;
+md += `| ≥ 65 | FRINGE | Turquoise | TUR | 2 |\n`;
+md += `| &lt; 65 | REPLACEMENT | Emerald | EME | 1 |\n\n`;
 
 // ── Badge Matrix ──────────────────────────────────────
 md += `## Badge Summary Matrix\n\n`;
