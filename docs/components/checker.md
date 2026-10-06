@@ -9,12 +9,15 @@ checker/
   go.mod                # module github.com/runtime-arena/checker
   cmd/
     arena-checker/
-      main.go           # All checker logic (single package today)
+      main.go           # CLI dispatch and existing workloads
       main_test.go      # Unit tests
+      exchange.go       # Arena Exchange replay, invariants, and checksums
+      exchange_test.go  # Exchange semantics and fixture validation
   internal/
 ```
 
-All validation currently lives in `main.go`. The `internal/` tree is reserved for a future split.
+Validation lives in the `arena-checker` package. Arena Exchange is split into
+its own source/test files; the `internal/` tree is reserved for a future split.
 
 ## Design Principles
 
@@ -78,6 +81,16 @@ Independently sorts records by score descending, then timestamp ascending, then 
 ### matrix-multiplication
 
 Independently performs i→j→k triple-loop matrix multiplication with bounds and dimension validation. Computes `valueSum`, `diagonalSum`, and a SHA-256 checksum. Covered by `TestMatrixMultiplication`.
+
+### arena-exchange
+
+Independently replays the complete exchange session using ordered price levels
+and FIFO queues. Verifies atomic risk/self-trade checks, reservations,
+cancellations/replacements, funding and controls, snapshot queries, final
+summaries/rankings, and five canonical SHA-256 streams. Checks cash, inventory,
+reservation, and admitted-quantity conservation. Tests replay every small
+profile; `ARENA_EXCHANGE_ALL_FIXTURES=1` additionally checks medium and large.
+Input files may exceed 10 MiB; the limit above applies to output JSON.
 
 ## Usage
 

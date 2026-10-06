@@ -116,8 +116,10 @@ fn decimal_bytes(mut value: u32, buffer: &mut [u8; 10]) -> &[u8] {
 fn kernel(words: &[Box<str>], output_bytes: &mut Vec<u8>) {
     // This remains deliberately local to each run: every iteration performs
     // the complete counting workload with fresh logical state.
+    // Sized for the full input so mostly-unique datasets never rehash;
+    // over-allocation on repeated-vocabulary inputs is a few MB at most.
     let mut frequencies: FxHashMap<&str, u32> =
-        FxHashMap::with_capacity_and_hasher(words.len() / 2, Default::default());
+        FxHashMap::with_capacity_and_hasher(words.len(), Default::default());
 
     for word in words {
         *frequencies.entry(word.as_ref()).or_insert(0) += 1;

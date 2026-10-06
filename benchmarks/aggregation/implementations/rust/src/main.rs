@@ -1,38 +1,10 @@
 use rustc_hash::{FxBuildHasher, FxHashMap};
-use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::io::{BufRead, BufReader, Write};
 use std::{env, fs};
 
 const PROTOCOL_VERSION: &str = "2.0.0";
 
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct Category {
-    category: String,
-    quantity: i64,
-    value_minor_units: i64,
-}
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct Account {
-    account_id: String,
-    value_minor_units: i64,
-}
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct Output {
-    benchmark: &'static str,
-    version: u32,
-    record_count: usize,
-    total_quantity: i64,
-    total_value_minor_units: i64,
-    categories: Vec<Category>,
-    top_accounts: Vec<Account>,
-    minimum_transaction_minor_units: i64,
-    maximum_transaction_minor_units: i64,
-    checksum: String,
-}
 #[derive(Clone)]
 struct Row {
     account: String,
@@ -76,10 +48,65 @@ fn write_i64(buf: &mut Vec<u8>, mut v: i64) {
     buf.extend_from_slice(&digits[i..]);
 }
 
-fn kernel(rows: &[Row]) -> Output {
-    let mut categories: FxHashMap<&str, (i64, i64)> =
-        FxHashMap::with_capacity_and_hasher(64, FxBuildHasher);
-    let mut accounts: FxHashMap<&str, i64> = FxHashMap::with_capacity_and_hasher(512, FxBuildHasher);
+struct Scratch {
+    categories: FxHashMap<String, (i64, i64)>,
+    accounts: FxHashMap<String, i64>,
+    cat_order: Vec<String>,
+    acct_order: Vec<String>,
+    cat_vals: Vec<(i64, i64)>,
+    acct_vals: Vec<i64>,
+    cat_idx: Vec<usize>,
+    acct_idx: Vec<usize>,
+    checksum_buf: Vec<u8>,
+    out_buf: Vec<u8>,
+}
+
+impl Scratch {
+    fn new() -> Self {
+        Scratch {
+            categories: FxHashMap::with_capacity_and_hasher(64, FxBuildHasher),
+            accounts: FxHashMap::with_capacity_and_hasher(512, FxBuildHasher),
+            cat_order: Vec::with_capacity(64),
+            acct_order: Vec::with_capacity(512),
+            cat_vals: Vec::with_capacity(64),
+            acct_vals: Vec::with_capacity(512),
+            cat_idx: Vec::with_capacity(64),
+            acct_idx: Vec::with_capacity(512),
+            checksum_buf: Vec::with_capacity(2048),
+            out_buf: Vec::with_capacity(4096),
+        }
+    }
+}
+
+/// Fresh aggregation state per iteration, reusing the backing allocations:
+/// hash tables are zeroed in place (key strings survive warmup), so the hot
+/// loop pays no allocator or rehash cost after the first iteration.
+fn kernel(rows: &[Row], s: &mut Scratch) -> Vec<u8> {
+    let Scratch {
+        categories,
+        accounts,
+        cat_order,
+        acct_order,
+        cat_vals,
+        acct_vals,
+        cat_idx,
+        acct_idx,
+        checksum_buf,
+        out_buf,
+    } = s;
+
+    for key in cat_order.iter() {
+        if let Some(slot) = categories.get_mut(key) {
+            slot.0 = 0;
+            slot.1 = 0;
+        }
+    }
+    for key in acct_order.iter() {
+        if let Some(slot) = accounts.get_mut(key) {
+            *slot = 0;
+        }
+    }
+
     let mut count = 0usize;
     let mut total_quantity = 0i64;
     let mut total_value = 0i64;
@@ -97,48 +124,73 @@ fn kernel(rows: &[Row]) -> Output {
         if value > maximum {
             maximum = value;
         }
-        let cat_entry = categories.entry(row.category.as_str()).or_default();
-        cat_entry.0 += row.quantity;
-        cat_entry.1 += value;
-        *accounts.entry(row.account.as_str()).or_default() += value;
+        match categories.get_mut(row.category.as_str()) {
+            Some(slot) => {
+                slot.0 += row.quantity;
+                slot.1 += value;
+            }
+            None => {
+                cat_order.push(row.category.clone());
+                categories.insert(row.category.clone(), (row.quantity, value));
+            }
+        }
+        match accounts.get_mut(row.account.as_str()) {
+            Some(slot) => *slot += value,
+            None => {
+                acct_order.push(row.account.clone());
+                accounts.insert(row.account.clone(), value);
+            }
+        }
     }
 
-    let mut cat_vec: Vec<(&str, i64, i64)> = categories
-        .into_iter()
-        .map(|(k, (q, v))| (k, q, v))
-        .collect();
-    cat_vec.sort_unstable_by(|a, b| a.0.cmp(b.0));
+    // Snapshot aggregates into index-aligned vectors: exactly one hash lookup
+    // per distinct key, and zero lookups inside the sort comparators.
+    cat_vals.clear();
+    cat_vals.extend(cat_order.iter().map(|k| categories[k.as_str()]));
+    acct_vals.clear();
+    acct_vals.extend(acct_order.iter().map(|k| accounts[k.as_str()]));
 
-    let mut acc_vec: Vec<(&str, i64)> = accounts.into_iter().collect();
-    if acc_vec.len() > 10 {
-        acc_vec.select_nth_unstable_by(10, |a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(b.0)));
-        acc_vec.truncate(10);
+    cat_idx.clear();
+    cat_idx.extend(0..cat_order.len());
+    cat_idx.sort_unstable_by(|&a, &b| cat_order[a].cmp(&cat_order[b]));
+
+    acct_idx.clear();
+    acct_idx.extend(0..acct_order.len());
+    let top_n = acct_idx.len().min(10);
+    if acct_idx.len() > 10 {
+        acct_idx.select_nth_unstable_by(10, |&a, &b| {
+            acct_vals[b].cmp(&acct_vals[a]).then_with(|| acct_order[a].cmp(&acct_order[b]))
+        });
+        acct_idx.truncate(10);
     }
-    acc_vec.sort_unstable_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(b.0)));
+    acct_idx.sort_unstable_by(|&a, &b| {
+        acct_vals[b].cmp(&acct_vals[a]).then_with(|| acct_order[a].cmp(&acct_order[b]))
+    });
 
-    let mut checksum_buf = Vec::with_capacity(512);
+    checksum_buf.clear();
     checksum_buf.extend_from_slice(b"{\"Categories\":[");
-    for (i, &(cat, qty, val)) in cat_vec.iter().enumerate() {
+    for (i, &ci) in cat_idx.iter().enumerate() {
         if i > 0 {
             checksum_buf.push(b',');
         }
+        let (q, v) = cat_vals[ci];
         checksum_buf.extend_from_slice(b"{\"category\":\"");
-        checksum_buf.extend_from_slice(cat.as_bytes());
+        checksum_buf.extend_from_slice(cat_order[ci].as_bytes());
         checksum_buf.extend_from_slice(b"\",\"quantity\":");
-        write_i64(&mut checksum_buf, qty);
+        write_i64(checksum_buf, q);
         checksum_buf.extend_from_slice(b",\"valueMinorUnits\":");
-        write_i64(&mut checksum_buf, val);
+        write_i64(checksum_buf, v);
         checksum_buf.push(b'}');
     }
     checksum_buf.extend_from_slice(b"],\"TopAccounts\":[");
-    for (i, &(acc, val)) in acc_vec.iter().enumerate() {
+    for (i, &ai) in acct_idx.iter().enumerate() {
         if i > 0 {
             checksum_buf.push(b',');
         }
         checksum_buf.extend_from_slice(b"{\"accountId\":\"");
-        checksum_buf.extend_from_slice(acc.as_bytes());
+        checksum_buf.extend_from_slice(acct_order[ai].as_bytes());
         checksum_buf.extend_from_slice(b"\",\"valueMinorUnits\":");
-        write_i64(&mut checksum_buf, val);
+        write_i64(checksum_buf, acct_vals[ai]);
         checksum_buf.push(b'}');
     }
     checksum_buf.extend_from_slice(b"]}");
@@ -147,42 +199,57 @@ fn kernel(rows: &[Row]) -> Output {
     let hash = Sha256::digest(&checksum_buf);
     let checksum = {
         const HEX: &[u8; 16] = b"0123456789abcdef";
-        let mut s = String::with_capacity(64);
+        let mut st = String::with_capacity(64);
         for &b in hash.as_slice() {
-            s.push(HEX[(b >> 4) as usize] as char);
-            s.push(HEX[(b & 0xf) as usize] as char);
+            st.push(HEX[(b >> 4) as usize] as char);
+            st.push(HEX[(b & 0xf) as usize] as char);
         }
-        s
+        st
     };
 
-    let categories = cat_vec
-        .into_iter()
-        .map(|(cat, qty, val)| Category {
-            category: cat.to_owned(),
-            quantity: qty,
-            value_minor_units: val,
-        })
-        .collect();
-    let top_accounts = acc_vec
-        .into_iter()
-        .map(|(acc, val)| Account {
-            account_id: acc.to_owned(),
-            value_minor_units: val,
-        })
-        .collect();
-
-    Output {
-        benchmark: "aggregation",
-        version: 1,
-        record_count: count,
-        total_quantity,
-        total_value_minor_units: total_value,
-        categories,
-        top_accounts,
-        minimum_transaction_minor_units: minimum,
-        maximum_transaction_minor_units: maximum,
-        checksum,
+    // Final output reuses the identical entry bytes: no owned-String clones,
+    // no serde serialization of the aggregate arrays.
+    out_buf.clear();
+    out_buf.extend_from_slice(b"{\"benchmark\":\"aggregation\",\"version\":1,\"recordCount\":");
+    write_i64(out_buf, count as i64);
+    out_buf.extend_from_slice(b",\"totalQuantity\":");
+    write_i64(out_buf, total_quantity);
+    out_buf.extend_from_slice(b",\"totalValueMinorUnits\":");
+    write_i64(out_buf, total_value);
+    out_buf.extend_from_slice(b",\"categories\":[");
+    for (i, &ci) in cat_idx.iter().enumerate() {
+        if i > 0 {
+            out_buf.push(b',');
+        }
+        let (q, v) = cat_vals[ci];
+        out_buf.extend_from_slice(b"{\"category\":\"");
+        out_buf.extend_from_slice(cat_order[ci].as_bytes());
+        out_buf.extend_from_slice(b"\",\"quantity\":");
+        write_i64(out_buf, q);
+        out_buf.extend_from_slice(b",\"valueMinorUnits\":");
+        write_i64(out_buf, v);
+        out_buf.push(b'}');
     }
+    out_buf.extend_from_slice(b"],\"topAccounts\":[");
+    for (i, &ai) in acct_idx.iter().enumerate() {
+        if i > 0 {
+            out_buf.push(b',');
+        }
+        out_buf.extend_from_slice(b"{\"accountId\":\"");
+        out_buf.extend_from_slice(acct_order[ai].as_bytes());
+        out_buf.extend_from_slice(b"\",\"valueMinorUnits\":");
+        write_i64(out_buf, acct_vals[ai]);
+        out_buf.push(b'}');
+    }
+    out_buf.extend_from_slice(b"],\"minimumTransactionMinorUnits\":");
+    write_i64(out_buf, minimum);
+    out_buf.extend_from_slice(b",\"maximumTransactionMinorUnits\":");
+    write_i64(out_buf, maximum);
+    out_buf.extend_from_slice(b",\"checksum\":\"");
+    out_buf.extend_from_slice(checksum.as_bytes());
+    out_buf.extend_from_slice(b"\"}");
+
+    out_buf.clone()
 }
 
 fn main() {
@@ -208,6 +275,7 @@ fn main() {
     }));
 
     let stdin = BufReader::new(std::io::stdin().lock());
+    let mut scratch = Scratch::new();
     let mut last_output_bytes = Vec::new();
 
     for line in stdin.lines() {
@@ -219,8 +287,7 @@ fn main() {
         match msg["type"].as_str() {
             Some("run") => {
                 let request_id = msg["requestId"].as_u64().unwrap();
-                let output = kernel(&rows);
-                last_output_bytes = serde_json::to_vec(&output).unwrap();
+                last_output_bytes = kernel(&rows, &mut scratch);
                 emit_line(&serde_json::json!({
                     "type": "result",
                     "requestId": request_id,

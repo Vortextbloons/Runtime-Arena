@@ -12,6 +12,7 @@ typedef struct {
     int64_t *left;
     int64_t *right;
     int64_t *product;
+    int64_t *transposed;
     char *buf;
     int bufCap;
 } MmCtx;
@@ -75,36 +76,85 @@ static void digest_hex_bytes(const uint8_t *data, size_t len, char out[65]) {
     sha256_hex(&sha, out);
 }
 
+static char *append_i64(char *p, int64_t v) {
+    if (v == 0) {
+        *p++ = '0';
+        *p++ = ',';
+        return p;
+    }
+    if (v < 0) {
+        *p++ = '-';
+        v = -v;
+    }
+    char tmp[20];
+    int len = 0;
+    while (v > 0) {
+        tmp[len++] = (char)('0' + v % 10);
+        v /= 10;
+    }
+    while (len > 0) *p++ = tmp[--len];
+    *p++ = ',';
+    return p;
+}
+
 static char *produce_output(void *ctx, size_t *out_len) {
     MmCtx *c = (MmCtx *)ctx;
     int n = c->dimension;
     int nn = n * n;
     int64_t *product = c->product;
+    int64_t *bt = c->transposed;
+    int64_t *left = c->left;
+    int64_t *right = c->right;
     char *buf = c->buf;
     int bufCap = c->bufCap;
 
     int64_t valueSum = 0, diagonalSum = 0;
 
-    memset(product, 0, nn * sizeof(int64_t));
-    for (int i = 0; i < n; i++) {
-        for (int k = 0; k < n; k++) {
-            int64_t aik = c->left[i * n + k];
-            for (int j = 0; j < n; j++) {
-                product[i * n + j] += aik * c->right[k * n + j];
+    /* Blocked transpose of B: sequential reads, blocked writes. */
+    for (int ii = 0; ii < n; ii += 32) {
+        int iMax = ii + 32 < n ? ii + 32 : n;
+        for (int jj = 0; jj < n; jj += 32) {
+            int jMax = jj + 32 < n ? jj + 32 : n;
+            for (int i = ii; i < iMax; i++) {
+                int64_t *rrow = right + i * n;
+                for (int j = jj; j < jMax; j++) {
+                    bt[j * n + i] = rrow[j];
+                }
             }
         }
     }
 
-    for (int i = 0; i < nn; i++) {
-        valueSum += product[i];
-        if (i % (n + 1) == 0) diagonalSum += product[i];
+    /* Dot-product rows of A with rows of transposed B (both sequential).
+       Four accumulators expose instruction-level parallelism. */
+    int kLim = n & ~3;
+    for (int i = 0; i < n; i++) {
+        int64_t *arow = left + i * n;
+        int64_t *crow = product + i * n;
+        int64_t rowSum = 0;
+        for (int j = 0; j < n; j++) {
+            int64_t *brow = bt + j * n;
+            int64_t s0 = 0, s1 = 0, s2 = 0, s3 = 0;
+            for (int k = 0; k < kLim; k += 4) {
+                s0 += arow[k] * brow[k];
+                s1 += arow[k + 1] * brow[k + 1];
+                s2 += arow[k + 2] * brow[k + 2];
+                s3 += arow[k + 3] * brow[k + 3];
+            }
+            int64_t s = (s0 + s1) + (s2 + s3);
+            for (int k = kLim; k < n; k++) s += arow[k] * brow[k];
+            crow[j] = s;
+            rowSum += s;
+            if (i == j) diagonalSum += s;
+        }
+        valueSum += rowSum;
     }
 
-    int bufLen = snprintf(buf, bufCap, "dimension=%d\n", n);
+    char *p = buf + snprintf(buf, bufCap, "dimension=%d\n", n);
     for (int i = 0; i < nn; i++) {
-        bufLen += snprintf(buf + bufLen, bufCap - bufLen, "%lld,", (long long)product[i]);
+        p = append_i64(p, product[i]);
     }
-    bufLen += snprintf(buf + bufLen, bufCap - bufLen, "\n");
+    *p++ = '\n';
+    size_t bufLen = (size_t)(p - buf);
 
     SHA256 hasher;
     sha256_init(&hasher);
@@ -157,12 +207,13 @@ int main(int argc, char *argv[]) {
     }
     json_free(&root);
 
-    int bufCap = nn * 20 + 256;
+    int bufCap = nn * 24 + 256;
     MmCtx ctx = {
         .dimension = n,
         .left = left,
         .right = right,
         .product = malloc(nn * sizeof(int64_t)),
+        .transposed = malloc(nn * sizeof(int64_t)),
         .buf = malloc(bufCap),
         .bufCap = bufCap
     };
@@ -193,6 +244,7 @@ int main(int argc, char *argv[]) {
 
     free(lastOutput);
     free(ctx.product);
+    free(ctx.transposed);
     free(ctx.buf);
     free(left);
     free(right);

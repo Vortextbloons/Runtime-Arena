@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -31,16 +32,22 @@ struct Output {
 };
 
 Output kernel(const std::vector<std::string>& words) {
-    std::unordered_map<std::string, int> freq;
-    freq.reserve(words.size() / 4);
+    // string_view keys borrow the (stable) input strings, so counting never
+    // copies a key. The map is rebuilt from scratch every iteration.
+    std::unordered_map<std::string_view, int> freq;
+    freq.max_load_factor(0.7);
+    freq.reserve(words.size());
     for (const auto& w : words) {
-        freq[w]++;
+        std::string_view v(w);
+        auto it = freq.find(v);
+        if (it != freq.end()) ++it->second;
+        else freq.emplace(v, 1);
     }
 
     std::vector<Entry> entries;
     entries.reserve(freq.size());
     for (const auto& [w, c] : freq) {
-        entries.push_back({w, c});
+        entries.push_back({std::string(w), c});
     }
 
     std::sort(entries.begin(), entries.end(), [](const Entry& a, const Entry& b) {
@@ -48,24 +55,18 @@ Output kernel(const std::vector<std::string>& words) {
         return a.word < b.word;
     });
 
-    size_t bufCap = 0;
-    for (const auto& e : entries) {
-        bufCap += e.word.size() + 24;
-    }
-    bufCap += 32;
-    std::string buf;
-    buf.reserve(bufCap);
-    for (const auto& e : entries) {
-        buf.append(e.word);
-        buf.push_back(',');
-        char numbuf[16];
-        int len = std::snprintf(numbuf, sizeof(numbuf), "%d", e.count);
-        buf.append(numbuf, len);
-        buf.push_back('\n');
-    }
-
+    // Stream entries straight into SHA-256: no giant staging buffer.
     SHA256 hasher;
-    hasher.update(buf);
+    static const uint8_t comma = ',';
+    static const uint8_t newline = '\n';
+    char numbuf[16];
+    for (const auto& e : entries) {
+        hasher.update(reinterpret_cast<const uint8_t*>(e.word.data()), e.word.size());
+        hasher.update(&comma, 1);
+        int len = std::snprintf(numbuf, sizeof(numbuf), "%d", e.count);
+        hasher.update(reinterpret_cast<const uint8_t*>(numbuf), (size_t)len);
+        hasher.update(&newline, 1);
+    }
 
     int topCount = std::min(10, static_cast<int>(entries.size()));
     std::vector<Entry> top(entries.begin(), entries.begin() + topCount);

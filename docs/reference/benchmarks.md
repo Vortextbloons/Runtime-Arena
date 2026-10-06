@@ -1,6 +1,6 @@
 # Benchmarks Reference
 
-Runtime Arena currently defines seven benchmark workloads, each with implementations across eleven supported languages (C, C#, C++, Go, Java, JavaScript, LuaJIT, Lua Interpreted, Python, Rust, and TypeScript). The sole exception is barrier-wave, where neither Lua runtime is included — both LuaJIT and lua-interpreted lack native threading. All workloads have contracts, fixtures, dataset generation, checker support, and complete benchmark results.
+Runtime Arena currently defines eight benchmark workloads. Seven have implementations across eleven supported languages (C, C#, C++, Go, Java, JavaScript, LuaJIT, Lua Interpreted, Python, Rust, and TypeScript), except barrier-wave, which excludes both Lua runtimes because they lack native threading. Arena Exchange has its contracts, fixtures, generator, schemas, and checker ready; language implementations and performance results are pending.
 
 | Benchmark | Status | Stresses |
 |-----------|--------|----------|
@@ -11,6 +11,7 @@ Runtime Arena currently defines seven benchmark workloads, each with implementat
 | `word-frequency` | Complete (11 languages) | String hashing, hash maps, ranking |
 | `record-sorting` | Complete (11 languages) | Multi-field sorting, comparator and struct access |
 | `matrix-multiplication` | Complete (11 languages) | Numeric loops, memory layout, cache locality |
+| `arena-exchange` | Foundation ready; implementations pending | Stateful price-time books, reservations, matching, cancellations, analytics |
 
 Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md`.
 
@@ -104,9 +105,33 @@ Per-benchmark contracts live in `benchmarks/<id>/README.md` and `IMPLEMENTING.md
 
 **Dataset mutations:** Each size has `row-major` (naturally ordered fill) and `column-major` (column-wise fill) variants to stress cache layout.
 
+## Arena Exchange
+
+**Workload:** Deterministic, single-threaded replay of limit/market orders,
+cancellations, atomic replacements, funding, halts, price-band changes,
+snapshot queries, and terminal settlement.
+
+**Input:** Compact JSON tuples for instruments, accounts with initial positions,
+and an ordered event stream. All monetary/quantity arithmetic is integer-exact
+within `2^53 - 1`.
+
+**Output:** Event/order/trade counters, every instrument's final summary,
+top ten accounts by gross traded notional, and independent SHA-256 streams for
+final books, accounts, trades, snapshots, and event outcomes.
+
+**Sizes:** 16/128/1,024 instruments, 2,000/20,000/100,000 accounts, and
+50,000/500,000/3,000,000 events. Small and medium use `deep-book`,
+`crossing-burst`, `cancel-storm`, `hot-symbols`, and `balanced-session`;
+large uses only `balanced-session`.
+
+**Status:** No language implementations or timing results. The independent
+Go checker, generator, committed fixtures/metadata, strict schemas, and worked
+correctness example are available. See
+[the contract](../../benchmarks/arena-exchange/IMPLEMENTING.md).
+
 ## Dataset Mutations
 
-Four benchmarks use **mutations** — multiple dataset variants per size that stress different aspects. They are defined in the benchmark manifest's `sizes.<name>.mutations` map (each entry has a `dataset` filename and `seed`). Non-mutation benchmarks (nbody, aggregation, barrier-wave) use a single `dataset` per size and no `measuredIterations` on medium/large.
+Five benchmarks use **mutations** — multiple dataset variants per size that stress different aspects. They are defined in the benchmark manifest's `sizes.<name>.mutations` map (each entry has a `dataset` filename and `seed`). Non-mutation benchmarks (nbody, aggregation, barrier-wave) use a single `dataset` per size and no `measuredIterations` on medium/large.
 
 | Benchmark | Mutations | Data per size |
 |-----------|-----------|---------------|
@@ -114,6 +139,7 @@ Four benchmarks use **mutations** — multiple dataset variants per size that st
 | word-frequency | `repeated-vocabulary`, `mostly-unique` | 50k/50k/200k total words, 3,421/3,421/8,421 unique |
 | record-sorting | `random`, `mostly-sorted` | 20k/100k/500k records, sorting difficulty varies |
 | matrix-multiplication | `row-major`, `column-major` | 128×128 / 256×256 / 512×512 dimensions |
+| arena-exchange | Five profiles (small/medium); `balanced-session` (large) | 50k / 500k / 3m events |
 
 Mutation generators use `generatorVersion "2.2.0"` and produce a `mutation` field in the result's `benchmark` and `dataset` objects. Non-mutation benchmarks use `generatorVersion "committed-fixture-1.0.0"` in result records (the datasets are pre-committed fixtures). When regenerating a dataset via `arena dataset generate`, all benchmarks write `generatorVersion "2.2.0"` in the dataset metadata. The cell key format for mutation cells is `benchmark/size/mutation/language`.
 

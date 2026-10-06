@@ -1,0 +1,9 @@
+{
+  "benchmark": "arena-exchange",
+  "version": 1,
+  "size": "small",
+  "mutation": "cancel-storm",
+  "seed": 729418,
+  "generatorVersion": "2.2.0",
+  "sha256": "a709c4020d478f09dd818263a320c00ac62cb6abee53acf00dbb92f3af070705"
+}

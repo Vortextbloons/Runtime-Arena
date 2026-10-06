@@ -1,11 +1,10 @@
 #include <cstdint>
+#include <algorithm>
 #include <cstring>
 #include <fstream>
-#include <functional>
 #include <iostream>
 #include <limits>
 #include <optional>
-#include <queue>
 #include <string>
 #include <utility>
 #include <vector>
@@ -17,23 +16,73 @@ using json = nlohmann::json;
 
 static const char* PROTOCOL_VERSION = "2.0.0";
 
-struct Edge {
-    int from;
-    int to;
-    int64_t weight;
-};
-
 struct Query {
     int id;
     int source;
     int destination;
 };
 
-struct Input {
-    int vertexCount;
-    std::vector<Edge> edges;
-    std::vector<Query> queries;
+struct Runner {
+    int V;
+    std::vector<int> offsets;   // V+1
+    std::vector<int> dst;       // E
+    std::vector<int64_t> wgt;   // E
+    std::vector<int> qid;
+    std::vector<int> qsrc;
+    std::vector<int> qdst;
+    std::vector<int> groupSrc;              // distinct sources
+    std::vector<std::vector<int>> members;  // query indices per group
+    // scratch, reused across runs
+    std::vector<int64_t> dist;
+    std::vector<int> prev;
+    std::vector<int> seen;    // epoch stamp
+    std::vector<int> tmark;   // target stamp
+    int epoch = 0;
+    int tepoch = 0;
+    std::vector<int64_t> hcost;
+    std::vector<int> hnode;
 };
+
+static inline void heapPush(Runner& r, int& n, int64_t cost, int node) {
+    if (n == (int)r.hcost.size()) {
+        r.hcost.resize(r.hcost.size() * 2 + 64);
+        r.hnode.resize(r.hcost.size());
+    }
+    int i = n++;
+    while (i > 0) {
+        int p = (i - 1) >> 1;
+        if (r.hcost[p] <= cost) break;
+        r.hcost[i] = r.hcost[p];
+        r.hnode[i] = r.hnode[p];
+        i = p;
+    }
+    r.hcost[i] = cost;
+    r.hnode[i] = node;
+}
+
+static inline int64_t heapPop(Runner& r, int& n, int& node) {
+    int64_t top = r.hcost[0];
+    node = r.hnode[0];
+    int last = --n;
+    if (last > 0) {
+        int64_t lc = r.hcost[last];
+        int ln = r.hnode[last];
+        int i = 0;
+        for (;;) {
+            int l = 2 * i + 1;
+            if (l >= last) break;
+            int rr = l + 1;
+            int s = (rr < last && r.hcost[rr] < r.hcost[l]) ? rr : l;
+            if (r.hcost[s] >= lc) break;
+            r.hcost[i] = r.hcost[s];
+            r.hnode[i] = r.hnode[s];
+            i = s;
+        }
+        r.hcost[i] = lc;
+        r.hnode[i] = ln;
+    }
+    return top;
+}
 
 struct Result {
     int id;
@@ -41,73 +90,81 @@ struct Result {
     std::vector<int> path;
 };
 
-using PQItem = std::pair<int64_t, int>;
+std::vector<Result> kernel(Runner& r) {
+    const int Q = (int)r.qid.size();
+    std::vector<int64_t> outDist(Q);
+    std::vector<char> hasDist(Q);
+    std::vector<std::vector<int>> outPath(Q);
 
-Input parseInput(const json& j) {
-    Input input;
-    input.vertexCount = j["vertexCount"].get<int>();
-    for (const auto& e : j["edges"]) {
-        input.edges.push_back({e["from"].get<int>(), e["to"].get<int>(), e["weight"].get<int64_t>()});
-    }
-    for (const auto& q : j["queries"]) {
-        input.queries.push_back({q["id"].get<int>(), q["source"].get<int>(), q["destination"].get<int>()});
-    }
-    return input;
-}
-
-std::vector<std::vector<Edge>> buildAdjacency(const Input& input) {
-    std::vector<std::vector<Edge>> adj(input.vertexCount);
-    for (const auto& e : input.edges) {
-        adj[e.from].push_back(e);
-    }
-    return adj;
-}
-
-std::vector<Result> kernel(const std::vector<std::vector<Edge>>& adj, const Input& input) {
-    constexpr int64_t INF = std::numeric_limits<int64_t>::max();
-    std::vector<Result> results;
-    results.reserve(input.queries.size());
-
-    const int V = input.vertexCount;
-    std::vector<int64_t> dist(V);
-    std::vector<int> prev(V);
-
-    for (const auto& q : input.queries) {
-        std::fill(dist.begin(), dist.end(), INF);
-        std::fill(prev.begin(), prev.end(), -1);
-        dist[q.source] = 0;
-
-        std::priority_queue<PQItem, std::vector<PQItem>, std::greater<PQItem>> pq;
-        pq.push({0, q.source});
-
-        while (!pq.empty()) {
-            auto [cost, node] = pq.top();
-            pq.pop();
-
-            if (cost != dist[node]) continue;
-
-            if (node == q.destination) break;
-
-            for (const auto& edge : adj[node]) {
-                int64_t nextCost = cost + edge.weight;
-                if (nextCost < dist[edge.to]) {
-                    dist[edge.to] = nextCost;
-                    prev[edge.to] = node;
-                    pq.push({nextCost, edge.to});
+    for (size_t gi = 0; gi < r.groupSrc.size(); gi++) {
+        int src = r.groupSrc[gi];
+        const std::vector<int>& mem = r.members[gi];
+        int cur = ++r.epoch;
+        int tc = ++r.tepoch;
+        int rem = 0;
+        for (int qi : mem) {
+            int d = r.qdst[qi];
+            if (d != src && r.tmark[d] != tc) {
+                r.tmark[d] = tc;
+                rem++;
+            }
+        }
+        r.dist[src] = 0;
+        r.seen[src] = cur;
+        r.prev[src] = -1;
+        int hlen = 0;
+        heapPush(r, hlen, 0, src);
+        while (hlen > 0 && rem > 0) {
+            int u;
+            int64_t cost = heapPop(r, hlen, u);
+            if (r.seen[u] != cur || cost != r.dist[u]) continue;
+            if (r.tmark[u] == tc) {
+                r.tmark[u] = 0;
+                if (--rem == 0) break;
+            }
+            int base = r.offsets[u];
+            int end = r.offsets[u + 1];
+            for (int ei = base; ei < end; ei++) {
+                int to = r.dst[ei];
+                int64_t nc = cost + r.wgt[ei];
+                if (r.seen[to] != cur || nc < r.dist[to]) {
+                    r.seen[to] = cur;
+                    r.dist[to] = nc;
+                    r.prev[to] = u;
+                    heapPush(r, hlen, nc, to);
                 }
             }
         }
-
-        if (dist[q.destination] == INF) {
-            results.push_back({q.id, std::nullopt, {}});
-        } else {
-            std::vector<int> path;
-            for (int v = q.destination; v != -1; v = prev[v]) {
-                path.push_back(v);
+        for (int qi : mem) {
+            int d = r.qdst[qi];
+            if (d == src) {
+                hasDist[qi] = 1;
+                outDist[qi] = 0;
+                outPath[qi] = {src};
+            } else if (r.seen[d] != cur) {
+                hasDist[qi] = 0;
+                outPath[qi].clear();
+            } else {
+                hasDist[qi] = 1;
+                outDist[qi] = r.dist[d];
+                std::vector<int>& p = outPath[qi];
+                p.clear();
+                for (int x = d;; x = r.prev[x]) {
+                    p.push_back(x);
+                    if (x == src) break;
+                }
+                std::reverse(p.begin(), p.end());
             }
-            std::reverse(path.begin(), path.end());
-            results.push_back({q.id, dist[q.destination], std::move(path)});
         }
+    }
+
+    std::vector<Result> results;
+    results.reserve(Q);
+    for (int i = 0; i < Q; i++) {
+        if (hasDist[i])
+            results.push_back({r.qid[i], outDist[i], std::move(outPath[i])});
+        else
+            results.push_back({r.qid[i], std::nullopt, std::move(outPath[i])});
     }
     return results;
 }
@@ -164,8 +221,55 @@ int main(int argc, char* argv[]) {
     std::ifstream in(inputPath);
     json inputJson;
     in >> inputJson;
-    Input input = parseInput(inputJson);
-    auto adjacency = buildAdjacency(input);
+
+    Runner r;
+    r.V = inputJson["vertexCount"].get<int>();
+    int V = r.V;
+    std::vector<int> degree(V, 0);
+    size_t E = inputJson["edges"].size();
+    for (const auto& e : inputJson["edges"]) {
+        int from = e["from"];
+        degree[from]++;
+    }
+    r.offsets.assign(V + 1, 0);
+    for (int v = 0; v < V; v++) r.offsets[v + 1] = r.offsets[v] + degree[v];
+    r.dst.assign(E, 0);
+    r.wgt.assign(E, 0);
+    {
+        std::vector<int> fill(r.offsets.begin(), r.offsets.begin() + V);
+        for (const auto& e : inputJson["edges"]) {
+            int from = e["from"];
+            int s = fill[from]++;
+            int to = e["to"];
+            int64_t w = e["weight"];
+            r.dst[s] = to;
+            r.wgt[s] = w;
+        }
+    }
+    size_t Q = inputJson["queries"].size();
+    r.qid.resize(Q);
+    r.qsrc.resize(Q);
+    r.qdst.resize(Q);
+    std::vector<int> srcIndex(V, -1);
+    for (size_t i = 0; i < Q; i++) {
+        const auto& q = inputJson["queries"][i];
+        r.qid[i] = q["id"];
+        r.qsrc[i] = q["source"];
+        r.qdst[i] = q["destination"];
+        int s = r.qsrc[i];
+        if (srcIndex[s] < 0) {
+            srcIndex[s] = (int)r.groupSrc.size();
+            r.groupSrc.push_back(s);
+            r.members.emplace_back();
+        }
+        r.members[srcIndex[s]].push_back((int)i);
+    }
+    r.dist.assign(V, 0);
+    r.prev.assign(V, -1);
+    r.seen.assign(V, 0);
+    r.tmark.assign(V, 0);
+    r.hcost.assign(E + V + 64, 0);
+    r.hnode.assign(E + V + 64, 0);
 
     emitLine({{"type", "ready"}, {"protocolVersion", PROTOCOL_VERSION}});
 
@@ -177,7 +281,7 @@ int main(int argc, char* argv[]) {
         const std::string& type = msg["type"].get<std::string>();
         if (type == "run") {
             int64_t requestId = msg["requestId"].get<int64_t>();
-            lastOutput = outputJson(kernel(adjacency, input)).dump();
+            lastOutput = outputJson(kernel(r)).dump();
             emitLine({{"type", "result"}, {"requestId", requestId}, {"digest", digestBytes(lastOutput)}});
         } else if (type == "finish") {
             std::ofstream out(outputPath);

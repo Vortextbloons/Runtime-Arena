@@ -1,0 +1,9 @@
+{
+  "benchmark": "arena-exchange",
+  "version": 1,
+  "size": "medium",
+  "mutation": "crossing-burst",
+  "seed": 729418,
+  "generatorVersion": "2.2.0",
+  "sha256": "f644e344121bd9328020a1fc7c24cc2015a125a7f585e2710350f40519e9a8c4"
+}

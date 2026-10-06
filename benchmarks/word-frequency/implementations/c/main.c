@@ -126,14 +126,31 @@ static char *produce_output(void *ctx, size_t *out_len) {
             eIdx++;
         }
     }
-    sortEntries(c->entries, mapUsed);
+    /* Insertion sort is O(n^2): only worth it for tiny tables. The large
+       dataset has ~8k unique words, where qsort wins by orders of magnitude. */
+    if (mapUsed < 64)
+        sortEntries(c->entries, mapUsed);
+    else
+        qsort(c->entries, (size_t)mapUsed, sizeof(Entry), entryCmp);
 
     SHA256 hasher;
     sha256_init(&hasher);
     for (int i = 0; i < mapUsed; i++) {
+        /* Manual "word,count\n" formatting: snprintf parses a format string
+           on every call, dwarfing the cost of a hand-rolled itoa here. */
+        Entry *e = &c->entries[i];
+        size_t wl = strlen(e->word);
         char line[128];
-        int len = snprintf(line, sizeof(line), "%s,%d\n", c->entries[i].word, c->entries[i].count);
-        sha256_update(&hasher, (uint8_t *)line, len);
+        memcpy(line, e->word, wl);
+        line[wl] = ',';
+        char rev[12];
+        int rlen = 0, v = e->count;
+        if (v == 0) rev[rlen++] = '0';
+        while (v > 0) { rev[rlen++] = (char)('0' + v % 10); v /= 10; }
+        for (int k = 0; k < rlen; k++)
+            line[wl + 1 + k] = rev[rlen - 1 - k];
+        line[wl + 1 + rlen] = '\n';
+        sha256_update(&hasher, (uint8_t *)line, wl + (size_t)rlen + 2);
     }
     char checksumHex[65];
     sha256_hex(&hasher, checksumHex);

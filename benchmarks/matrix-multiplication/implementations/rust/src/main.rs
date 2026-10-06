@@ -61,27 +61,64 @@ fn write_i64(buf: &mut Vec<u8>, mut v: i64) {
     buf.extend_from_slice(&digits[i..]);
 }
 
-fn kernel(input: &Input) -> Output {
+fn kernel(input: &Input, c: &mut Vec<i64>, bt: &mut Vec<i64>) -> Output {
     let n = input.dimension;
     let a = &input.left;
     let b = &input.right;
-    let mut c = vec![0i64; n * n];
     let mut value_sum: i64 = 0;
     let mut diagonal_sum: i64 = 0;
 
+    /* Blocked transpose of B: sequential reads, blocked strided writes. */
+    for ii in (0..n).step_by(32) {
+        let i_max = (ii + 32).min(n);
+        for jj in (0..n).step_by(32) {
+            let j_max = (jj + 32).min(n);
+            for i in ii..i_max {
+                let base = i * n;
+                for j in jj..j_max {
+                    bt[j * n + i] = b[base + j];
+                }
+            }
+        }
+    }
+
+    /* Row/row dot products with 4-way unrolled accumulator parallelism. */
+    let k_lim = n & !3;
     for i in 0..n {
-        for k in 0..n {
-            let a_ik = a[i * n + k];
-            for j in 0..n {
-                c[i * n + j] += a_ik * b[k * n + j];
-            }
-        }
+        let a_base = i * n;
+        let c_base = i * n;
+        let mut row_sum: i64 = 0;
         for j in 0..n {
-            value_sum += c[i * n + j];
+            let b_base = j * n;
+            let mut s0: i64 = 0;
+            let mut s1: i64 = 0;
+            let mut s2: i64 = 0;
+            let mut s3: i64 = 0;
+            let mut k = 0;
+            while k < k_lim {
+                // Bounds checks hoisted: all indices provably in range.
+                unsafe {
+                    s0 += a.get_unchecked(a_base + k) * bt.get_unchecked(b_base + k);
+                    s1 += a.get_unchecked(a_base + k + 1) * bt.get_unchecked(b_base + k + 1);
+                    s2 += a.get_unchecked(a_base + k + 2) * bt.get_unchecked(b_base + k + 2);
+                    s3 += a.get_unchecked(a_base + k + 3) * bt.get_unchecked(b_base + k + 3);
+                }
+                k += 4;
+            }
+            let mut s = (s0 + s1) + (s2 + s3);
+            while k < n {
+                unsafe {
+                    s += a.get_unchecked(a_base + k) * bt.get_unchecked(b_base + k);
+                }
+                k += 1;
+            }
+            c[c_base + j] = s;
+            row_sum += s;
             if i == j {
-                diagonal_sum += c[i * n + j];
+                diagonal_sum += s;
             }
         }
+        value_sum += row_sum;
     }
 
     let nn = n * n;
@@ -89,7 +126,7 @@ fn kernel(input: &Input) -> Output {
     checksum_buf.extend_from_slice(b"dimension=");
     write_i64(&mut checksum_buf, n as i64);
     checksum_buf.push(b'\n');
-    for val in &c {
+    for val in c.iter() {
         write_i64(&mut checksum_buf, *val);
         checksum_buf.push(b',');
     }
@@ -130,6 +167,9 @@ fn main() {
 
     let stdin = BufReader::new(std::io::stdin().lock());
     let mut last_output_bytes = Vec::new();
+    let nn = input.dimension * input.dimension;
+    let mut product = vec![0i64; nn];
+    let mut transposed = vec![0i64; nn];
 
     for line in stdin.lines() {
         let line = line.unwrap();
@@ -140,7 +180,7 @@ fn main() {
         match msg["type"].as_str() {
             Some("run") => {
                 let request_id = msg["requestId"].as_u64().unwrap();
-                let output = kernel(&input);
+                let output = kernel(&input, &mut product, &mut transposed);
                 last_output_bytes = serde_json::to_vec(&output).unwrap();
                 emit_line(&serde_json::json!({
                     "type": "result",

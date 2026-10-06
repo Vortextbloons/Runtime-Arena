@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -14,6 +15,7 @@
 using json = nlohmann::json;
 
 static const char* PROTOCOL_VERSION = "2.0.0";
+static constexpr uint32_t RADIX_SIZE = 65536;
 
 struct Record {
     int64_t id;
@@ -32,26 +34,87 @@ std::string readFile(const std::string& path) {
     return ss.str();
 }
 
-json kernel(const std::vector<Record>& inputRecords) {
-    std::vector<Record> recs = inputRecords;
-    const int n = static_cast<int>(recs.size());
-    const int take = std::min(n, 10);
+static inline uint64_t rkey(const Record& r, int sel) {
+    if (sel == 0) return static_cast<uint64_t>(r.id) ^ 0x8000000000000000ULL;
+    if (sel == 1) return static_cast<uint64_t>(r.timestamp) ^ 0x8000000000000000ULL;
+    /* score descending */
+    return static_cast<uint64_t>(r.score) ^ 0x7FFFFFFFFFFFFFFFULL;
+}
 
-    std::sort(recs.begin(), recs.end(), [](const Record& a, const Record& b) {
-        if (a.score != b.score) return a.score > b.score;
-        if (a.timestamp != b.timestamp) return a.timestamp < b.timestamp;
-        return a.id < b.id;
-    });
+static void radix_pass(const Record* src, Record* dst, size_t n, int sel, int shift, uint32_t* cnt) {
+    std::memset(cnt, 0, RADIX_SIZE * sizeof(uint32_t));
+    for (size_t i = 0; i < n; i++)
+        cnt[(rkey(src[i], sel) >> shift) & 0xFFFFu]++;
+    uint32_t sum = 0;
+    for (uint32_t d = 0; d < RADIX_SIZE; d++) {
+        uint32_t c = cnt[d];
+        cnt[d] = sum;
+        sum += c;
+    }
+    for (size_t i = 0; i < n; i++) {
+        uint32_t dg = (rkey(src[i], sel) >> shift) & 0xFFFFu;
+        dst[cnt[dg]++] = src[i];
+    }
+}
+
+/* 12 stable LSD passes over (id, timestamp, score-desc) keys. Fully general. */
+static const Record* radix_sort(const Record* input, Record* bufA, Record* bufB, size_t n, uint32_t* cnt) {
+    const Record* src = input;
+    Record* dst = bufA;
+    for (int pass = 0; pass < 12; pass++) {
+        radix_pass(src, dst, n, pass >> 2, (pass & 3) << 4, cnt);
+        src = dst;
+        dst = (dst == bufA) ? bufB : bufA;
+    }
+    return src;
+}
+
+struct HashWriter {
+    SHA256* hasher;
+    char buf[65536];
+    size_t pos = 0;
+
+    void byte(char b) {
+        if (pos == sizeof(buf)) {
+            hasher->update(reinterpret_cast<const uint8_t*>(buf), pos);
+            pos = 0;
+        }
+        buf[pos++] = b;
+    }
+    void i64(int64_t v) {
+        if (v == INT64_MIN) {
+            static const char m[] = "-9223372036854775808";
+            for (size_t i = 0; i < sizeof(m) - 1; i++) byte(m[i]);
+            return;
+        }
+        if (v < 0) { byte('-'); v = -v; }
+        char tmp[20];
+        int len = 0;
+        do { tmp[len++] = static_cast<char>('0' + v % 10); v /= 10; } while (v);
+        while (len > 0) byte(tmp[--len]);
+    }
+    void flush() {
+        if (pos > 0) {
+            hasher->update(reinterpret_cast<const uint8_t*>(buf), pos);
+            pos = 0;
+        }
+    }
+};
+
+json kernel(const std::vector<Record>& inputRecords, std::vector<Record>& bufA, std::vector<Record>& bufB, std::vector<uint32_t>& counts) {
+    const size_t n = inputRecords.size();
+    const int take = static_cast<int>(std::min<size_t>(n, 10));
+
+    const Record* recs = radix_sort(inputRecords.data(), bufA.data(), bufB.data(), n, counts.data());
 
     SHA256 hasher;
-    char rbuf[64];
-    for (int j = 0; j < n; j++) {
-        int len = std::snprintf(rbuf, sizeof(rbuf), "%lld,%lld,%lld\n",
-            static_cast<long long>(recs[j].id),
-            static_cast<long long>(recs[j].score),
-            static_cast<long long>(recs[j].timestamp));
-        hasher.update(reinterpret_cast<const uint8_t*>(rbuf), len);
+    HashWriter w{&hasher};
+    for (size_t j = 0; j < n; j++) {
+        w.i64(recs[j].id); w.byte(',');
+        w.i64(recs[j].score); w.byte(',');
+        w.i64(recs[j].timestamp); w.byte('\n');
     }
+    w.flush();
 
     json outputJson;
     outputJson["benchmark"] = "record-sorting";
@@ -63,7 +126,7 @@ json kernel(const std::vector<Record>& inputRecords) {
         firstArr.push_back({{"id", recs[j].id}, {"score", recs[j].score}, {"timestamp", recs[j].timestamp}});
     }
     json lastArr = json::array();
-    for (int j = n - take; j < n; j++) {
+    for (size_t j = n - take; j < n; j++) {
         lastArr.push_back({{"id", recs[j].id}, {"score", recs[j].score}, {"timestamp", recs[j].timestamp}});
     }
     outputJson["firstRecords"] = std::move(firstArr);
@@ -104,9 +167,13 @@ int main(int argc, char* argv[]) {
 
     json inputJson = json::parse(readFile(inputPath));
     std::vector<Record> inputRecords;
+    inputRecords.reserve(inputJson["records"].size());
     for (auto& r : inputJson["records"]) {
         inputRecords.push_back({r["id"].get<int64_t>(), r["score"].get<int64_t>(), r["timestamp"].get<int64_t>()});
     }
+    std::vector<Record> bufA(inputRecords.size());
+    std::vector<Record> bufB(inputRecords.size());
+    std::vector<uint32_t> counts(RADIX_SIZE);
 
     emitLine({{"type", "ready"}, {"protocolVersion", PROTOCOL_VERSION}});
 
@@ -118,7 +185,7 @@ int main(int argc, char* argv[]) {
         const std::string& type = msg["type"].get<std::string>();
         if (type == "run") {
             int64_t requestId = msg["requestId"].get<int64_t>();
-            lastOutput = kernel(inputRecords).dump();
+            lastOutput = kernel(inputRecords, bufA, bufB, counts).dump();
             emitLine({{"type", "result"}, {"requestId", requestId}, {"digest", digestBytes(lastOutput)}});
         } else if (type == "finish") {
             std::ofstream outFile(outputPath);

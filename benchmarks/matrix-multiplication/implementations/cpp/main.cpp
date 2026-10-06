@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <cstring>
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -37,38 +38,79 @@ Input parseInput(const json& j) {
     return in;
 }
 
-Output kernel(const Input& in, std::vector<int64_t>& c) {
+static inline char* appendInt64(char* p, int64_t v) {
+    if (v == 0) {
+        *p++ = '0';
+        *p++ = ',';
+        return p;
+    }
+    if (v < 0) {
+        *p++ = '-';
+        v = -v;
+    }
+    char tmp[20];
+    int len = 0;
+    while (v > 0) {
+        tmp[len++] = static_cast<char>('0' + v % 10);
+        v /= 10;
+    }
+    while (len > 0) *p++ = tmp[--len];
+    *p++ = ',';
+    return p;
+}
+
+Output kernel(const Input& in, std::vector<int64_t>& c, std::vector<int64_t>& bt) {
     const int n = in.dimension;
-    const int64_t* a = in.left.data();
-    const int64_t* b = in.right.data();
+    const int64_t* __restrict__ a = in.left.data();
+    const int64_t* __restrict__ b = in.right.data();
+    int64_t* __restrict__ cc = c.data();
+    int64_t* __restrict__ tr = bt.data();
     int64_t valueSum = 0;
     int64_t diagonalSum = 0;
 
-    std::memset(c.data(), 0, n * n * sizeof(int64_t));
-
-    for (int i = 0; i < n; i++) {
-        for (int k = 0; k < n; k++) {
-            int64_t aik = a[i * n + k];
-            for (int j = 0; j < n; j++) {
-                c[i * n + j] += aik * b[k * n + j];
+    /* Blocked transpose of B so the cubic loop streams sequentially. */
+    for (int ii = 0; ii < n; ii += 32) {
+        int iMax = std::min(ii + 32, n);
+        for (int jj = 0; jj < n; jj += 32) {
+            int jMax = std::min(jj + 32, n);
+            for (int i = ii; i < iMax; i++) {
+                const int64_t* rrow = b + static_cast<size_t>(i) * n;
+                for (int j = jj; j < jMax; j++) tr[static_cast<size_t>(j) * n + i] = rrow[j];
             }
         }
     }
 
+    /* Row/row dot products with 4-way unrolled accumulator parallelism. */
+    const int kLim = n & ~3;
     for (int i = 0; i < n; i++) {
+        const int64_t* arow = a + static_cast<size_t>(i) * n;
+        int64_t* crow = cc + static_cast<size_t>(i) * n;
+        int64_t rowSum = 0;
         for (int j = 0; j < n; j++) {
-            valueSum += c[i * n + j];
-            if (i == j) diagonalSum += c[i * n + j];
+            const int64_t* brow = tr + static_cast<size_t>(j) * n;
+            int64_t s0 = 0, s1 = 0, s2 = 0, s3 = 0;
+            for (int k = 0; k < kLim; k += 4) {
+                s0 += arow[k] * brow[k];
+                s1 += arow[k + 1] * brow[k + 1];
+                s2 += arow[k + 2] * brow[k + 2];
+                s3 += arow[k + 3] * brow[k + 3];
+            }
+            int64_t s = (s0 + s1) + (s2 + s3);
+            for (int k = kLim; k < n; k++) s += arow[k] * brow[k];
+            crow[j] = s;
+            rowSum += s;
+            if (i == j) diagonalSum += s;
         }
+        valueSum += rowSum;
     }
 
-    size_t bufCap = static_cast<size_t>(n) * n * 21 + 256;
+    size_t bufCap = static_cast<size_t>(n) * n * 24 + 256;
     char* buf = static_cast<char*>(std::malloc(bufCap));
-    int bufLen = std::snprintf(buf, bufCap, "dimension=%d\n", n);
-    for (int i = 0; i < n * n; i++) {
-        bufLen += std::snprintf(buf + bufLen, bufCap - bufLen, "%lld,", static_cast<long long>(c[i]));
-    }
-    bufLen += std::snprintf(buf + bufLen, bufCap - bufLen, "\n");
+    char* p = buf + std::snprintf(buf, bufCap, "dimension=%d\n", n);
+    const size_t nn = static_cast<size_t>(n) * n;
+    for (size_t i = 0; i < nn; i++) p = appendInt64(p, cc[i]);
+    *p++ = '\n';
+    size_t bufLen = static_cast<size_t>(p - buf);
 
     SHA256 hasher;
     hasher.update(reinterpret_cast<const uint8_t*>(buf), bufLen);
@@ -141,6 +183,7 @@ int main(int argc, char* argv[]) {
     json inputJson = json::parse(readFile(inputPath));
     Input in = parseInput(inputJson);
     std::vector<int64_t> c(in.dimension * in.dimension);
+    std::vector<int64_t> bt(in.dimension * in.dimension);
 
     emitLine({{"type", "ready"}, {"protocolVersion", PROTOCOL_VERSION}});
 
@@ -152,7 +195,7 @@ int main(int argc, char* argv[]) {
         const std::string& type = msg["type"].get<std::string>();
         if (type == "run") {
             int64_t requestId = msg["requestId"].get<int64_t>();
-            lastOutput = outputJson(kernel(in, c)).dump();
+            lastOutput = outputJson(kernel(in, c, bt)).dump();
             emitLine({{"type", "result"}, {"requestId", requestId}, {"digest", digestBytes(lastOutput)}});
         } else if (type == "finish") {
             std::ofstream outFile(outputPath);

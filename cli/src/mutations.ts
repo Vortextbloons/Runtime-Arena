@@ -1,4 +1,7 @@
+import { generateExchangeDataset } from "./exchange-dataset.js";
+
 export const MUTATION_BENCHMARKS = new Set([
+  "arena-exchange",
   "record-sorting",
   "shortest-path",
   "word-frequency",
@@ -63,6 +66,7 @@ export function generateDatasetContent(
   _seed: number,
   random: () => number
 ): string {
+  if (benchmarkId === "arena-exchange") return generateExchangeDataset(sizeName, mutation ?? "balanced-session", random);
   if (benchmarkId === "record-sorting") return generateRecordSorting(sizeName, mutation ?? "random", random);
   if (benchmarkId === "shortest-path") return generateShortestPath(sizeName, mutation ?? "sparse", random);
   if (benchmarkId === "word-frequency") return generateWordFrequency(sizeName, mutation ?? "repeated-vocabulary", random);

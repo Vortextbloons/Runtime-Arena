@@ -33,6 +33,19 @@ type Output struct {
 
 func kernel(dt float64, steps int, mass, px, py, pz, vx, vy, vz []float64) (float64, string, string) {
 	n := len(mass)
+	// Bounds-check elimination: prove once that every lane has length n.
+	if len(px) < n || len(py) < n || len(pz) < n || len(vx) < n || len(vy) < n || len(vz) < n {
+		panic("slice length mismatch")
+	}
+	if n > 0 {
+		_ = px[n-1]
+		_ = py[n-1]
+		_ = pz[n-1]
+		_ = vx[n-1]
+		_ = vy[n-1]
+		_ = vz[n-1]
+		_ = mass[n-1]
+	}
 	for i := 0; i < steps; i++ {
 		for i := 0; i < n; i++ {
 			pxi, pyi, pzi := px[i], py[i], pz[i]

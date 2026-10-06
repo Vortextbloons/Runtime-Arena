@@ -47,52 +47,82 @@ fn emit_line(value: &serde_json::Value) {
     stdout.flush().unwrap();
 }
 
-fn kernel(input: &Input, mut bodies: Vec<Body>) -> Output {
+fn kernel(input: &Input, bodies: &[Body]) -> Output {
+    let n = bodies.len();
+    let dt = input.delta_time;
+    let mut mass = Vec::with_capacity(n);
+    let mut px = Vec::with_capacity(n);
+    let mut py = Vec::with_capacity(n);
+    let mut pz = Vec::with_capacity(n);
+    let mut vx = Vec::with_capacity(n);
+    let mut vy = Vec::with_capacity(n);
+    let mut vz = Vec::with_capacity(n);
+    for b in bodies {
+        mass.push(b.mass);
+        px.push(b.position[0]);
+        py.push(b.position[1]);
+        pz.push(b.position[2]);
+        vx.push(b.velocity[0]);
+        vy.push(b.velocity[1]);
+        vz.push(b.velocity[2]);
+    }
     for _ in 0..input.steps {
-        for i in 0..bodies.len() {
-            for j in i + 1..bodies.len() {
-                let d = [
-                    bodies[j].position[0] - bodies[i].position[0],
-                    bodies[j].position[1] - bodies[i].position[1],
-                    bodies[j].position[2] - bodies[i].position[2],
-                ];
-                let r2: f64 = d.iter().map(|x| x * x).sum();
-                let magnitude = input.delta_time / (r2 * r2.sqrt());
-                for (k, delta) in d.iter().enumerate() {
-                    bodies[i].velocity[k] += delta * bodies[j].mass * magnitude;
-                    bodies[j].velocity[k] -= delta * bodies[i].mass * magnitude;
-                }
+        for i in 0..n {
+            let pxi = px[i];
+            let pyi = py[i];
+            let pzi = pz[i];
+            let mi = mass[i];
+            let mut vxi = vx[i];
+            let mut vyi = vy[i];
+            let mut vzi = vz[i];
+            for j in i + 1..n {
+                let dx = px[j] - pxi;
+                let dy = py[j] - pyi;
+                let dz = pz[j] - pzi;
+                let r2 = dx * dx + dy * dy + dz * dz;
+                let magnitude = dt / (r2 * r2.sqrt());
+                let mj = mass[j];
+                vxi += dx * mj * magnitude;
+                vyi += dy * mj * magnitude;
+                vzi += dz * mj * magnitude;
+                vx[j] -= dx * mi * magnitude;
+                vy[j] -= dy * mi * magnitude;
+                vz[j] -= dz * mi * magnitude;
             }
+            vx[i] = vxi;
+            vy[i] = vyi;
+            vz[i] = vzi;
         }
-        for body in &mut bodies {
-            for k in 0..3 {
-                body.position[k] += input.delta_time * body.velocity[k];
-            }
+        for i in 0..n {
+            px[i] += dt * vx[i];
+            py[i] += dt * vy[i];
+            pz[i] += dt * vz[i];
         }
     }
     let mut energy = 0.0;
-    let mut positions = Sha256::new();
-    let mut velocities = Sha256::new();
-    for i in 0..bodies.len() {
-        energy += 0.5 * bodies[i].mass * bodies[i].velocity.iter().map(|x| x * x).sum::<f64>();
-        for k in 0..3 {
-            positions.update(format!("{:.9},", bodies[i].position[k]));
-            velocities.update(format!("{:.9},", bodies[i].velocity[k]));
+    for i in 0..n {
+        energy += 0.5 * mass[i] * (vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]);
+        for j in i + 1..n {
+            let dx = px[i] - px[j];
+            let dy = py[i] - py[j];
+            let dz = pz[i] - pz[j];
+            energy -= mass[i] * mass[j] / (dx * dx + dy * dy + dz * dz).sqrt();
         }
-        for j in i + 1..bodies.len() {
-            let r2: f64 = (0..3)
-                .map(|k| (bodies[i].position[k] - bodies[j].position[k]).powi(2))
-                .sum();
-            energy -= bodies[i].mass * bodies[j].mass / r2.sqrt();
-        }
+    }
+    use std::fmt::Write as _;
+    let mut positions = String::with_capacity(n * 48);
+    let mut velocities = String::with_capacity(n * 48);
+    for i in 0..n {
+        write!(positions, "{:.9},{:.9},{:.9},", px[i], py[i], pz[i]).unwrap();
+        write!(velocities, "{:.9},{:.9},{:.9},", vx[i], vy[i], vz[i]).unwrap();
     }
     Output {
         benchmark: "nbody",
         version: 1,
-        body_count: bodies.len(),
+        body_count: n,
         final_energy: energy,
-        position_checksum: format!("{:x}", positions.finalize()),
-        velocity_checksum: format!("{:x}", velocities.finalize()),
+        position_checksum: format!("{:x}", Sha256::digest(positions.as_bytes())),
+        velocity_checksum: format!("{:x}", Sha256::digest(velocities.as_bytes())),
     }
 }
 
@@ -119,8 +149,7 @@ fn main() {
         match msg["type"].as_str() {
             Some("run") => {
                 let request_id = msg["requestId"].as_u64().unwrap();
-                let state = input.bodies.clone();
-                let output = kernel(&input, state);
+                let output = kernel(&input, &input.bodies);
                 last_output_bytes = serde_json::to_vec(&output).unwrap();
                 emit_line(&serde_json::json!({
                     "type": "result",

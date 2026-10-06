@@ -1,0 +1,9 @@
+{
+  "benchmark": "arena-exchange",
+  "version": 1,
+  "size": "large",
+  "mutation": "balanced-session",
+  "seed": 729418,
+  "generatorVersion": "2.2.0",
+  "sha256": "4249b9be793779f44ffc7433243ccb8a2745de5280a53fc576409cf66668140c"
+}

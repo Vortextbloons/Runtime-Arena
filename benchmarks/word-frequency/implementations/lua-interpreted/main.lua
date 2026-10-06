@@ -43,8 +43,7 @@ local function kernel(words)
     local freq = {}
     for i = 1, #words do
         local w = words[i]
-        local old = freq[w]
-        if old then freq[w] = old + 1 else freq[w] = 1 end
+        freq[w] = (freq[w] or 0) + 1
     end
     local entries = {}
     local n = 0

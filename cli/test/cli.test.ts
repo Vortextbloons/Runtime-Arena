@@ -22,7 +22,7 @@ test("discovers all required languages", () => {
 test("discovers all benchmark definitions", () => {
   const result = arena("list", "benchmarks");
   assert.equal(result.status, 0, result.stderr);
-  for (const benchmark of ["nbody", "shortest-path", "aggregation", "word-frequency", "record-sorting", "matrix-multiplication"]) assert.match(result.stdout, new RegExp(benchmark));
+  for (const benchmark of ["nbody", "shortest-path", "aggregation", "word-frequency", "record-sorting", "matrix-multiplication", "arena-exchange"]) assert.match(result.stdout, new RegExp(benchmark));
 });
 
 test("generates deterministic new benchmark fixtures", () => {

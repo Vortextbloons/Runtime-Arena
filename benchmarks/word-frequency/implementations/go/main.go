@@ -35,12 +35,11 @@ func (e Entry) MarshalJSON() ([]byte, error) {
 
 var freqBuf map[string]int
 var entryBuf []Entry
-var hashBuf []byte
 
 func kernel(words []string) Output {
-	/* Reuse pre-allocated map */
+	/* Reuse pre-allocated map, sized to avoid resizes on mostly-unique inputs */
 	if freqBuf == nil {
-		freqBuf = make(map[string]int, len(words)/2)
+		freqBuf = make(map[string]int, len(words))
 	} else {
 		for k := range freqBuf {
 			delete(freqBuf, k)
@@ -75,26 +74,22 @@ func kernel(words []string) Output {
 	})
 
 	h := sha256.New()
-	var buf [32]byte
-	/* Reuse hash buffer */
-	bufSize := len(entryBuf) * 64
-	if cap(hashBuf) < bufSize {
-		hashBuf = make([]byte, 0, bufSize)
-	} else {
-		hashBuf = hashBuf[:0]
-	}
+	var numbuf [20]byte
+	var suffix [22]byte // ',' + up to 20 digits + '\n'
 	for _, e := range entryBuf {
-		tmp := strconv.AppendInt(buf[:0], int64(e.Count), 10)
-		hashBuf = append(hashBuf, e.Word...)
-		hashBuf = append(hashBuf, ',')
-		hashBuf = append(hashBuf, tmp...)
-		hashBuf = append(hashBuf, '\n')
-		h.Write(hashBuf[len(hashBuf)-len(e.Word)-len(tmp)-2:])
+		num := strconv.AppendInt(numbuf[:0], int64(e.Count), 10)
+		suffix[0] = ','
+		copy(suffix[1:], num)
+		suffix[1+len(num)] = '\n'
+		// Stream straight into the digest: no giant staging buffer.
+		h.Write([]byte(e.Word))
+		h.Write(suffix[:2+len(num)])
 	}
 
-	top := entryBuf
-	if len(top) > 10 {
-		top = entryBuf[:10]
+	// Copy the top entries: entryBuf is reused across iterations.
+	top := make([]Entry, 0, 10)
+	for i := 0; i < len(entryBuf) && i < 10; i++ {
+		top = append(top, entryBuf[i])
 	}
 
 	return Output{

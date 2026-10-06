@@ -7,6 +7,8 @@
 
 Cross-language benchmark system — runs identical workloads across C, C++, C#, Go, Java, JavaScript, LuaJIT, Lua 5.4 (Interpreted), Python, Rust, and TypeScript, validates output, and records metrics.
 
+**Live scorecards:** [vortextbloons.github.io/Runtime-Arena](https://vortextbloons.github.io/Runtime-Arena/)
+
 ```bash
 npm install
 npm run build:cli

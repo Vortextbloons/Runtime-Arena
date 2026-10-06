@@ -7,63 +7,73 @@ const arg = (n) => process.argv[process.argv.indexOf(n) + 1];
 if (arg("--protocol-version") !== PROTOCOL_VERSION) throw new Error(`unsupported protocol version ${arg("--protocol-version")}`);
 
 const csv = (await readFile(arg("--input"), "utf8")).trim().split(/\r?\n/);
-const rows = [];
+// Structure-of-arrays: sequential numeric scans stay in dense fast storage
+// and avoid per-row object shapes in the hot loop.
+const n = csv.length - 1;
+const accountIds = new Array(n);
+const categoriesArr = new Array(n);
+const quantities = new Array(n);
+const prices = new Array(n);
 for (let i = 1; i < csv.length; i++) {
   const row = csv[i];
   let end = row.indexOf(",");
   let start = end + 1;
   end = row.indexOf(",", start);
-  const accountId = row.substring(start, end);
+  accountIds[i - 1] = row.substring(start, end);
   start = end + 1;
   end = row.indexOf(",", start);
-  const category = row.substring(start, end);
+  categoriesArr[i - 1] = row.substring(start, end);
   start = end + 1;
   end = row.indexOf(",", start);
-  const quantity = +row.substring(start, end);
+  quantities[i - 1] = +row.substring(start, end);
   start = end + 1;
-  const unitPrice = +row.substring(start);
-  rows.push({ accountId, category, quantity, unitPrice });
+  prices[i - 1] = +row.substring(start);
 }
+
+const lt = (a, b) => a < b ? -1 : a > b ? 1 : 0;
 
 function kernel() {
   let totalQuantity = 0, totalValueMinorUnits = 0, min = Number.MAX_SAFE_INTEGER, max = 0;
   const cm = new Map(), am = new Map();
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i], q = row.quantity, v = q * row.unitPrice;
+  for (let i = 0; i < n; i++) {
+    const q = quantities[i], v = q * prices[i];
     totalQuantity += q;
     totalValueMinorUnits += v;
     if (v < min) min = v;
     if (v > max) max = v;
-    let x = cm.get(row.category);
-    if (!x) { x = { quantity: 0, valueMinorUnits: 0 }; cm.set(row.category, x); }
+    const cat = categoriesArr[i];
+    let x = cm.get(cat);
+    if (x === undefined) { x = { quantity: 0, valueMinorUnits: 0 }; cm.set(cat, x); }
     x.quantity += q;
     x.valueMinorUnits += v;
-    let acct = am.get(row.accountId);
-    if (acct === undefined) acct = 0;
-    am.set(row.accountId, acct + v);
+    const id = accountIds[i];
+    const acct = am.get(id);
+    am.set(id, acct === undefined ? v : acct + v);
   }
   const cats = [];
   for (const [category, x] of cm.entries()) cats.push({ category, quantity: x.quantity, valueMinorUnits: x.valueMinorUnits });
-  cats.sort((a, b) => a.category.localeCompare(b.category));
+  // Ordinal compare: localeCompare drags in ICU collation for ASCII keys.
+  cats.sort((a, b) => lt(a.category, b.category));
   const accts = [];
   for (const [k, v] of am.entries()) accts.push({ k, v });
-  accts.sort((a, b) => b.v - a.v || a.k.localeCompare(b.k));
+  accts.sort((a, b) => b.v - a.v || lt(a.k, b.k));
   const top = [];
   for (let i = 0; i < 10 && i < accts.length; i++) top.push({ accountId: accts[i].k, valueMinorUnits: accts[i].v });
-  let cstr = '{"Categories":[';
+  const parts = ['{"Categories":['];
   for (let i = 0; i < cats.length; i++) {
-    if (i > 0) cstr += ",";
-    cstr += '{"category":"' + cats[i].category + '","quantity":' + cats[i].quantity + ',"valueMinorUnits":' + cats[i].valueMinorUnits + "}";
+    if (i > 0) parts.push(",");
+    const c = cats[i];
+    parts.push('{"category":"', c.category, '","quantity":', String(c.quantity), ',"valueMinorUnits":', String(c.valueMinorUnits), "}");
   }
-  cstr += '],"TopAccounts":[';
+  parts.push('],"TopAccounts":[');
   for (let i = 0; i < top.length; i++) {
-    if (i > 0) cstr += ",";
-    cstr += '{"accountId":"' + top[i].accountId + '","valueMinorUnits":' + top[i].valueMinorUnits + "}";
+    if (i > 0) parts.push(",");
+    const t = top[i];
+    parts.push('{"accountId":"', t.accountId, '","valueMinorUnits":', String(t.valueMinorUnits), "}");
   }
-  cstr += "]}";
-  cstr += "\n";
-  const checksum = createHash("sha256").update(cstr).digest("hex");
-  return { benchmark: "aggregation", version: 1, recordCount: rows.length, totalQuantity, totalValueMinorUnits, categories: cats, topAccounts: top, minimumTransactionMinorUnits: min, maximumTransactionMinorUnits: max, checksum };
+  parts.push("]}\n");
+  const checksum = createHash("sha256").update(parts.join("")).digest("hex");
+  return { benchmark: "aggregation", version: 1, recordCount: n, totalQuantity, totalValueMinorUnits, categories: cats, topAccounts: top, minimumTransactionMinorUnits: min, maximumTransactionMinorUnits: max, checksum };
 }
 
 const digestOutput = (output) => createHash("sha256").update(JSON.stringify(output)).digest("hex");

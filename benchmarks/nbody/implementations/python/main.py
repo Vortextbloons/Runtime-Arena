@@ -33,13 +33,11 @@ def build_state():
         buf[base + 6] = b["velocity"][2]
     return buf
 
-def simulate(buf):
-    _dt = dt
-    _sqrt = SQRT
-    for _ in range(steps):
+def simulate(buf, _steps=steps, _n=n, _dt=dt, _sqrt=SQRT):
+    for _ in range(_steps):
         i = 0
         bi = 0
-        while i < n - 1:
+        while i < _n - 1:
             mi = buf[bi]
             pix = buf[bi + 1]
             piy = buf[bi + 2]
@@ -49,7 +47,7 @@ def simulate(buf):
             viz = buf[bi + 6]
             j = i + 1
             bj = j * 7
-            while j < n:
+            while j < _n:
                 mj = buf[bj]
                 dx = buf[bj + 1] - pix
                 dy = buf[bj + 2] - piy
@@ -74,20 +72,20 @@ def simulate(buf):
             bi += 7
         i = 0
         base = 0
-        while i < n:
+        while i < _n:
             buf[base + 1] += _dt * buf[base + 4]
             buf[base + 2] += _dt * buf[base + 5]
             buf[base + 3] += _dt * buf[base + 6]
             i += 1
             base += 7
 
-def compute_result(buf):
+def compute_result(buf, _n=n, _sqrt=SQRT):
     energy = 0.0
     pos_parts = []
     vel_parts = []
     append_pos = pos_parts.append
     append_vel = vel_parts.append
-    for i in range(n):
+    for i in range(_n):
         base = i * 7
         mass = buf[base]
         px = buf[base + 1]
@@ -99,12 +97,12 @@ def compute_result(buf):
         append_pos(f"{px:.9f},{py:.9f},{pz:.9f},")
         append_vel(f"{vx:.9f},{vy:.9f},{vz:.9f},")
         energy += 0.5 * mass * (vx * vx + vy * vy + vz * vz)
-        for j in range(i + 1, n):
+        for j in range(i + 1, _n):
             bj = j * 7
             dx = px - buf[bj + 1]
             dy = py - buf[bj + 2]
             dz = pz - buf[bj + 3]
-            energy -= mass * buf[bj] / SQRT(dx * dx + dy * dy + dz * dz)
+            energy -= mass * buf[bj] / _sqrt(dx * dx + dy * dy + dz * dz)
     return {
         "benchmark": "nbody",
         "version": 1,

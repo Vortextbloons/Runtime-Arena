@@ -1,0 +1,41 @@
+{
+  "$schema": "../../schemas/benchmark.schema.json",
+  "id": "arena-exchange",
+  "name": "Arena Exchange",
+  "version": 1,
+  "description": "Deterministic event-driven exchange with price-time matching, account reservations, controls, and market analytics. Language implementations pending.",
+  "inputFormat": "json",
+  "outputFormat": "json",
+  "checker": { "task": "arena-exchange", "timeoutMilliseconds": 120000 },
+  "sizes": {
+    "small": {
+      "warmupIterations": 2,
+      "measuredIterations": 5,
+      "mutations": {
+        "deep-book": { "dataset": "small-deep-book.json", "seed": 729418 },
+        "crossing-burst": { "dataset": "small-crossing-burst.json", "seed": 729418 },
+        "cancel-storm": { "dataset": "small-cancel-storm.json", "seed": 729418 },
+        "hot-symbols": { "dataset": "small-hot-symbols.json", "seed": 729418 },
+        "balanced-session": { "dataset": "small-balanced-session.json", "seed": 729418 }
+      }
+    },
+    "medium": {
+      "warmupIterations": 2,
+      "measuredIterations": 10,
+      "mutations": {
+        "deep-book": { "dataset": "medium-deep-book.json", "seed": 729418 },
+        "crossing-burst": { "dataset": "medium-crossing-burst.json", "seed": 729418 },
+        "cancel-storm": { "dataset": "medium-cancel-storm.json", "seed": 729418 },
+        "hot-symbols": { "dataset": "medium-hot-symbols.json", "seed": 729418 },
+        "balanced-session": { "dataset": "medium-balanced-session.json", "seed": 729418 }
+      }
+    },
+    "large": {
+      "warmupIterations": 2,
+      "measuredIterations": 10,
+      "mutations": { "balanced-session": { "dataset": "large-balanced-session.json", "seed": 729418 } }
+    }
+  },
+  "metrics": ["kernelTime"],
+  "limits": { "timeoutMilliseconds": 120000, "maxOutputBytes": 1048576 }
+}

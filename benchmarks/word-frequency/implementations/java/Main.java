@@ -113,35 +113,73 @@ public final class Main {
   }
 
   private static String quoted(String value) {
-    StringBuilder out = new StringBuilder(value.length() + 2).append('"');
+    // Words are normalized tokens; take the fast path when nothing needs escaping.
     for (int i = 0; i < value.length(); i++) {
       char c = value.charAt(i);
-      if (c == '"') out.append("\\\"");
-      else if (c == '\\') out.append("\\\\");
-      else if (c == '\n') out.append("\\n");
-      else if (c == '\r') out.append("\\r");
-      else if (c == '\t') out.append("\\t");
-      else out.append(c);
+      if (c == '"' || c == '\\' || c < ' ') {
+        StringBuilder out = new StringBuilder(value.length() + 2).append('"');
+        for (int j = 0; j < value.length(); j++) {
+          char d = value.charAt(j);
+          if (d == '"') out.append("\\\"");
+          else if (d == '\\') out.append("\\\\");
+          else if (d == '\n') out.append("\\n");
+          else if (d == '\r') out.append("\\r");
+          else if (d == '\t') out.append("\\t");
+          else out.append(d);
+        }
+        return out.append('"').toString();
+      }
     }
-    return out.append('"').toString();
+    return '"' + value + '"';
   }
 
   private static String kernel(String[] words) throws Exception {
-    HashMap<String, Counter> counts = new HashMap<>();
+    // Custom open-addressing table: String.hashCode() is cached, and raw
+    // int[] counts avoid per-key Counter objects and Integer boxing.
+    // Rebuilt from scratch on every call.
+    int cap = 1;
+    while (cap < words.length * 2) cap <<= 1;
+    int mask = cap - 1;
+    String[] keys = new String[cap];
+    int[] counts = new int[cap];
+    int used = 0;
     for (String word : words) {
-      Counter counter = counts.get(word);
-      if (counter == null) {
-        counter = new Counter(word);
-        counts.put(word, counter);
+      int idx = word.hashCode() & mask;
+      while (true) {
+        String k = keys[idx];
+        if (k == null) {
+          keys[idx] = word;
+          counts[idx] = 1;
+          used++;
+          break;
+        }
+        if (k.equals(word)) {
+          counts[idx]++;
+          break;
+        }
+        idx = (idx + 1) & mask;
       }
-      counter.count++;
     }
-    Counter[] entries = counts.values().toArray(new Counter[0]);
+    Counter[] entries = new Counter[used];
+    int p = 0;
+    for (int i = 0; i < cap; i++) {
+      if (keys[i] != null) {
+        Counter c = new Counter(keys[i]);
+        c.count = counts[i];
+        entries[p++] = c;
+      }
+    }
     Arrays.sort(entries, ORDER);
 
-    StringBuilder checksumText = new StringBuilder(entries.length * 16);
+    // Stream entries into the digest: no giant checksum string.
+    MessageDigest md = MessageDigest.getInstance("SHA-256");
+    byte[] comma = {','};
+    byte[] newline = {'\n'};
     for (Counter entry : entries) {
-      checksumText.append(entry.word).append(',').append(entry.count).append('\n');
+      md.update(entry.word.getBytes(StandardCharsets.UTF_8));
+      md.update(comma);
+      md.update(Integer.toString(entry.count).getBytes(StandardCharsets.UTF_8));
+      md.update(newline);
     }
     StringBuilder output = new StringBuilder(512)
         .append("{\"benchmark\":\"word-frequency\",\"version\":1,\"totalWords\":")
@@ -153,8 +191,7 @@ public final class Main {
       output.append("{\"word\":").append(quoted(entries[i].word))
           .append(",\"count\":").append(entries[i].count).append('}');
     }
-    String checksum = hex(MessageDigest.getInstance("SHA-256")
-        .digest(checksumText.toString().getBytes(StandardCharsets.UTF_8)));
+    String checksum = hex(md.digest());
     return output.append("],\"checksum\":\"").append(checksum).append("\"}").toString();
   }
 

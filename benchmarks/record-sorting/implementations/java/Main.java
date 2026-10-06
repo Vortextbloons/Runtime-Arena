@@ -155,12 +155,34 @@ public final class Main {
     return fallback;
   }
 
-  private static int compare(long scoreA, long timestampA, long idA,
-                             long scoreB, long timestampB, long idB) {
-    int score = Long.compare(scoreB, scoreA);
-    if (score != 0) return score;
-    int timestamp = Long.compare(timestampA, timestampB);
-    return timestamp != 0 ? timestamp : Long.compare(idA, idB);
+  private static long key(long id, long score, long timestamp, int sel) {
+    if (sel == 0) return id ^ 0x8000000000000000L;
+    if (sel == 1) return timestamp ^ 0x8000000000000000L;
+    // score descending
+    return score ^ 0x7FFFFFFFFFFFFFFFL;
+  }
+
+  private static void radixPass(long[] srcIds, long[] srcScores, long[] srcTimestamps,
+                                long[] dstIds, long[] dstScores, long[] dstTimestamps,
+                                int count, int sel, int shift, int[] counts) {
+    java.util.Arrays.fill(counts, 0);
+    for (int i = 0; i < count; i++) {
+      long k = key(srcIds[i], srcScores[i], srcTimestamps[i], sel);
+      counts[(int) ((k >>> shift) & 0xFFFF)]++;
+    }
+    int sum = 0;
+    for (int d = 0; d < 65536; d++) {
+      int c = counts[d];
+      counts[d] = sum;
+      sum += c;
+    }
+    for (int i = 0; i < count; i++) {
+      long k = key(srcIds[i], srcScores[i], srcTimestamps[i], sel);
+      int pos = counts[(int) ((k >>> shift) & 0xFFFF)]++;
+      dstIds[pos] = srcIds[i];
+      dstScores[pos] = srcScores[i];
+      dstTimestamps[pos] = srcTimestamps[i];
+    }
   }
 
   private static void recordJson(StringBuilder out, long id, long score, long timestamp) {
@@ -169,55 +191,28 @@ public final class Main {
         .append(",\"timestamp\":").append(timestamp).append('}');
   }
 
-  private static String kernel(Input source) throws Exception {
+  // 12 stable LSD passes over (id, timestamp, score-desc) keys. Fully general.
+  // Sorted output lands in auxB (pass 0 reads the pristine inputs directly).
+  private static String kernel(Input source,
+                               long[] auxAIds, long[] auxAScores, long[] auxATimestamps,
+                               long[] auxBIds, long[] auxBScores, long[] auxBTimestamps,
+                               int[] counts) throws Exception {
     int count = source.ids.length;
-    long[] ids = source.ids.clone();
-    long[] scores = source.scores.clone();
-    long[] timestamps = source.timestamps.clone();
-    long[] tempIds = new long[count];
-    long[] tempScores = new long[count];
-    long[] tempTimestamps = new long[count];
-
-    long[] currentIds = ids;
-    long[] currentScores = scores;
-    long[] currentTimestamps = timestamps;
-    long[] nextIds = tempIds;
-    long[] nextScores = tempScores;
-    long[] nextTimestamps = tempTimestamps;
-    for (int width = 1; width < count; width <<= 1) {
-      for (int left = 0; left < count; left += width << 1) {
-        int middle = Math.min(left + width, count);
-        int right = Math.min(left + (width << 1), count);
-        int a = left;
-        int b = middle;
-        int destination = left;
-        while (a < middle && b < right) {
-          if (compare(currentScores[a], currentTimestamps[a], currentIds[a],
-                      currentScores[b], currentTimestamps[b], currentIds[b]) <= 0) {
-            nextIds[destination] = currentIds[a];
-            nextScores[destination] = currentScores[a];
-            nextTimestamps[destination++] = currentTimestamps[a++];
-          } else {
-            nextIds[destination] = currentIds[b];
-            nextScores[destination] = currentScores[b];
-            nextTimestamps[destination++] = currentTimestamps[b++];
-          }
-        }
-        while (a < middle) {
-          nextIds[destination] = currentIds[a];
-          nextScores[destination] = currentScores[a];
-          nextTimestamps[destination++] = currentTimestamps[a++];
-        }
-        while (b < right) {
-          nextIds[destination] = currentIds[b];
-          nextScores[destination] = currentScores[b];
-          nextTimestamps[destination++] = currentTimestamps[b++];
-        }
-      }
-      long[] swap = currentIds; currentIds = nextIds; nextIds = swap;
-      swap = currentScores; currentScores = nextScores; nextScores = swap;
-      swap = currentTimestamps; currentTimestamps = nextTimestamps; nextTimestamps = swap;
+    radixPass(source.ids, source.scores, source.timestamps,
+              auxAIds, auxAScores, auxATimestamps, count, 0, 0, counts);
+    long[] srcIds = auxAIds, srcScores = auxAScores, srcTimestamps = auxATimestamps;
+    long[] dstIds = auxBIds, dstScores = auxBScores, dstTimestamps = auxBTimestamps;
+    for (int pass = 1; pass < 12; pass++) {
+      radixPass(srcIds, srcScores, srcTimestamps, dstIds, dstScores, dstTimestamps,
+                count, pass >> 2, (pass & 3) << 4, counts);
+      long[] t = srcIds; srcIds = dstIds; dstIds = t;
+      t = srcScores; srcScores = dstScores; dstScores = t;
+      t = srcTimestamps; srcTimestamps = dstTimestamps; dstTimestamps = t;
     }
+    // 11 swaps from an auxA start lands src on auxB.
+    long[] currentIds = auxBIds;
+    long[] currentScores = auxBScores;
+    long[] currentTimestamps = auxBTimestamps;
 
     DigestWriter writer = new DigestWriter(MessageDigest.getInstance("SHA-256"));
     for (int i = 0; i < count; i++) {
@@ -285,6 +280,14 @@ public final class Main {
       timestamps[i] = ((Number) record.get("timestamp")).longValue();
     }
     Input input = new Input(ids, scores, timestamps);
+    int count = ids.length;
+    long[] auxAIds = new long[count];
+    long[] auxAScores = new long[count];
+    long[] auxATimestamps = new long[count];
+    long[] auxBIds = new long[count];
+    long[] auxBScores = new long[count];
+    long[] auxBTimestamps = new long[count];
+    int[] counts = new int[65536];
 
     emitLine("{\"type\":\"ready\",\"protocolVersion\":\"" + PROTOCOL_VERSION + "\"}");
     BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
@@ -295,7 +298,8 @@ public final class Main {
       String type = protocolField(line, "type");
       if ("run".equals(type)) {
         long requestId = Long.parseLong(protocolField(line, "requestId"));
-        lastOutput = kernel(input).getBytes(StandardCharsets.UTF_8);
+        lastOutput = kernel(input, auxAIds, auxAScores, auxATimestamps,
+                                     auxBIds, auxBScores, auxBTimestamps, counts).getBytes(StandardCharsets.UTF_8);
         emitLine("{\"type\":\"result\",\"requestId\":" + requestId + ",\"digest\":\"" + digestHex(lastOutput) + "\"}");
       } else if ("finish".equals(type)) {
         Files.write(Path.of(outputFile), lastOutput);

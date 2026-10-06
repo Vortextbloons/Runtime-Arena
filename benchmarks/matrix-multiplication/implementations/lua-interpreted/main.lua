@@ -40,29 +40,42 @@ local a = data.left
 local b = data.right
 
 local function kernel()
+    local nn = n * n
+    -- Transpose B once so the cubic loop streams both operands sequentially.
+    local bt = {}
+    for i = 0, n - 1 do
+        local rbase = i * n
+        for j = 0, n - 1 do
+            bt[j * n + i + 1] = b[rbase + j + 1]
+        end
+    end
+    -- Row/row dot products with 2-way unrolled accumulator parallelism.
     local c = {}
     local value_sum = 0
     local diagonal_sum = 0
-    local nn = n * n
-    for idx = 1, nn do c[idx] = 0 end
+    local kLim = n - (n % 4)
     for i = 0, n - 1 do
-        local row_off = i * n
-        local ai1 = row_off + 1
+        local abase = i * n
+        local cbase = i * n
+        local row_sum = 0
         for j = 0, n - 1 do
-            c[row_off + j + 1] = 0
-        end
-        for k = 0, n - 1 do
-            local a_ik = a[ai1 + k]
-            local bk_off = k * n
-            for j = 0, n - 1 do
-                c[row_off + j + 1] = c[row_off + j + 1] + a_ik * b[bk_off + j + 1]
+            local bbase = j * n
+            local s0, s1, s2, s3 = 0, 0, 0, 0
+            for k = 0, kLim - 1, 4 do
+                s0 = s0 + a[abase + k + 1] * bt[bbase + k + 1]
+                s1 = s1 + a[abase + k + 2] * bt[bbase + k + 2]
+                s2 = s2 + a[abase + k + 3] * bt[bbase + k + 3]
+                s3 = s3 + a[abase + k + 4] * bt[bbase + k + 4]
             end
-        end
-        for j = 0, n - 1 do
-            local s = c[row_off + j + 1]
-            value_sum = value_sum + s
+            local s = (s0 + s1) + (s2 + s3)
+            for k = kLim, n - 1 do
+                s = s + a[abase + k + 1] * bt[bbase + k + 1]
+            end
+            c[cbase + j + 1] = s
+            row_sum = row_sum + s
             if i == j then diagonal_sum = diagonal_sum + s end
         end
+        value_sum = value_sum + row_sum
     end
     local parts = {"dimension=" .. n .. "\n"}
     for idx = 1, nn do

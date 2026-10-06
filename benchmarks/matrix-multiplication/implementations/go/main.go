@@ -27,38 +27,81 @@ type Output struct {
 }
 
 var productBuf []int64
+var transBuf []int64
 var hashBuf []byte
 
-func kernel(in Input) Output {
-	n := in.Dimension
-	a := in.Left
-	b := in.Right
-	
-	/* Reuse pre-allocated buffer */
+func ensureSize(n int) {
 	size := n * n
 	if cap(productBuf) < size {
 		productBuf = make([]int64, size)
 	} else {
 		productBuf = productBuf[:size]
-		for i := range productBuf {
-			productBuf[i] = 0
-		}
 	}
+	if cap(transBuf) < size {
+		transBuf = make([]int64, size)
+	} else {
+		transBuf = transBuf[:size]
+	}
+}
+
+func kernel(in Input) Output {
+	n := in.Dimension
+	a := in.Left
+	b := in.Right
+
+	/* Reuse pre-allocated scratch buffers (fully recomputed each run). */
+	ensureSize(n)
 	c := productBuf
-	
-	var valueSum int64
-	var diagonalSum int64
-	for i := 0; i < n; i++ {
-		for k := 0; k < n; k++ {
-			ai := int64(a[i*n+k])
-			for j := 0; j < n; j++ {
-				c[i*n+j] += ai * int64(b[k*n+j])
+	bt := transBuf
+
+	/* Blocked transpose of B so the cubic loop streams sequentially. */
+	for ii := 0; ii < n; ii += 32 {
+		iMax := ii + 32
+		if iMax > n {
+			iMax = n
+		}
+		for jj := 0; jj < n; jj += 32 {
+			jMax := jj + 32
+			if jMax > n {
+				jMax = n
+			}
+			for i := ii; i < iMax; i++ {
+				base := i * n
+				for j := jj; j < jMax; j++ {
+					bt[j*n+i] = int64(b[base+j])
+				}
 			}
 		}
+	}
+
+	/* Row/row dot products with 4-way unrolled accumulator parallelism. */
+	var valueSum int64
+	var diagonalSum int64
+	kLim := n &^ 3
+	for i := 0; i < n; i++ {
+		aBase := i * n
+		cBase := i * n
+		var rowSum int64
 		for j := 0; j < n; j++ {
-			valueSum += c[i*n+j]
+			bBase := j * n
+			var s0, s1, s2, s3 int64
+			for k := 0; k < kLim; k += 4 {
+				s0 += int64(a[aBase+k]) * bt[bBase+k]
+				s1 += int64(a[aBase+k+1]) * bt[bBase+k+1]
+				s2 += int64(a[aBase+k+2]) * bt[bBase+k+2]
+				s3 += int64(a[aBase+k+3]) * bt[bBase+k+3]
+			}
+			s := (s0 + s1) + (s2 + s3)
+			for k := kLim; k < n; k++ {
+				s += int64(a[aBase+k]) * bt[bBase+k]
+			}
+			c[cBase+j] = s
+			rowSum += s
+			if i == j {
+				diagonalSum += s
+			}
 		}
-		diagonalSum += c[i*n+i]
+		valueSum += rowSum
 	}
 	
 	/* Reuse hash buffer */

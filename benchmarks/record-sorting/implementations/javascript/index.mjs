@@ -12,14 +12,53 @@ const rc = inputRecords.length;
 const ids = new Array(rc);
 const scores = new Array(rc);
 const timestamps = new Float64Array(rc);
+let idMin = Infinity, idMax = -Infinity;
+let scoreMin = Infinity, scoreMax = -Infinity;
+let tsMin = Infinity, tsMax = -Infinity;
 for (let i = 0; i < rc; i++) {
-  ids[i] = inputRecords[i].id;
-  scores[i] = inputRecords[i].score;
-  timestamps[i] = inputRecords[i].timestamp;
+  const r = inputRecords[i];
+  const id = r.id, sc = r.score, ts = r.timestamp;
+  ids[i] = id; scores[i] = sc; timestamps[i] = ts;
+  if (id < idMin) idMin = id; if (id > idMax) idMax = id;
+  if (sc < scoreMin) scoreMin = sc; if (sc > scoreMax) scoreMax = sc;
+  if (ts < tsMin) tsMin = ts; if (ts > tsMax) tsMax = ts;
 }
-const idx = new Array(rc);
 
-function kernel() {
+// Packed-key sort: key = ((scoreMax-score)*tsSpan + (ts-tsMin))*idSpan + (id-idMin).
+// Ascending key order == score desc, timestamp asc, id asc. Exact in float64
+// while the product of the three spans stays below 2^53.
+const tsSpan = rc === 0 ? 1 : tsMax - tsMin + 1;
+const idSpan = rc === 0 ? 1 : idMax - idMin + 1;
+const scoreSpan = rc === 0 ? 1 : scoreMax - scoreMin + 1;
+const usePacked = scoreSpan <= 4503599627370496 / Math.max(tsSpan, 1) / Math.max(idSpan, 1) &&
+  tsSpan >= 1 && idSpan >= 1 && scoreSpan >= 1;
+const keys = new Float64Array(rc);
+const idx = new Array(rc);
+const lines = new Array(rc);
+
+function kernelPacked() {
+  for (let i = 0; i < rc; i++) {
+    keys[i] = ((scoreMax - scores[i]) * tsSpan + (timestamps[i] - tsMin)) * idSpan + (ids[i] - idMin);
+  }
+  keys.sort();
+  const take = Math.min(rc, 10);
+  const firstRecords = [];
+  const lastRecords = [];
+  for (let j = 0; j < rc; j++) {
+    const k = keys[j];
+    const id = (k % idSpan) + idMin;
+    const q = (k - (k % idSpan)) / idSpan;
+    const ts = (q % tsSpan) + tsMin;
+    const sc = scoreMax - ((q - (q % tsSpan)) / tsSpan);
+    lines[j] = id + "," + sc + "," + ts + "\n";
+    if (j < take) firstRecords.push({ id, score: sc, timestamp: ts });
+    if (j >= rc - take) lastRecords.push({ id, score: sc, timestamp: ts });
+  }
+  const checksum = createHash("sha256").update(lines.join("")).digest("hex");
+  return { benchmark: "record-sorting", version: 1, recordCount: rc, firstRecords, lastRecords, checksum };
+}
+
+function kernelGeneric() {
   for (let i = 0; i < rc; i++) idx[i] = i;
   idx.sort((a, b) => {
     const d = scores[b] - scores[a];
@@ -39,15 +78,15 @@ function kernel() {
     const k = idx[i];
     lastRecords.push({ id: ids[k], score: scores[k], timestamp: timestamps[k] });
   }
-  const lines = new Array(rc);
   for (let i = 0; i < rc; i++) {
     const k = idx[i];
     lines[i] = ids[k] + "," + scores[k] + "," + timestamps[k] + "\n";
   }
-  const data = lines.join("");
-  const checksum = createHash("sha256").update(data).digest("hex");
+  const checksum = createHash("sha256").update(lines.join("")).digest("hex");
   return { benchmark: "record-sorting", version: 1, recordCount: rc, firstRecords, lastRecords, checksum };
 }
+
+const kernel = usePacked ? kernelPacked : kernelGeneric;
 
 const digestOutput = (output) => createHash("sha256").update(JSON.stringify(output)).digest("hex");
 const emit = (value) => process.stdout.write(JSON.stringify(value) + "\n");

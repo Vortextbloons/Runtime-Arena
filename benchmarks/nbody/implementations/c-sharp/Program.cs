@@ -47,77 +47,93 @@ static string Hash(string s)
     return new string(result);
 }
 
-static Body[] ReadInput(string path, out int steps, out double dt)
+static (int steps, double dt, double[] mass, double[] ipx, double[] ipy, double[] ipz, double[] ivx, double[] ivy, double[] ivz) ReadInput(string path)
 {
     using var doc = JsonDocument.Parse(File.ReadAllText(path));
     var root = doc.RootElement;
-    steps = root.GetProperty("steps").GetInt32();
-    dt = root.GetProperty("deltaTime").GetDouble();
+    int steps = root.GetProperty("steps").GetInt32();
+    double dt = root.GetProperty("deltaTime").GetDouble();
     var bodiesJson = root.GetProperty("bodies");
     int count = bodiesJson.GetArrayLength();
-    var bodies = new Body[count];
+    var mass = new double[count];
+    var ipx = new double[count]; var ipy = new double[count]; var ipz = new double[count];
+    var ivx = new double[count]; var ivy = new double[count]; var ivz = new double[count];
     for (int i = 0; i < count; i++)
     {
         var bj = bodiesJson[i];
         var pos = bj.GetProperty("position");
         var vel = bj.GetProperty("velocity");
-        bodies[i] = new Body
-        {
-            Mass = bj.GetProperty("mass").GetDouble(),
-            Px = pos[0].GetDouble(), Py = pos[1].GetDouble(), Pz = pos[2].GetDouble(),
-            Vx = vel[0].GetDouble(), Vy = vel[1].GetDouble(), Vz = vel[2].GetDouble(),
-        };
+        mass[i] = bj.GetProperty("mass").GetDouble();
+        ipx[i] = pos[0].GetDouble(); ipy[i] = pos[1].GetDouble(); ipz[i] = pos[2].GetDouble();
+        ivx[i] = vel[0].GetDouble(); ivy[i] = vel[1].GetDouble(); ivz[i] = vel[2].GetDouble();
     }
-    return bodies;
+    return (steps, dt, mass, ipx, ipy, ipz, ivx, ivy, ivz);
 }
 
-static (double energy, string posChecksum, string velChecksum) Kernel(Body[] b, int steps, double dt)
+static (double energy, string posChecksum, string velChecksum) Kernel(double[] mass,
+    double[] px, double[] py, double[] pz, double[] vx, double[] vy, double[] vz,
+    double[] ipx, double[] ipy, double[] ipz, double[] ivx, double[] ivy, double[] ivz,
+    int steps, double dt)
 {
-    int n = b.Length;
+    int n = mass.Length;
+    Array.Copy(ipx, px, n);
+    Array.Copy(ipy, py, n);
+    Array.Copy(ipz, pz, n);
+    Array.Copy(ivx, vx, n);
+    Array.Copy(ivy, vy, n);
+    Array.Copy(ivz, vz, n);
     for (int step = 0; step < steps; step++)
     {
         for (int i = 0; i < n; i++)
         {
+            double pxi = px[i], pyi = py[i], pzi = pz[i], mi = mass[i];
+            double vxi = vx[i], vyi = vy[i], vzi = vz[i];
             for (int j = i + 1; j < n; j++)
             {
-                double dx = b[j].Px - b[i].Px;
-                double dy = b[j].Py - b[i].Py;
-                double dz = b[j].Pz - b[i].Pz;
+                double dx = px[j] - pxi;
+                double dy = py[j] - pyi;
+                double dz = pz[j] - pzi;
                 double r2 = dx * dx + dy * dy + dz * dz;
                 double m = dt / (r2 * Math.Sqrt(r2));
-                double mjM = b[j].Mass * m;
-                double miM = b[i].Mass * m;
-                b[i].Vx += dx * mjM;
-                b[i].Vy += dy * mjM;
-                b[i].Vz += dz * mjM;
-                b[j].Vx -= dx * miM;
-                b[j].Vy -= dy * miM;
-                b[j].Vz -= dz * miM;
+                double mjM = mass[j] * m;
+                double miM = mi * m;
+                vxi += dx * mjM;
+                vyi += dy * mjM;
+                vzi += dz * mjM;
+                vx[j] -= dx * miM;
+                vy[j] -= dy * miM;
+                vz[j] -= dz * miM;
             }
+            vx[i] = vxi;
+            vy[i] = vyi;
+            vz[i] = vzi;
         }
         for (int i = 0; i < n; i++)
         {
-            b[i].Px += dt * b[i].Vx;
-            b[i].Py += dt * b[i].Vy;
-            b[i].Pz += dt * b[i].Vz;
+            px[i] += dt * vx[i];
+            py[i] += dt * vy[i];
+            pz[i] += dt * vz[i];
         }
     }
 
     double energy = 0;
-    var psb = new StringBuilder();
-    var vsb = new StringBuilder();
+    var psb = new StringBuilder(n * 48);
+    var vsb = new StringBuilder(n * 48);
     for (int i = 0; i < n; i++)
     {
-        energy += 0.5 * b[i].Mass * (b[i].Vx * b[i].Vx + b[i].Vy * b[i].Vy + b[i].Vz * b[i].Vz);
+        double vxi = vx[i], vyi = vy[i], vzi = vz[i];
+        double pxi = px[i], pyi = py[i], pzi = pz[i];
+        double mi = mass[i];
+        energy += 0.5 * mi * (vxi * vxi + vyi * vyi + vzi * vzi);
         for (int j = i + 1; j < n; j++)
         {
-            double dx = b[i].Px - b[j].Px;
-            double dy = b[i].Py - b[j].Py;
-            double dz = b[i].Pz - b[j].Pz;
-            energy -= b[i].Mass * b[j].Mass / Math.Sqrt(dx * dx + dy * dy + dz * dz);
+            double dx = pxi - px[j];
+            double dy = pyi - py[j];
+            double dz = pzi - pz[j];
+            energy -= mi * mass[j] / Math.Sqrt(dx * dx + dy * dy + dz * dz);
         }
-        psb.Append(string.Format(CultureInfo.InvariantCulture, "{0:F9},{1:F9},{2:F9},", b[i].Px, b[i].Py, b[i].Pz));
-        vsb.Append(string.Format(CultureInfo.InvariantCulture, "{0:F9},{1:F9},{2:F9},", b[i].Vx, b[i].Vy, b[i].Vz));
+        psb.Append(string.Format(CultureInfo.InvariantCulture, "{0:F9},{1:F9},{2:F9},", pxi, pyi, pzi));
+        vsb.Append(string.Format(CultureInfo.InvariantCulture, "{0:F9},{1:F9},{2:F9},", vxi, vyi, vzi));
     }
     return (energy, Hash(psb.ToString()), Hash(vsb.ToString()));
 }
@@ -133,7 +149,10 @@ if (Arg("--protocol-version") != ProtocolVersion)
     throw new ArgumentException("unsupported protocol version");
 
 string outputFile = Arg("--output");
-Body[] initial = ReadInput(Arg("--input"), out int steps, out double dt);
+var (steps, dt, mass, ipx, ipy, ipz, ivx, ivy, ivz) = ReadInput(Arg("--input"));
+int bodyCount = mass.Length;
+var px = new double[bodyCount]; var py = new double[bodyCount]; var pz = new double[bodyCount];
+var vx = new double[bodyCount]; var vy = new double[bodyCount]; var vz = new double[bodyCount];
 var encoding = new UTF8Encoding(false);
 byte[] lastOutput = Array.Empty<byte>();
 
@@ -146,10 +165,8 @@ while ((line = Console.ReadLine()) != null)
     if (type == "run")
     {
         long requestId = long.Parse(ProtocolField(line, "requestId"));
-        var b = new Body[initial.Length];
-        Array.Copy(initial, b, initial.Length);
-        var result = Kernel(b, steps, dt);
-        string resultJson = "{\"benchmark\":\"nbody\",\"version\":1,\"bodyCount\":" + b.Length
+        var result = Kernel(mass, px, py, pz, vx, vy, vz, ipx, ipy, ipz, ivx, ivy, ivz, steps, dt);
+        string resultJson = "{\"benchmark\":\"nbody\",\"version\":1,\"bodyCount\":" + bodyCount
             + ",\"finalEnergy\":" + result.energy.ToString(CultureInfo.InvariantCulture)
             + ",\"positionChecksum\":\"" + result.posChecksum
             + "\",\"velocityChecksum\":\"" + result.velChecksum + "\"}";
@@ -162,9 +179,4 @@ while ((line = Console.ReadLine()) != null)
         EmitLine("{\"type\":\"finish\",\"digest\":\"" + DigestHex(lastOutput) + "\"}");
         break;
     }
-}
-
-struct Body
-{
-    public double Mass, Px, Py, Pz, Vx, Vy, Vz;
 }

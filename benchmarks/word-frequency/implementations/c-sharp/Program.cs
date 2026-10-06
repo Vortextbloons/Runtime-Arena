@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -42,13 +43,13 @@ static string GetArg(string[] cliArgs, string name)
 
 static string Kernel(string[] words)
 {
-    var counts = new Dictionary<string, int>();
+    // Pre-sized so the large/mostly-unique inputs never trigger a resize,
+    // and single-lookup increments via CollectionsMarshal (no double hash).
+    var counts = new Dictionary<string, int>(words.Length);
     foreach (var word in words)
     {
-        if (counts.TryGetValue(word, out int c))
-            counts[word] = c + 1;
-        else
-            counts[word] = 1;
+        ref int c = ref CollectionsMarshal.GetValueRefOrAddDefault(counts, word, out _);
+        c++;
     }
 
     var entries = new List<KeyValuePair<string, int>>(counts);
@@ -58,11 +59,16 @@ static string Kernel(string[] words)
         return cmp != 0 ? cmp : string.Compare(a.Key, b.Key, StringComparison.Ordinal);
     });
 
-    var checksumBuilder = new StringBuilder(entries.Count * 16);
+    // Stream entries into SHA-256: no giant intermediate string/byte[].
+    using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
     foreach (var entry in entries)
-        checksumBuilder.Append(entry.Key).Append(',').Append(entry.Value).Append('\n');
-    byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(checksumBuilder.ToString()));
-    string checksum = Convert.ToHexString(hash).ToLowerInvariant();
+    {
+        hash.AppendData(Encoding.UTF8.GetBytes(entry.Key));
+        hash.AppendData([(byte)',']);
+        hash.AppendData(Encoding.UTF8.GetBytes(entry.Value.ToString()));
+        hash.AppendData([(byte)'\n']);
+    }
+    string checksum = Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
 
     var output = new StringBuilder(512)
         .Append("{\"benchmark\":\"word-frequency\",\"version\":1,\"totalWords\":")

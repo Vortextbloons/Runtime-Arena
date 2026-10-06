@@ -23,6 +23,8 @@ public final class Main {
   }
 
   private static final class Pool {
+    static final int STRIDE_I = 16; // 16 ints = 64 bytes per cell
+    static final int STRIDE_L = 8;  // 8 longs = 64 bytes per cell
     final int workers, items, rounds;
     final int[] seeds;
     final int[] xors;
@@ -36,7 +38,7 @@ public final class Main {
 
     Pool(int workerCount, int items, int rounds) {
       workers = workerCount; this.items = items; this.rounds = rounds;
-      seeds = new int[workerCount]; xors = new int[workerCount]; sums = new long[workerCount];
+      seeds = new int[workerCount * STRIDE_I]; xors = new int[workerCount * STRIDE_I]; sums = new long[workerCount * STRIDE_L];
       workerBases = new int[workerCount]; workerMixes = new int[workerCount]; threads = new Thread[workerCount];
       dispatch = new CyclicBarrier(workerCount + 1);
       complete = new CyclicBarrier(workerCount + 1);
@@ -50,28 +52,53 @@ public final class Main {
     }
 
     private void run(int id) {
+      final int cellI = id * STRIDE_I;
+      final int cellL = id * STRIDE_L;
+      final int items = this.items;
+      final int rounds = this.rounds;
+      final int n4 = items & ~3;
       try {
         while (true) {
           dispatch.await();
           if (stopping) return;
-          int seed = seeds[id];
-          int localXor = 0;
-          long localSum = 0;
-          int globalItemId = workerBases[id];
+          int seed = seeds[cellI];
+          int globalBase = workerBases[id];
           int workerMix = workerMixes[id];
-          for (int item = 0; item < items; item++, globalItemId++) {
-            int x = seed ^ globalItemId ^ workerMix;
+          int xor0 = 0, xor1 = 0, xor2 = 0, xor3 = 0;
+          long sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
+          int item = 0;
+          for (; item < n4; item += 4) {
+            int b = globalBase + item;
+            int x0 = seed ^ b ^ workerMix;
+            int x1 = seed ^ (b + 1) ^ workerMix;
+            int x2 = seed ^ (b + 2) ^ workerMix;
+            int x3 = seed ^ (b + 3) ^ workerMix;
+            for (int round = 0; round < rounds; round++) {
+              x0 ^= x0 << 13; x0 ^= x0 >>> 17; x0 ^= x0 << 5; x0 = x0 * ROUND_MUL + ROUND_ADD;
+              x1 ^= x1 << 13; x1 ^= x1 >>> 17; x1 ^= x1 << 5; x1 = x1 * ROUND_MUL + ROUND_ADD;
+              x2 ^= x2 << 13; x2 ^= x2 >>> 17; x2 ^= x2 << 5; x2 = x2 * ROUND_MUL + ROUND_ADD;
+              x3 ^= x3 << 13; x3 ^= x3 >>> 17; x3 ^= x3 << 5; x3 = x3 * ROUND_MUL + ROUND_ADD;
+            }
+            xor0 ^= x0; sum0 += x0 & 0xffffffffL;
+            xor1 ^= x1; sum1 += x1 & 0xffffffffL;
+            xor2 ^= x2; sum2 += x2 & 0xffffffffL;
+            xor3 ^= x3; sum3 += x3 & 0xffffffffL;
+          }
+          int xorT = 0;
+          long sumT = 0;
+          for (; item < items; item++) {
+            int x = seed ^ (globalBase + item) ^ workerMix;
             for (int round = 0; round < rounds; round++) {
               x ^= x << 13;
               x ^= x >>> 17;
               x ^= x << 5;
               x = x * ROUND_MUL + ROUND_ADD;
             }
-            localXor ^= x;
-            localSum += x & 0xffffffffL;
+            xorT ^= x;
+            sumT += x & 0xffffffffL;
           }
-          xors[id] = localXor;
-          sums[id] = localSum;
+          xors[cellI] = xor0 ^ xor1 ^ xor2 ^ xor3 ^ xorT;
+          sums[cellL] = sum0 + sum1 + sum2 + sum3 + sumT;
           complete.await();
         }
       } catch (Exception exception) {
@@ -130,8 +157,11 @@ public final class Main {
   private static String[] kernel(Input input, Pool pool) {
     int phaseSeed = (int) input.seed;
     long digest = INITIAL_DIGEST;
+    final int[] seeds = pool.seeds;
+    final int[] xors = pool.xors;
+    final long[] sums = pool.sums;
     for (int phase = 0; phase < input.phases; phase++) {
-      for (int worker = 0; worker < input.workers; worker++) pool.seeds[worker] = phaseSeed;
+      for (int worker = 0; worker < input.workers; worker++) seeds[worker * Pool.STRIDE_I] = phaseSeed;
       try {
         pool.dispatch.await();
         pool.complete.await();
@@ -141,8 +171,8 @@ public final class Main {
       int nextSeed = phaseSeed ^ phase;
       long phaseSum = 0;
       for (int worker = 0; worker < input.workers; worker++) {
-        long localSum = pool.sums[worker];
-        nextSeed = mix(nextSeed ^ pool.xors[worker] ^ (int) localSum ^ (int) (localSum >>> 32) ^ worker);
+        long localSum = sums[worker * Pool.STRIDE_L];
+        nextSeed = mix(nextSeed ^ xors[worker * Pool.STRIDE_I] ^ (int) localSum ^ (int) (localSum >>> 32) ^ worker);
         phaseSum += localSum;
       }
       phaseSeed = nextSeed;

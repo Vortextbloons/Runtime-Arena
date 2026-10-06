@@ -12,6 +12,38 @@ def worker(wid, items_per_worker, rounds_per_item, conn):
     seed_buf = bytearray(4)
     result_buf = bytearray(12)
     try:
+        import numpy as np
+        have_np = True
+    except ImportError:
+        np = None
+        have_np = False
+    try:
+        if have_np:
+            # Precompute per-item base: globalItemId XOR workerMul. Each phase
+            # then needs one vector XOR with the seed plus `rounds` vector
+            # xorshift rounds executed in C, instead of
+            # items*rounds Python-level iterations.
+            base = (np.arange(items_per_worker, dtype=np.uint32)
+                    + np.uint32((wid * items_per_worker) & MASK32)) ^ np.uint32(worker_mul)
+            rm = np.uint32(0x9E3779B1)
+            ra = np.uint32(0x85EBCA77)
+            while True:
+                try:
+                    conn.recv_bytes_into(seed_buf)
+                except EOFError:
+                    break
+                phase_seed = struct.unpack('<I', seed_buf)[0]
+                x = base ^ np.uint32(phase_seed)
+                for _ in range(rounds_per_item):
+                    x ^= x << np.uint32(13)
+                    x ^= x >> np.uint32(17)
+                    x ^= x << np.uint32(5)
+                    x = x * rm + ra
+                lx = int(np.bitwise_xor.reduce(x))
+                ls = int(np.sum(x, dtype=np.uint64))
+                struct.pack_into('<IQ', result_buf, 0, lx, ls)
+                conn.send_bytes(result_buf)
+            return
         while True:
             conn.recv_bytes_into(seed_buf)
             phase_seed = struct.unpack('<I', seed_buf)[0]

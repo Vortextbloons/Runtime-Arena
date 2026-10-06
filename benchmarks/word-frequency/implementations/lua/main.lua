@@ -3,6 +3,8 @@ local min = math.min
 local sort = table.sort
 local concat = table.concat
 local open = io.open
+-- LuaJIT: pre-size tables up front to skip incremental rehashing.
+local new_tab = table.new or function(_, _) return {} end
 package.path = script_dir .. "?.lua;" .. package.path
 
 local json = require("json")
@@ -40,13 +42,12 @@ local f = open(input_file, "r"); local data = json.decode(f:read("*a")); f:close
 local words = data.words
 
 local function kernel(words)
-    local freq = {}
+    local freq = new_tab(0, 16384)
     for i = 1, #words do
         local w = words[i]
-        local old = freq[w]
-        if old then freq[w] = old + 1 else freq[w] = 1 end
+        freq[w] = (freq[w] or 0) + 1
     end
-    local entries = {}
+    local entries = new_tab(0, 0)
     local n = 0
     for w, c in pairs(freq) do
         n = n + 1
@@ -57,7 +58,7 @@ local function kernel(words)
         if ca ~= cb then return ca > cb end
         return a[1] < b[1]
     end)
-    local parts = {}
+    local parts = new_tab(n, 0)
     for i = 1, n do
         local e = entries[i]
         parts[i] = e[1] .. "," .. e[2] .. "\n"

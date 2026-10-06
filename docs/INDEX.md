@@ -32,7 +32,7 @@ API documentation, configuration, and protocol specification.
 | [reference/configuration.md](reference/configuration.md) | arena.config.json, language manifests, benchmark manifests |
 | [reference/schemas.md](reference/schemas.md) | JSON Schema definitions for validation |
 | [reference/protocol.md](reference/protocol.md) | Harness-timed protocol (contract 2.0.0): messages, digests, helpers, conformance |
-| [reference/benchmarks.md](reference/benchmarks.md) | Benchmark workloads — nbody, shortest-path, aggregation, barrier-wave, word-frequency, record-sorting, matrix-multiplication |
+| [reference/benchmarks.md](reference/benchmarks.md) | Benchmark workloads, including Arena Exchange (implementations pending) |
 
 ## Guides
 
@@ -55,5 +55,4 @@ Runbook and troubleshooting.
 | File | Description |
 |------|-------------|
 | [ops/runbook.md](ops/runbook.md) | Operations runbook — common tasks and troubleshooting |
-
 

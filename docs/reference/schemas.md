@@ -22,7 +22,7 @@ Validates benchmark manifests (`benchmarks/*/benchmark.json`).
 - **Simple form:** `dataset`, `warmupIterations`, `measuredIterations`
 - **Mutations form:** `mutations` (map of mutation names to `{dataset, seed}`), `warmupIterations`, `measuredIterations`
 
-Benchmarks with multiple dataset variants (shortest-path, word-frequency, record-sorting, matrix-multiplication) use the mutations form. Others use the simple form.
+Benchmarks with multiple dataset variants (shortest-path, word-frequency, record-sorting, matrix-multiplication, arena-exchange) use the mutations form. Others use the simple form.
 
 **Limits:**
 - `timeoutMilliseconds` — Per-iteration timeout (default 120000)
@@ -94,4 +94,12 @@ The `schemaVersion` field at the root of each result snapshot tracks the data mo
 
 ## implementation-output.schema.json
 
-Base output shape for implementations. Uses conditional validation based on the `benchmark` field to apply benchmark-specific output schemas for **nbody**, **shortest-path**, **aggregation**, **word-frequency**, **record-sorting**, and **matrix-multiplication**. **barrier-wave** is not yet branched in this schema; the Go checker is the authority for that workload's output shape.
+Base output shape for implementations. Uses conditional validation based on the `benchmark` field to apply benchmark-specific output schemas for **nbody**, **shortest-path**, **aggregation**, **word-frequency**, **record-sorting**, **matrix-multiplication**, and **arena-exchange**. **barrier-wave** is not yet branched in this schema; the Go checker is the authority for that workload's output shape.
+
+## arena-exchange-input.schema.json
+
+Defines the versioned compact JSON instrument/account tuples and eleven event
+types for Arena Exchange. Tuple lengths, numeric bounds, side codes, snapshot
+depth, and required fields are checked structurally. The independent Go checker
+additionally enforces uniqueness, ordered event IDs, terminal settlement,
+price-band relationships, safe arithmetic, and operational event semantics.

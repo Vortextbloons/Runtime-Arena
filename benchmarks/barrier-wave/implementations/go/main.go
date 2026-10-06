@@ -8,8 +8,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"runtime"
 	"strconv"
+	"sync"
+	"sync/atomic"
 )
 
 type Input struct {
@@ -31,18 +32,56 @@ type Output struct {
 	Digest         string `json:"digest"`
 }
 
+// barrier is a reusable N-party barrier: one broadcast wakes all waiters.
+type barrier struct {
+	mu      sync.Mutex
+	cond    sync.Cond
+	parties int
+	count   int
+	cycle   int
+}
+
+func newBarrier(parties int) *barrier {
+	b := &barrier{parties: parties}
+	b.cond.L = &b.mu
+	return b
+}
+
+func (b *barrier) wait() {
+	b.mu.Lock()
+	gen := b.cycle
+	b.count++
+	if b.count == b.parties {
+		b.count = 0
+		b.cycle++
+		b.mu.Unlock()
+		b.cond.Broadcast()
+		return
+	}
+	for gen == b.cycle {
+		b.cond.Wait()
+	}
+	b.mu.Unlock()
+}
+
+// slot is one cache line (64B): seed written by the coordinator, results by
+// the owning worker. Barriers provide the happens-before edges.
+type slot struct {
+	seed uint32
+	xor  uint32
+	sum  uint64
+	_    [48]byte
+}
+
 type pool struct {
 	workerCount    int
 	itemsPerWorker int
 	roundsPerItem  int
-	results        []workerResult
-	inputChans     []chan uint32
-	outputChans    []chan workerResult
-}
-
-type workerResult struct {
-	localXor uint32
-	localSum uint64
+	slots          []slot
+	dispatch       *barrier
+	complete       *barrier
+	stopping       atomic.Bool
+	wg             sync.WaitGroup
 }
 
 func newPool(workerCount, itemsPerWorker, roundsPerItem int) *pool {
@@ -50,54 +89,100 @@ func newPool(workerCount, itemsPerWorker, roundsPerItem int) *pool {
 		workerCount:    workerCount,
 		itemsPerWorker: itemsPerWorker,
 		roundsPerItem:  roundsPerItem,
-		results:        make([]workerResult, workerCount),
-		inputChans:     make([]chan uint32, workerCount),
-		outputChans:    make([]chan workerResult, workerCount),
+		slots:          make([]slot, workerCount),
+		dispatch:       newBarrier(workerCount + 1),
+		complete:       newBarrier(workerCount + 1),
 	}
 	for w := 0; w < workerCount; w++ {
-		p.inputChans[w] = make(chan uint32, 1)
-		p.outputChans[w] = make(chan workerResult, 1)
+		p.wg.Add(1)
 		go p.worker(w)
 	}
 	return p
 }
 
 func (p *pool) worker(id int) {
+	defer p.wg.Done()
 	workerMul := uint32(id) * 0x9e3779b9
-	itemsPerWorker := p.itemsPerWorker
-	roundsPerItem := p.roundsPerItem
-	for phaseSeed := range p.inputChans[id] {
-		localXor := uint32(0)
-		localSum := uint64(0)
-		for localItem := 0; localItem < itemsPerWorker; localItem++ {
-			globalItemId := uint32(id*itemsPerWorker + localItem)
-			x := phaseSeed ^ globalItemId ^ workerMul
-			for round := 0; round < roundsPerItem; round++ {
+	base := uint32(id * p.itemsPerWorker)
+	items := p.itemsPerWorker
+	rounds := p.roundsPerItem
+	n4 := items &^ 3
+	for {
+		p.dispatch.wait()
+		if p.stopping.Load() {
+			break
+		}
+		phaseSeed := p.slots[id].seed
+		var xor0, xor1, xor2, xor3 uint32
+		var sum0, sum1, sum2, sum3 uint64
+		item := 0
+		for ; item < n4; item += 4 {
+			b := base + uint32(item)
+			x0 := phaseSeed ^ b ^ workerMul
+			x1 := phaseSeed ^ (b + 1) ^ workerMul
+			x2 := phaseSeed ^ (b + 2) ^ workerMul
+			x3 := phaseSeed ^ (b + 3) ^ workerMul
+			for r := 0; r < rounds; r++ {
+				x0 ^= x0 << 13
+				x0 ^= x0 >> 17
+				x0 ^= x0 << 5
+				x0 = x0*0x9e3779b1 + 0x85ebca77
+				x1 ^= x1 << 13
+				x1 ^= x1 >> 17
+				x1 ^= x1 << 5
+				x1 = x1*0x9e3779b1 + 0x85ebca77
+				x2 ^= x2 << 13
+				x2 ^= x2 >> 17
+				x2 ^= x2 << 5
+				x2 = x2*0x9e3779b1 + 0x85ebca77
+				x3 ^= x3 << 13
+				x3 ^= x3 >> 17
+				x3 ^= x3 << 5
+				x3 = x3*0x9e3779b1 + 0x85ebca77
+			}
+			xor0 ^= x0
+			sum0 += uint64(x0)
+			xor1 ^= x1
+			sum1 += uint64(x1)
+			xor2 ^= x2
+			sum2 += uint64(x2)
+			xor3 ^= x3
+			sum3 += uint64(x3)
+		}
+		var xorT uint32
+		var sumT uint64
+		for ; item < items; item++ {
+			x := phaseSeed ^ (base + uint32(item)) ^ workerMul
+			for r := 0; r < rounds; r++ {
 				x ^= x << 13
 				x ^= x >> 17
 				x ^= x << 5
 				x = x*0x9e3779b1 + 0x85ebca77
 			}
-			localXor ^= x
-			localSum += uint64(x)
+			xorT ^= x
+			sumT += uint64(x)
 		}
-		p.outputChans[id] <- workerResult{localXor, localSum}
+		p.slots[id].xor = xor0 ^ xor1 ^ xor2 ^ xor3 ^ xorT
+		p.slots[id].sum = sum0 + sum1 + sum2 + sum3 + sumT
+		p.complete.wait()
 	}
+	// Coordinator waits in complete after the stop dispatch.
+	p.complete.wait()
 }
 
 func (p *pool) run(seed uint32) {
 	for w := 0; w < p.workerCount; w++ {
-		p.inputChans[w] <- seed
+		p.slots[w].seed = seed
 	}
-	for w := 0; w < p.workerCount; w++ {
-		p.results[w] = <-p.outputChans[w]
-	}
+	p.dispatch.wait()
+	p.complete.wait()
 }
 
 func (p *pool) close() {
-	for w := 0; w < p.workerCount; w++ {
-		close(p.inputChans[w])
-	}
+	p.stopping.Store(true)
+	p.dispatch.wait()
+	p.complete.wait()
+	p.wg.Wait()
 }
 
 func mix32(x uint32) uint32 {
@@ -142,9 +227,9 @@ func kernel(in Input, p *pool, phaseSeed uint32) Output {
 		nextSeed := phaseSeed ^ uint32(phase)
 		var phaseSum uint64
 		for w := 0; w < p.workerCount; w++ {
-			r := p.results[w]
-			nextSeed = mix32(nextSeed ^ r.localXor ^ uint32(r.localSum) ^ uint32(r.localSum>>32) ^ uint32(w))
-			phaseSum += r.localSum
+			s := p.slots[w]
+			nextSeed = mix32(nextSeed ^ s.xor ^ uint32(s.sum) ^ uint32(s.sum>>32) ^ uint32(w))
+			phaseSum += s.sum
 		}
 
 		phaseSeed = nextSeed
@@ -189,7 +274,8 @@ func main() {
 	var in Input
 	json.Unmarshal(raw, &in)
 
-	runtime.GOMAXPROCS(in.WorkerCount)
+	// Deliberately no GOMAXPROCS clamp: the runtime schedules workers across
+	// all CPUs and the barrier keeps exactly workerCount of them in flight.
 	p := newPool(in.WorkerCount, in.ItemsPerWorker, in.RoundsPerItem)
 	defer p.close()
 	seedVal, _ := strconv.ParseUint(in.InitialSeed, 16, 32)

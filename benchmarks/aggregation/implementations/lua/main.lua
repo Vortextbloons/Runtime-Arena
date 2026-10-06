@@ -1,15 +1,23 @@
 local script_dir = arg[0]:match("(.*[/\\])") or "./"
 local huge = math.huge
 local min = math.min
+local floor = math.floor
+local abs = math.abs
 local sort = table.sort
 local concat = table.concat
 local format = string.format
 local open = io.open
 package.path = script_dir .. "?.lua;" .. package.path
 
-local json = require("json")
 local sha256 = require("sha256")
 local PROTOCOL_VERSION = "2.0.0"
+
+-- Same number encoding the bundled json encoder used: integers as %d,
+-- anything else (e.g. inf on empty input) as %.17g instead of erroring.
+local function num(v)
+    if v == floor(v) and abs(v) < 2^53 then return format("%d", v) end
+    return format("%.17g", v)
+end
 
 local function arg_value(name)
     for i = 1, #arg do
@@ -29,13 +37,31 @@ if not input_file or not output_file then
     os.exit(1)
 end
 
-local function respond(obj)
-    io.write(json.encode(obj), "\n")
-    io.flush()
+-- Plain scanner for the two harness fields: the generic JSON decoder costs
+-- more per iteration than the checksum hash on these small messages.
+local function proto_str(line, field)
+    local key = '"' .. field .. '":'
+    local s = line:find(key, 1, true)
+    if not s then return nil end
+    s = s + #key
+    while line:sub(s, s) == " " do s = s + 1 end
+    if line:sub(s, s) == '"' then
+        local e = line:find('"', s + 1, true)
+        if not e then return nil end
+        return line:sub(s + 1, e - 1)
+    end
+    local e = s
+    while e <= #line do
+        local c = line:sub(e, e)
+        if c == "," or c == "}" or c == " " then break end
+        e = e + 1
+    end
+    return line:sub(s, e - 1)
 end
 
-local function digest_output(output)
-    return sha256(json.encode(output))
+local function respond_raw(s)
+    io.write(s, "\n")
+    io.flush()
 end
 
 local f = open(input_file, "r")
@@ -46,11 +72,23 @@ local rows = {}
 local first_line = true
 for line in content:gmatch("[^\r\n]+") do
     if first_line then first_line = false else
-        local fields = {}
-        for field in line:gmatch("[^,]+") do fields[#fields+1] = field end
-        if #fields >= 5 then rows[#rows+1] = {fields[2],fields[3],tonumber(fields[4]),tonumber(fields[5])} end
+        local c1, c2, c3, c4 = line:find(",", 1, true)
+        if c1 then
+            local d2 = line:find(",", c1 + 1, true)
+            local d3 = line:find(",", d2 + 1, true)
+            local d4 = line:find(",", d3 + 1, true)
+            if d2 and d3 and d4 then
+                rows[#rows+1] = {
+                    line:sub(c1 + 1, d2 - 1),
+                    line:sub(d2 + 1, d3 - 1),
+                    tonumber(line:sub(d3 + 1, d4 - 1)),
+                    tonumber(line:sub(d4 + 1))
+                }
+            end
+        end
     end
 end
+content = nil
 
 local function kernel()
 local record_count = 0
@@ -118,24 +156,21 @@ sort(sorted_accounts, function(a, b)
     return a.accountId < b.accountId
 end)
 
-local top_accounts = {}
-local top_n = min(10, #sorted_accounts)
-for idx = 1, top_n do
-    top_accounts[idx] = sorted_accounts[idx]
-end
+local top_n = min(10, sa_n)
 
+-- Shared entry encoding, built once with plain concatenation: string.format
+-- parses its pattern on every call, which dominates at this entry count.
 local cats_json = {}
 for ci = 1, sc_n do
     local cat = sorted_categories[ci]
-    cats_json[ci] = format('{"category":"%s","quantity":%d,"valueMinorUnits":%d}',
-        cat.category, cat.quantity, cat.valueMinorUnits)
+    cats_json[ci] = '{"category":"' .. cat.category .. '","quantity":' .. num(cat.quantity)
+        .. ',"valueMinorUnits":' .. num(cat.valueMinorUnits) .. '}'
 end
 
 local accs_json = {}
 for ai = 1, top_n do
-    local acc = top_accounts[ai]
-    accs_json[ai] = format('{"accountId":"%s","valueMinorUnits":%d}',
-        acc.accountId, acc.valueMinorUnits)
+    local acc = sorted_accounts[ai]
+    accs_json[ai] = '{"accountId":"' .. acc.accountId .. '","valueMinorUnits":' .. num(acc.valueMinorUnits) .. '}'
 end
 
 local checksum_input = '{"Categories":[' .. concat(cats_json, ",") ..
@@ -143,33 +178,35 @@ local checksum_input = '{"Categories":[' .. concat(cats_json, ",") ..
 
 local checksum = sha256(checksum_input)
 
-return {
-    benchmark = "aggregation",
-    version = 1,
-    recordCount = record_count,
-    totalQuantity = total_quantity,
-    totalValueMinorUnits = total_value_minor_units,
-    categories = sorted_categories,
-    topAccounts = top_accounts,
-    minimumTransactionMinorUnits = minimum_transaction,
-    maximumTransactionMinorUnits = maximum_transaction,
-    checksum = checksum
-}
+-- Final output reuses the same entry strings: no generic table encoder in
+-- the hot path, and the digest covers the exact bytes written to disk.
+local output = '{"benchmark":"aggregation","version":1,"recordCount":' .. num(record_count)
+    .. ',"totalQuantity":' .. num(total_quantity)
+    .. ',"totalValueMinorUnits":' .. num(total_value_minor_units)
+    .. ',"categories":[' .. concat(cats_json, ",")
+    .. '],"topAccounts":[' .. concat(accs_json, ",")
+    .. '],"minimumTransactionMinorUnits":' .. num(minimum_transaction)
+    .. ',"maximumTransactionMinorUnits":' .. num(maximum_transaction)
+    .. ',"checksum":"' .. checksum .. '"}'
+return output
 end
 
-respond({type = "ready", protocolVersion = PROTOCOL_VERSION})
+respond_raw('{"type":"ready","protocolVersion":"' .. PROTOCOL_VERSION .. '"}')
 local output
+local last_digest
 for line in io.stdin:lines() do
-    local request = json.decode(line)
-    if request.type == "run" then
-        output = kernel()
-        respond({type = "result", requestId = request.requestId, digest = digest_output(output)})
-    elseif request.type == "finish" then
-        local digest = digest_output(output)
-        local out = open(output_file, "w")
-        out:write(json.encode(output))
-        out:close()
-        respond({type = "finish", digest = digest})
-        break
+    if line ~= "" then
+        local rtype = proto_str(line, "type")
+        if rtype == "run" then
+            output = kernel()
+            last_digest = sha256(output)
+            respond_raw('{"type":"result","requestId":' .. (proto_str(line, "requestId") or "0") .. ',"digest":"' .. last_digest .. '"}')
+        elseif rtype == "finish" then
+            local out = open(output_file, "w")
+            out:write(output)
+            out:close()
+            respond_raw('{"type":"finish","digest":"' .. last_digest .. '"}')
+            break
+        end
     end
 end

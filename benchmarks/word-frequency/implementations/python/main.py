@@ -19,10 +19,12 @@ words = data["words"]
 def kernel(words):
     freq = Counter(words)
     entries = sorted(freq.items(), key=lambda x: (-x[1], x[0]))
-    h = hashlib.sha256()
-    for w, c in entries:
-        h.update(f"{w},{c}\n".encode())
-    checksum = h.hexdigest()
+    # One join + one encode + one hash update beats N f-strings/encodes/updates.
+    if entries:
+        payload = "\n".join(f"{w},{c}" for w, c in entries) + "\n"
+    else:
+        payload = ""
+    checksum = hashlib.sha256(payload.encode()).hexdigest()
     top_words = [{"word": w, "count": c} for w, c in entries[:10]]
     return {
         "benchmark": "word-frequency",

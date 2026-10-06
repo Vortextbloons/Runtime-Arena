@@ -63,11 +63,14 @@ static string[] Kernel(WorkerPool pool, int workerCount, int phaseCount, long in
 {
     int phaseSeed = (int)initialSeed;
     long digest = INITIAL_DIGEST;
+    int[] seeds = pool.Seeds;
+    int[] xors = pool.Xors;
+    long[] sums = pool.Sums;
 
     for (int phase = 0; phase < phaseCount; phase++)
     {
         for (int w = 0; w < workerCount; w++)
-            pool.Seeds[w] = phaseSeed;
+            seeds[w * WorkerPool.STRIDE_I] = phaseSeed;
 
         pool.SignalAndWaitDispatch();
         pool.SignalAndWaitComplete();
@@ -76,8 +79,8 @@ static string[] Kernel(WorkerPool pool, int workerCount, int phaseCount, long in
         long phaseSum = 0;
         for (int w = 0; w < workerCount; w++)
         {
-            long localSum = pool.Sums[w];
-            nextSeed = Mix32(nextSeed ^ pool.Xors[w] ^ (int)localSum ^ (int)(localSum >>> 32) ^ w);
+            long localSum = sums[w * WorkerPool.STRIDE_L];
+            nextSeed = Mix32(nextSeed ^ xors[w * WorkerPool.STRIDE_I] ^ (int)localSum ^ (int)(localSum >>> 32) ^ w);
             phaseSum += localSum;
         }
         phaseSeed = nextSeed;
@@ -172,6 +175,9 @@ class WorkerPool
     readonly Thread[] _threads;
     readonly Barrier _dispatch, _complete;
     public volatile bool ShouldStop;
+    // Strided so each worker's cell lands on its own cache line.
+    public const int STRIDE_I = 16; // 16 ints = 64 bytes
+    public const int STRIDE_L = 8;  // 8 longs = 64 bytes
     public int[] Seeds;
     public int[] Xors;
     public long[] Sums;
@@ -181,9 +187,9 @@ class WorkerPool
         _workerCount = workerCount;
         _items = items;
         _rounds = rounds;
-        Seeds = new int[workerCount];
-        Xors = new int[workerCount];
-        Sums = new long[workerCount];
+        Seeds = new int[workerCount * STRIDE_I];
+        Xors = new int[workerCount * STRIDE_I];
+        Sums = new long[workerCount * STRIDE_L];
         _workerBases = new int[workerCount];
         _workerMixes = new int[workerCount];
         _dispatch = new Barrier(workerCount + 1);
@@ -201,33 +207,59 @@ class WorkerPool
 
     void Run(int id)
     {
+        int cellI = id * STRIDE_I;
+        int cellL = id * STRIDE_L;
+        int items = _items;
+        int rounds = _rounds;
+        int n4 = items & ~3;
         while (true)
         {
             _dispatch.SignalAndWait();
             if (ShouldStop) return;
 
-            int seed = Seeds[id];
-            int localXor = 0;
-            long localSum = 0;
-            int globalItemId = _workerBases[id];
+            int seed = Seeds[cellI];
+            int globalBase = _workerBases[id];
             int workerMix = _workerMixes[id];
-
-            for (int item = 0; item < _items; item++, globalItemId++)
+            int xor0 = 0, xor1 = 0, xor2 = 0, xor3 = 0;
+            long sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
+            int item = 0;
+            for (; item < n4; item += 4)
             {
-                int x = seed ^ globalItemId ^ workerMix;
-                for (int round = 0; round < _rounds; round++)
+                int b = globalBase + item;
+                int x0 = seed ^ b ^ workerMix;
+                int x1 = seed ^ (b + 1) ^ workerMix;
+                int x2 = seed ^ (b + 2) ^ workerMix;
+                int x3 = seed ^ (b + 3) ^ workerMix;
+                for (int round = 0; round < rounds; round++)
+                {
+                    x0 ^= x0 << 13; x0 ^= x0 >>> 17; x0 ^= x0 << 5; x0 = unchecked((int)((uint)x0 * ROUND_MUL + ROUND_ADD));
+                    x1 ^= x1 << 13; x1 ^= x1 >>> 17; x1 ^= x1 << 5; x1 = unchecked((int)((uint)x1 * ROUND_MUL + ROUND_ADD));
+                    x2 ^= x2 << 13; x2 ^= x2 >>> 17; x2 ^= x2 << 5; x2 = unchecked((int)((uint)x2 * ROUND_MUL + ROUND_ADD));
+                    x3 ^= x3 << 13; x3 ^= x3 >>> 17; x3 ^= x3 << 5; x3 = unchecked((int)((uint)x3 * ROUND_MUL + ROUND_ADD));
+                }
+                xor0 ^= x0; unchecked { sum0 += (long)(uint)x0; }
+                xor1 ^= x1; unchecked { sum1 += (long)(uint)x1; }
+                xor2 ^= x2; unchecked { sum2 += (long)(uint)x2; }
+                xor3 ^= x3; unchecked { sum3 += (long)(uint)x3; }
+            }
+            int xorT = 0;
+            long sumT = 0;
+            for (; item < items; item++)
+            {
+                int x = seed ^ (globalBase + item) ^ workerMix;
+                for (int round = 0; round < rounds; round++)
                 {
                     x ^= x << 13;
                     x ^= x >>> 17;
                     x ^= x << 5;
                     x = unchecked((int)((uint)x * ROUND_MUL + ROUND_ADD));
                 }
-                localXor ^= x;
-                unchecked { localSum += (long)(uint)x; }
+                xorT ^= x;
+                unchecked { sumT += (long)(uint)x; }
             }
 
-            Xors[id] = localXor;
-            Sums[id] = localSum;
+            Xors[cellI] = xor0 ^ xor1 ^ xor2 ^ xor3 ^ xorT;
+            Sums[cellL] = sum0 + sum1 + sum2 + sum3 + sumT;
             _complete.SignalAndWait();
         }
     }

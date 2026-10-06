@@ -14,6 +14,15 @@ import java.util.PriorityQueue;
 public final class Main {
   private static final String PROTOCOL_VERSION = "2.0.0";
   private static final char[] HEX = "0123456789abcdef".toCharArray();
+  // Reused across iterations: getInstance does a provider lookup every call.
+  private static final MessageDigest SHA;
+  static {
+    try {
+      SHA = MessageDigest.getInstance("SHA-256");
+    } catch (Exception e) {
+      throw new ExceptionInInitializerError(e);
+    }
+  }
 
   private static final class Row {
     final String account;
@@ -114,8 +123,18 @@ public final class Main {
     return rows.toArray(new Row[0]);
   }
 
-  private static String escaped(String value) {
-    StringBuilder out = new StringBuilder(value.length() + 2).append('"');
+  private static void appendEscaped(StringBuilder out, String value) {
+    // Fast path: generated ids/categories are plain ASCII without escapes.
+    boolean simple = true;
+    for (int i = 0; i < value.length(); i++) {
+      char c = value.charAt(i);
+      if (c == '"' || c == '\\' || c < 0x20) { simple = false; break; }
+    }
+    if (simple) {
+      out.append('"').append(value).append('"');
+      return;
+    }
+    out.append('"');
     for (int i = 0; i < value.length(); i++) {
       char c = value.charAt(i);
       if (c == '"') out.append("\\\"");
@@ -125,30 +144,32 @@ public final class Main {
       else if (c == '\t') out.append("\\t");
       else out.append(c);
     }
-    return out.append('"').toString();
+    out.append('"');
   }
 
-  private static String categoriesJson(List<Category> categories) {
-    StringBuilder out = new StringBuilder("[");
+  private static void appendCategories(StringBuilder out, List<Category> categories) {
+    out.append('[');
     for (int i = 0; i < categories.size(); i++) {
       if (i != 0) out.append(',');
       Category c = categories.get(i);
-      out.append("{\"category\":").append(escaped(c.name))
-          .append(",\"quantity\":").append(c.quantity)
+      out.append("{\"category\":");
+      appendEscaped(out, c.name);
+      out.append(",\"quantity\":").append(c.quantity)
           .append(",\"valueMinorUnits\":").append(c.value).append('}');
     }
-    return out.append(']').toString();
+    out.append(']');
   }
 
-  private static String accountsJson(List<Account> accounts) {
-    StringBuilder out = new StringBuilder("[");
+  private static void appendAccounts(StringBuilder out, List<Account> accounts) {
+    out.append('[');
     for (int i = 0; i < accounts.size(); i++) {
       if (i != 0) out.append(',');
       Account a = accounts.get(i);
-      out.append("{\"accountId\":").append(escaped(a.id))
-          .append(",\"valueMinorUnits\":").append(a.value).append('}');
+      out.append("{\"accountId\":");
+      appendEscaped(out, a.id);
+      out.append(",\"valueMinorUnits\":").append(a.value).append('}');
     }
-    return out.append(']').toString();
+    out.append(']');
   }
 
   private static String hex(byte[] digest) {
@@ -161,9 +182,10 @@ public final class Main {
     return new String(result);
   }
 
-  private static Result kernel(Row[] rows) throws Exception {
-    HashMap<String, Category> categoriesByName = new HashMap<>();
-    HashMap<String, Account> accountsById = new HashMap<>();
+  private static Result kernel(Row[] rows) {
+    // Pre-sized: ~8 categories, ~100 accounts; avoids resize/rehash churn.
+    HashMap<String, Category> categoriesByName = new HashMap<>(16);
+    HashMap<String, Account> accountsById = new HashMap<>(256);
     Result result = new Result();
     for (Row row : rows) {
       long value = row.quantity * row.unitPrice;
@@ -203,21 +225,32 @@ public final class Main {
     result.accounts = new ArrayList<>(top);
     result.accounts.sort(ACCOUNT_ORDER);
 
-    String checksumInput = "{\"Categories\":" + categoriesJson(result.categories)
-        + ",\"TopAccounts\":" + accountsJson(result.accounts) + "}\n";
-    result.checksum = hex(MessageDigest.getInstance("SHA-256")
-        .digest(checksumInput.getBytes(StandardCharsets.UTF_8)));
+    StringBuilder checksumInput = new StringBuilder(2048);
+    checksumInput.append("{\"Categories\":");
+    appendCategories(checksumInput, result.categories);
+    checksumInput.append(",\"TopAccounts\":");
+    appendAccounts(checksumInput, result.accounts);
+    checksumInput.append("}\n");
+    int n = checksumInput.length();
+    byte[] bytes = new byte[n];
+    for (int i = 0; i < n; i++) bytes[i] = (byte) checksumInput.charAt(i);
+    result.checksum = hex(SHA.digest(bytes));
     return result;
   }
 
   private static String output(Result result) {
-    return "{\"benchmark\":\"aggregation\",\"version\":1,\"recordCount\":" + result.count
-        + ",\"totalQuantity\":" + result.quantity + ",\"totalValueMinorUnits\":" + result.value
-        + ",\"categories\":" + categoriesJson(result.categories)
-        + ",\"topAccounts\":" + accountsJson(result.accounts)
-        + ",\"minimumTransactionMinorUnits\":" + result.min
-        + ",\"maximumTransactionMinorUnits\":" + result.max
-        + ",\"checksum\":\"" + result.checksum + "\"}";
+    StringBuilder out = new StringBuilder(4096);
+    out.append("{\"benchmark\":\"aggregation\",\"version\":1,\"recordCount\":").append(result.count)
+        .append(",\"totalQuantity\":").append(result.quantity)
+        .append(",\"totalValueMinorUnits\":").append(result.value)
+        .append(",\"categories\":");
+    appendCategories(out, result.categories);
+    out.append(",\"topAccounts\":");
+    appendAccounts(out, result.accounts);
+    out.append(",\"minimumTransactionMinorUnits\":").append(result.min)
+        .append(",\"maximumTransactionMinorUnits\":").append(result.max)
+        .append(",\"checksum\":\"").append(result.checksum).append("\"}");
+    return out.toString();
   }
 
   private static String argument(String[] args, String name, String fallback) {
@@ -225,9 +258,8 @@ public final class Main {
     return fallback;
   }
 
-  private static String digestHex(byte[] bytes) throws Exception {
-    byte[] digest = MessageDigest.getInstance("SHA-256").digest(bytes);
-    return hex(digest);
+  private static String digestHex(byte[] bytes) {
+    return hex(SHA.digest(bytes));
   }
 
   private static void emitLine(String json) {

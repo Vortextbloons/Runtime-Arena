@@ -1,0 +1,9 @@
+{
+  "benchmark": "arena-exchange",
+  "version": 1,
+  "size": "small",
+  "mutation": "hot-symbols",
+  "seed": 729418,
+  "generatorVersion": "2.2.0",
+  "sha256": "0dee38af53bcaec9d1b07579281b7a1b99c7c2ff0d5cec9e092afcbd96638de1"
+}

@@ -1,0 +1,9 @@
+{
+  "benchmark": "arena-exchange",
+  "version": 1,
+  "size": "small",
+  "mutation": "deep-book",
+  "seed": 729418,
+  "generatorVersion": "2.2.0",
+  "sha256": "4ebab91202d6e9ee45ffdd27fe0d68fd0d270eebbbc38ff594a63a9816e04757"
+}

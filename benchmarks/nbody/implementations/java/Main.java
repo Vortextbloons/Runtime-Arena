@@ -33,20 +33,52 @@ public final class Main {
     static int i(Object x) { return ((Number)x).intValue(); }
     static String arg(String[] a, String name) { for (int j = 0; j + 1 < a.length; j++) if (a[j].equals(name)) return a[j + 1]; throw new IllegalArgumentException("missing " + name); }
     static String hash(String s) throws Exception { byte[] d = MessageDigest.getInstance("SHA-256").digest(s.getBytes(StandardCharsets.UTF_8)); StringBuilder b = new StringBuilder(64); for (byte x : d) b.append(String.format("%02x", x & 255)); return b.toString(); }
-    static final class Body { double mass, px, py, pz, vx, vy, vz; Body copy() { Body b = new Body(); b.mass=mass; b.px=px; b.py=py; b.pz=pz; b.vx=vx; b.vy=vy; b.vz=vz; return b; } }
-    static final class Input { int steps; double dt; Body[] bodies; }
+    static final class Body { double mass, px, py, pz, vx, vy, vz; }
+    static final class Input { int steps; double dt; int n; double[] mass, ipx, ipy, ipz, ivx, ivy, ivz; }
     static Input readInput(String file) throws IOException {
         @SuppressWarnings("unchecked") Map<String,Object> m = (Map<String,Object>) new Json(Files.readString(Path.of(file))).value();
         Input in = new Input(); in.steps=i(m.get("steps")); in.dt=n(m.get("deltaTime"));
-        @SuppressWarnings("unchecked") List<Object> bs=(List<Object>)m.get("bodies"); in.bodies=new Body[bs.size()];
-        for(int j=0;j<bs.size();j++){ @SuppressWarnings("unchecked") Map<String,Object> x=(Map<String,Object>)bs.get(j); @SuppressWarnings("unchecked") List<Object> p=(List<Object>)x.get("position"); @SuppressWarnings("unchecked") List<Object> v=(List<Object>)x.get("velocity"); Body b=in.bodies[j]; b=new Body(); b.mass=n(x.get("mass")); b.px=n(p.get(0)); b.py=n(p.get(1)); b.pz=n(p.get(2)); b.vx=n(v.get(0)); b.vy=n(v.get(1)); b.vz=n(v.get(2)); in.bodies[j]=b; }
+        @SuppressWarnings("unchecked") List<Object> bs=(List<Object>)m.get("bodies"); in.n=bs.size();
+        int count = in.n;
+        in.mass=new double[count]; in.ipx=new double[count]; in.ipy=new double[count]; in.ipz=new double[count];
+        in.ivx=new double[count]; in.ivy=new double[count]; in.ivz=new double[count];
+        for(int j=0;j<count;j++){ @SuppressWarnings("unchecked") Map<String,Object> x=(Map<String,Object>)bs.get(j); @SuppressWarnings("unchecked") List<Object> p=(List<Object>)x.get("position"); @SuppressWarnings("unchecked") List<Object> v=(List<Object>)x.get("velocity"); in.mass[j]=n(x.get("mass")); in.ipx[j]=n(p.get(0)); in.ipy[j]=n(p.get(1)); in.ipz[j]=n(p.get(2)); in.ivx[j]=n(v.get(0)); in.ivy[j]=n(v.get(1)); in.ivz[j]=n(v.get(2)); }
         return in;
     }
-    static Result kernel(Input in, Body[] b) throws Exception {
-        for(int step=0;step<in.steps;step++){ for(int a=0;a<b.length;a++) for(int c=a+1;c<b.length;c++){ Body x=b[a], y=b[c]; double dx=y.px-x.px,dy=y.py-x.py,dz=y.pz-x.pz,r2=dx*dx+dy*dy+dz*dz,m=in.dt/(r2*Math.sqrt(r2)); double ym=y.mass*m,xm=x.mass*m; x.vx+=dx*ym;x.vy+=dy*ym;x.vz+=dz*ym;y.vx-=dx*xm;y.vy-=dy*xm;y.vz-=dz*xm; } for(Body x:b){x.px+=in.dt*x.vx;x.py+=in.dt*x.vy;x.pz+=in.dt*x.vz;} }
-        double energy=0; StringBuilder ps=new StringBuilder(),vs=new StringBuilder();
-        for(int a=0;a<b.length;a++){ Body x=b[a]; energy+=.5*x.mass*(x.vx*x.vx+x.vy*x.vy+x.vz*x.vz); for(int c=a+1;c<b.length;c++){Body y=b[c];double dx=x.px-y.px,dy=x.py-y.py,dz=x.pz-y.pz;energy-=x.mass*y.mass/Math.sqrt(dx*dx+dy*dy+dz*dz);} ps.append(String.format(Locale.ROOT,"%.9f,%.9f,%.9f,",x.px,x.py,x.pz)); vs.append(String.format(Locale.ROOT,"%.9f,%.9f,%.9f,",x.vx,x.vy,x.vz)); }
-        return new Result(energy,hash(ps.toString()),hash(vs.toString()),b.length);
+    static final char[] HEX = "0123456789abcdef".toCharArray();
+    static String toHex(byte[] d) { char[] c = new char[d.length * 2]; for (int k = 0; k < d.length; k++) { int v = d[k] & 255; c[k * 2] = HEX[v >>> 4]; c[k * 2 + 1] = HEX[v & 15]; } return new String(c); }
+    static Result kernel(Input in, double[] mass, double[] px, double[] py, double[] pz, double[] vx, double[] vy, double[] vz) throws Exception {
+        int count = in.n;
+        double dt = in.dt;
+        int steps = in.steps;
+        System.arraycopy(in.ipx, 0, px, 0, count);
+        System.arraycopy(in.ipy, 0, py, 0, count);
+        System.arraycopy(in.ipz, 0, pz, 0, count);
+        System.arraycopy(in.ivx, 0, vx, 0, count);
+        System.arraycopy(in.ivy, 0, vy, 0, count);
+        System.arraycopy(in.ivz, 0, vz, 0, count);
+        System.arraycopy(in.mass, 0, mass, 0, count);
+        for(int step=0;step<steps;step++){
+            for(int a=0;a<count;a++){
+                double pax=px[a],pay=py[a],paz=pz[a],ma=mass[a],vax=vx[a],vay=vy[a],vaz=vz[a];
+                for(int c=a+1;c<count;c++){
+                    double dx=px[c]-pax,dy=py[c]-pay,dz=pz[c]-paz,r2=dx*dx+dy*dy+dz*dz,m=dt/(r2*Math.sqrt(r2));
+                    double ym=mass[c]*m,xm=ma*m;
+                    vax+=dx*ym;vay+=dy*ym;vaz+=dz*ym;vx[c]-=dx*xm;vy[c]-=dy*xm;vz[c]-=dz*xm;
+                }
+                vx[a]=vax;vy[a]=vay;vz[a]=vaz;
+            }
+            for(int a=0;a<count;a++){px[a]+=dt*vx[a];py[a]+=dt*vy[a];pz[a]+=dt*vz[a];}
+        }
+        double energy=0; StringBuilder ps=new StringBuilder(count*48),vs=new StringBuilder(count*48);
+        for(int a=0;a<count;a++){
+            double vax=vx[a],vay=vy[a],vaz=vz[a],pax=px[a],pay=py[a],paz=pz[a],ma=mass[a];
+            energy+=.5*ma*(vax*vax+vay*vay+vaz*vaz);
+            for(int c=a+1;c<count;c++){double dx=pax-px[c],dy=pay-py[c],dz=paz-pz[c];energy-=ma*mass[c]/Math.sqrt(dx*dx+dy*dy+dz*dz);}
+            ps.append(String.format(Locale.ROOT,"%.9f,%.9f,%.9f,",pax,pay,paz)); vs.append(String.format(Locale.ROOT,"%.9f,%.9f,%.9f,",vax,vay,vaz));
+        }
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        return new Result(energy,toHex(md.digest(ps.toString().getBytes(StandardCharsets.UTF_8))),toHex(md.digest(vs.toString().getBytes(StandardCharsets.UTF_8))),count);
     }
     static final class Result { double energy; String pos,vel; int count; Result(double e,String p,String v,int c){energy=e;pos=p;vel=v;count=c;} }
     private static String digestHex(byte[] bytes) throws Exception {
@@ -80,6 +112,9 @@ public final class Main {
         if (!PROTOCOL_VERSION.equals(arg(a, "--protocol-version"))) throw new IllegalArgumentException("unsupported protocol version");
         String outFile = arg(a, "--output");
         Input in = readInput(arg(a, "--input"));
+        int count = in.n;
+        double[] mass = new double[count], px = new double[count], py = new double[count], pz = new double[count],
+                 vx = new double[count], vy = new double[count], vz = new double[count];
         emitLine("{\"type\":\"ready\",\"protocolVersion\":\"" + PROTOCOL_VERSION + "\"}");
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
         byte[] lastOutput = new byte[0];
@@ -89,9 +124,7 @@ public final class Main {
             String type = protocolField(line, "type");
             if ("run".equals(type)) {
                 long requestId = Long.parseLong(protocolField(line, "requestId"));
-                Body[] b = new Body[in.bodies.length];
-                for (int j = 0; j < b.length; j++) b[j] = in.bodies[j].copy();
-                Result out = kernel(in, b);
+                Result out = kernel(in, mass, px, py, pz, vx, vy, vz);
                 String result = "{\"benchmark\":\"nbody\",\"version\":1,\"bodyCount\":" + out.count
                     + ",\"finalEnergy\":" + Double.toString(out.energy)
                     + ",\"positionChecksum\":\"" + out.pos + "\",\"velocityChecksum\":\"" + out.vel + "\"}";

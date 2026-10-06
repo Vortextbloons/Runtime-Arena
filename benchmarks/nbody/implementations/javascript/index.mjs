@@ -3,6 +3,7 @@ import { createInterface } from "node:readline";
 import { readFile, writeFile } from "node:fs/promises";
 
 const PROTOCOL_VERSION = "2.0.0";
+const sqrt = Math.sqrt;
 const arg = (name) => process.argv[process.argv.indexOf(name) + 1];
 if (arg("--protocol-version") !== PROTOCOL_VERSION) throw new Error(`unsupported protocol version ${arg("--protocol-version")}`);
 
@@ -28,15 +29,17 @@ function kernel(buf) {
     for (let i = 0; i < n; i++) {
       const bi = i * 7;
       const bix = buf[bi], bi1 = buf[bi + 1], bi2 = buf[bi + 2], bi3 = buf[bi + 3];
+      let vix = buf[bi + 4], viy = buf[bi + 5], viz = buf[bi + 6];
       for (let j = i + 1; j < n; j++) {
         const bj = j * 7;
         const dj0 = buf[bj + 1] - bi1, dj1 = buf[bj + 2] - bi2, dj2 = buf[bj + 3] - bi3;
         const r2 = dj0 * dj0 + dj1 * dj1 + dj2 * dj2;
-        const m = dt / (r2 * Math.sqrt(r2));
+        const m = dt / (r2 * sqrt(r2));
         const mj = buf[bj] * m, mi = bix * m;
-        buf[bi + 4] += dj0 * mj; buf[bi + 5] += dj1 * mj; buf[bi + 6] += dj2 * mj;
+        vix += dj0 * mj; viy += dj1 * mj; viz += dj2 * mj;
         buf[bj + 4] -= dj0 * mi; buf[bj + 5] -= dj1 * mi; buf[bj + 6] -= dj2 * mi;
       }
+      buf[bi + 4] = vix; buf[bi + 5] = viy; buf[bi + 6] = viz;
     }
     for (let i = 0; i < n; i++) {
       const bi = i * 7;
@@ -54,7 +57,7 @@ function kernel(buf) {
     for (let j = i + 1; j < n; j++) {
       const bj = j * 7;
       const dx = px - buf[bj + 1], dy = py - buf[bj + 2], dz = pz - buf[bj + 3];
-      energy -= mx * buf[bj] / Math.sqrt(dx * dx + dy * dy + dz * dz);
+      energy -= mx * buf[bj] / sqrt(dx * dx + dy * dy + dz * dz);
     }
   }
   const psArr = new Array(n * 3);

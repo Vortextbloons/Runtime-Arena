@@ -59,49 +59,82 @@ foreach (JsonElement v in root.GetProperty("right").EnumerateArray())
 
 int elements = n * n;
 long[] product = new long[elements];
+long[] transposed = new long[elements];
 long valueSum = 0;
 long diagonalSum = 0;
 
-static void Multiply(int n, long[] left, long[] right, long[] product, out long valueSum, out long diagonalSum)
+static void Transpose(int n, long[] right, long[] transposed)
 {
-    valueSum = 0;
-    diagonalSum = 0;
-    for (int i = 0; i < n; i++)
+    for (int ii = 0; ii < n; ii += 32)
     {
-        int leftBase = i * n;
-        int outputBase = i * n;
-        for (int j = 0; j < n; j++)
-            product[outputBase + j] = 0;
-        for (int k = 0; k < n; k++)
+        int iMax = Math.Min(ii + 32, n);
+        for (int jj = 0; jj < n; jj += 32)
         {
-            long a_ik = left[leftBase + k];
-            int rightBase = k * n;
-            for (int j = 0; j < n; j++)
-                product[outputBase + j] += a_ik * right[rightBase + j];
-        }
-        for (int j = 0; j < n; j++)
-        {
-            valueSum += product[outputBase + j];
-            if (i == j) diagonalSum += product[outputBase + j];
+            int jMax = Math.Min(jj + 32, n);
+            for (int i = ii; i < iMax; i++)
+            {
+                int base_ = i * n;
+                for (int j = jj; j < jMax; j++) transposed[j * n + i] = right[base_ + j];
+            }
         }
     }
 }
 
+static void Multiply(int n, long[] left, long[] transposed, long[] product, out long valueSum, out long diagonalSum)
+{
+    valueSum = 0;
+    diagonalSum = 0;
+    int kLim = n & ~3;
+    for (int i = 0; i < n; i++)
+    {
+        int aBase = i * n;
+        int cBase = i * n;
+        long rowSum = 0;
+        for (int j = 0; j < n; j++)
+        {
+            int bBase = j * n;
+            long s0 = 0, s1 = 0, s2 = 0, s3 = 0;
+            int k = 0;
+            for (; k < kLim; k += 4)
+            {
+                s0 += left[aBase + k] * transposed[bBase + k];
+                s1 += left[aBase + k + 1] * transposed[bBase + k + 1];
+                s2 += left[aBase + k + 2] * transposed[bBase + k + 2];
+                s3 += left[aBase + k + 3] * transposed[bBase + k + 3];
+            }
+            long s = (s0 + s1) + (s2 + s3);
+            for (; k < n; k++) s += left[aBase + k] * transposed[bBase + k];
+            product[cBase + j] = s;
+            rowSum += s;
+            if (i == j) diagonalSum += s;
+        }
+        valueSum += rowSum;
+    }
+}
+
+static void AppendLong(byte[] buf, ref int pos, long v)
+{
+    if (v == 0) { buf[pos++] = (byte)'0'; buf[pos++] = (byte)','; return; }
+    if (v < 0) { buf[pos++] = (byte)'-'; v = -v; }
+    Span<byte> tmp = stackalloc byte[20];
+    int len = 0;
+    while (v > 0) { tmp[len++] = (byte)('0' + v % 10); v /= 10; }
+    while (len > 0) buf[pos++] = tmp[--len];
+    buf[pos++] = (byte)',';
+}
+
 static string Checksum(int n, long[] product)
 {
-    using var sha = SHA256.Create();
-    var sb = new StringBuilder();
-    sb.Append("dimension=");
-    sb.Append(n);
-    sb.Append('\n');
-    foreach (long v in product)
-    {
-        sb.Append(v);
-        sb.Append(',');
-    }
-    sb.Append('\n');
-    byte[] bytes = Encoding.UTF8.GetBytes(sb.ToString());
-    byte[] hash = sha.ComputeHash(bytes);
+    // Fast path: values are small, but size generously for any int64.
+    byte[] buf = new byte[(n * n) * 24 + 64];
+    int pos = 0;
+    foreach (byte ch in "dimension="u8) buf[pos++] = ch;
+    AppendLong(buf, ref pos, n);
+    pos--; // AppendLong adds a ','; header needs '\n' instead
+    buf[pos++] = (byte)'\n';
+    foreach (long v in product) AppendLong(buf, ref pos, v);
+    buf[pos++] = (byte)'\n';
+    byte[] hash = SHA256.HashData(buf.AsSpan(0, pos));
     var hex = new char[hash.Length * 2];
     const string hexChars = "0123456789abcdef";
     for (int i = 0; i < hash.Length; i++)
@@ -132,7 +165,8 @@ while ((line = Console.ReadLine()) != null)
     if (type == "run")
     {
         long requestId = long.Parse(ProtocolField(line, "requestId"));
-        Multiply(n, left, right, product, out valueSum, out diagonalSum);
+        Transpose(n, right, transposed);
+        Multiply(n, left, transposed, product, out valueSum, out diagonalSum);
         string cs = Checksum(n, product);
         lastOutput = encoding.GetBytes(OutputJson(n, elements, valueSum, diagonalSum, cs));
         EmitLine("{\"type\":\"result\",\"requestId\":" + requestId + ",\"digest\":\"" + DigestHex(lastOutput) + "\"}");

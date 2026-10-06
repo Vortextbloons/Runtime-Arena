@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <limits.h>
-#include "json.h"
 #include "sha256.h"
 #include "sort.h"
 
@@ -117,69 +116,90 @@ static uint32_t fnv1a(const char *s) {
 #define ACCT_CAP 4096
 #define ACCT_MASK (ACCT_CAP - 1)
 
-static int catCmp(const void *a, const void *b) {
-    return strcmp(((CategoryAgg*)a)->category, ((CategoryAgg*)b)->category);
-}
-
-static int acctCmp(const void *a, const void *b) {
-    const AccountAgg *aa = a, *bb = b;
-    if (aa->value != bb->value) return aa->value > bb->value ? -1 : 1;
-    return strcmp(aa->accountId, bb->accountId);
-}
-
 /* Type-specific insertion sort to avoid qsort function-pointer overhead */
 INSERTION_SORT(sortCategories, CategoryAgg, strcmp(tmp.category, a[j].category) < 0)
-INSERTION_SORT(sortAccounts, AccountAgg, 
-    (tmp.value > a[j].value) || 
+INSERTION_SORT(sortAccounts, AccountAgg,
+    (tmp.value > a[j].value) ||
     (tmp.value == a[j].value && strcmp(tmp.accountId, a[j].accountId) < 0)
 )
 
-static void buildChecksumString(const CategoryAgg *cats, int catCount,
-                                 const AccountAgg *topAccts, int topCount,
-                                 char **outStr, int *outLen) {
-    int cap = 4096, len = 0;
-    char *buf = malloc(cap);
+/* Growable byte buffer shared by the checksum and output builders */
+typedef struct {
+    char *data;
+    int len;
+    int cap;
+} Buf;
 
-    #define ENSURE(n) while (len + (n) >= cap) { cap *= 2; buf = realloc(buf, cap); }
-    #define APPEND(s, sl) ENSURE(sl); memcpy(buf + len, s, sl); len += sl
-    #define APPEND_STR(s) { const char *_s = (s); int _l = (int)strlen(_s); APPEND(_s, _l); }
-
-    APPEND_STR("{\"Categories\":[");
-    for (int i = 0; i < catCount; i++) {
-        if (i > 0) { APPEND(",", 1); }
-        char num[64];
-        int nl;
-        APPEND_STR("{\"category\":\"");
-        APPEND_STR(cats[i].category);
-        APPEND_STR("\",\"quantity\":");
-        nl = snprintf(num, sizeof(num), "%lld", (long long)cats[i].quantity);
-        APPEND(num, nl);
-        APPEND_STR(",\"valueMinorUnits\":");
-        nl = snprintf(num, sizeof(num), "%lld", (long long)cats[i].value);
-        APPEND(num, nl);
-        APPEND("}", 1);
+static void bufEnsure(Buf *b, int extra) {
+    if (b->len + extra >= b->cap) {
+        while (b->len + extra >= b->cap) b->cap *= 2;
+        b->data = realloc(b->data, b->cap);
     }
-    APPEND_STR("],\"TopAccounts\":[");
-    for (int i = 0; i < topCount; i++) {
-        if (i > 0) { APPEND(",", 1); }
-        char num[64];
-        int nl;
-        APPEND_STR("{\"accountId\":\"");
-        APPEND_STR(topAccts[i].accountId);
-        APPEND_STR("\",\"valueMinorUnits\":");
-        nl = snprintf(num, sizeof(num), "%lld", (long long)topAccts[i].value);
-        APPEND(num, nl);
-        APPEND("}", 1);
+}
+
+static void bufAppend(Buf *b, const char *s, int n) {
+    bufEnsure(b, n + 1);
+    memcpy(b->data + b->len, s, n);
+    b->len += n;
+}
+
+static void bufStr(Buf *b, const char *s) {
+    bufAppend(b, s, (int)strlen(s));
+}
+
+/* Two-digits-at-a-time integer writer via a 100-entry table */
+static void bufI64(Buf *b, int64_t v) {
+    static const char DIGITS[201] =
+        "00010203040506070809"
+        "10111213141516171819"
+        "20212223242526272829"
+        "30313233343536373839"
+        "40414243444546474849"
+        "50515253545556575859"
+        "60616263646566676869"
+        "70717273747576777879"
+        "80818283848586878889"
+        "90919293949596979899";
+    char tmp[24];
+    char *p = tmp + sizeof(tmp);
+    uint64_t u = v < 0 ? (uint64_t)(-(v + 1)) + 1u : (uint64_t)v;
+    while (u >= 100) {
+        unsigned idx = (unsigned)(u % 100) * 2;
+        p -= 2;
+        p[0] = DIGITS[idx];
+        p[1] = DIGITS[idx + 1];
+        u /= 100;
     }
-    APPEND_STR("]}");
+    if (u >= 10) {
+        unsigned idx = (unsigned)u * 2;
+        p -= 2;
+        p[0] = DIGITS[idx];
+        p[1] = DIGITS[idx + 1];
+    } else {
+        *--p = (char)('0' + u);
+    }
+    if (v < 0) *--p = '-';
+    bufAppend(b, p, (int)(tmp + sizeof(tmp) - p));
+}
 
-    #undef ENSURE
-    #undef APPEND
-    #undef APPEND_STR
+/* One code path for aggregate entries: the checksum input and the final
+ * output embed byte-identical fragments, serialized exactly once each. */
+static void bufCatEntry(Buf *b, const char *name, int64_t q, int64_t v) {
+    bufStr(b, "{\"category\":\"");
+    bufStr(b, name);
+    bufStr(b, "\",\"quantity\":");
+    bufI64(b, q);
+    bufStr(b, ",\"valueMinorUnits\":");
+    bufI64(b, v);
+    bufAppend(b, "}", 1);
+}
 
-    buf[len] = '\0';
-    *outStr = buf;
-    *outLen = len;
+static void bufAcctEntry(Buf *b, const char *id, int64_t v) {
+    bufStr(b, "{\"accountId\":\"");
+    bufStr(b, id);
+    bufStr(b, "\",\"valueMinorUnits\":");
+    bufI64(b, v);
+    bufAppend(b, "}", 1);
 }
 
 static char *read_stdin_line(char *buf, size_t cap) {
@@ -228,6 +248,14 @@ static void digest_hex_bytes(const uint8_t *data, size_t len, char out[65]) {
     sha256_hex(&sha, out);
 }
 
+/* Reusable scratch: no per-iteration malloc/free in the timed kernel */
+static CategoryAgg catMap[CAT_CAP];
+static AccountAgg acctMap[ACCT_CAP];
+static CategoryAgg sortedCats[CAT_CAP];
+static AccountAgg sortedAccts[ACCT_CAP];
+static Buf chkBuf = { NULL, 0, 0 };
+static Buf outBuf = { NULL, 0, 0 };
+
 static char *produce_output(void *ctx, size_t *out_len) {
     AggCtx *c = (AggCtx *)ctx;
     int rowCount = c->rowCount;
@@ -238,15 +266,14 @@ static char *produce_output(void *ctx, size_t *out_len) {
     int catMapCount = 0;
     int acctMapCount = 0;
 
-    CategoryAgg catMap[CAT_CAP];
-    AccountAgg acctMap[ACCT_CAP];
     memset(catMap, 0, sizeof(catMap));
     memset(acctMap, 0, sizeof(acctMap));
 
     for (int i = 0; i < rowCount; i++) {
-        int64_t value = rows[i].quantity * rows[i].price;
+        int64_t quantity = rows[i].quantity;
+        int64_t value = quantity * rows[i].price;
         recordCount++;
-        totalQuantity += rows[i].quantity;
+        totalQuantity += quantity;
         totalValue += value;
         if (value < minTrans) minTrans = value;
         if (value > maxTrans) maxTrans = value;
@@ -259,7 +286,7 @@ static char *produce_output(void *ctx, size_t *out_len) {
             strcpy(catMap[idx].category, rows[i].category);
             catMapCount++;
         }
-        catMap[idx].quantity += rows[i].quantity;
+        catMap[idx].quantity += quantity;
         catMap[idx].value += value;
 
         h = fnv1a(rows[i].accountId);
@@ -273,14 +300,12 @@ static char *produce_output(void *ctx, size_t *out_len) {
         acctMap[idx].value += value;
     }
 
-    CategoryAgg *sortedCats = malloc(catMapCount * sizeof(CategoryAgg));
     int scIdx = 0;
     for (int i = 0; i < CAT_CAP; i++) {
         if (catMap[i].category[0] != '\0') sortedCats[scIdx++] = catMap[i];
     }
     sortCategories(sortedCats, catMapCount);
 
-    AccountAgg *sortedAccts = malloc(acctMapCount * sizeof(AccountAgg));
     int saIdx = 0;
     for (int i = 0; i < ACCT_CAP; i++) {
         if (acctMap[i].accountId[0] != '\0') sortedAccts[saIdx++] = acctMap[i];
@@ -288,53 +313,63 @@ static char *produce_output(void *ctx, size_t *out_len) {
     sortAccounts(sortedAccts, acctMapCount);
     int topCount = acctMapCount < 10 ? acctMapCount : 10;
 
-    char *checksumStr;
-    int checksumLen;
-    buildChecksumString(sortedCats, catMapCount, sortedAccts, topCount, &checksumStr, &checksumLen);
+    if (!chkBuf.data) {
+        chkBuf.cap = 4096;
+        chkBuf.data = malloc(chkBuf.cap);
+    }
+    chkBuf.len = 0;
+    bufStr(&chkBuf, "{\"Categories\":[");
+    for (int i = 0; i < catMapCount; i++) {
+        if (i > 0) bufAppend(&chkBuf, ",", 1);
+        bufCatEntry(&chkBuf, sortedCats[i].category, sortedCats[i].quantity, sortedCats[i].value);
+    }
+    bufStr(&chkBuf, "],\"TopAccounts\":[");
+    for (int i = 0; i < topCount; i++) {
+        if (i > 0) bufAppend(&chkBuf, ",", 1);
+        bufAcctEntry(&chkBuf, sortedAccts[i].accountId, sortedAccts[i].value);
+    }
+    bufStr(&chkBuf, "]}");
 
     SHA256 sha;
     sha256_init(&sha);
-    sha256_update(&sha, (uint8_t *)checksumStr, checksumLen);
-    sha256_update(&sha, (uint8_t *)"\n", 1);
+    sha256_update(&sha, (const uint8_t *)chkBuf.data, chkBuf.len);
+    sha256_update(&sha, (const uint8_t *)"\n", 1);
     char checksumHex[65];
     sha256_hex(&sha, checksumHex);
-    free(checksumStr);
 
-    JsonValue out = json_object();
-    json_object_set(&out, "benchmark", json_string("aggregation"));
-    json_object_set(&out, "version", json_number(1));
-    json_object_set(&out, "recordCount", json_number(recordCount));
-    json_object_set(&out, "totalQuantity", json_number(totalQuantity));
-    json_object_set(&out, "totalValueMinorUnits", json_number(totalValue));
-    json_object_set(&out, "minimumTransactionMinorUnits", json_number(minTrans));
-    json_object_set(&out, "maximumTransactionMinorUnits", json_number(maxTrans));
-
-    JsonValue catsArr = json_array();
-    for (int j = 0; j < catMapCount; j++) {
-        JsonValue cat = json_object();
-        json_object_set(&cat, "category", json_string(sortedCats[j].category));
-        json_object_set(&cat, "quantity", json_number(sortedCats[j].quantity));
-        json_object_set(&cat, "valueMinorUnits", json_number(sortedCats[j].value));
-        json_array_push(&catsArr, cat);
+    if (!outBuf.data) {
+        outBuf.cap = 8192;
+        outBuf.data = malloc(outBuf.cap);
     }
-    json_object_set(&out, "categories", catsArr);
-
-    JsonValue topArr = json_array();
-    for (int j = 0; j < topCount; j++) {
-        JsonValue a = json_object();
-        json_object_set(&a, "accountId", json_string(sortedAccts[j].accountId));
-        json_object_set(&a, "valueMinorUnits", json_number(sortedAccts[j].value));
-        json_array_push(&topArr, a);
+    outBuf.len = 0;
+    bufStr(&outBuf, "{\"benchmark\":\"aggregation\",\"version\":1,\"recordCount\":");
+    bufI64(&outBuf, recordCount);
+    bufStr(&outBuf, ",\"totalQuantity\":");
+    bufI64(&outBuf, totalQuantity);
+    bufStr(&outBuf, ",\"totalValueMinorUnits\":");
+    bufI64(&outBuf, totalValue);
+    bufStr(&outBuf, ",\"minimumTransactionMinorUnits\":");
+    bufI64(&outBuf, minTrans);
+    bufStr(&outBuf, ",\"maximumTransactionMinorUnits\":");
+    bufI64(&outBuf, maxTrans);
+    bufStr(&outBuf, ",\"categories\":[");
+    for (int i = 0; i < catMapCount; i++) {
+        if (i > 0) bufAppend(&outBuf, ",", 1);
+        bufCatEntry(&outBuf, sortedCats[i].category, sortedCats[i].quantity, sortedCats[i].value);
     }
-    json_object_set(&out, "topAccounts", topArr);
-    json_object_set(&out, "checksum", json_string(checksumHex));
+    bufStr(&outBuf, "],\"topAccounts\":[");
+    for (int i = 0; i < topCount; i++) {
+        if (i > 0) bufAppend(&outBuf, ",", 1);
+        bufAcctEntry(&outBuf, sortedAccts[i].accountId, sortedAccts[i].value);
+    }
+    bufStr(&outBuf, "],\"checksum\":\"");
+    bufStr(&outBuf, checksumHex);
+    bufStr(&outBuf, "\"}");
+    bufEnsure(&outBuf, 1);
+    outBuf.data[outBuf.len] = '\0';
 
-    char *dumped = json_dump(&out);
-    json_free(&out);
-    free(sortedCats);
-    free(sortedAccts);
-    *out_len = strlen(dumped);
-    return dumped;
+    *out_len = (size_t)outBuf.len;
+    return outBuf.data;
 }
 
 int main(int argc, char *argv[]) {
@@ -362,20 +397,25 @@ int main(int argc, char *argv[]) {
     char line[4096], field[256], digest[65];
     char *lastOutput = NULL;
     size_t lastLen = 0;
+    /* Copy of the reusable buffer for finish, since produce_output reuses it */
+    char *savedOutput = NULL;
+    size_t savedLen = 0;
     emit_line("{\"type\":\"ready\",\"protocolVersion\":\"" PROTOCOL_VERSION "\"}");
     while (read_stdin_line(line, sizeof(line))) {
         if (!line[0]) continue;
         if (protocol_field(line, "type", field, sizeof(field)) && strcmp(field, "run") == 0) {
             long requestId = atol(protocol_field(line, "requestId", field, sizeof(field)));
-            free(lastOutput);
             lastOutput = produce_output(&ctx, &lastLen);
             digest_hex_bytes((const uint8_t *)lastOutput, lastLen, digest);
             printf("{\"type\":\"result\",\"requestId\":%ld,\"digest\":\"%s\"}\n", requestId, digest);
             fflush(stdout);
         } else if (protocol_field(line, "type", field, sizeof(field)) && strcmp(field, "finish") == 0) {
-            digest_hex_bytes((const uint8_t *)lastOutput, lastLen, digest);
+            savedLen = lastLen;
+            savedOutput = malloc(savedLen ? savedLen : 1);
+            if (lastLen) memcpy(savedOutput, lastOutput, lastLen);
+            digest_hex_bytes((const uint8_t *)savedOutput, savedLen, digest);
             FILE *f = fopen(outputPath, "wb");
-            fwrite(lastOutput, 1, lastLen, f);
+            fwrite(savedOutput, 1, savedLen, f);
             fclose(f);
             printf("{\"type\":\"finish\",\"digest\":\"%s\"}\n", digest);
             fflush(stdout);
@@ -383,7 +423,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    free(lastOutput);
+    free(savedOutput);
     free(rows);
     return 0;
 }

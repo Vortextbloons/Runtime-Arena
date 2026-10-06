@@ -1,15 +1,36 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::io::{BufRead, BufReader, Write};
-use std::{env, fs, sync::mpsc, thread};
+use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
+use std::sync::{Arc, Barrier};
+use std::{env, fs, thread};
 
 const PROTOCOL_VERSION: &str = "2.0.0";
 
-struct WorkerResult {
-    worker_id: usize,
-    local_xor: u32,
-    local_sum: u64,
+// One slot per worker. The seed is written by the coordinator, the results by
+// the owning worker; the two barriers provide the happens-before edges, so
+// Relaxed ordering is sufficient. Padded to 128 bytes (multiple of 64) so
+// slots never share a cache line.
+#[repr(C)]
+struct Slot {
+    seed: AtomicU32,
+    xor: AtomicU32,
+    sum: AtomicU64,
+    _pad: [u8; 112],
 }
+
+impl Slot {
+    fn new() -> Self {
+        Self {
+            seed: AtomicU32::new(0),
+            xor: AtomicU32::new(0),
+            sum: AtomicU64::new(0),
+            _pad: [0; 112],
+        }
+    }
+}
+
+const _: () = assert!(std::mem::size_of::<Slot>() % 64 == 0);
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -57,6 +78,7 @@ fn emit_line(value: &serde_json::Value) {
     stdout.flush().unwrap();
 }
 
+#[inline(always)]
 fn mix32(mut x: u32) -> u32 {
     x ^= x >> 16;
     x = x.wrapping_mul(0x21f0aaad);
@@ -66,89 +88,116 @@ fn mix32(mut x: u32) -> u32 {
     x
 }
 
-fn rotate_left64(x: u64, n: u32) -> u64 {
-    x << n | x >> (64 - n)
+#[inline(always)]
+fn xround(mut x: u32) -> u32 {
+    x ^= x.wrapping_shl(13);
+    x ^= x >> 17;
+    x ^= x.wrapping_shl(5);
+    x.wrapping_mul(0x9e3779b1).wrapping_add(0x85ebca77)
 }
 
-fn spawn_workers(
-    result_tx: mpsc::Sender<WorkerResult>,
-    worker_count: usize,
-    items_per_worker: usize,
-    rounds_per_item: usize,
-) -> (Vec<thread::JoinHandle<()>>, Vec<mpsc::Sender<u32>>) {
-    let mut senders = Vec::with_capacity(worker_count);
-    let mut handles = Vec::with_capacity(worker_count);
-    for w in 0..worker_count {
-        let (tx, rx) = mpsc::channel::<u32>();
-        let rt = result_tx.clone();
-        senders.push(tx);
-        handles.push(thread::spawn(move || loop {
-            let phase_seed = match rx.recv() {
-                Ok(s) => s,
-                Err(_) => break,
-            };
-            let mut local_xor: u32 = 0;
-            let mut local_sum: u64 = 0;
-            for local_item in 0..items_per_worker {
-                let global_item_id = (w * items_per_worker + local_item) as u32;
-                let mut x = phase_seed ^ global_item_id ^ (w as u32).wrapping_mul(0x9e3779b9);
-                for _ in 0..rounds_per_item {
-                    x ^= x << 13;
-                    x ^= x >> 17;
-                    x ^= x << 5;
-                    x = x.wrapping_mul(0x9e3779b1).wrapping_add(0x85ebca77);
-                }
-                local_xor ^= x;
-                local_sum = local_sum.wrapping_add(x as u64);
+fn worker_body(
+    id: usize,
+    items: usize,
+    rounds: usize,
+    slots: &Arc<Vec<Slot>>,
+    dispatch: &Arc<Barrier>,
+    complete: &Arc<Barrier>,
+    stopping: &Arc<AtomicBool>,
+) {
+    let worker_mul = (id as u32).wrapping_mul(0x9e3779b9);
+    let base = (id * items) as u32;
+    let n4 = items & !3;
+    let slot = &slots[id];
+    loop {
+        dispatch.wait();
+        if stopping.load(Ordering::Relaxed) {
+            break;
+        }
+        let phase_seed = slot.seed.load(Ordering::Relaxed);
+
+        let mut xor0: u32 = 0;
+        let mut xor1: u32 = 0;
+        let mut xor2: u32 = 0;
+        let mut xor3: u32 = 0;
+        let mut sum0: u64 = 0;
+        let mut sum1: u64 = 0;
+        let mut sum2: u64 = 0;
+        let mut sum3: u64 = 0;
+        let mut item = 0;
+        while item < n4 {
+            let b = base.wrapping_add(item as u32);
+            let mut x0 = phase_seed ^ b ^ worker_mul;
+            let mut x1 = phase_seed ^ b.wrapping_add(1) ^ worker_mul;
+            let mut x2 = phase_seed ^ b.wrapping_add(2) ^ worker_mul;
+            let mut x3 = phase_seed ^ b.wrapping_add(3) ^ worker_mul;
+            for _ in 0..rounds {
+                x0 = xround(x0);
+                x1 = xround(x1);
+                x2 = xround(x2);
+                x3 = xround(x3);
             }
-            rt.send(WorkerResult {
-                worker_id: w,
-                local_xor,
-                local_sum,
-            })
-            .unwrap();
-        }));
+            xor0 ^= x0;
+            sum0 = sum0.wrapping_add(x0 as u64);
+            xor1 ^= x1;
+            sum1 = sum1.wrapping_add(x1 as u64);
+            xor2 ^= x2;
+            sum2 = sum2.wrapping_add(x2 as u64);
+            xor3 ^= x3;
+            sum3 = sum3.wrapping_add(x3 as u64);
+            item += 4;
+        }
+        let mut xor_t: u32 = 0;
+        let mut sum_t: u64 = 0;
+        while item < items {
+            let mut x = phase_seed ^ base.wrapping_add(item as u32) ^ worker_mul;
+            for _ in 0..rounds {
+                x = xround(x);
+            }
+            xor_t ^= x;
+            sum_t = sum_t.wrapping_add(x as u64);
+            item += 1;
+        }
+        slot.xor
+            .store(xor0 ^ xor1 ^ xor2 ^ xor3 ^ xor_t, Ordering::Relaxed);
+        slot.sum.store(
+            sum0
+                .wrapping_add(sum1)
+                .wrapping_add(sum2)
+                .wrapping_add(sum3)
+                .wrapping_add(sum_t),
+            Ordering::Relaxed,
+        );
+
+        complete.wait();
     }
-    (handles, senders)
+    // Coordinator waits in complete after the stop dispatch.
+    complete.wait();
 }
 
-fn kernel(
-    work_txs: &[mpsc::Sender<u32>],
-    result_rx: &mpsc::Receiver<WorkerResult>,
-    input: &Input,
-    seed_value: u32,
-) -> Output {
-    let mut phase_seed = seed_value;
+fn kernel(slots: &[Slot], dispatch: &Barrier, complete: &Barrier, input: &Input, mut phase_seed: u32) -> Output {
     let mut digest: u64 = 0x6a09e667f3bcc909;
 
     for phase in 0..input.phase_count {
+        for w in 0..input.worker_count {
+            slots[w].seed.store(phase_seed, Ordering::Relaxed);
+        }
+        dispatch.wait();
+        complete.wait();
+
         let mut next_seed = phase_seed ^ (phase as u32);
         let mut phase_sum: u64 = 0;
-
         for w in 0..input.worker_count {
-            work_txs[w].send(phase_seed).unwrap();
-        }
-
-        let mut results: Vec<Option<WorkerResult>> = (0..input.worker_count).map(|_| None).collect();
-        for _ in 0..input.worker_count {
-            let r = result_rx.recv().unwrap();
-            let wid = r.worker_id;
-            results[wid] = Some(r);
-        }
-
-        for r in results.into_iter().flatten() {
+            let lx = slots[w].xor.load(Ordering::Relaxed);
+            let ls = slots[w].sum.load(Ordering::Relaxed);
             next_seed = mix32(
-                next_seed
-                    ^ r.local_xor
-                    ^ (r.local_sum as u32)
-                    ^ ((r.local_sum >> 32) as u32)
-                    ^ (r.worker_id as u32),
+                next_seed ^ lx ^ (ls as u32) ^ ((ls >> 32) as u32) ^ (w as u32),
             );
-            phase_sum = phase_sum.wrapping_add(r.local_sum);
+            phase_sum = phase_sum.wrapping_add(ls);
         }
 
         phase_seed = next_seed;
-        digest = rotate_left64(digest, 7);
+        digest = digest.rotate_left(7);
         digest ^= next_seed as u64;
         digest = digest.wrapping_add(phase_sum);
     }
@@ -173,13 +222,20 @@ fn main() {
         serde_json::from_str(&fs::read_to_string(argument("--input")).unwrap()).unwrap();
     let seed_value = u32::from_str_radix(&input.initial_seed, 16).unwrap();
 
-    let (result_tx, result_rx) = mpsc::channel::<WorkerResult>();
-    let (_handles, work_txs) = spawn_workers(
-        result_tx,
-        input.worker_count,
-        input.items_per_worker,
-        input.rounds_per_item,
-    );
+    let slots: Arc<Vec<Slot>> = Arc::new((0..input.worker_count).map(|_| Slot::new()).collect());
+    let dispatch = Arc::new(Barrier::new(input.worker_count + 1));
+    let complete = Arc::new(Barrier::new(input.worker_count + 1));
+    let stopping = Arc::new(AtomicBool::new(false));
+
+    let mut handles = Vec::with_capacity(input.worker_count);
+    for w in 0..input.worker_count {
+        let (slots, dispatch, complete, stopping) =
+            (slots.clone(), dispatch.clone(), complete.clone(), stopping.clone());
+        let (items, rounds) = (input.items_per_worker, input.rounds_per_item);
+        handles.push(thread::spawn(move || {
+            worker_body(w, items, rounds, &slots, &dispatch, &complete, &stopping)
+        }));
+    }
 
     emit_line(&serde_json::json!({
         "type": "ready",
@@ -198,7 +254,7 @@ fn main() {
         match msg["type"].as_str() {
             Some("run") => {
                 let request_id = msg["requestId"].as_u64().unwrap();
-                let output = kernel(&work_txs, &result_rx, &input, seed_value);
+                let output = kernel(&slots, &dispatch, &complete, &input, seed_value);
                 last_output_bytes = serde_json::to_vec(&output).unwrap();
                 emit_line(&serde_json::json!({
                     "type": "result",
@@ -217,5 +273,12 @@ fn main() {
             }
             _ => panic!("unknown protocol message"),
         }
+    }
+
+    stopping.store(true, Ordering::Relaxed);
+    dispatch.wait();
+    complete.wait();
+    for h in handles {
+        h.join().unwrap();
     }
 }

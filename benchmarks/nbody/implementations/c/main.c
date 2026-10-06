@@ -9,17 +9,14 @@
 #define PROTOCOL_VERSION "2.0.0"
 
 typedef struct {
-    double mass;
-    double position[3];
-    double velocity[3];
-} Body;
-
-typedef struct {
     int steps;
     double deltaTime;
-    Body *initialBodies;
-    Body *bodiesCopy;
     int bodyCount;
+    double *mass;
+    double *ipx, *ipy, *ipz;
+    double *ivx, *ivy, *ivz;
+    double *px, *py, *pz;
+    double *vx, *vy, *vz;
 } NbodyCtx;
 
 static char *readFile(const char *path) {
@@ -81,54 +78,75 @@ static void digest_hex_bytes(const uint8_t *data, size_t len, char out[65]) {
     sha256_hex(&sha, out);
 }
 
-static void kernel(const NbodyCtx *ctx, Body *bodies, double *outEnergy,
+static void kernel(NbodyCtx *ctx, double *outEnergy,
                    char *outPosChecksum, char *outVelChecksum) {
-    int n = ctx->bodyCount;
-    double dt = ctx->deltaTime;
+    const int n = ctx->bodyCount;
+    const double dt = ctx->deltaTime;
+    const int steps = ctx->steps;
+    const double *__restrict mass = ctx->mass;
+    double *__restrict px = ctx->px, *__restrict py = ctx->py, *__restrict pz = ctx->pz;
+    double *__restrict vx = ctx->vx, *__restrict vy = ctx->vy, *__restrict vz = ctx->vz;
+    memcpy(px, ctx->ipx, (size_t)n * sizeof(double));
+    memcpy(py, ctx->ipy, (size_t)n * sizeof(double));
+    memcpy(pz, ctx->ipz, (size_t)n * sizeof(double));
+    memcpy(vx, ctx->ivx, (size_t)n * sizeof(double));
+    memcpy(vy, ctx->ivy, (size_t)n * sizeof(double));
+    memcpy(vz, ctx->ivz, (size_t)n * sizeof(double));
 
-    for (int s = 0; s < ctx->steps; s++) {
+    for (int s = 0; s < steps; s++) {
         for (int i = 0; i < n; i++) {
+            const double pxi = px[i], pyi = py[i], pzi = pz[i];
+            const double mi = mass[i];
+            double vxi = vx[i], vyi = vy[i], vzi = vz[i];
             for (int j = i + 1; j < n; j++) {
-                double d[3], r2 = 0;
-                for (int k = 0; k < 3; k++) {
-                    d[k] = bodies[j].position[k] - bodies[i].position[k];
-                    r2 += d[k] * d[k];
-                }
-                double mag = dt / (r2 * sqrt(r2));
-                for (int k = 0; k < 3; k++) {
-                    bodies[i].velocity[k] += d[k] * bodies[j].mass * mag;
-                    bodies[j].velocity[k] -= d[k] * bodies[i].mass * mag;
-                }
+                const double dx = px[j] - pxi;
+                const double dy = py[j] - pyi;
+                const double dz = pz[j] - pzi;
+                const double r2 = dx * dx + dy * dy + dz * dz;
+                const double mag = dt / (r2 * sqrt(r2));
+                const double mj = mass[j];
+                vxi += dx * mj * mag;
+                vyi += dy * mj * mag;
+                vzi += dz * mj * mag;
+                vx[j] -= dx * mi * mag;
+                vy[j] -= dy * mi * mag;
+                vz[j] -= dz * mi * mag;
             }
+            vx[i] = vxi;
+            vy[i] = vyi;
+            vz[i] = vzi;
         }
-        for (int i = 0; i < n; i++)
-            for (int k = 0; k < 3; k++)
-                bodies[i].position[k] += dt * bodies[i].velocity[k];
+        for (int i = 0; i < n; i++) {
+            px[i] += dt * vx[i];
+            py[i] += dt * vy[i];
+            pz[i] += dt * vz[i];
+        }
     }
 
     double energy = 0;
     for (int i = 0; i < n; i++) {
-        double v2 = 0;
-        for (int k = 0; k < 3; k++) v2 += bodies[i].velocity[k] * bodies[i].velocity[k];
-        energy += 0.5 * bodies[i].mass * v2;
+        const double vxi = vx[i], vyi = vy[i], vzi = vz[i];
+        energy += 0.5 * mass[i] * (vxi * vxi + vyi * vyi + vzi * vzi);
+        const double pxi = px[i], pyi = py[i], pzi = pz[i];
+        const double mi = mass[i];
         for (int j = i + 1; j < n; j++) {
-            double r2 = 0;
-            for (int k = 0; k < 3; k++) {
-                double diff = bodies[i].position[k] - bodies[j].position[k];
-                r2 += diff * diff;
-            }
-            energy -= bodies[i].mass * bodies[j].mass / sqrt(r2);
+            const double dx = pxi - px[j];
+            const double dy = pyi - py[j];
+            const double dz = pzi - pz[j];
+            energy -= mi * mass[j] / sqrt(dx * dx + dy * dy + dz * dz);
         }
     }
     *outEnergy = energy;
 
-    char posData[4096] = {0}, velData[4096] = {0};
+    char posData[8192] = {0}, velData[8192] = {0};
     int posLen = 0, velLen = 0;
     for (int i = 0; i < n; i++) {
-        for (int k = 0; k < 3; k++) {
-            posLen += snprintf(posData + posLen, sizeof(posData) - posLen, "%.9f,", bodies[i].position[k]);
-            velLen += snprintf(velData + velLen, sizeof(velData) - velLen, "%.9f,", bodies[i].velocity[k]);
-        }
+        posLen += snprintf(posData + posLen, sizeof(posData) - posLen, "%.9f,", px[i]);
+        posLen += snprintf(posData + posLen, sizeof(posData) - posLen, "%.9f,", py[i]);
+        posLen += snprintf(posData + posLen, sizeof(posData) - posLen, "%.9f,", pz[i]);
+        velLen += snprintf(velData + velLen, sizeof(velData) - velLen, "%.9f,", vx[i]);
+        velLen += snprintf(velData + velLen, sizeof(velData) - velLen, "%.9f,", vy[i]);
+        velLen += snprintf(velData + velLen, sizeof(velData) - velLen, "%.9f,", vz[i]);
     }
 
     SHA256 ph, vh;
@@ -142,11 +160,10 @@ static void kernel(const NbodyCtx *ctx, Body *bodies, double *outEnergy,
 
 static char *produce_output(void *ctx, size_t *out_len) {
     NbodyCtx *c = (NbodyCtx *)ctx;
-    memcpy(c->bodiesCopy, c->initialBodies, c->bodyCount * sizeof(Body));
 
     double finalEnergy;
     char posChecksum[65], velChecksum[65];
-    kernel(c, c->bodiesCopy, &finalEnergy, posChecksum, velChecksum);
+    kernel(c, &finalEnergy, posChecksum, velChecksum);
 
     JsonValue out = json_object();
     json_object_set(&out, "benchmark", json_string("nbody"));
@@ -185,19 +202,33 @@ int main(int argc, char *argv[]) {
     ctx.deltaTime = json_as_double(json_object_get(&root, "deltaTime"));
     JsonValue *bodiesArr = json_object_get(&root, "bodies");
     ctx.bodyCount = (int)bodiesArr->as.array.count;
-    ctx.initialBodies = malloc(ctx.bodyCount * sizeof(Body));
+    int nb = ctx.bodyCount;
+    ctx.mass = malloc((size_t)nb * sizeof(double));
+    ctx.ipx = malloc((size_t)nb * sizeof(double));
+    ctx.ipy = malloc((size_t)nb * sizeof(double));
+    ctx.ipz = malloc((size_t)nb * sizeof(double));
+    ctx.ivx = malloc((size_t)nb * sizeof(double));
+    ctx.ivy = malloc((size_t)nb * sizeof(double));
+    ctx.ivz = malloc((size_t)nb * sizeof(double));
+    ctx.px = malloc((size_t)nb * sizeof(double));
+    ctx.py = malloc((size_t)nb * sizeof(double));
+    ctx.pz = malloc((size_t)nb * sizeof(double));
+    ctx.vx = malloc((size_t)nb * sizeof(double));
+    ctx.vy = malloc((size_t)nb * sizeof(double));
+    ctx.vz = malloc((size_t)nb * sizeof(double));
     for (int i = 0; i < ctx.bodyCount; i++) {
         JsonValue *b = json_array_get(bodiesArr, i);
-        ctx.initialBodies[i].mass = json_as_double(json_object_get(b, "mass"));
+        ctx.mass[i] = json_as_double(json_object_get(b, "mass"));
         JsonValue *pos = json_object_get(b, "position");
         JsonValue *vel = json_object_get(b, "velocity");
-        for (int k = 0; k < 3; k++) {
-            ctx.initialBodies[i].position[k] = json_as_double(json_array_get(pos, k));
-            ctx.initialBodies[i].velocity[k] = json_as_double(json_array_get(vel, k));
-        }
+        ctx.ipx[i] = json_as_double(json_array_get(pos, 0));
+        ctx.ipy[i] = json_as_double(json_array_get(pos, 1));
+        ctx.ipz[i] = json_as_double(json_array_get(pos, 2));
+        ctx.ivx[i] = json_as_double(json_array_get(vel, 0));
+        ctx.ivy[i] = json_as_double(json_array_get(vel, 1));
+        ctx.ivz[i] = json_as_double(json_array_get(vel, 2));
     }
     json_free(&root);
-    ctx.bodiesCopy = malloc(ctx.bodyCount * sizeof(Body));
 
     char line[4096], field[256], digest[65];
     char *lastOutput = NULL;
@@ -224,7 +255,10 @@ int main(int argc, char *argv[]) {
     }
 
     free(lastOutput);
-    free(ctx.bodiesCopy);
-    free(ctx.initialBodies);
+    free(ctx.mass);
+    free(ctx.ipx); free(ctx.ipy); free(ctx.ipz);
+    free(ctx.ivx); free(ctx.ivy); free(ctx.ivz);
+    free(ctx.px); free(ctx.py); free(ctx.pz);
+    free(ctx.vx); free(ctx.vy); free(ctx.vz);
     return 0;
 }

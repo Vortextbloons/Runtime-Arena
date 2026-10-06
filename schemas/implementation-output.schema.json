@@ -169,6 +169,258 @@
       "if": {
         "properties": {
           "benchmark": {
+            "const": "arena-exchange"
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "benchmark",
+          "version",
+          "eventCount",
+          "acceptedEventCount",
+          "rejectedEventCount",
+          "acceptedOrderCount",
+          "rejectedOrderCount",
+          "acceptedReplaceCount",
+          "rejectedReplaceCount",
+          "cancelledOrderCount",
+          "tradeCount",
+          "tradedQuantity",
+          "tradedValue",
+          "snapshotCount",
+          "openOrderCount",
+          "instrumentSummaries",
+          "topAccounts",
+          "bookChecksum",
+          "accountChecksum",
+          "tradeChecksum",
+          "snapshotChecksum",
+          "eventChecksum"
+        ],
+        "properties": {
+          "benchmark": {
+            "const": "arena-exchange"
+          },
+          "version": {
+            "const": 1
+          },
+          "eventCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "acceptedEventCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "rejectedEventCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "acceptedOrderCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "rejectedOrderCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "acceptedReplaceCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "rejectedReplaceCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "cancelledOrderCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "tradeCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "tradedQuantity": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "tradedValue": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "snapshotCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "openOrderCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "instrumentSummaries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "instrumentId",
+                "minPrice",
+                "maxPrice",
+                "halted",
+                "bestBid",
+                "bestAsk",
+                "lastTradePrice",
+                "tradedQuantity",
+                "tradedValue",
+                "tradeCount",
+                "bidLevelCount",
+                "askLevelCount",
+                "restingOrderCount"
+              ],
+              "properties": {
+                "instrumentId": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 2147483647
+                },
+                "minPrice": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+                "maxPrice": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+                "halted": { "type": "boolean" },
+                "bestBid": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "bestAsk": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "lastTradePrice": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "tradedQuantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "tradedValue": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "tradeCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "bidLevelCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "askLevelCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "restingOrderCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              }
+            }
+          },
+          "topAccounts": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "accountId",
+                "tradedValue"
+              ],
+              "properties": {
+                "accountId": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 2147483647
+                },
+                "tradedValue": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              }
+            }
+          },
+          "bookChecksum": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "accountChecksum": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "tradeChecksum": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "snapshotChecksum": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "eventChecksum": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "benchmark": {
             "const": "matrix-multiplication"
           }
         }

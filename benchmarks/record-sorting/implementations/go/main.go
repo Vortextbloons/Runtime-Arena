@@ -2,14 +2,12 @@ package main
 
 import (
 	"bufio"
-	"cmp"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
-	"slices"
 	"strconv"
 )
 
@@ -32,43 +30,76 @@ type Output struct {
 	Checksum     string   `json:"checksum"`
 }
 
-var recordBuf []Record
+const radixSize = 65536
 
-func kernel(records []Record) Output {
-	/* Reuse pre-allocated buffer */
-	if cap(recordBuf) < len(records) {
-		recordBuf = make([]Record, len(records))
-	} else {
-		recordBuf = recordBuf[:len(records)]
+var bufA []Record
+var bufB []Record
+var counts []uint32
+
+func rkey(r Record, sel int) uint64 {
+	switch sel {
+	case 0:
+		return uint64(r.Id) ^ 0x8000000000000000
+	case 1:
+		return uint64(r.Timestamp) ^ 0x8000000000000000
+	default:
+		// score descending
+		return uint64(r.Score) ^ 0x7fffffffffffffff
 	}
-	copy(recordBuf, records)
-	records = recordBuf
-	
-	slices.SortFunc(records, func(a, b Record) int {
-		if c := cmp.Compare(b.Score, a.Score); c != 0 {
-			return c
-		}
-		if c := cmp.Compare(a.Timestamp, b.Timestamp); c != 0 {
-			return c
-		}
-		return cmp.Compare(a.Id, b.Id)
-	})
+}
 
-	n := len(records)
+func radixPass(src, dst []Record, sel, shift int) {
+	clear(counts)
+	for i := range src {
+		counts[(rkey(src[i], sel)>>shift)&0xFFFF]++
+	}
+	var sum uint32
+	for d := range counts {
+		c := counts[d]
+		counts[d] = sum
+		sum += c
+	}
+	for i := range src {
+		dg := (rkey(src[i], sel) >> shift) & 0xFFFF
+		dst[counts[dg]] = src[i]
+		counts[dg]++
+	}
+}
+
+// radixSort runs 12 stable LSD passes over (id, timestamp, score-desc) keys.
+// Pass 0 reads straight from the pristine input; the result lands in bufB.
+func radixSort(input []Record) []Record {
+	n := len(input)
+	if n == 0 {
+		return input
+	}
+	radixPass(input, bufA[:n], 0, 0)
+	for pass := 1; pass < 12; pass++ {
+		if pass&1 == 1 {
+			radixPass(bufA[:n], bufB[:n], pass>>2, (pass&3)<<4)
+		} else {
+			radixPass(bufB[:n], bufA[:n], pass>>2, (pass&3)<<4)
+		}
+	}
+	return bufB[:n]
+}
+
+func kernel(sorted []Record) Output {
+	n := len(sorted)
 	take := 10
 	if n < take {
 		take = n
 	}
 
 	first := make([]Record, take)
-	copy(first, records[:take])
+	copy(first, sorted[:take])
 
 	last := make([]Record, take)
-	copy(last, records[n-take:])
+	copy(last, sorted[n-take:])
 
 	h := sha256.New()
 	var buf [64]byte
-	for _, r := range records {
+	for _, r := range sorted {
 		tmp := strconv.AppendInt(buf[:0], int64(r.Id), 10)
 		tmp = append(tmp, ',')
 		tmp = strconv.AppendInt(tmp, int64(r.Score), 10)
@@ -113,8 +144,14 @@ func main() {
 	var in Input
 	json.Unmarshal(raw, &in)
 
+	n := len(in.Records)
+	bufA = make([]Record, n)
+	bufB = make([]Record, n)
+	counts = make([]uint32, radixSize)
+
 	respond(map[string]string{"type": "ready", "protocolVersion": "2.0.0"})
 	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Buffer(make([]byte, 1024*1024), 1024*1024)
 	var last Output
 	for scanner.Scan() {
 		var req struct {
@@ -129,7 +166,7 @@ func main() {
 			return
 		}
 		if req.Type == "run" {
-			last = kernel(in.Records)
+			last = kernel(radixSort(in.Records))
 			respond(map[string]any{"type": "result", "requestId": req.RequestId, "digest": outputDigest(last)})
 		}
 	}

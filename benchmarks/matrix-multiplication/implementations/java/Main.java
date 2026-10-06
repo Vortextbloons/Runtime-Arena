@@ -205,26 +205,48 @@ public final class Main {
         return new String(result);
     }
 
-    private static Result kernel(Input input) throws Exception {
+    private static Result kernel(Input input, long[] product, long[] transposed) throws Exception {
         int n = input.dimension;
-        long[] product = new long[n * n];
+        long[] left = input.left;
+        long[] right = input.right;
         long valueSum = 0;
         long diagonalSum = 0;
+
+        // Blocked transpose of B so the cubic loop streams sequentially.
+        for (int ii = 0; ii < n; ii += 32) {
+            int iMax = Math.min(ii + 32, n);
+            for (int jj = 0; jj < n; jj += 32) {
+                int jMax = Math.min(jj + 32, n);
+                for (int i = ii; i < iMax; i++) {
+                    int base = i * n;
+                    for (int j = jj; j < jMax; j++) transposed[j * n + i] = right[base + j];
+                }
+            }
+        }
+
+        // Row/row dot products with 4-way unrolled accumulator parallelism.
+        int kLim = n & ~3;
         for (int i = 0; i < n; i++) {
-            int leftBase = i * n;
-            int outputBase = i * n;
-            for (int j = 0; j < n; j++)
-                product[outputBase + j] = 0;
-            for (int k = 0; k < n; k++) {
-                long a_ik = input.left[leftBase + k];
-                int rightBase = k * n;
-                for (int j = 0; j < n; j++)
-                    product[outputBase + j] += a_ik * input.right[rightBase + j];
-            }
+            int aBase = i * n;
+            int cBase = i * n;
+            long rowSum = 0;
             for (int j = 0; j < n; j++) {
-                valueSum += product[outputBase + j];
-                if (i == j) diagonalSum += product[outputBase + j];
+                int bBase = j * n;
+                long s0 = 0, s1 = 0, s2 = 0, s3 = 0;
+                int k = 0;
+                for (; k < kLim; k += 4) {
+                    s0 += left[aBase + k] * transposed[bBase + k];
+                    s1 += left[aBase + k + 1] * transposed[bBase + k + 1];
+                    s2 += left[aBase + k + 2] * transposed[bBase + k + 2];
+                    s3 += left[aBase + k + 3] * transposed[bBase + k + 3];
+                }
+                long s = (s0 + s1) + (s2 + s3);
+                for (; k < n; k++) s += left[aBase + k] * transposed[bBase + k];
+                product[cBase + j] = s;
+                rowSum += s;
+                if (i == j) diagonalSum += s;
             }
+            valueSum += rowSum;
         }
 
         DigestWriter writer = new DigestWriter(MessageDigest.getInstance("SHA-256"));
@@ -287,13 +309,16 @@ public final class Main {
         emitLine("{\"type\":\"ready\",\"protocolVersion\":\"" + PROTOCOL_VERSION + "\"}");
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
         byte[] lastOutput = new byte[0];
+        int elements = input.dimension * input.dimension;
+        long[] product = new long[elements];
+        long[] transposed = new long[elements];
         String line;
         while ((line = stdin.readLine()) != null) {
             if (line.isEmpty()) continue;
             String type = protocolField(line, "type");
             if ("run".equals(type)) {
                 long requestId = Long.parseLong(protocolField(line, "requestId"));
-                lastOutput = outputJson(kernel(input)).getBytes(StandardCharsets.UTF_8);
+                lastOutput = outputJson(kernel(input, product, transposed)).getBytes(StandardCharsets.UTF_8);
                 emitLine("{\"type\":\"result\",\"requestId\":" + requestId + ",\"digest\":\"" + digestHex(lastOutput) + "\"}");
             } else if ("finish".equals(type)) {
                 Files.write(Path.of(outputPath), lastOutput);

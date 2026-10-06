@@ -846,6 +846,23 @@ func main() {
 				err = errors.New("matrix-multiplication result mismatch")
 			}
 		}
+	case "arena-exchange":
+		var in exchangeInput
+		var out exchangeOutput
+		if err = readInputJSON(*input, &in); err != nil {
+			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", err))
+		}
+		want, replayErr := runExchange(in)
+		if replayErr != nil {
+			finish("checker-error", *benchmark, fmt.Errorf("invalid input: %w", replayErr))
+		}
+		if err = strictJSON(*output, &out); err != nil {
+			status = "malformed-output"
+		} else if out.Version != 1 {
+			finish("unsupported-version", *benchmark, fmt.Errorf("unsupported arena-exchange output version %d", out.Version))
+		} else {
+			err = checkExchangeOutput(*output, want, out)
+		}
 	case "barrier-wave":
 		var in barrierWaveInput
 		var out barrierWaveOutput

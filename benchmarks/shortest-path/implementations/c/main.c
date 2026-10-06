@@ -46,6 +46,14 @@ typedef struct {
     int *adjCount;
     int64_t *dist;
     int *prev;
+    int *seen;      /* epoch stamp per vertex */
+    int *tmark;     /* target stamp per vertex */
+    int epoch;
+    int tepoch;
+    int *groupSrc;      /* distinct sources */
+    int groupCount;
+    int **members;      /* query indices per group */
+    int *memberCount;
     MinHeap pq;
 } SpCtx;
 
@@ -139,22 +147,34 @@ static char *produce_output(void *ctx, size_t *out_len) {
     SpCtx *c = (SpCtx *)ctx;
     Result *results = malloc(c->queryCount * sizeof(Result));
 
-    for (int qi = 0; qi < c->queryCount; qi++) {
-        Query *q = &c->queries[qi];
-        for (int v = 0; v < c->vertexCount; v++) { c->dist[v] = INT64_MAX; c->prev[v] = -1; }
-
+    for (int gi = 0; gi < c->groupCount; gi++) {
+        int src = c->groupSrc[gi];
+        int cur = ++c->epoch;
+        int tc = ++c->tepoch;
+        int rem = 0;
+        for (int k = 0; k < c->memberCount[gi]; k++) {
+            int qi = c->members[gi][k];
+            int d = c->queries[qi].destination;
+            if (d != src && c->tmark[d] != tc) { c->tmark[d] = tc; rem++; }
+        }
+        c->dist[src] = 0;
+        c->seen[src] = cur;
+        c->prev[src] = -1;
         c->pq.size = 0;
-        c->dist[q->source] = 0;
-        heapPush(&c->pq, 0, q->source);
+        heapPush(&c->pq, 0, src);
 
-        while (c->pq.size > 0) {
+        while (c->pq.size > 0 && rem > 0) {
             PQItem item = heapPop(&c->pq);
-            if (item.dist != c->dist[item.prev]) continue;
-            if (item.prev == q->destination) break;
+            if (c->seen[item.prev] != cur || item.dist != c->dist[item.prev]) continue;
+            if (c->tmark[item.prev] == tc) {
+                c->tmark[item.prev] = 0;
+                if (--rem == 0) break;
+            }
             for (int ei = 0; ei < c->adjCount[item.prev]; ei++) {
                 Edge *e = &c->edges[c->adj[item.prev][ei]];
                 int64_t nextCost = item.dist + e->weight;
-                if (nextCost < c->dist[e->to]) {
+                if (c->seen[e->to] != cur || nextCost < c->dist[e->to]) {
+                    c->seen[e->to] = cur;
                     c->dist[e->to] = nextCost;
                     c->prev[e->to] = item.prev;
                     heapPush(&c->pq, nextCost, e->to);
@@ -162,27 +182,38 @@ static char *produce_output(void *ctx, size_t *out_len) {
             }
         }
 
-        results[qi].id = q->id;
-        if (c->dist[q->destination] == INT64_MAX) {
-            results[qi].hasDistance = 0;
-            results[qi].distance = 0;
-            results[qi].path = NULL;
-            results[qi].pathLen = 0;
-        } else {
-            results[qi].hasDistance = 1;
-            results[qi].distance = c->dist[q->destination];
-            int pathCap = 16;
-            int *path = malloc(pathCap * sizeof(int));
-            int pathLen = 0;
-            for (int v = q->destination; v != -1; v = c->prev[v]) {
-                if (pathLen >= pathCap) { pathCap *= 2; path = realloc(path, pathCap * sizeof(int)); }
-                path[pathLen++] = v;
+        for (int k = 0; k < c->memberCount[gi]; k++) {
+            int qi = c->members[gi][k];
+            Query *q = &c->queries[qi];
+            results[qi].id = q->id;
+            if (q->destination == src) {
+                results[qi].hasDistance = 1;
+                results[qi].distance = 0;
+                results[qi].path = malloc(sizeof(int));
+                results[qi].path[0] = src;
+                results[qi].pathLen = 1;
+            } else if (c->seen[q->destination] != cur) {
+                results[qi].hasDistance = 0;
+                results[qi].distance = 0;
+                results[qi].path = NULL;
+                results[qi].pathLen = 0;
+            } else {
+                results[qi].hasDistance = 1;
+                results[qi].distance = c->dist[q->destination];
+                int pathCap = 16;
+                int *path = malloc(pathCap * sizeof(int));
+                int pathLen = 0;
+                for (int v = q->destination; ; v = c->prev[v]) {
+                    if (pathLen >= pathCap) { pathCap *= 2; path = realloc(path, pathCap * sizeof(int)); }
+                    path[pathLen++] = v;
+                    if (v == src) break;
+                }
+                for (int j = 0; j < pathLen / 2; j++) {
+                    int tmp = path[j]; path[j] = path[pathLen-1-j]; path[pathLen-1-j] = tmp;
+                }
+                results[qi].path = path;
+                results[qi].pathLen = pathLen;
             }
-            for (int j = 0; j < pathLen / 2; j++) {
-                int tmp = path[j]; path[j] = path[pathLen-1-j]; path[pathLen-1-j] = tmp;
-            }
-            results[qi].path = path;
-            results[qi].pathLen = pathLen;
         }
     }
 
@@ -272,6 +303,35 @@ int main(int argc, char *argv[]) {
 
     ctx.dist = malloc(ctx.vertexCount * sizeof(int64_t));
     ctx.prev = malloc(ctx.vertexCount * sizeof(int));
+    ctx.seen = calloc(ctx.vertexCount, sizeof(int));
+    ctx.tmark = calloc(ctx.vertexCount, sizeof(int));
+    ctx.epoch = 0;
+    ctx.tepoch = 0;
+    /* group query indices by source */
+    int *srcIndex = malloc(ctx.vertexCount * sizeof(int));
+    for (int v = 0; v < ctx.vertexCount; v++) srcIndex[v] = -1;
+    ctx.groupSrc = malloc(ctx.queryCount * sizeof(int));
+    ctx.members = malloc(ctx.queryCount * sizeof(int *));
+    ctx.memberCount = calloc(ctx.queryCount, sizeof(int));
+    int *memberCap = calloc(ctx.queryCount, sizeof(int));
+    ctx.groupCount = 0;
+    for (int i = 0; i < ctx.queryCount; i++) {
+        int s = ctx.queries[i].source;
+        if (srcIndex[s] < 0) {
+            srcIndex[s] = ctx.groupCount;
+            ctx.groupSrc[ctx.groupCount] = s;
+            ctx.members[ctx.groupCount] = NULL;
+            ctx.groupCount++;
+        }
+        int g = srcIndex[s];
+        if (ctx.memberCount[g] >= memberCap[g]) {
+            memberCap[g] = memberCap[g] ? memberCap[g] * 2 : 4;
+            ctx.members[g] = realloc(ctx.members[g], memberCap[g] * sizeof(int));
+        }
+        ctx.members[g][ctx.memberCount[g]++] = i;
+    }
+    free(srcIndex);
+    free(memberCap);
     ctx.pq = (MinHeap){0};
 
     char line[4096], field[256], digest[65];
@@ -301,6 +361,12 @@ int main(int argc, char *argv[]) {
     free(lastOutput);
     free(ctx.dist);
     free(ctx.prev);
+    free(ctx.seen);
+    free(ctx.tmark);
+    free(ctx.groupSrc);
+    for (int g = 0; g < ctx.groupCount; g++) free(ctx.members[g]);
+    free(ctx.members);
+    free(ctx.memberCount);
     free(ctx.pq.data);
     for (int i = 0; i < ctx.vertexCount; i++) free(ctx.adj[i]);
     free(ctx.adj);

@@ -70,10 +70,33 @@ public final class Main {
         final int[] destinations;
         final long[] weights;
         final Query[] queries;
+        final int[] groupSources;
+        final int[][] members;
 
         Graph(int vertexCount, int[] offsets, int[] destinations, long[] weights, Query[] queries) {
             this.vertexCount = vertexCount; this.offsets = offsets;
             this.destinations = destinations; this.weights = weights; this.queries = queries;
+            int[] srcIndex = new int[vertexCount];
+            Arrays.fill(srcIndex, -1);
+            ArrayList<Integer> sources = new ArrayList<>();
+            ArrayList<ArrayList<Integer>> lists = new ArrayList<>();
+            for (int i = 0; i < queries.length; i++) {
+                int s = queries[i].source;
+                if (srcIndex[s] < 0) {
+                    srcIndex[s] = sources.size();
+                    sources.add(s);
+                    lists.add(new ArrayList<>());
+                }
+                lists.get(srcIndex[s]).add(i);
+            }
+            groupSources = new int[sources.size()];
+            members = new int[sources.size()][];
+            for (int g = 0; g < sources.size(); g++) {
+                groupSources[g] = sources.get(g);
+                ArrayList<Integer> list = lists.get(g);
+                members[g] = new int[list.size()];
+                for (int k = 0; k < list.size(); k++) members[g][k] = list.get(k);
+            }
         }
     }
 
@@ -152,48 +175,96 @@ public final class Main {
     private static String kernel(Graph graph) {
         long[] distances = new long[graph.vertexCount];
         int[] previous = new int[graph.vertexCount];
+        int[] seen = new int[graph.vertexCount];
+        int[] target = new int[graph.vertexCount];
+        int epoch = 0;
+        int targetEpoch = 0;
         long[] heapDistances = new long[graph.weights.length + 1];
         int[] heapNodes = new int[graph.weights.length + 1];
         int[] heapSize = new int[1];
         int[] path = new int[graph.vertexCount];
-        StringBuilder output = new StringBuilder(graph.queries.length * 64)
-                .append("{\"benchmark\":\"shortest-path\",\"version\":1,\"results\":[");
+        long[] outDistances = new long[graph.queries.length];
+        boolean[] reachable = new boolean[graph.queries.length];
+        int[][] outPaths = new int[graph.queries.length][];
+        int[] outPathLens = new int[graph.queries.length];
 
-        for (int queryIndex = 0; queryIndex < graph.queries.length; queryIndex++) {
-            Query query = graph.queries[queryIndex];
-            Arrays.fill(distances, INF);
-            Arrays.fill(previous, -1);
+        for (int group = 0; group < graph.groupSources.length; group++) {
+            int source = graph.groupSources[group];
+            int[] mem = graph.members[group];
+            int current = ++epoch;
+            int tc = ++targetEpoch;
+            int remaining = 0;
+            for (int qi : mem) {
+                int destination = graph.queries[qi].destination;
+                if (destination != source && target[destination] != tc) {
+                    target[destination] = tc;
+                    remaining++;
+                }
+            }
+            distances[source] = 0;
+            seen[source] = current;
+            previous[source] = -1;
             heapSize[0] = 0;
-            distances[query.source] = 0;
-            push(heapDistances, heapNodes, heapSize, 0, query.source);
-            while (heapSize[0] != 0) {
+            push(heapDistances, heapNodes, heapSize, 0, source);
+            while (heapSize[0] != 0 && remaining != 0) {
                 int node = heapNodes[0];
                 long distance = popDistance(heapDistances, heapNodes, heapSize);
-                if (distance != distances[node]) continue;
-                if (node == query.destination) break;
+                if (seen[node] != current || distance != distances[node]) continue;
+                if (target[node] == tc) {
+                    target[node] = 0;
+                    if (--remaining == 0) break;
+                }
                 for (int edge = graph.offsets[node]; edge < graph.offsets[node + 1]; edge++) {
-                    int destination = graph.destinations[edge];
+                    int dest = graph.destinations[edge];
                     long nextDistance = distance + graph.weights[edge];
-                    if (nextDistance < distances[destination]) {
-                        distances[destination] = nextDistance;
-                        previous[destination] = node;
-                        push(heapDistances, heapNodes, heapSize, nextDistance, destination);
+                    if (seen[dest] != current || nextDistance < distances[dest]) {
+                        seen[dest] = current;
+                        distances[dest] = nextDistance;
+                        previous[dest] = node;
+                        push(heapDistances, heapNodes, heapSize, nextDistance, dest);
                     }
                 }
             }
+            for (int qi : mem) {
+                Query query = graph.queries[qi];
+                if (query.destination == source) {
+                    reachable[qi] = true;
+                    outDistances[qi] = 0;
+                    outPaths[qi] = new int[]{source};
+                    outPathLens[qi] = 1;
+                } else if (seen[query.destination] != current) {
+                    reachable[qi] = false;
+                } else {
+                    reachable[qi] = true;
+                    outDistances[qi] = distances[query.destination];
+                    int pathLength = 0;
+                    for (int node = query.destination; ; node = previous[node]) {
+                        path[pathLength++] = node;
+                        if (node == source) break;
+                    }
+                    int[] p = new int[pathLength];
+                    for (int i = 0; i < pathLength; i++) p[i] = path[pathLength - 1 - i];
+                    outPaths[qi] = p;
+                    outPathLens[qi] = pathLength;
+                }
+            }
+        }
 
+        StringBuilder output = new StringBuilder(graph.queries.length * 64)
+                .append("{\"benchmark\":\"shortest-path\",\"version\":1,\"results\":[");
+        for (int queryIndex = 0; queryIndex < graph.queries.length; queryIndex++) {
+            Query query = graph.queries[queryIndex];
             if (queryIndex != 0) output.append(',');
             output.append("{\"queryId\":").append(query.id);
-            if (distances[query.destination] == INF) {
+            if (!reachable[queryIndex]) {
                 output.append(",\"distance\":null,\"path\":[]}");
                 continue;
             }
-            output.append(",\"distance\":").append(distances[query.destination]).append(",\"path\":[");
-            int pathLength = 0;
-            for (int node = query.destination; node != -1; node = previous[node]) path[pathLength++] = node;
-            for (int i = pathLength - 1; i >= 0; i--) {
-                if (i != pathLength - 1) output.append(',');
-                output.append(path[i]);
+            output.append(",\"distance\":").append(outDistances[queryIndex]).append(",\"path\":[");
+            int[] p = outPaths[queryIndex];
+            for (int i = 0; i < outPathLens[queryIndex]; i++) {
+                if (i != 0) output.append(',');
+                output.append(p[i]);
             }
             output.append("]}");
         }

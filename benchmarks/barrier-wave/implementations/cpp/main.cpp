@@ -1,21 +1,16 @@
 #include "json.hpp"
 #include "sha256.hpp"
 #include <atomic>
+#include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
-
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <condition_variable>
-#include <mutex>
-#endif
 
 using json = nlohmann::json;
 
@@ -40,7 +35,7 @@ struct Output {
     std::string digest;
 };
 
-static uint32_t mix32(uint32_t x) {
+static inline uint32_t mix32(uint32_t x) {
     x ^= x >> 16;
     x *= 0x21f0aaad;
     x ^= x >> 15;
@@ -49,7 +44,7 @@ static uint32_t mix32(uint32_t x) {
     return x;
 }
 
-static uint64_t rotateLeft64(uint64_t x, unsigned n) {
+static inline uint64_t rotateLeft64(uint64_t x, unsigned n) {
     return (x << n) | (x >> (64 - n));
 }
 
@@ -69,202 +64,119 @@ static uint32_t parseHexSeed(const std::string& s) {
     return (uint32_t)strtoul(s.c_str(), nullptr, 16);
 }
 
-#ifdef _WIN32
-
-struct Worker {
-    int id;
-    int itemsPerWorker;
-    int roundsPerItem;
-    alignas(64) std::atomic<uint32_t> generation{0};
-    alignas(64) std::atomic<uint32_t> doneGen{0};
-    alignas(64) std::atomic<uint32_t> shouldStop{0};
-    uint32_t seed;
-    uint32_t localXor;
-    uint64_t localSum;
+/* Single reusable barrier for N parties: one broadcast wakes everyone,
+ * replacing per-worker futex ping-pong with two syscalls per phase. */
+class Barrier {
+public:
+    explicit Barrier(unsigned parties) : parties_(parties) {}
+    void arrive_and_wait() {
+        std::unique_lock<std::mutex> lock(mutex_);
+        unsigned gen = cycle_;
+        if (++count_ == parties_) {
+            count_ = 0;
+            ++cycle_;
+            cond_.notify_all();
+        } else {
+            cond_.wait(lock, [&] { return cycle_ != gen; });
+        }
+    }
+private:
+    std::mutex mutex_;
+    std::condition_variable cond_;
+    const unsigned parties_;
+    unsigned count_ = 0;
+    unsigned cycle_ = 0;
 };
 
-static void workerFn(Worker* w) {
-    uint32_t seen = 0;
-    while (true) {
-        uint32_t cur = w->generation.load(std::memory_order_acquire);
-        while (cur == seen) {
-            if (w->shouldStop.load(std::memory_order_acquire)) return;
-            WaitOnAddress((PVOID)&w->generation, &seen, sizeof(uint32_t), INFINITE);
-            cur = w->generation.load(std::memory_order_acquire);
-        }
-        seen = cur;
-        if (w->shouldStop.load(std::memory_order_acquire)) return;
-
-        uint32_t phaseSeed = w->seed;
-
-        uint32_t workerMul = (uint32_t)w->id * 0x9e3779b9u;
-        uint32_t localXor = 0;
-        uint64_t localSum = 0;
-
-        for (int item = 0; item < w->itemsPerWorker; item++) {
-            uint32_t globalItemId = (uint32_t)(w->id * w->itemsPerWorker + item);
-            uint32_t x = phaseSeed ^ globalItemId ^ workerMul;
-            for (int r = 0; r < w->roundsPerItem; r++) {
-                x ^= x << 13;
-                x ^= x >> 17;
-                x ^= x << 5;
-                x = x * 0x9e3779b1u + 0x85ebca77u;
-            }
-            localXor ^= x;
-            localSum += x;
-        }
-
-        w->localXor = localXor;
-        w->localSum = localSum;
-
-        w->doneGen.fetch_add(1, std::memory_order_release);
-        WakeByAddressSingle((PVOID)&w->doneGen);
-    }
-}
-
-static Output kernel(const Input& in, std::vector<Worker>& workers) {
-    uint32_t phaseSeed = in.initialSeed;
-    uint64_t digest = 0x6a09e667f3bcc909ULL;
-    const int wc = in.workerCount;
-    std::vector<uint32_t> targets(wc);
-
-    for (int phase = 0; phase < in.phaseCount; phase++) {
-        for (int w = 0; w < wc; w++)
-            targets[w] = workers[w].doneGen.load(std::memory_order_relaxed);
-
-        for (auto& w : workers) {
-            w.seed = phaseSeed;
-        }
-        std::atomic_thread_fence(std::memory_order_release);
-
-        for (auto& w : workers) {
-            w.generation.fetch_add(1, std::memory_order_release);
-            WakeByAddressSingle((PVOID)&w.generation);
-        }
-
-        for (int w = 0; w < wc; w++) {
-            uint32_t target = targets[w] + 1;
-            uint32_t cur = workers[w].doneGen.load(std::memory_order_acquire);
-            while (cur < target) {
-                WaitOnAddress((PVOID)&workers[w].doneGen, &cur, sizeof(uint32_t), INFINITE);
-                cur = workers[w].doneGen.load(std::memory_order_acquire);
-            }
-        }
-
-        uint32_t nextSeed = phaseSeed ^ (uint32_t)phase;
-        uint64_t phaseSum = 0;
-        for (int w = 0; w < wc; w++) {
-            auto& r = workers[w];
-            nextSeed = mix32(nextSeed ^ r.localXor ^ (uint32_t)r.localSum ^ (uint32_t)(r.localSum >> 32) ^ (uint32_t)w);
-            phaseSum += r.localSum;
-        }
-
-        phaseSeed = nextSeed;
-        digest = rotateLeft64(digest, 7);
-        digest ^= (uint64_t)phaseSeed;
-        digest += phaseSum;
-    }
-
-    Output out;
-    out.schemaVersion = "1.0.0";
-    out.benchmark = "barrier-wave";
-    out.workerCount = in.workerCount;
-    out.phaseCount = in.phaseCount;
-    out.itemsProcessed = (int64_t)in.workerCount * in.phaseCount * in.itemsPerWorker;
-    out.finalSeed = toHex8(phaseSeed);
-    out.digest = toHex16(digest);
-    return out;
-}
-
-#else
-
-struct Worker {
-    int id;
-    int itemsPerWorker;
-    int roundsPerItem;
-    std::atomic<uint32_t> generation{0};
-    std::atomic<uint32_t> doneGen{0};
-    std::atomic<uint32_t> shouldStop{0};
+/* One slot per worker, sized to 128 bytes so slots never share a line. */
+struct alignas(64) Slot {
     uint32_t seed = 0;
-    uint32_t localXor;
-    uint64_t localSum;
-    alignas(64) char _pad[0];
+    uint32_t xorv = 0;
+    uint64_t sum = 0;
+    char pad[112] = {};
+};
+static_assert(sizeof(Slot) % 64 == 0, "slot must be line-multiple");
+
+struct Shared {
+    Input in;
+    std::vector<Slot> slots;
+    Barrier dispatch;
+    Barrier complete;
+    std::atomic<bool> shouldStop{false};
+    explicit Shared(const Input& in_)
+        : in(in_), slots(in_.workerCount),
+          dispatch(in_.workerCount + 1), complete(in_.workerCount + 1) {}
 };
 
-static void workerFn(Worker* w) {
-    uint32_t seen = 0;
+#define XROUND(x) do { \
+    x ^= x << 13;      \
+    x ^= x >> 17;      \
+    x ^= x << 5;       \
+    x = x * 0x9e3779b1u + 0x85ebca77u; \
+} while (0)
+
+static void workerFn(Shared* s, int id) {
+    const int items = s->in.itemsPerWorker;
+    const int rounds = s->in.roundsPerItem;
+    const uint32_t base = (uint32_t)(id * items);
+    const uint32_t workerMul = (uint32_t)id * 0x9e3779b9u;
+    const int n4 = items & ~3;
+    Slot& slot = s->slots[id];
+
     while (true) {
-        uint32_t cur = w->generation.load(std::memory_order_acquire);
-        while (cur == seen) {
-            if (w->shouldStop.load(std::memory_order_acquire)) return;
-            w->generation.wait(seen);
-            cur = w->generation.load(std::memory_order_acquire);
-        }
-        seen = cur;
-        if (w->shouldStop.load(std::memory_order_acquire)) return;
+        s->dispatch.arrive_and_wait();
+        if (s->shouldStop.load(std::memory_order_relaxed)) break;
+        const uint32_t phaseSeed = slot.seed;
 
-        uint32_t phaseSeed = w->seed;
-
-        uint32_t workerMul = (uint32_t)w->id * 0x9e3779b9u;
-        uint32_t localXor = 0;
-        uint64_t localSum = 0;
-
-        for (int item = 0; item < w->itemsPerWorker; item++) {
-            uint32_t globalItemId = (uint32_t)(w->id * w->itemsPerWorker + item);
-            uint32_t x = phaseSeed ^ globalItemId ^ workerMul;
-            for (int r = 0; r < w->roundsPerItem; r++) {
-                x ^= x << 13;
-                x ^= x >> 17;
-                x ^= x << 5;
-                x = x * 0x9e3779b1u + 0x85ebca77u;
+        uint32_t xor0 = 0, xor1 = 0, xor2 = 0, xor3 = 0;
+        uint64_t sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
+        int item = 0;
+        for (; item < n4; item += 4) {
+            uint32_t x0 = phaseSeed ^ (base + (uint32_t)item) ^ workerMul;
+            uint32_t x1 = phaseSeed ^ (base + (uint32_t)item + 1u) ^ workerMul;
+            uint32_t x2 = phaseSeed ^ (base + (uint32_t)item + 2u) ^ workerMul;
+            uint32_t x3 = phaseSeed ^ (base + (uint32_t)item + 3u) ^ workerMul;
+            for (int r = 0; r < rounds; r++) {
+                XROUND(x0); XROUND(x1); XROUND(x2); XROUND(x3);
             }
-            localXor ^= x;
-            localSum += x;
+            xor0 ^= x0; sum0 += x0;
+            xor1 ^= x1; sum1 += x1;
+            xor2 ^= x2; sum2 += x2;
+            xor3 ^= x3; sum3 += x3;
         }
+        uint32_t xorT = 0;
+        uint64_t sumT = 0;
+        for (; item < items; item++) {
+            uint32_t x = phaseSeed ^ (base + (uint32_t)item) ^ workerMul;
+            for (int r = 0; r < rounds; r++) XROUND(x);
+            xorT ^= x; sumT += x;
+        }
+        slot.xorv = xor0 ^ xor1 ^ xor2 ^ xor3 ^ xorT;
+        slot.sum = sum0 + sum1 + sum2 + sum3 + sumT;
 
-        w->localXor = localXor;
-        w->localSum = localSum;
-
-        w->doneGen.fetch_add(1, std::memory_order_release);
-        w->doneGen.notify_one();
+        s->complete.arrive_and_wait();
     }
+    /* Coordinator waits in complete after the stop dispatch. */
+    s->complete.arrive_and_wait();
 }
 
-static Output kernel(const Input& in, std::vector<Worker>& workers) {
+static Output kernel(Shared& s) {
+    const Input& in = s.in;
     uint32_t phaseSeed = in.initialSeed;
     uint64_t digest = 0x6a09e667f3bcc909ULL;
-    const int wc = in.workerCount;
-    std::vector<uint32_t> targets(wc);
 
     for (int phase = 0; phase < in.phaseCount; phase++) {
-        for (int w = 0; w < wc; w++)
-            targets[w] = workers[w].doneGen.load(std::memory_order_relaxed);
-
-        for (auto& w : workers) {
-            w.seed = phaseSeed;
-        }
-        std::atomic_thread_fence(std::memory_order_release);
-
-        for (auto& w : workers) {
-            w.generation.fetch_add(1, std::memory_order_release);
-            w.generation.notify_one();
-        }
-
-        for (int w = 0; w < wc; w++) {
-            uint32_t target = targets[w] + 1;
-            uint32_t cur = workers[w].doneGen.load(std::memory_order_acquire);
-            while (cur < target) {
-                workers[w].doneGen.wait(cur);
-                cur = workers[w].doneGen.load(std::memory_order_acquire);
-            }
-        }
+        for (int w = 0; w < in.workerCount; w++)
+            s.slots[w].seed = phaseSeed;
+        s.dispatch.arrive_and_wait();
+        s.complete.arrive_and_wait();
 
         uint32_t nextSeed = phaseSeed ^ (uint32_t)phase;
         uint64_t phaseSum = 0;
-        for (int w = 0; w < wc; w++) {
-            auto& r = workers[w];
-            nextSeed = mix32(nextSeed ^ r.localXor ^ (uint32_t)r.localSum ^ (uint32_t)(r.localSum >> 32) ^ (uint32_t)w);
-            phaseSum += r.localSum;
+        for (int w = 0; w < in.workerCount; w++) {
+            const Slot& r = s.slots[w];
+            nextSeed = mix32(nextSeed ^ r.xorv ^ (uint32_t)r.sum ^ (uint32_t)(r.sum >> 32) ^ (uint32_t)w);
+            phaseSum += r.sum;
         }
 
         phaseSeed = nextSeed;
@@ -283,8 +195,6 @@ static Output kernel(const Input& in, std::vector<Worker>& workers) {
     out.digest = toHex16(digest);
     return out;
 }
-
-#endif
 
 static std::string getArg(int argc, char* argv[], const char* name) {
     for (int i = 1; i < argc - 1; i++)
@@ -315,22 +225,6 @@ static json outputJson(const Output& out) {
     };
 }
 
-static void stopWorkers(std::vector<Worker>& workers) {
-#ifdef _WIN32
-    for (auto& w : workers) {
-        w.shouldStop.store(1, std::memory_order_release);
-        w.generation.fetch_add(1, std::memory_order_release);
-        WakeByAddressSingle((PVOID)&w.generation);
-    }
-#else
-    for (auto& w : workers) {
-        w.shouldStop.store(1, std::memory_order_release);
-        w.generation.fetch_add(1, std::memory_order_release);
-        w.generation.notify_one();
-    }
-#endif
-}
-
 int main(int argc, char* argv[]) {
     if (getArg(argc, argv, "--protocol-version") != PROTOCOL_VERSION) {
         std::cerr << "unsupported protocol version" << std::endl;
@@ -358,16 +252,10 @@ int main(int argc, char* argv[]) {
     in.roundsPerItem = jin["roundsPerItem"].get<int>();
     in.initialSeed = parseHexSeed(jin["initialSeed"].get<std::string>());
 
-    std::vector<Worker> workers(in.workerCount);
-    for (int i = 0; i < in.workerCount; i++) {
-        workers[i].id = i;
-        workers[i].itemsPerWorker = in.itemsPerWorker;
-        workers[i].roundsPerItem = in.roundsPerItem;
-    }
-
+    Shared shared(in);
     std::vector<std::thread> threads;
     for (int i = 0; i < in.workerCount; i++)
-        threads.emplace_back(workerFn, &workers[i]);
+        threads.emplace_back(workerFn, &shared, i);
 
     emitLine({{"type", "ready"}, {"protocolVersion", PROTOCOL_VERSION}});
 
@@ -379,7 +267,7 @@ int main(int argc, char* argv[]) {
         const std::string& type = msg["type"].get<std::string>();
         if (type == "run") {
             int64_t requestId = msg["requestId"].get<int64_t>();
-            lastOutput = outputJson(kernel(in, workers)).dump();
+            lastOutput = outputJson(kernel(shared)).dump();
             emitLine({{"type", "result"}, {"requestId", requestId}, {"digest", digestBytes(lastOutput)}});
         } else if (type == "finish") {
             std::ofstream out(outputFile, std::ios::binary);
@@ -389,7 +277,9 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    stopWorkers(workers);
+    shared.shouldStop.store(true, std::memory_order_relaxed);
+    shared.dispatch.arrive_and_wait();
+    shared.complete.arrive_and_wait();
     for (auto& t : threads)
         t.join();
 

@@ -8,88 +8,171 @@ if (arg("--protocol-version") !== PROTOCOL_VERSION) throw new Error(`unsupported
 
 const g = JSON.parse(await readFile(arg("--input"), "utf8"));
 const vertexCount = g.vertexCount;
+const V = vertexCount;
+const INF = Infinity;
 
-const adj = Array.from({ length: vertexCount }, () => []);
-for (const e of g.edges) adj[e.from].push(e);
-
-const dist = new Float64Array(vertexCount);
-const prev = new Int32Array(vertexCount);
-let heapCost = new Float64Array(Math.max(vertexCount, g.edges.length + 1));
-let heapNode = new Int32Array(heapCost.length);
-let heapLen = 0;
-
-function ensureHeapCapacity(needed) {
-  if (needed <= heapCost.length) return;
-  let cap = heapCost.length;
-  while (cap < needed) cap *= 2;
-  const nextCost = new Float64Array(cap);
-  const nextNode = new Int32Array(cap);
-  nextCost.set(heapCost);
-  nextNode.set(heapNode);
-  heapCost = nextCost;
-  heapNode = nextNode;
+// Flat CSR adjacency
+const degree = new Int32Array(V);
+for (const e of g.edges) degree[e.from]++;
+const offsets = new Int32Array(V + 1);
+for (let v = 0; v < V; v++) offsets[v + 1] = offsets[v] + degree[v];
+const E = g.edges.length;
+const dst = new Int32Array(E);
+const wgt = new Float64Array(E);
+{
+  const fill = offsets.slice(0, V);
+  for (const e of g.edges) {
+    const s = fill[e.from]++;
+    dst[s] = e.to;
+    wgt[s] = e.weight;
+  }
 }
 
+const queries = g.queries;
+const Q = queries.length;
+const qSrc = new Int32Array(Q);
+const qDst = new Int32Array(Q);
+const qId = new Int32Array(Q);
+for (let i = 0; i < Q; i++) {
+  qSrc[i] = queries[i].source;
+  qDst[i] = queries[i].destination;
+  qId[i] = queries[i].id;
+}
+
+// Group query indices by source
+const groupMap = new Map();
+for (let i = 0; i < Q; i++) {
+  const s = qSrc[i];
+  let a = groupMap.get(s);
+  if (!a) groupMap.set(s, (a = []));
+  a.push(i);
+}
+const groupSrc = [...groupMap.keys()];
+const groupIdx = [...groupMap.values()];
+
+const dist = new Float64Array(V);
+const prev = new Int32Array(V);
+const seen = new Int32Array(V); // epoch stamp
+const tmark = new Int32Array(V); // target stamp per group
+let epoch = 0;
+let tEpoch = 0;
+let heapCost = new Float64Array(Math.max(256, E + V));
+let heapNode = new Int32Array(heapCost.length);
+
 function kernel() {
-  const results = [];
-  for (const q of g.queries) {
-    dist.fill(Infinity);
-    prev.fill(-1);
-    dist[q.source] = 0;
-    heapLen = 1;
+  const outDist = new Array(Q);
+  const outPath = new Array(Q);
+  for (let gi = 0; gi < groupSrc.length; gi++) {
+    const src = groupSrc[gi];
+    const idxs = groupIdx[gi];
+    epoch++;
+    const cur = epoch;
+    tEpoch++;
+    const tc = tEpoch;
+    let rem = 0;
+    for (let k = 0; k < idxs.length; k++) {
+      const d = qDst[idxs[k]];
+      if (d !== src && tmark[d] !== tc) {
+        tmark[d] = tc;
+        rem++;
+      }
+    }
+    dist[src] = 0;
+    seen[src] = cur;
+    prev[src] = -1;
+    let heapLen = 0;
+    // push source
     heapCost[0] = 0;
-    heapNode[0] = q.source;
+    heapNode[0] = src;
+    heapLen = 1;
+    const o = offsets;
+    const dd = dst;
+    const ww = wgt;
     while (heapLen > 0) {
+      if (rem === 0) break;
+      // pop min
       const cost = heapCost[0];
       const u = heapNode[0];
       heapLen--;
       if (heapLen > 0) {
-        heapCost[0] = heapCost[heapLen];
-        heapNode[0] = heapNode[heapLen];
+        const lc = heapCost[heapLen];
+        const ln = heapNode[heapLen];
+        heapCost[0] = lc;
+        heapNode[0] = ln;
         let i = 0;
         for (;;) {
           const l = 2 * i + 1;
-          const r = 2 * i + 2;
-          let s = i;
-          if (l < heapLen && heapCost[l] < heapCost[s]) s = l;
-          if (r < heapLen && heapCost[r] < heapCost[s]) s = r;
-          if (s === i) break;
-          let tmp = heapCost[i]; heapCost[i] = heapCost[s]; heapCost[s] = tmp;
-          tmp = heapNode[i]; heapNode[i] = heapNode[s]; heapNode[s] = tmp;
+          if (l >= heapLen) break;
+          const r = l + 1;
+          let s = l;
+          if (r < heapLen && heapCost[r] < heapCost[l]) s = r;
+          if (heapCost[s] >= lc) break;
+          heapCost[i] = heapCost[s];
+          heapNode[i] = heapNode[s];
           i = s;
         }
+        heapCost[i] = lc;
+        heapNode[i] = ln;
       }
-      if (cost !== dist[u]) continue;
-      if (u === q.destination) break;
-      for (const e of adj[u]) {
-        const next = cost + e.weight;
-        if (next < dist[e.to]) {
-          dist[e.to] = next;
-          prev[e.to] = u;
-          let i = heapLen;
-          ensureHeapCapacity(i + 1);
-          heapLen++;
-          heapCost[i] = next;
-          heapNode[i] = e.to;
+      if (seen[u] !== cur || cost !== dist[u]) continue;
+      if (tmark[u] === tc) {
+        tmark[u] = -tc; // consume
+        if (--rem === 0) break;
+      }
+      const base = o[u];
+      const end = o[u + 1];
+      for (let ei = base; ei < end; ei++) {
+        const to = dd[ei];
+        const next = cost + ww[ei];
+        if (seen[to] !== cur || next < dist[to]) {
+          seen[to] = cur;
+          dist[to] = next;
+          prev[to] = u;
+          // push (grow heap if pathological duplicate pushes overflow)
+          if (heapLen === heapCost.length) {
+            const nc = new Float64Array(heapCost.length * 2);
+            nc.set(heapCost);
+            heapCost = nc;
+            const nn = new Int32Array(heapNode.length * 2);
+            nn.set(heapNode);
+            heapNode = nn;
+          }
+          let i = heapLen++;
           while (i > 0) {
             const p = (i - 1) >>> 1;
-            if (heapCost[p] <= heapCost[i]) break;
-            let tmp = heapCost[p]; heapCost[p] = heapCost[i]; heapCost[i] = tmp;
-            tmp = heapNode[p]; heapNode[p] = heapNode[i]; heapNode[i] = tmp;
+            if (heapCost[p] <= next) break;
+            heapCost[i] = heapCost[p];
+            heapNode[i] = heapNode[p];
             i = p;
           }
+          heapCost[i] = next;
+          heapNode[i] = to;
         }
       }
     }
-    if (dist[q.destination] === Infinity) {
-      results.push({ queryId: q.id, distance: null, path: [] });
-    } else {
-      const path = [];
-      for (let x = q.destination; x !== -1; x = prev[x]) path.push(x);
-      path.reverse();
-      results.push({ queryId: q.id, distance: dist[q.destination], path });
+    for (let k = 0; k < idxs.length; k++) {
+      const i = idxs[k];
+      const d = qDst[i];
+      if (d === src) {
+        outDist[i] = 0;
+        outPath[i] = [src];
+      } else if (seen[d] !== cur) {
+        outDist[i] = null;
+        outPath[i] = [];
+      } else {
+        outDist[i] = dist[d];
+        const rev = [];
+        for (let x = d; ; x = prev[x]) {
+          rev.push(x);
+          if (x === src) break;
+        }
+        rev.reverse();
+        outPath[i] = rev;
+      }
     }
   }
+  const results = new Array(Q);
+  for (let i = 0; i < Q; i++) results[i] = { queryId: qId[i], distance: outDist[i], path: outPath[i] };
   return { benchmark: "shortest-path", version: 1, results };
 }
 

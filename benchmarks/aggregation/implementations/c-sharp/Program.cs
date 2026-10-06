@@ -81,9 +81,20 @@ static class Program
         return rows.ToArray();
     }
 
-    static string Escaped(string value)
+    static readonly SHA256 Sha = SHA256.Create();
+
+    static void AppendEscaped(StringBuilder sb, string value)
     {
-        var sb = new StringBuilder(value.Length + 2);
+        bool simple = true;
+        foreach (char c in value)
+        {
+            if (c == '"' || c == '\\' || c < 0x20) { simple = false; break; }
+        }
+        if (simple)
+        {
+            sb.Append('"').Append(value).Append('"');
+            return;
+        }
         sb.Append('"');
         foreach (char c in value)
         {
@@ -95,36 +106,35 @@ static class Program
             else sb.Append(c);
         }
         sb.Append('"');
-        return sb.ToString();
     }
 
-    static string CategoriesJson(List<Category> categories)
+    static void AppendCategories(StringBuilder sb, List<Category> categories)
     {
-        var sb = new StringBuilder("[");
+        sb.Append('[');
         for (int i = 0; i < categories.Count; i++)
         {
             if (i != 0) sb.Append(',');
             var c = categories[i];
-            sb.Append("{\"category\":").Append(Escaped(c.Name))
-              .Append(",\"quantity\":").Append(c.Quantity)
+            sb.Append("{\"category\":");
+            AppendEscaped(sb, c.Name);
+            sb.Append(",\"quantity\":").Append(c.Quantity)
               .Append(",\"valueMinorUnits\":").Append(c.Value).Append('}');
         }
         sb.Append(']');
-        return sb.ToString();
     }
 
-    static string AccountsJson(List<Account> accounts)
+    static void AppendAccounts(StringBuilder sb, List<Account> accounts)
     {
-        var sb = new StringBuilder("[");
+        sb.Append('[');
         for (int i = 0; i < accounts.Count; i++)
         {
             if (i != 0) sb.Append(',');
             var a = accounts[i];
-            sb.Append("{\"accountId\":").Append(Escaped(a.Id))
-              .Append(",\"valueMinorUnits\":").Append(a.Value).Append('}');
+            sb.Append("{\"accountId\":");
+            AppendEscaped(sb, a.Id);
+            sb.Append(",\"valueMinorUnits\":").Append(a.Value).Append('}');
         }
         sb.Append(']');
-        return sb.ToString();
     }
 
     static string Hex(byte[] digest)
@@ -142,8 +152,9 @@ static class Program
 
     static Result Kernel(Row[] rows)
     {
-        var categoriesByName = new Dictionary<string, Category>();
-        var accountsById = new Dictionary<string, Account>();
+        // Pre-sized: ~8 categories, ~100 accounts; avoids resize/rehash churn.
+        var categoriesByName = new Dictionary<string, Category>(16);
+        var accountsById = new Dictionary<string, Account>(256);
         var result = new Result
         {
             Min = long.MaxValue,
@@ -196,27 +207,36 @@ static class Program
 
         top.Sort(AccountOrder);
 
-        var checksumInput = "{\"Categories\":" + CategoriesJson(cats)
-            + ",\"TopAccounts\":" + AccountsJson(top) + "}\n";
+        var checksumBuilder = new StringBuilder(2048);
+        checksumBuilder.Append("{\"Categories\":");
+        AppendCategories(checksumBuilder, cats);
+        checksumBuilder.Append(",\"TopAccounts\":");
+        AppendAccounts(checksumBuilder, top);
+        checksumBuilder.Append("}\n");
+        var checksumInput = checksumBuilder.ToString();
         result.Categories = cats;
         result.TopAccounts = top;
-        result.Checksum = Hex(SHA256.HashData(Encoding.UTF8.GetBytes(checksumInput)));
+        result.Checksum = Hex(Sha.ComputeHash(Encoding.UTF8.GetBytes(checksumInput)));
         return result;
     }
 
     static string Output(Result r)
     {
-        return "{\"benchmark\":\"aggregation\",\"version\":1,\"recordCount\":" + r.Count
-            + ",\"totalQuantity\":" + r.Quantity + ",\"totalValueMinorUnits\":" + r.Value
-            + ",\"categories\":" + CategoriesJson(r.Categories)
-            + ",\"topAccounts\":" + AccountsJson(r.TopAccounts)
-            + ",\"minimumTransactionMinorUnits\":" + r.Min
-            + ",\"maximumTransactionMinorUnits\":" + r.Max
-            + ",\"checksum\":\"" + r.Checksum + "\"}";
+        var sb = new StringBuilder(4096);
+        sb.Append("{\"benchmark\":\"aggregation\",\"version\":1,\"recordCount\":").Append(r.Count)
+          .Append(",\"totalQuantity\":").Append(r.Quantity)
+          .Append(",\"totalValueMinorUnits\":").Append(r.Value)
+          .Append(",\"categories\":");
+        AppendCategories(sb, r.Categories);
+        sb.Append(",\"topAccounts\":");
+        AppendAccounts(sb, r.TopAccounts);
+        sb.Append(",\"minimumTransactionMinorUnits\":").Append(r.Min)
+          .Append(",\"maximumTransactionMinorUnits\":").Append(r.Max)
+          .Append(",\"checksum\":\"").Append(r.Checksum).Append("\"}");
+        return sb.ToString();
     }
 
-    static string DigestHex(byte[] bytes) =>
-        Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+    static string DigestHex(byte[] bytes) => Hex(Sha.ComputeHash(bytes));
 
     static void EmitLine(string json)
     {
